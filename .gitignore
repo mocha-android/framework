@@ -1,0 +1,6 @@
+gen/*
+.idea*
+.DS_Store
+out/*
+*.iml
+local.properties
