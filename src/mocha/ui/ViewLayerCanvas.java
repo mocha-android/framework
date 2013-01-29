@@ -11,7 +11,6 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import com.enormego.coreanimation.Layer;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 

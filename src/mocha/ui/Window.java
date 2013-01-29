@@ -6,25 +6,14 @@
 package mocha.ui;
 
 import android.content.Context;
-import android.graphics.*;
-import android.graphics.drawable.Drawable;
 import android.opengl.*;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import com.mochatest.OpenGLRenderer;
-import com.mochatest.Square;
-import mocha.graphics.*;
 import mocha.graphics.Rect;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -327,16 +316,11 @@ public final class Window extends View {
 
 				long currentTime = 0, previousTime = 0;
 
-				Square square;
-
 				public WindowSurfaceRenderer() {
 
 				}
 
 				public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-					square = new Square(new Rect(40.0f, 40.0f, 100.0f, 100.0f));
-					square.loadGLTexture(gl, Screen.mainScreen().getContext());
-
 					gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 					gl.glShadeModel(GL10.GL_SMOOTH);
 					gl.glClearDepthf(1.0f);

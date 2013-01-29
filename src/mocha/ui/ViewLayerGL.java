@@ -12,8 +12,6 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLU;
 import android.opengl.GLUtils;
-import com.mochatest.R;
-import com.mochatest.Square;
 import mocha.foundation.Benchmark;
 import mocha.graphics.Context;
 import mocha.graphics.Point;
