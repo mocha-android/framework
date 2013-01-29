@@ -10,6 +10,7 @@ import mocha.graphics.Rect;
 import mocha.graphics.TextAlignment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class NavigationController extends ViewController implements NavigationBar.Delegate {
@@ -94,6 +95,10 @@ public class NavigationController extends ViewController implements NavigationBa
 
 	public ViewController getTopViewController() {
 		return this.viewControllers.size() > 0 ? this.viewControllers.get(0) : null;
+	}
+
+	public List<ViewController> getViewControllers() {
+		return Collections.unmodifiableList(viewControllers);
 	}
 
 	public void setViewControllers(List<ViewController> viewControllers) {

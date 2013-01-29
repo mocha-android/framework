@@ -21,7 +21,6 @@ public final class Window extends View {
 	private Activity activity;
 	private Responder firstResponder;
 	protected ViewController rootViewController;
-	boolean layoutOut;
 
 	public Window(Activity activity) {
 		super(activity, Screen.mainScreen().getBounds());
@@ -126,6 +125,8 @@ public final class Window extends View {
 	}
 
 	public void sendEvent(Event event) {
+		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
+		
 		if(event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
 			List<Touch> touches = event.touchesForWindow(this);

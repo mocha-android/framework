@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 public class Activity extends android.app.Activity {
 	private ArrayList<Window> windows;
+	private Application application;
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -20,6 +21,9 @@ public class Activity extends android.app.Activity {
 
 		this.windows = new ArrayList<Window>();
 		Screen.setupMainScreen(this);
+
+		this.application = new Application(this);
+		Application.setSharedApplication(this.application);
 	}
 
 	void addWindow(Window window) {
