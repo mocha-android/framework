@@ -31,4 +31,37 @@ public class Color extends mocha.foundation.Object {
 		return rgba(white, white, white, alpha);
 	}
 
+	public static int red(int color) {
+		return android.graphics.Color.red(color);
+	}
+
+	public static int green(int color) {
+		return android.graphics.Color.green(color);
+	}
+
+	public static int blue(int color) {
+		return android.graphics.Color.blue(color);
+	}
+
+	public static int alpha(int color) {
+		return android.graphics.Color.alpha(color);
+	}
+
+
+	public static float redf(int color) {
+		return (float)android.graphics.Color.red(color) / 255.0f;
+	}
+
+	public static float greenf(int color) {
+		return (float)android.graphics.Color.green(color) / 255.0f;
+	}
+
+	public static float bluef(int color) {
+		return (float)android.graphics.Color.blue(color) / 255.0f;
+	}
+
+	public static float alphaf(int color) {
+		return (float)android.graphics.Color.alpha(color) / 255.0f;
+	}
+
 }

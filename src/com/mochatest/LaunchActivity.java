@@ -9,12 +9,15 @@ import android.os.Bundle;
 import com.mochatest.controllers.RootViewController;
 import mocha.ui.Activity;
 import mocha.ui.NavigationController;
+import mocha.ui.View;
 import mocha.ui.Window;
 
 public class LaunchActivity extends Activity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		View.SLOW_ANIMATIONS = false;
 
 		NavigationController navigationController = new NavigationController(new RootViewController());
 

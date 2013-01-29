@@ -6,12 +6,25 @@
 package mocha.ui;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.view.Display;
+import android.graphics.*;
+import android.graphics.drawable.Drawable;
+import android.opengl.*;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import com.mochatest.OpenGLRenderer;
+import com.mochatest.Square;
+import mocha.graphics.*;
 import mocha.graphics.Rect;
 
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -25,24 +38,15 @@ public final class Window extends View {
 		super(activity, Screen.mainScreen().getBounds());
 		this.getLayer().setBackgroundColor(Color.YELLOW);
 		this.activity = activity;
-	}
-
-	private static Rect getDisplayRect(Activity activity) {
-		Display display = activity.getWindowManager().getDefaultDisplay();
-		android.graphics.Point size = new android.graphics.Point();
-		display.getSize(size);
-
-		android.graphics.Rect rect = new android.graphics.Rect();
-		activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-		android.view.View decor = activity.getWindow().getDecorView();
-		android.view.View content = activity.getWindow().findViewById(android.view.Window.ID_ANDROID_CONTENT);
-		MLog("Display: " + rect.width() + "x" + rect.height() + " | Content " + content.getWidth() + "x" + content.getHeight());
-		return new Rect(0, 0, rect.width(), rect.height());
+		this.activity.addWindow(this);
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {
-		MLog("Getting window layout class");
-		return WindowLayer.class;
+		if(USE_GL_LAYERS) {
+			return WindowLayerGL.class;
+		} else {
+			return WindowLayerCanvas.class;
+		}
 	}
 
 	public ViewController getRootViewController() {
@@ -66,13 +70,32 @@ public final class Window extends View {
 			}
 
 			if(rootViewController != null) {
-				rootViewController.getView().setFrame(this.getBounds());
+				View view = rootViewController.getView();
+				view.setFrame(this.getBounds());
+				view.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
+
 				rootViewController.viewWillAppear(true);
-				this.addSubview(rootViewController.getView());
+				this.addSubview(view);
 				rootViewController.viewDidAppear(false);
 			}
 
 			this.rootViewController = rootViewController;
+		}
+	}
+
+	void onPause() {
+		ViewLayer layer = this.getLayer();
+
+		if(layer instanceof WindowLayerGL) {
+			// ((WindowLayerGL)layer).surfaceView.onPause();
+		}
+	}
+
+	void onResume() {
+		ViewLayer layer = this.getLayer();
+
+		if(layer instanceof WindowLayerGL) {
+			// ((WindowLayerGL)layer).surfaceView.onPause();
 		}
 	}
 
@@ -97,7 +120,15 @@ public final class Window extends View {
 	}
 
 	public void makeKeyWindow() {
-		this.activity.setContentView(this.getLayer());
+		ViewLayer layer = this.getLayer();
+
+		if(layer instanceof ViewLayerCanvas) {
+			this.activity.setContentView((ViewLayerCanvas)layer);
+		} else if(layer instanceof WindowLayerGL) {
+			FrameLayout frameLayout = new FrameLayout(this.activity);
+			frameLayout.addView(((WindowLayerGL)layer).surfaceView);
+			this.activity.setContentView(frameLayout);
+		}
 	}
 
 	public void makeKeyAndVisible() {
@@ -156,26 +187,13 @@ public final class Window extends View {
 		this.firstResponder = firstResponder;
 	}
 
-	protected static final class WindowLayer extends ViewLayer {
+	protected static final class WindowLayerCanvas extends ViewLayerCanvas {
 		private View hitView;
 		private Event lastEvent;
 
-		public WindowLayer(Context context) {
+		public WindowLayerCanvas(Context context) {
 			super(context);
 			MLog("Created window layout class");
-		}
-
-		public void forceLayout() {
-			super.forceLayout();
-
-			ViewGroup view = (ViewGroup)this.getParent();
-			if(view != null) {
-				Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
-				this.getWindow().superSetFrame(frame);
-				MLog("Window Bounds: " + this.getView().getBounds().toString());
-				MLog("Window Frame: " + frame);
-				MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
-			}
 		}
 
 		private Window getWindow() {
@@ -220,6 +238,187 @@ public final class Window extends View {
 			if(action == MotionEvent.ACTION_POINTER_ID_MASK) return "POINTER_ID_MASK";
 			if(action == MotionEvent.ACTION_POINTER_ID_SHIFT) return "POINTER_ID_SHIFT";
 			return "UNKNOWN";
+		}
+	}
+
+	public static final class WindowLayerGL extends ViewLayerGL {
+		private View hitView;
+		private Event lastEvent;
+		private GLSurfaceView surfaceView;
+		private static int LAYOUT = -598248493;
+		private ThreadLocal<LayoutHandler> layoutHandler = new ThreadLocal<LayoutHandler>();
+
+		public WindowLayerGL(android.content.Context context) {
+			super(context);
+
+			this.surfaceView = new WindowSurfaceView(context);
+		}
+
+		Window.WindowLayerGL getWindowLayer() {
+			return this;
+		}
+
+		void scheduleLayout() {
+			LayoutHandler handler = this.layoutHandler.get();
+
+			if(handler == null) {
+				handler = new LayoutHandler();
+				this.layoutHandler.set(handler);
+			}
+
+			if(!handler.layoutScheduled) {
+				handler.sendEmptyMessage(LAYOUT);
+			}
+		}
+
+		private Window getWindow() {
+			return (Window)this.getView();
+		}
+
+		class WindowSurfaceView extends GLSurfaceView {
+			private WindowSurfaceRenderer renderer;
+
+			WindowSurfaceView(Context context) {
+				super(context);
+
+				this.setEGLContextClientVersion(1);
+
+				this.renderer = new WindowSurfaceRenderer();
+				this.setRenderer(this.renderer);
+
+				this.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+			}
+
+			public void forceLayout() {
+				super.forceLayout();
+
+				ViewGroup view = (ViewGroup)this.getParent();
+				if(view != null) {
+					float scale = getView().scale;
+
+					Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
+					getWindow().superSetFrame(frame);
+					MLog("Window Bounds: " + getView().getBounds().toString());
+					MLog("Window Frame: " + frame);
+					MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
+				}
+			}
+
+			public boolean onTouchEvent(MotionEvent motionEvent) {
+				if(lastEvent == null) {
+					lastEvent = new Event(motionEvent, getWindow());
+				} else {
+					lastEvent.updateMotionEvent(motionEvent, getWindow());
+				}
+
+				getWindow().sendEvent(lastEvent);
+
+				return true;
+			}
+
+			class WindowSurfaceRenderer implements GLSurfaceView.Renderer {
+				private final boolean showFPS = true;
+
+				//  The number of frames
+				int frameCount = 0;
+
+				//  Number of frames per second
+				float fps = 0;
+
+				long currentTime = 0, previousTime = 0;
+
+				Square square;
+
+				public WindowSurfaceRenderer() {
+
+				}
+
+				public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+					square = new Square(new Rect(40.0f, 40.0f, 100.0f, 100.0f));
+					square.loadGLTexture(gl, Screen.mainScreen().getContext());
+
+					gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+					gl.glShadeModel(GL10.GL_SMOOTH);
+					gl.glClearDepthf(1.0f);
+					gl.glDisable(GL10.GL_DEPTH_TEST);
+					gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+					gl.glEnable(GL10.GL_BLEND);
+				}
+
+				public void onDrawFrame(GL10 gl) {
+					gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+					gl.glLoadIdentity();
+					WindowLayerGL.this.draw(gl);
+
+					if(showFPS) {
+						calculateFPS(gl);
+					}
+				}
+
+				private void drawFPS(GL10 gl) {
+					gl.glLoadIdentity();
+				}
+
+				void calculateFPS(GL10 gl) {
+					//  Increase frame count
+					frameCount++;
+
+					//  Get the number of milliseconds since glutInit called
+					//  (or first call to glutGet(GLUT ELAPSED TIME)).
+					currentTime = android.os.SystemClock.uptimeMillis();
+
+					//  Calculate time passed
+					long timeInterval = currentTime - previousTime;
+
+					if(timeInterval > 1000) {
+						//  calculate the number of frames per second
+						fps = frameCount / (timeInterval / 1000.0f);
+
+						//  Set time
+						previousTime = currentTime;
+
+						//  Reset frame count
+						frameCount = 0;
+
+						MLog("FPS: %s", fps);
+					}
+				}
+
+				public void onSurfaceChanged(GL10 gl, int width, int height) {
+					float scaledWidth = ceilf((float)width / scale);
+					float scaledHeight = ceilf((float)height / scale);
+
+					gl.glViewport(0, 0, width, height);
+					gl.glMatrixMode(GL10.GL_PROJECTION);
+					gl.glLoadIdentity();
+					GLU.gluOrtho2D(gl, 0.0f, scaledWidth, scaledHeight, 0.0f);
+
+					gl.glMatrixMode(GL10.GL_MODELVIEW);
+					gl.glLoadIdentity();
+				}
+			}
+		}
+
+
+		class LayoutHandler extends android.os.Handler {
+			public boolean layoutScheduled;
+
+			public void handleMessage(android.os.Message message) {
+				this.layoutScheduled = false;
+
+				if(message.what == LAYOUT) {
+					layout(WindowLayerGL.this);
+					surfaceView.requestRender();
+				}
+			}
+
+			private void layout(ViewLayerGL layer) {
+				layer.layoutSublayersIfNeeded();
+
+				for(ViewLayerGL sublayer : layer.getSublayersGL()) {
+					layout(sublayer);
+				}
+			}
 		}
 	}
 }

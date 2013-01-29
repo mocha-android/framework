@@ -16,6 +16,9 @@ import mocha.graphics.Size;
 import java.util.*;
 
 public class View extends Responder {
+	public static final boolean USE_GL_LAYERS = false;
+	public static boolean SLOW_ANIMATIONS = false;
+
 	private ViewLayer layer;
 	private View superview;
 	private int backgroundColor;
@@ -29,7 +32,6 @@ public class View extends Responder {
 	private Rect bounds;
 	private ArrayList<GestureRecognizer> gestureRecognizers;
 	private boolean clipsToBounds;
-	private final boolean supportsDrawing;
 	public final float scale;
 	private boolean onCreatedCalled;
 	private ViewController _viewController;
@@ -113,22 +115,15 @@ public class View extends Responder {
 		this.clipsToBounds = false;
 
 
-		boolean supportsDrawing = false;
+		boolean supportsDrawing;
+		
 		try {
 			supportsDrawing = this.getClass().getMethod("draw", mocha.graphics.Context.class, Rect.class).getDeclaringClass() != View.class;
 		} catch (NoSuchMethodException e) {
 			supportsDrawing = false;
 		}
 
-		this.supportsDrawing = supportsDrawing;
-
-
-		this.layer.setWillNotDraw(!supportsDrawing);
-
-		if(supportsDrawing) {
-			this.layer.setDrawingCacheEnabled(true);
-			this.layer.setDrawingCacheQuality(android.view.View.DRAWING_CACHE_QUALITY_HIGH);
-		}
+		this.layer.setSupportsDrawing(supportsDrawing);
 
 		this.onCreate(frame);
 
@@ -255,10 +250,6 @@ public class View extends Responder {
 
 		this.backgroundColor = backgroundColor;
 		this.layer.setBackgroundColor(backgroundColor);
-
-		if(this.supportsDrawing) {
-			this.layer.setDrawingCacheBackgroundColor(backgroundColor);
-		}
 	}
 
 	public boolean doesAutoresizeSubviews() {
@@ -282,15 +273,11 @@ public class View extends Responder {
 	}
 
 	public boolean isHidden() {
-		return this.getLayer().getVisibility() == android.view.View.GONE;
+		return this.getLayer().isHidden();
 	}
 
 	public void setHidden(boolean hidden) {
-		if(hidden) {
-			this.getLayer().setVisibility(android.view.View.GONE);
-		} else {
-			this.getLayer().setVisibility(android.view.View.VISIBLE);
-		}
+		this.getLayer().setHidden(hidden);
 	}
 
 	public void setAlpha(float alpha) {
@@ -384,7 +371,7 @@ public class View extends Responder {
 
 	// Geometry
 
-	private Point convertPointToWindow(Point point) {
+	Point convertPointToWindow(Point point) {
 		View view = this;
 		Point convertedPoint = new Point(point);
 
@@ -491,19 +478,19 @@ public class View extends Responder {
 			this.superview.willRemoveSubview(this);
 			this.willMoveWindows(oldWindow, null);
 			this.willMoveToSuperview(null);
-			this.superview.layer.removeView(this.layer);
+			this.layer.removeFromSuperlayer();
 			this.superview.subviews.remove(this);
 			this.superview = null;
 			this.didMoveWindows(oldWindow, null);
 			this.didMoveToSuperview();
-			layer.didMoveToSuperview();
+			layer.didMoveToSuperlayer();
 		}
 	}
 
 	public void insertSubview(View view, int index) {
 		if(view.superview != null && view.superview != this) {
 			view.superview.willRemoveSubview(view);
-			view.superview.layer.removeView(view.layer);
+			view.layer.removeFromSuperlayer();
 			view.superview.subviews.remove(view);
 		}
 
@@ -513,11 +500,11 @@ public class View extends Responder {
 		view.willMoveWindows(oldWindow, newWindow);
 		view.willMoveToSuperview(this);
 		this.subviews.add(index, view);
-		this.layer.addView(view.layer, index);
+		this.layer.insertSublayerAtIndex(view.layer, index);
 		view.superview = this;
 		view.didMoveWindows(oldWindow, newWindow);
 		view.didMoveToSuperview();
-		view.layer.didMoveToSuperview();
+		view.layer.didMoveToSuperlayer();
 		this.didAddSubview(view);
 	}
 
@@ -534,12 +521,12 @@ public class View extends Responder {
 		Collections.swap(this.subviews, index1, index2);
 
 		ViewLayer layer = this.getLayer();
-		layer.removeView(layer1);
-		layer.removeView(layer2);
-		layer.addView(layer2, index1);
-		layer.addView(layer1, index2);
-		layer1.didMoveToSuperview();
-		layer2.didMoveToSuperview();
+		layer1.removeFromSuperlayer();
+		layer2.removeFromSuperlayer();
+		layer.insertSublayerAtIndex(layer2, index1);
+		layer.insertSublayerAtIndex(layer1, index2);
+		layer1.didMoveToSuperlayer();
+		layer2.didMoveToSuperlayer();
 	}
 
 	public void addSubview(View view) {
@@ -557,20 +544,20 @@ public class View extends Responder {
 	}
 
 	public void bringSubviewToFront(View view) {
-		this.layer.removeView(view.layer);
-		this.layer.addView(view.layer);
+		view.layer.removeFromSuperlayer();
+		this.layer.addSublayer(view.layer);
 		this.subviews.remove(view);
 		this.subviews.add(view);
 	}
 
 	public void sendSubviewToBack(View view) {
-		if(view.layer.getParent() != this.layer) return;
+		if(view.layer.getSuperlayer() != this.layer) return;
 
-		this.layer.removeView(view.layer);
-		this.layer.addView(view.layer, 0);
+		view.layer.removeFromSuperlayer();
+		this.layer.insertSublayerAtIndex(view.layer, 0);
 		this.subviews.remove(view);
 		this.subviews.add(0, view);
-		view.layer.didMoveToSuperview();
+		view.layer.didMoveToSuperlayer();
 	}
 
 	public void didAddSubview(View subview) {
@@ -654,7 +641,7 @@ public class View extends Responder {
 	// Allows you to perform layer before the drawing cycle happens. -layoutIfNeeded forces layer early
 	public void setNeedsLayout() {
 		this.needsLayout = true;
-		this.layer.requestLayout();
+		this.layer.setNeedsLayout();
 	}
 
 	public void layoutIfNeeded() {
@@ -704,11 +691,11 @@ public class View extends Responder {
 	// Rendering
 
 	public void setNeedsDisplay() {
-		this.layer.invalidate();
+		this.layer.setNeedsDisplay();
 	}
 
 	public void setNeedsDisplay(Rect dirtyRect) {
-		this.layer.invalidate(dirtyRect.toSystemRect(scale));
+		this.layer.setNeedsDisplay(dirtyRect);
 	}
 
 	public void draw(mocha.graphics.Context context, Rect rect) {
@@ -776,7 +763,11 @@ public class View extends Responder {
 	// Layer backing
 
 	public Class<? extends ViewLayer> getLayerClass() {
-		return ViewLayer.class;
+		if(USE_GL_LAYERS) {
+			return ViewLayerGL.class;
+		} else {
+			return ViewLayerCanvas.class;
+		}
 	}
 
 	// Animations
@@ -926,8 +917,10 @@ public class View extends Responder {
 				animator = AnimatorSet.withAnimators(animators);
 			}
 
-			animator.setDuration(duration);
-			animator.setStartDelay(delay);
+			long timeModifier = SLOW_ANIMATIONS ? 10 : 1;
+
+			animator.setDuration(duration * timeModifier);
+			animator.setStartDelay(delay * timeModifier);
 
 			if(didStart != null || didStop != null) {
 				animator.addListener(new Animator.Listener() {

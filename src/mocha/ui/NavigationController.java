@@ -63,7 +63,6 @@ public class NavigationController extends ViewController implements NavigationBa
 		float navBarHeight = 44.0f;
 		this.navigationBar.setFrame(new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight));
 		this.navigationBar.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH);
-		view.addSubview(this.navigationBar);
 
 		Rect frame = bounds.copy();
 		frame.origin.y += navBarHeight;
@@ -73,6 +72,8 @@ public class NavigationController extends ViewController implements NavigationBa
 		this.containerView.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 		this.containerView.setBackgroundColor(Color.BLACK);
 		view.addSubview(this.containerView);
+
+		view.addSubview(this.navigationBar);
 	}
 
 	protected void viewDidLoad() {
