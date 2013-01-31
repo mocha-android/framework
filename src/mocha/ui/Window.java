@@ -47,6 +47,7 @@ public final class Window extends View {
 
 			if(oldViewController != null) {
 				oldViewController.viewWillDisappear(false);
+				oldViewController.setNextResponder(null);
 			}
 
 			while(this.getSubviews().size() > 0) {
@@ -58,6 +59,8 @@ public final class Window extends View {
 			}
 
 			if(rootViewController != null) {
+				rootViewController.setNextResponder(this);
+
 				View view = rootViewController.getView();
 				view.setFrame(this.getBounds());
 				view.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
@@ -124,6 +127,7 @@ public final class Window extends View {
 		this.makeKeyWindow();
 	}
 
+
 	public void sendEvent(Event event) {
 		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
 		
@@ -167,6 +171,10 @@ public final class Window extends View {
 				}
 			}
 		}
+	}
+
+	public void backKeyPressed(Event event) {
+		this.activity.backKeyPressed(event);
 	}
 
 	Responder getFirstResponder() {
@@ -244,7 +252,7 @@ public final class Window extends View {
 			this.surfaceView = new WindowSurfaceView(context);
 		}
 
-		Window.WindowLayerGL getWindowLayer() {
+		WindowLayerGL getWindowLayer() {
 			return this;
 		}
 

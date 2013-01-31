@@ -72,6 +72,8 @@ public class Control extends View {
 	private HorizontalAlignment contentHorizontalAlignment;
 	private VerticalAlignment contentVerticalAlignment;
 	private HashMap<ActionTarget,EnumSet<ControlEvent>> registeredActions;
+	private EnumSet<State> cachedState;
+	private State[] cachedStates;
 
 	public Control() { this(Rect.zero()); }
 
@@ -227,28 +229,42 @@ public class Control extends View {
 
 
 	public EnumSet<State> getState() {
-		EnumSet<State> state = EnumSet.of(State.NORMAL);
+		if(this.cachedState == null) {
+			this.cachedState = EnumSet.of(State.NORMAL);
 
-		if(this.highlighted) {
-			state.add(State.HIGHLIGHTED);
+			if(this.highlighted) {
+				this.cachedState.add(State.HIGHLIGHTED);
+			}
+
+			if(this.selected) {
+				this.cachedState.add(State.SELECTED);
+			}
+
+			if(!this.enabled) {
+				this.cachedState.add(State.DISABLED);
+			}
 		}
 
-		if(this.selected) {
-			state.add(State.SELECTED);
+		return this.cachedState;
+	}
+
+	State[] getStates() {
+		if(this.cachedStates == null) {
+			EnumSet<State> state = this.getState();
+			this.cachedStates = state.toArray(new State[state.size()]);
 		}
 
-		if(!this.enabled) {
-			state.add(State.DISABLED);
-		}
-
-		return state;
+		return this.cachedStates;
 	}
 
 	protected void stateWillChange() {
 
 	}
 
-	protected void  stateDidChange() {
+	protected void stateDidChange() {
+		this.cachedState = null;
+		this.cachedStates = null;
+
 		this.setNeedsDisplay();
 		this.setNeedsLayout();
 	}

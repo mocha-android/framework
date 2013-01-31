@@ -97,6 +97,14 @@ public class Responder extends mocha.foundation.Object {
 		}
 	}
 
+	public void backKeyPressed(Event event) {
+		Responder nextResponder = this.nextResponder();
+
+		if(nextResponder != null) {
+			nextResponder.backKeyPressed(event);
+		}
+	}
+
 	private Window findWindow() {
 		if(this instanceof View) {
 			return ((View)this).getWindow();

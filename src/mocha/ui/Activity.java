@@ -30,6 +30,28 @@ public class Activity extends android.app.Activity {
 		this.windows.add(window);
 	}
 
+	public void onBackPressed() {
+		mocha.foundation.Object.MLog("Back key pressed");
+		if(this.application.isIgnoringInteractionEvents()) return;
+
+		if(this.windows.size() > 0) {
+			Responder responder = this.windows.get(0).getFirstResponder();
+
+			if(responder != null) {
+				mocha.foundation.Object.MLog("Back key pressed with first responder: %s", responder);
+				responder.backKeyPressed(Event.systemEvent(this.windows.get(0)));
+				return;
+			}
+		}
+
+		super.onBackPressed();
+	}
+
+	void backKeyPressed(Event event) {
+		mocha.foundation.Object.MLog("Back key event finished, calling super");
+		super.onBackPressed();
+	}
+
 	protected void onPause() {
 		super.onPause();
 

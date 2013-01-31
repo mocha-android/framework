@@ -31,6 +31,7 @@ public class NavigationItem extends mocha.foundation.Object {
 	private boolean leftItemsSupplementBackButton;
 	private List<BarButtonItem> leftBarButtonItems;
 	private List<BarButtonItem> rightBarButtonItems;
+	private View titleView;
 
 	public NavigationItem() {
 		this.leftBarButtonItems = new ArrayList<BarButtonItem>();
@@ -242,4 +243,11 @@ public class NavigationItem extends mocha.foundation.Object {
 		}
 	}
 
+	public View getTitleView() {
+		return titleView;
+	}
+
+	public void setTitleView(View titleView) {
+		this.titleView = titleView;
+	}
 }

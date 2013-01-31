@@ -18,7 +18,6 @@ public class NavigationController extends ViewController implements NavigationBa
 	private View containerView;
 	private List<ViewController> viewControllers;
 	private boolean navigationBarHidden;
-	private Label tmpPopLabel;
 
 	public NavigationController(ViewController rootViewController) {
 		this();
@@ -35,22 +34,6 @@ public class NavigationController extends ViewController implements NavigationBa
 
 		this.navigationBar = new NavigationBar();
 		this.navigationBar.setDelegate(this);
-
-		this.tmpPopLabel = new Label(new Rect(6.0f, 6.0f, 38.0f, 28.0f));
-		Rect bounds = this.tmpPopLabel.getBounds();
-		bounds.inset(-10.0f, -10.0f);
-		this.tmpPopLabel.setBounds(bounds);
-		this.tmpPopLabel.setText("Pop");
-		this.tmpPopLabel.setBackgroundColor(Color.GRAY);
-		this.tmpPopLabel.setFont(Font.getBoldSystemFontWithSize(10.0f));
-		this.tmpPopLabel.setTextAlignment(TextAlignment.CENTER);
-		this.tmpPopLabel.setUserInteractionEnabled(true);
-		this.tmpPopLabel.addGestureRecognizer(new TapGestureRecognizer(new GestureRecognizer.GestureHandler() {
-			public void handleGesture(GestureRecognizer gestureRecognizer) {
-				popViewControllerAnimated(true);
-			}
-		}));
-		this.navigationBar.addSubview(tmpPopLabel);
 	}
 
 	protected void loadView() {
@@ -77,6 +60,16 @@ public class NavigationController extends ViewController implements NavigationBa
 		view.addSubview(this.navigationBar);
 	}
 
+	public void viewDidAppear(boolean animated) {
+		super.viewDidAppear(animated);
+		this.becomeFirstResponder();
+	}
+
+	public void viewWillDisappear(boolean animated) {
+		super.viewWillDisappear(animated);
+		this.resignFirstResponder();
+	}
+
 	protected void viewDidLoad() {
 		super.viewDidLoad();
 
@@ -87,10 +80,15 @@ public class NavigationController extends ViewController implements NavigationBa
 			view.setFrame(this.containerView.getBounds());
 			view.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			this.containerView.addSubview(view);
-			MLog("HERE");
-		} else {
-			MLog("NOT HERE?");
+
+			for(ViewController viewController : this.viewControllers) {
+				this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), false);
+			}
 		}
+	}
+
+	public boolean canBecomeFirstResponder() {
+		return true;
 	}
 
 	public ViewController getTopViewController() {
@@ -147,6 +145,10 @@ public class NavigationController extends ViewController implements NavigationBa
 		if(this.viewControllers.contains(viewController)) return;
 		this.viewControllers.add(viewController);
 
+		animated = animated && this.viewControllers.size() > 0 && this.getView().getWindow() != null;
+
+		this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), true);
+
 		ViewController topViewController = this.getTopViewController();
 		this.addChildViewController(viewController);
 		this.transitionFromViewController(topViewController, viewController, animated, true, new Runnable() {
@@ -162,6 +164,12 @@ public class NavigationController extends ViewController implements NavigationBa
 
 		final ViewController poppedViewController = this.viewControllers.get(size - 1);
 		ViewController toViewController = this.viewControllers.get(size - 2);
+
+		animated = animated && this.getView().getWindow() != null;
+
+		this.navigationBar.setDelegate(null);
+		this.navigationBar.popNavigationItemAnimated(animated);
+		this.navigationBar.setDelegate(this);
 
 		poppedViewController.willMoveToParentViewController(null);
 		this.viewControllers.remove(size - 1);
@@ -236,10 +244,19 @@ public class NavigationController extends ViewController implements NavigationBa
 	}
 
 	public boolean shouldPopItem(NavigationBar navigationBar, NavigationItem item) {
-		return true;
+		this.popViewControllerAnimated(true);
+		return false;
 	}
 
 	public void didPopItem(NavigationBar navigationBar, NavigationItem item) {
 
+	}
+
+	public void backKeyPressed(Event event) {
+		if(this.viewControllers.size() > 1) {
+			this.popViewControllerAnimated(true);
+		} else {
+			super.backKeyPressed(event);
+		}
 	}
 }

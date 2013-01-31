@@ -15,6 +15,9 @@ public class ViewController extends Responder {
 	private List<ViewController> childViewControllers;
 	private int appearanceTransitionIsAppearing;
 	private int appearanceTransitionAnimated;
+	private NavigationItem navigationItem;
+	private String title;
+	private Responder nextResponder;
 
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
@@ -141,6 +144,27 @@ public class ViewController extends Responder {
 	 */
 	public void viewDidLayoutSubviews() {
 
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public NavigationItem getNavigationItem() {
+		if(this.navigationItem == null) {
+			this.navigationItem = new NavigationItem();
+			this.navigationItem.setTitle(this.title);
+		}
+
+		return this.navigationItem;
+	}
+
+	public void setNavigationItem(NavigationItem navigationItem) {
+		this.navigationItem = navigationItem;
 	}
 
 	protected List<ViewController> getChildViewControllers() {
@@ -373,8 +397,12 @@ public class ViewController extends Responder {
 		}
 	}
 
+	void setNextResponder(Responder nextResponder) {
+		this.nextResponder = nextResponder;
+	}
+
 	public Responder nextResponder() {
-		return this.view != null ? this.view.getSuperview() : null;
+		return this.view != null ? this.view.getSuperview() : this.nextResponder;
 	}
 
 }

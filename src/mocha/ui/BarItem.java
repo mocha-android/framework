@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 1/29/13
- *	@copyright	2013 TV Guide, Inc. All rights reserved.
+ *	@copyright	2013 enormego All rights reserved.
  */
 package mocha.ui;
 

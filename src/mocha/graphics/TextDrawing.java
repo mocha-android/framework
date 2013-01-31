@@ -8,9 +8,10 @@ package mocha.graphics;
 import android.graphics.Paint;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import mocha.foundation.*;
 import mocha.ui.Screen;
 
-public class TextDrawing {
+public class TextDrawing extends mocha.foundation.Object {
 
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font) {
 		return draw(context, text, rect, font, TextAlignment.LEFT);
@@ -36,7 +37,7 @@ public class TextDrawing {
 		float x;
 
 		if(textAlignment == TextAlignment.CENTER) {
-			x = rect.origin.x + (rect.size.width / 2);
+			x = rect.origin.x + ((rect.size.width - textWidth) / 2);
 		} else if(textAlignment == TextAlignment.RIGHT) {
 			x = rect.origin.x + (rect.size.width - textWidth);
 		} else {
@@ -100,12 +101,21 @@ public class TextDrawing {
 		int length = text.length();
 		float[] measuredWidth = new float[] { 0.0f };
 		float width = 0.0f;
+		int safety = 0;
 
 		while(index < length - 1) {
-			index += textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
+			int measured = textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
+			index += measured;
 			lineCount++;
 
 			width = Math.max(measuredWidth[0], width);
+
+			if(measured == 0) break;
+
+			if(++safety > 1000) {
+				MWarn("getTextSize Safety Hit for Text: %s and Font: %s", text, font);
+				break;
+			}
 		}
 
 		return new Size(width / screenScale, lineCount * font.getLineHeight());

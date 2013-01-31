@@ -116,7 +116,7 @@ public class Image extends mocha.foundation.Object {
 	}
 
 	public Size getSize() {
-		return size;
+		return size.copy();
 	}
 
 	public float getScale() {
@@ -142,7 +142,7 @@ public class Image extends mocha.foundation.Object {
 		paint.setColor(0xff000000);
 
 		if(this.ninePatch != null) {
-			this.ninePatch.draw(canvas, canvas.getClipBounds(), paint);
+			this.ninePatch.draw(canvas, rect.toSystemRect(context.getScale()), paint);
 		} else {
 			canvas.drawBitmap(bitmap, new android.graphics.Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), rect.toSystemRectF(context.getScale()), paint);
 		}

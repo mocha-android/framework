@@ -23,7 +23,19 @@ public final class Event extends mocha.foundation.Object {
 
 	public enum Type {
 		TOUCHES,
+		SYSTEM,
 		UNKNOWN
+	}
+
+	static Event systemEvent(Window window) {
+		Event event = new Event();
+		event.timestamp = android.os.SystemClock.uptimeMillis();
+		event.type = Type.SYSTEM;
+		return event;
+	}
+
+	private Event() {
+
 	}
 
 	Event(MotionEvent motionEvent, Window window) {
