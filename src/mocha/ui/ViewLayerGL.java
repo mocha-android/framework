@@ -345,7 +345,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		}
 
 		if(this.supportsDrawing) {
-			if(this.needsDisplay) {
+			if(this.needsDisplay || this.texture == null) {
 				if(this.texture == null) {
 					this.texture = new Texture();
 					this.texture.setFrame(this.frame);
@@ -355,7 +355,9 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 				this.needsDisplay = false;
 			}
 
-			this.texture.draw(gl);
+			if(this.texture != null) {
+				this.texture.draw(gl);
+			}
 		}
 
 		if(this.sublayers.size() > 0) {
@@ -440,34 +442,39 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 			Benchmark benchmark = new Benchmark();
 			benchmark.start();
 
-			Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
+			Bitmap bitmap = width > 0 && height > 0? Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444) : null;
 			// bitmap.setDensity(dpi);
 
-			benchmark.step("Create bitmap");
+			if(bitmap != null) {
+				benchmark.step("Create bitmap");
 
-			Canvas canvas = new Canvas(bitmap);
-			// bitmap.eraseColor(0);
+				Canvas canvas = new Canvas(bitmap);
+				// bitmap.eraseColor(0);
 
-			benchmark.step("Create canvas");
+				benchmark.step("Create canvas");
 
-			Context context = new Context(canvas, 1.0f);
-			benchmark.step("Create context");
-			view.draw(context, bounds.copy());
-			benchmark.step("Draw");
+				Context context = new Context(canvas, 1.0f);
+				benchmark.step("Create context");
+				view.draw(context, bounds.copy());
+				benchmark.step("Draw");
 
-			int[] id = new int[1];
-			gl.glGenTextures(1, id, 0);
-			this.id = id[0];
+				int[] id = new int[1];
+				gl.glGenTextures(1, id, 0);
+				this.id = id[0];
 
-			gl.glBindTexture(GL10.GL_TEXTURE_2D, this.id);
+				gl.glBindTexture(GL10.GL_TEXTURE_2D, this.id);
 
-			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_NEAREST);
-			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+				gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_NEAREST);
+				gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 
-			GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-			benchmark.step("Store texture");
+				GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+				benchmark.step("Store texture");
 
-			bitmap.recycle();
+				bitmap.recycle();
+			} else {
+				this.id = -1;
+			}
+
 			benchmark.step("Recycle");
 
 			benchmark.end();

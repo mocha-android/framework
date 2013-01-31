@@ -7,6 +7,7 @@ package mocha.ui;
 
 import mocha.graphics.Font;
 import mocha.graphics.Image;
+import mocha.graphics.Rect;
 
 class NavigationButton extends Button {
 
@@ -23,9 +24,11 @@ class NavigationButton extends Button {
 	}
 
 	private NavigationButton(String title, Image image, boolean back) {
-		this.getTitleLabel().setFont(Font.getSystemFontWithSize(11.0f));
+		this.getTitleLabel().setFont(Font.getBoldSystemFontWithSize(12.0f));
 		this.setContentEdgeInsets(new EdgeInsets(0.0f, back ? 15.0f : 7.0f, 0.0f, 7.0f));
 		this.setTitle(title, State.NORMAL);
+		this.setTitleColor(Color.WHITE, State.NORMAL);
+		this.setTitleShadowColor(Color.BLACK, State.NORMAL);
 
 		if(!back) {
 			this.setImage(image, State.NORMAL);
@@ -36,16 +39,23 @@ class NavigationButton extends Button {
 
 			this.setContentEdgeInsets(new EdgeInsets(0.0f, 10.0f, 0.0f, 10.0f));
 			this.setImageEdgeInsets(new EdgeInsets(-1.0f, 0.0f, 1.0f, 0.0f));
-			this.setTitleEdgeInsets(new EdgeInsets(0.0f, 0.0f, 1.0f, 0.0f));
+			this.setTitleEdgeInsets(new EdgeInsets(-2.0f, 0.0f, 2.0f, 0.0f));
 		} else {
 			EdgeInsets insets = new EdgeInsets(6.0f, 14.0f, 6.0f, 6.0f);
 			this.setBackgroundImage(Image.imageNamed(R.drawable.mocha_navigation_bar_default_back).resizableImageWithCapInsets(insets), State.NORMAL);
 			this.setBackgroundImage(Image.imageNamed(R.drawable.mocha_navigation_bar_default_back_pressed).resizableImageWithCapInsets(insets), State.NORMAL, State.HIGHLIGHTED);
 
-			this.setContentEdgeInsets(new EdgeInsets(0.0f, 10.0f, 0.0f, 10.0f));
+			this.setContentEdgeInsets(new EdgeInsets(0.0f, 12.0f, 0.0f, 9.0f));
 			this.setImageEdgeInsets(new EdgeInsets(-1.0f, 0.0f, 1.0f, 0.0f));
-			this.setTitleEdgeInsets(new EdgeInsets(0.0f, 0.0f, 1.0f, 0.0f));
+			this.setTitleEdgeInsets(new EdgeInsets(-1.0f, 0.0f, 2.0f, 0.0f));
 		}
+	}
+
+	public Rect getTitleRectForContentRect(Rect contentRect) {
+		Rect rect = super.getTitleRectForContentRect(contentRect);
+		rect.origin.x -= 1.0f;
+		rect.size.width += 2.0f;
+		return rect;
 	}
 
 }

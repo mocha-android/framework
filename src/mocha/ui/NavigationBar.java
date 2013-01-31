@@ -15,7 +15,8 @@ public class NavigationBar extends View {
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_BUTTON_HEIGHT = 30.0f;
-	private static final long ANIMATION_DURATION = 330;
+	static final long ANIMATION_DURATION = 630;
+	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
 	public interface Delegate {
 		public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item);
@@ -39,6 +40,7 @@ public class NavigationBar extends View {
 	private View centerView;
 	private View rightView;
 	private Image backgroundImage;
+	private boolean leftIsBackButton;
 
 	public NavigationBar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
 
@@ -131,184 +133,193 @@ public class NavigationBar extends View {
 		this.delegate = delegate;
 	}
 
-	private void removeViews(List<View> views) {
-		for(View view : views) {
-			view.removeFromSuperview();
-		}
-	}
-
-	private void setViewsWithTransition(Transition transition, boolean animated) {
-		final List<View> previousViews = new ArrayList<View>();
-
-		if(this.leftView != null) {
-			previousViews.add(this.leftView);
-		}
-
-		if(this.centerView != null) {
-			previousViews.add(this.centerView);
-		}
-
-		if(this.rightView != null) {
-			previousViews.add(this.rightView);
-		}
-
-		if (animated) {
-			float moveCenterBy = this.getBounds().size.width - ((this.centerView != null) ? this.centerView.getFrame().origin.x : 0.0f);
-			float moveLeftBy = this.getBounds().size.width * 0.33f;
-
-			if (transition == Transition.PUSH) {
-				moveCenterBy *= -1.f;
-				moveLeftBy *= -1.f;
-			}
-
-			final float _moveLeftBy = moveLeftBy;
-			final float _moveCenterBy = moveCenterBy;
-
-			View.animateWithDuration(ANIMATION_DURATION, new Animations() {
-				public void performAnimatedChanges() {
-					if(leftView != null) {
-						leftView.setFrame(leftView.getFrame().offset(_moveLeftBy, 0.0f));
-					}
-
-					if(centerView != null) {
-						centerView.setFrame(centerView.getFrame().offset(_moveCenterBy, 0.0f));
-					}
-				}
-			}, new AnimationCompletion() {
-				public void animationCompletion(boolean finished) {
-					removeViews(previousViews);
-				}
-			});
-
-
-			View.beginAnimations(null, null);
-			View.setAnimationCurve(AnimationCurve.EASE_IN_OUT);
-			View.setAnimationDuration((long)((double)ANIMATION_DURATION * 0.8));
-			if(leftView != null) leftView.setAlpha(0.0f);
-			if(centerView != null) centerView.setAlpha(0.0f);
-			if(rightView != null) rightView.setAlpha(0.0f);
-			View.commitAnimations();
-		} else {
-			removeViews(previousViews);
-		}
+	private void setViewsWithTransition(final Transition transition, boolean animated) {
+		final View previousLeftView = this.leftView;
+		final View previousRightView = this.rightView;
+		final View previousCenterView = this.centerView;
+		final boolean previousLeftIsBackButton = this.leftIsBackButton;
 
 		NavigationItem topItem = this.getTopItem();
 
 		if (topItem != null) {
 			NavigationItem backItem = this.getBackItem();
 
-			Rect leftFrame;
-			Rect rightFrame;
-
 			if (backItem != null && topItem.getLeftBarButtonItem() == null && !topItem.hidesBackButton()) {
 				this.leftView = getBackItemButton(backItem);
+				leftIsBackButton = true;
 			} else {
 				this.leftView = getItemView(topItem.getLeftBarButtonItem());
+				leftIsBackButton = false;
 			}
 
 			if (this.leftView != null) {
-				leftFrame = this.leftView.getFrame();
-				leftFrame.origin.x = BUTTON_EDGE_INSETS.left;
-				leftFrame.origin.y = BUTTON_EDGE_INSETS.top;
-				this.leftView.setFrame(leftFrame);
-				this.leftView.setAlpha(0.0f);
-				this.addSubview(this.leftView);
-			} else {
-				leftFrame = Rect.zero();
+				Rect frame = this.leftView.getFrame();
+				frame.origin.x = BUTTON_EDGE_INSETS.left;
+				frame.origin.y = BUTTON_EDGE_INSETS.top;
+				this.leftView.setFrame(frame);
 			}
 
 			this.rightView = getItemView(topItem.getRightBarButtonItem());
 
 			if (this.rightView != null) {
 				this.rightView.setAutoresizing(Autoresizing.FLEXIBLE_LEFT_MARGIN);
-				rightFrame = this.rightView.getFrame();
-				rightFrame.origin.x = this.getBounds().size.width - rightFrame.size.width - BUTTON_EDGE_INSETS.right;
-				rightFrame.origin.y = BUTTON_EDGE_INSETS.top;
-				this.rightView.setFrame(rightFrame);
-				this.rightView.setAlpha(0.0f);
-				this.addSubview(this.rightView);
+				Rect frame = this.rightView.getFrame();
+				frame.origin.x = this.getBounds().size.width - frame.size.width - BUTTON_EDGE_INSETS.right;
+				frame.origin.y = BUTTON_EDGE_INSETS.top;
+				this.rightView.setFrame(frame);
+			}
+
+			Rect titleFrame = new Rect();
+			titleFrame.size = this.getBounds().size.copy();
+			titleFrame.size.width -= BUTTON_EDGE_INSETS.left + BUTTON_EDGE_INSETS.right;
+
+			if(this.leftView != null) {
+				titleFrame.origin.x = this.leftView.getFrame().maxX() + BUTTON_EDGE_INSETS.left;
+				titleFrame.size.width -= this.leftView.getFrame().size.width + BUTTON_EDGE_INSETS.left;
 			} else {
-				rightFrame = Rect.zero();
+				titleFrame.origin.x = BUTTON_EDGE_INSETS.left;
+			}
+
+			if(this.rightView != null) {
+				titleFrame.size.width -= this.rightView.getFrame().size.width + BUTTON_EDGE_INSETS.right;
 			}
 
 			this.centerView = topItem.getTitleView();
 
 			if (this.centerView == null) {
-				Label titleLabel = new Label();
-				titleLabel.setText(topItem.getTitle());
-				titleLabel.setTextAlignment(TextAlignment.CENTER);
-				titleLabel.setBackgroundColor(Color.TRANSPARENT);
-				titleLabel.setTextColor(Color.WHITE);
-				titleLabel.setShadowColor(Color.rgba(0.0f, 0.0f, 0.0f, 0.5f));
-				titleLabel.setShadowOffset(new Size(0.0f, 1.0f));
-				titleLabel.setFont(Font.getBoldSystemFontWithSize(17.0f));
-				this.centerView = titleLabel;
+				this.centerView = new NavigationItemTitleView(topItem);
 			}
 
-			float centerPadding = Math.max(leftFrame.size.width, rightFrame.size.width);
-			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-			this.centerView.setFrame(new Rect(BUTTON_EDGE_INSETS.left+centerPadding, BUTTON_EDGE_INSETS.top, this.getBounds().size.width - BUTTON_EDGE_INSETS.right - BUTTON_EDGE_INSETS.left - centerPadding - centerPadding, MAX_BUTTON_HEIGHT));
+			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
+			this.centerView.setFrame(titleFrame);
 			this.centerView.setAlpha(0.0f);
-			this.addSubview(centerView);
 
-			if (animated) {
-				float moveCenterBy = this.getBounds().size.width - ((this.centerView != null) ? this.centerView.frame.origin.x : 0);
-				float moveLeftBy = this.getBounds().size.width * 0.33f;
-
-				if (transition == Transition.PUSH) {
-					moveLeftBy *= -1.0f;
-					moveCenterBy *= -1.0f;
-				}
-
-				final Rect destinationLeftFrame = this.leftView != null ? this.leftView.frame : null;
-				final Rect destinationCenterFrame = this.centerView != null ? this.centerView.frame : null;
-
-				if (this.leftView != null) {
-					this.leftView.setFrame(this.leftView.getFrame().offset(-moveLeftBy, 0.0f));
-					this.leftView.setAlpha(0.0f);
-				}
-
-				if(this.centerView != null) {
-					this.centerView.setFrame(this.centerView.getFrame().offset(-moveCenterBy, 0.0f));
-					this.centerView.setAlpha(0.0f);
-				}
-
-				if(this.rightView != null) {
-					this.rightView.setAlpha(0.0f);
-				}
-
-
-				if(this.leftView != null || this.centerView != null) {
-					View.animateWithDuration(ANIMATION_DURATION, new Animations() {
-						public void performAnimatedChanges() {
-							if(leftView != null) {
-								leftView.setFrame(destinationLeftFrame);
-							}
-
-							if(centerView != null) {
-								centerView.setFrame(destinationCenterFrame);
-							}
-						}
-					});
-				}
-
-				View.beginAnimations(null, null);
-				View.setAnimationCurve(AnimationCurve.EASE_IN_OUT);
-				View.setAnimationDuration((long)((double)ANIMATION_DURATION * 0.8));
-				if(leftView != null) leftView.setAlpha(1.0f);
-				if(centerView != null) centerView.setAlpha(1.0f);
-				if(rightView != null) rightView.setAlpha(1.0f);
-				View.commitAnimations();
-			} else {
-				if(leftView != null) leftView.setAlpha(1.0f);
-				if(centerView != null) centerView.setAlpha(1.0f);
-				if(rightView != null) rightView.setAlpha(1.0f);
+			if(this.centerView instanceof NavigationItemTitleView) {
+				((NavigationItemTitleView)this.centerView).setDestinationFrame(titleFrame, this.getBounds());
 			}
 		} else {
 			this.leftView = null;
 			this.centerView = null;
 			this.rightView = null;
+			leftIsBackButton = false;
 		}
+
+		if(animated) {
+			final Rect centerFrame = this.centerView != null ? this.centerView.getFrame() : null;
+			if(centerFrame != null) {
+				this.centerView.setAlpha(0.0f);
+				this.centerView.setFrame(this.getAnimateFromRectForTitleView(this.centerView, transition, false));
+				this.addSubview(this.centerView);
+			}
+
+			if(this.rightView != null) {
+				this.rightView.setAlpha(0.0f);
+				this.addSubview(this.rightView);
+			}
+
+			final Rect leftFrame = this.leftView != null ? this.leftView.getFrame() : null;
+			if(leftFrame != null) {
+				this.leftView.setAlpha(0.0f);
+
+				if(this.leftIsBackButton) {
+					this.leftView.setFrame(this.getAnimateFromRectForBackButton(this.leftView, transition, false));
+				}
+
+				this.addSubview(this.leftView);
+			}
+
+			View.animateWithDuration(ANIMATION_DURATION, new Animations() {
+				public void performAnimatedChanges() {
+					View.setAnimationCurve(ANIMATION_CURVE);
+
+					if(leftView != null) {
+						leftView.setAlpha(1.0f);
+						leftView.setFrame(leftFrame);
+					}
+
+					if(rightView != null) {
+						rightView.setAlpha(1.0f);
+					}
+
+					if(centerView != null) {
+						centerView.setAlpha(1.0f);
+						centerView.setFrame(centerFrame);
+					}
+
+					if(previousRightView != null) {
+						previousRightView.setAlpha(0.0f);
+					}
+
+					if(previousCenterView != null) {
+						previousCenterView.setAlpha(0.0f);
+						previousCenterView.setFrame(getAnimateFromRectForTitleView(previousCenterView, transition, true));
+					}
+
+					if(previousLeftView != null) {
+						previousLeftView.setAlpha(0.0f);
+
+						if(previousLeftIsBackButton) {
+							previousLeftView.setFrame(getAnimateFromRectForBackButton(previousLeftView, transition, true));
+						}
+					}
+				}
+			}, new AnimationCompletion() {
+				public void animationCompletion(boolean finished) {
+					if(previousRightView != null) previousRightView.removeFromSuperview();
+					if(previousLeftView != null) previousLeftView.removeFromSuperview();
+					if(previousCenterView != null) previousCenterView.removeFromSuperview();
+				}
+			});
+		} else {
+			if(previousRightView != null) previousRightView.removeFromSuperview();
+			if(previousLeftView != null) previousLeftView.removeFromSuperview();
+			if(previousCenterView != null) previousCenterView.removeFromSuperview();
+
+			if(this.centerView != null) this.addSubview(this.centerView);
+			if(this.leftView != null) this.addSubview(this.leftView);
+			if(this.rightView != null) this.addSubview(this.rightView);
+		}
+	}
+
+
+	private Rect getAnimateFromRectForBackButton(View backButton, Transition transition, boolean previous) {
+		Rect frame = backButton.getFrame();
+
+		if(transition != Transition.PUSH && transition != Transition.POP) {
+			return frame;
+		}
+
+		if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+			frame.origin.x = -frame.size.width - BUTTON_EDGE_INSETS.left;
+		} else {
+			frame.origin.x = floorf((this.getBounds().size.width - frame.size.width) / 2.0f);
+		}
+
+		return frame;
+	}
+
+	private Rect getAnimateFromRectForTitleView(View titleView, Transition transition, boolean previous) {
+		Rect frame = titleView.getFrame();
+
+		if(transition != Transition.PUSH && transition != Transition.POP) {
+			return frame;
+		}
+
+		if(titleView instanceof NavigationItemTitleView) {
+			if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+				frame.origin.x = -((NavigationItemTitleView) titleView).getTextRect().minX();
+			} else {
+				frame.origin.x = this.getBounds().size.width - ((NavigationItemTitleView) titleView).getTextRect().origin.x;
+			}
+		} else {
+			if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+				frame.origin.x = -frame.size.width;
+			} else {
+				frame.origin.x = this.getBounds().size.width;
+			}
+		}
+
+		return frame;
 	}
 
 	void updateNavigationItem(NavigationItem navigationItem, boolean animated) {

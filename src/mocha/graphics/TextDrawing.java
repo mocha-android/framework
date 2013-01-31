@@ -11,6 +11,8 @@ import android.text.TextUtils;
 import mocha.foundation.*;
 import mocha.ui.Screen;
 
+import java.util.Arrays;
+
 public class TextDrawing extends mocha.foundation.Object {
 
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font) {
@@ -90,18 +92,22 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	public static Size getTextSize(CharSequence text, Font font, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
-		return getTextSize(text, font, createPaintForFont(font, screenScale), constrainedToSize, lineBreakMode, screenScale);
+		return getTextSize(text, font, font.paintForScreenScale(screenScale), constrainedToSize, lineBreakMode, screenScale);
 	}
 
 	// TODO: Implement line break mode
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
+		// There seems to be a race condition in breakText when MAX_VALUE is passed and the text is too small.
+		// Using a large value like 10000 seems to fix the issue, and shouldn't cause any problems since
+		// we really shouldn't be rendering to a width that large anyway.
+		constrainedToSize.width = Math.min(constrainedToSize.width, 10000);
+
 		int lineCount = 0;
 
 		int index = 0;
 		int length = text.length();
 		float[] measuredWidth = new float[] { 0.0f };
 		float width = 0.0f;
-		int safety = 0;
 
 		while(index < length - 1) {
 			int measured = textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
@@ -110,10 +116,7 @@ public class TextDrawing extends mocha.foundation.Object {
 
 			width = Math.max(measuredWidth[0], width);
 
-			if(measured == 0) break;
-
-			if(++safety > 1000) {
-				MWarn("getTextSize Safety Hit for Text: %s and Font: %s", text, font);
+			if(measured == 0) {
 				break;
 			}
 		}
@@ -122,12 +125,15 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 
-	// TODO: Reuse instances
+	/**
+	 * @deprecated Use Font#paintForScreenScale(float) instead
+	 * @param font Font to get get paint for
+	 * @param screenScale screen scale to get paint for
+	 * @see Font#paintForScreenScale(float)
+	 * @return TextPaint instance for Font
+	 */
 	static TextPaint createPaintForFont(Font font, float screenScale) {
-		TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
-		paint.setTextSize(font.getPointSize() * screenScale);
-		paint.setTypeface(font.getTypeface());
-		return paint;
+		return font.paintForScreenScale(screenScale);
 	}
 
 }

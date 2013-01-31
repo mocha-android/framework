@@ -40,6 +40,8 @@ abstract class NumericEvaluator<O, E extends Number> implements TypeEvaluator <O
 		if(time <= 0.0f) return start;
 		else if(time >= 1.0f) return end;
 
+		if(start.equals(end)) return start;
+
 		float value = this.timingFunction.interpolate(time, duration, start.floatValue(), end.floatValue());
 
 		if(start instanceof Float) {

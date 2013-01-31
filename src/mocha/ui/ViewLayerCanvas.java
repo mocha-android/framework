@@ -48,8 +48,8 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 		this.supportsDrawing = supportsDrawing;
 
 		if(supportsDrawing) {
-			this.setDrawingCacheEnabled(true);
-			this.setDrawingCacheQuality(android.view.View.DRAWING_CACHE_QUALITY_HIGH);
+			// this.setDrawingCacheEnabled(true);
+			// this.setDrawingCacheQuality(android.view.View.DRAWING_CACHE_QUALITY_HIGH);
 		}
 	}
 
@@ -57,7 +57,7 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 		super.setBackgroundColor(backgroundColor);
 
 		if(this.supportsDrawing) {
-			this.setDrawingCacheBackgroundColor(backgroundColor);
+			// this.setDrawingCacheBackgroundColor(backgroundColor);
 		}
 	}
 

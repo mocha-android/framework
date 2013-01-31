@@ -184,13 +184,16 @@ public class Label extends View {
 	}
 
 	public void drawTextInRect(mocha.graphics.Context context, Rect rect) {
+		context.save();
+		context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
+		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
 		TextDrawing.draw(context, text, rect, this.font, this.textAlignment, this.lineBreakMode);
+		context.restore();
 	}
 
 	public void draw(Context context, Rect rect) {
 		if(this.text == null || this.text.length() == 0) return;
 
-		context.save();
 
 		Rect bounds = this.getBounds();
 		Rect drawRect = Rect.zero();
@@ -208,11 +211,7 @@ public class Label extends View {
 		drawRect.origin.x = 0;
 		drawRect.size.width = bounds.size.width;
 
-		context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
-		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
 
 		this.drawTextInRect(context, drawRect);
-
-		context.restore();
 	}
 }

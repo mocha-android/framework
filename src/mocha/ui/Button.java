@@ -48,6 +48,7 @@ public class Button extends Control {
 		this.titleLabel.setShadowOffset(Size.zero());
 		this.titleLabel.setTextAlignment(TextAlignment.CENTER);
 		this.titleLabel.setBackgroundColor(Color.TRANSPARENT);
+		this.addSubview(this.titleLabel);
 	}
 
 	public void setTitle(CharSequence title, State... states) {
@@ -255,7 +256,10 @@ public class Button extends Control {
 
 	private Size titleSizeForState(State... states) {
 		CharSequence title = this.getTitleForState(states);
-		return title != null && title.length() > 0 ? TextDrawing.getTextSize(title, this.titleLabel.getFont(), new Size(Float.MAX_VALUE, Float.MAX_VALUE)) : Size.zero();
+		Size size = title != null && title.length() > 0 ? TextDrawing.getTextSize(title, this.titleLabel.getFont()) : Size.zero();
+		size.width = ceilf(size.width);
+		size.height = ceilf(size.height);
+		return size;
 	}
 
 	private Size imageSizeForState(State... states) {
@@ -337,6 +341,7 @@ public class Button extends Control {
 		this.backgroundImageView.setFrame(this.getBackgroundRectForBounds(bounds));
 		this.imageView.setFrame(this.getImageRectForContentRect(contentRect));
 		this.titleLabel.setFrame(this.getTitleRectForContentRect(contentRect));
+		MLog("Button title frame: %s", this.titleLabel.getFrame());
 	}
 
 	public Size sizeThatFits(Size size) {
@@ -344,7 +349,7 @@ public class Button extends Control {
 
 		Size imageSize = this.imageSizeForState(states);
 		Size titleSize = this.titleSizeForState(states);
-
+		MLog("title size: %s", titleSize);
 		Size fitSize = new Size();
 		EdgeInsets insets = this.contentEdgeInsets == null ? EdgeInsets.zero() : this.contentEdgeInsets;
 		fitSize.width = insets.left + insets.right + titleSize.width + imageSize.width;

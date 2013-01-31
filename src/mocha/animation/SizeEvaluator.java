@@ -10,9 +10,16 @@ import mocha.graphics.Size;
 class SizeEvaluator extends NumericEvaluator <Size, Float> {
 
 	public Size evaluate(float time, Size start, Size end) {
-		Size size = new Size();
-		size.width = this.interpolate(time, start.width, end.width);
-		size.height = this.interpolate(time, start.height, end.height);
+		Size size = start.copy();
+
+		if(start.width != end.width) {
+			size.width = this.interpolate(time, start.width, end.width);
+		}
+
+		if(start.height != end.height) {
+			size.height = this.interpolate(time, start.height, end.height);
+		}
+
 		return size;
 	}
 

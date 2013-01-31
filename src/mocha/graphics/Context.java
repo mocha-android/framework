@@ -22,8 +22,8 @@ public final class Context {
 	public Context(Canvas canvas, float scale) {
 		this.scale = scale;
 		this.canvas = canvas;
-		this.paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		this.textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+		this.paint = new Paint(/*Paint.ANTI_ALIAS_FLAG*/);
+		this.textPaint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG);
 		this.paintStates = new ArrayList<Paint>();
 		this.textPaintStates = new ArrayList<TextPaint>();
 	}

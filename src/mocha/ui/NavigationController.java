@@ -92,7 +92,8 @@ public class NavigationController extends ViewController implements NavigationBa
 	}
 
 	public ViewController getTopViewController() {
-		return this.viewControllers.size() > 0 ? this.viewControllers.get(0) : null;
+		int size;
+		return (size = this.viewControllers.size()) > 0 ? this.viewControllers.get(size - 1) : null;
 	}
 
 	public List<ViewController> getViewControllers() {
@@ -143,13 +144,14 @@ public class NavigationController extends ViewController implements NavigationBa
 
 	public void pushViewController(final ViewController viewController, boolean animated) {
 		if(this.viewControllers.contains(viewController)) return;
-		this.viewControllers.add(viewController);
 
 		animated = animated && this.viewControllers.size() > 0 && this.getView().getWindow() != null;
 
 		this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), true);
 
 		ViewController topViewController = this.getTopViewController();
+		this.viewControllers.add(viewController);
+
 		this.addChildViewController(viewController);
 		this.transitionFromViewController(topViewController, viewController, animated, true, new Runnable() {
 			public void run() {
@@ -212,13 +214,13 @@ public class NavigationController extends ViewController implements NavigationBa
 				if(completion != null) completion.run();
 			} else {
 				// At this point, we're guaranteed to have a from and to view controller.
-
 				Rect frame = bounds.copy();
 				frame.origin.x = bounds.size.width * (push ? 1.0f : -1.0f);
 				toViewController.getView().setFrame(frame);
 
-				this.transitionFromViewController(fromViewController, toViewController, 330, new View.Animations() {
+				this.transitionFromViewController(fromViewController, toViewController, NavigationBar.ANIMATION_DURATION, new View.Animations() {
 					public void performAnimatedChanges() {
+						View.setAnimationCurve(NavigationBar.ANIMATION_CURVE);
 						Rect frame = bounds.copy();
 						frame.origin.x = bounds.size.width * (push ? -1.0f : 1.0f);
 						fromViewController.getView().setFrame(frame);
