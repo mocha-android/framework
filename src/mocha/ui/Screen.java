@@ -56,7 +56,7 @@ public class Screen extends mocha.foundation.Object {
 		return new mocha.graphics.Rect(this.bounds);
 	}
 
-	Context getContext() {
+	public Context getContext() {
 		return this.weakReference.get();
 	}
 }

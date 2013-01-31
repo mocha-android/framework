@@ -87,21 +87,30 @@ public final class Rect {
 		return this.size.width == 0.0f || this.size.height == 0.0f;
 	}
 
-	public void inset(float dx, float dy) {
+	public Rect inset(float dx, float dy) {
 		this.origin.x += dx;
 		this.origin.y += dy;
 		this.size.width -= (2.0f * dx);
 		this.size.height -= (2.0f * dy);
+		return this;
 	}
 
-	public void offset(float dx, float dy) {
+	public Rect offset(float dx, float dy) {
 		this.origin.x += dx;
 		this.origin.y += dy;
+		return this;
 	}
 
-	public void offset(Offset offset) {
+	public Rect offset(Offset offset) {
 		this.origin.x += offset.horizontal;
 		this.origin.y += offset.vertical;
+		return this;
+	}
+
+	public Rect offset(Point delta) {
+		this.origin.x += delta.x;
+		this.origin.y += delta.y;
+		return this;
 	}
 
 	public boolean contains(Point point) {

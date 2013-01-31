@@ -13,16 +13,32 @@ public class Object {
 		Log.d("Mocha", message);
 	}
 
+	public static void MWarn(String message) {
+		Log.w("Mocha", message);
+	}
+
 	public static void MLog(Throwable throwable, String message) {
 		Log.d("Mocha", message, throwable);
+	}
+
+	public static void MWarn(Throwable throwable, String message) {
+		Log.w("Mocha", message, throwable);
 	}
 
 	public static void MLog(String format, java.lang.Object... args) {
 		MLog(String.format(format, args));
 	}
 
+	public static void MWarn(String format, java.lang.Object... args) {
+		MWarn(String.format(format, args));
+	}
+
 	public static void MLog(Throwable throwable, String format, java.lang.Object... args) {
 		MLog(throwable, String.format(format, args));
+	}
+
+	public static void MWarn(Throwable throwable, String format, java.lang.Object... args) {
+		MWarn(throwable, String.format(format, args));
 	}
 
 	protected static String MGetCurrentMethodName() {
