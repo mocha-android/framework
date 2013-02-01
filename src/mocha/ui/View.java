@@ -316,41 +316,41 @@ public class View extends Responder {
 			Size delta = new Size(newSize.width-oldSize.width, newSize.height-oldSize.height);
 
 			if (hasAutoresizingFor(Autoresizing.FLEXIBLE_TOP_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value | Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value)) {
-				frame.origin.y = floorf(frame.origin.y + (frame.origin.y / oldSize.height * delta.height));
-				frame.size.height = floorf(frame.size.height + (frame.size.height / oldSize.height * delta.height));
+				frame.origin.y = roundf(frame.origin.y + (frame.origin.y / oldSize.height * delta.height));
+				frame.size.height = roundf(frame.size.height + (frame.size.height / oldSize.height * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_TOP_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value)) {
 				float t = frame.origin.y + frame.size.height;
-				frame.origin.y = floorf(frame.origin.y + (frame.origin.y / t * delta.height));
-				frame.size.height = floorf(frame.size.height + (frame.size.height / t * delta.height));
+				frame.origin.y = roundf(frame.origin.y + (frame.origin.y / t * delta.height));
+				frame.size.height = roundf(frame.size.height + (frame.size.height / t * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value)) {
-				frame.size.height = floorf(frame.size.height + (frame.size.height / (oldSize.height - frame.origin.y) * delta.height));
+				frame.size.height = roundf(frame.size.height + (frame.size.height / (oldSize.height - frame.origin.y) * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value | Autoresizing.FLEXIBLE_TOP_MARGIN.value)) {
-				frame.origin.y = floorf(frame.origin.y + (delta.height / 20.f));
+				frame.origin.y = roundf(frame.origin.y + (delta.height / 20.f));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_HEIGHT.value)) {
-				frame.size.height = floorf(frame.size.height + delta.height);
+				frame.size.height = roundf(frame.size.height + delta.height);
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_TOP_MARGIN.value)) {
-				frame.origin.y = floorf(frame.origin.y + delta.height);
+				frame.origin.y = roundf(frame.origin.y + delta.height);
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value)) {
-				frame.origin.y = floorf(frame.origin.y);
+				frame.origin.y = roundf(frame.origin.y);
 			}
 
 			if (hasAutoresizingFor(Autoresizing.FLEXIBLE_LEFT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value | Autoresizing.FLEXIBLE_RIGHT_MARGIN.value)) {
-				frame.origin.x = floorf(frame.origin.x + (frame.origin.x / oldSize.width * delta.width));
-				frame.size.width = floorf(frame.size.width + (frame.size.width / oldSize.width * delta.width));
+				frame.origin.x = roundf(frame.origin.x + (frame.origin.x / oldSize.width * delta.width));
+				frame.size.width = roundf(frame.size.width + (frame.size.width / oldSize.width * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_LEFT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value)) {
 				float t = frame.origin.x + frame.size.width;
-				frame.origin.x = floorf(frame.origin.x + (frame.origin.x / t * delta.width));
-				frame.size.width = floorf(frame.size.width + (frame.size.width / t * delta.width));
+				frame.origin.x = roundf(frame.origin.x + (frame.origin.x / t * delta.width));
+				frame.size.width = roundf(frame.size.width + (frame.size.width / t * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_RIGHT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value)) {
-				frame.size.width = floorf(frame.size.width + (frame.size.width / (oldSize.width - frame.origin.x) * delta.width));
+				frame.size.width = roundf(frame.size.width + (frame.size.width / (oldSize.width - frame.origin.x) * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_RIGHT_MARGIN.value | Autoresizing.FLEXIBLE_LEFT_MARGIN.value)) {
-				frame.origin.x = floorf(frame.origin.x + (delta.width / 2.0f));
+				frame.origin.x = roundf(frame.origin.x + (delta.width / 2.0f));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_WIDTH.value)) {
-				frame.size.width = floorf(frame.size.width + delta.width);
+				frame.size.width = roundf(frame.size.width + delta.width);
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_LEFT_MARGIN.value)) {
-				frame.origin.x = floorf(frame.origin.x + delta.width);
+				frame.origin.x = roundf(frame.origin.x + delta.width);
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_RIGHT_MARGIN.value)) {
-				frame.origin.x = floorf(frame.origin.x);
+				frame.origin.x = roundf(frame.origin.x);
 			}
 
 			this.setFrame(frame);
