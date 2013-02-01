@@ -17,7 +17,7 @@ import mocha.graphics.Rect;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
+public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private static boolean ignoreLayout;
 
 	private Rect frame;
@@ -26,7 +26,7 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 	private boolean supportsDrawing;
 	public final float scale;
 
-	public ViewLayerCanvas(Context context) {
+	public ViewLayerNative(Context context) {
 		super(context);
 		this.setClipToPadding(false);
 		this.setClipChildren(false);
@@ -127,8 +127,8 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 			boolean ignoreLayout = pushIgnoreLayout();
 			for(View subview : this.view.getSubviews()) {
 				ViewLayer layer = subview.getLayer();
-				if(layer instanceof ViewLayerCanvas) {
-					((ViewLayerCanvas)layer).layoutRelativeToBounds(this.bounds);
+				if(layer instanceof ViewLayerNative) {
+					((ViewLayerNative)layer).layoutRelativeToBounds(this.bounds);
 				}
 			}
 
@@ -211,19 +211,19 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 	}
 
 	public void addSublayer(ViewLayer layer) {
-		if(!(layer instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, layer);
-		ViewLayerCanvas canvasLayer = (ViewLayerCanvas)layer;
+		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
+		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
 
 		if(canvasLayer.getParent() == this) return;
 		canvasLayer.removeFromSuperlayer();
 
-		this.addView((ViewLayerCanvas)layer);
+		this.addView((ViewLayerNative)layer);
 	}
 
 	public void insertSublayerAtIndex(ViewLayer layer, int index) {
-		if(!(layer instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, layer);
+		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
 
-		ViewLayerCanvas canvasLayer = (ViewLayerCanvas)layer;
+		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
 
 		if(canvasLayer.getParent() == this) return;
 		canvasLayer.removeFromSuperlayer();
@@ -232,27 +232,27 @@ public class ViewLayerCanvas extends ViewGroup implements ViewLayer {
 	}
 
 	public void insertSublayerBelow(ViewLayer layer, ViewLayer sibling) {
-		if(!(layer instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, layer);
-		if(!(sibling instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, sibling);
+		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
+		if(!(sibling instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, sibling);
 
-		ViewLayerCanvas canvasLayer = (ViewLayerCanvas)layer;
-		ViewLayerCanvas canvasSibling = (ViewLayerCanvas)sibling;
+		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
+		ViewLayerNative canvasSibling = (ViewLayerNative)sibling;
 		int index = this.getIndexOf(canvasSibling);
 		this.insertSublayerAtIndex(canvasLayer, index > 0 ? index - 1 : 0);
 	}
 
 	public void insertSublayerAbove(ViewLayer layer, ViewLayer sibling) {
-		if(!(layer instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, layer);
-		if(!(sibling instanceof ViewLayerCanvas)) throw new InvalidSubLayerClassException(this, sibling);
+		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
+		if(!(sibling instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, sibling);
 
-		ViewLayerCanvas canvasLayer = (ViewLayerCanvas)layer;
-		ViewLayerCanvas canvasSibling = (ViewLayerCanvas)sibling;
+		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
+		ViewLayerNative canvasSibling = (ViewLayerNative)sibling;
 
 		int index = this.getIndexOf(canvasSibling);
 		this.insertSublayerAtIndex(canvasLayer, index+1);
 	}
 
-	private int getIndexOf(ViewLayerCanvas layer) {
+	private int getIndexOf(ViewLayerNative layer) {
 		int count = this.getChildCount();
 
 		for(int index = 0; index < count; index++) {

@@ -7,13 +7,12 @@ package mocha.ui;
 
 import android.content.Context;
 import android.view.MotionEvent;
-import mocha.foundation.*;
 
-public final class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
+public final class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 	private View hitView;
 	private Event lastEvent;
 
-	public WindowLayerCanvas(Context context) {
+	public WindowLayerNative(Context context) {
 		super(context);
 		mocha.foundation.Object.MLog("Created window layout class");
 	}

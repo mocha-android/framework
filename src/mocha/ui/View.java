@@ -766,7 +766,7 @@ public class View extends Responder {
 		if(USE_GL_LAYERS) {
 			return ViewLayerGL.class;
 		} else {
-			return ViewLayerCanvas.class;
+			return ViewLayerNative.class;
 		}
 	}
 

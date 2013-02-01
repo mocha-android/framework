@@ -5,7 +5,6 @@
  */
 package mocha.ui;
 
-import android.widget.FrameLayout;
 import mocha.graphics.Rect;
 
 import java.util.HashSet;
@@ -30,7 +29,7 @@ public final class Window extends View {
 		if(USE_GL_LAYERS) {
 			return WindowLayerGL.class;
 		} else {
-			return WindowLayerCanvas.class;
+			return WindowLayerNative.class;
 		}
 	}
 
