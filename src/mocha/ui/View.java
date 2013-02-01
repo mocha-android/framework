@@ -16,7 +16,9 @@ import mocha.graphics.Size;
 import java.util.*;
 
 public class View extends Responder {
-	public static final boolean USE_GL_LAYERS = false;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerCanvas.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerCanvas.class;
+
 	public static boolean SLOW_ANIMATIONS = false;
 
 	private ViewLayer layer;
@@ -763,11 +765,7 @@ public class View extends Responder {
 	// Layer backing
 
 	public Class<? extends ViewLayer> getLayerClass() {
-		if(USE_GL_LAYERS) {
-			return ViewLayerGL.class;
-		} else {
-			return ViewLayerNative.class;
-		}
+		return VIEW_LAYER_CLASS;
 	}
 
 	// Animations

@@ -26,11 +26,7 @@ public final class Window extends View {
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {
-		if(USE_GL_LAYERS) {
-			return WindowLayerGL.class;
-		} else {
-			return WindowLayerNative.class;
-		}
+		return WINDOW_LAYER_CLASS;
 	}
 
 	public ViewController getRootViewController() {

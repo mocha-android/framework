@@ -201,4 +201,5 @@ public final class WindowLayerGL extends ViewLayerGL implements WindowLayer {
 			}
 		}
 	}
+
 }
