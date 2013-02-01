@@ -23,6 +23,7 @@ import java.util.List;
 
 public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLayer {
 	private static boolean ignoreLayout;
+	private static final boolean CACHE_DRAWINGS = false;
 
 	private android.content.Context context;
 	private View view;
@@ -303,42 +304,46 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		}
 
 		if(this.supportsDrawing) {
-			if(this.needsDisplay) {
-				int bitmapWidth = (int)Math.ceil(systemFrame.width());
-				int bitmapHeight = (int)Math.ceil(systemFrame.height());
-				boolean reused;
+			if(CACHE_DRAWINGS) {
+				if(this.needsDisplay) {
+					int bitmapWidth = (int)Math.ceil(systemFrame.width());
+					int bitmapHeight = (int)Math.ceil(systemFrame.height());
+					boolean reused;
 
-				// Only create a new bitmap if our size changed, otherwise we can reuse the one we have
-				if(this.cachedDrawing == null || this.cachedDrawing.getWidth() != bitmapWidth || this.cachedDrawing.getHeight() != bitmapHeight) {
-					if(this.cachedDrawing != null) {
-						this.cachedDrawing.recycle();
-						this.cachedDrawing = null;
+					// Only create a new bitmap if our size changed, otherwise we can reuse the one we have
+					if(this.cachedDrawing == null || this.cachedDrawing.getWidth() != bitmapWidth || this.cachedDrawing.getHeight() != bitmapHeight) {
+						if(this.cachedDrawing != null) {
+							this.cachedDrawing.recycle();
+							this.cachedDrawing = null;
+						}
+
+						this.cachedDrawing = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
+						this.cachedDrawing.setDensity(dpi);
+						reused = false;
+					} else {
+						reused = true;
 					}
 
-					this.cachedDrawing = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
-					this.cachedDrawing.setDensity(dpi);
-					reused = false;
-				} else {
-					reused = true;
+					Canvas drawCanvas = new Canvas(this.cachedDrawing);
+
+					if(reused) {
+						// Clear out old data (in the future, we should check for the dirty rect)
+						this.cachedDrawing.eraseColor(Color.TRANSPARENT);
+					}
+
+					view.draw(new Context(drawCanvas, scale), this.bounds.copy());
 				}
 
-				Canvas drawCanvas = new Canvas(this.cachedDrawing);
-
-				if(reused) {
-					// Clear out old data (in the future, we should check for the dirty rect)
-					this.cachedDrawing.eraseColor(Color.TRANSPARENT);
+				if(this.cachedDrawing != null) {
+					canvas.drawBitmap(
+						this.cachedDrawing,
+						new android.graphics.Rect(0,0,this.cachedDrawing.getWidth(),this.cachedDrawing.getHeight()),
+						new android.graphics.RectF(0.0f, 0.0f, systemFrame.width(), systemFrame.height()),
+						null
+					);
 				}
-
-				view.draw(new Context(drawCanvas, scale), this.bounds.copy());
-			}
-
-			if(this.cachedDrawing != null) {
-				canvas.drawBitmap(
-					this.cachedDrawing,
-					new android.graphics.Rect(0,0,this.cachedDrawing.getWidth(),this.cachedDrawing.getHeight()),
-					new android.graphics.RectF(0.0f, 0.0f, systemFrame.width(), systemFrame.height()),
-					null
-				);
+			} else {
+				view.draw(new Context(canvas, scale), this.bounds.copy());
 			}
 		}
 
