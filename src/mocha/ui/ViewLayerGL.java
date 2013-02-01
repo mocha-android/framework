@@ -356,6 +356,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 			}
 
 			if(this.texture != null) {
+				gl.glColor4f(1.0f, 1.0f, 1.0f, this.alpha);
 				this.texture.draw(gl);
 			}
 		}
@@ -409,8 +410,17 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		}
 
 		public void setFrame(Rect frame) {
-			Point min = frame.origin;
-			Point max = frame.max();
+			Rect potFrame = frame.copy();
+
+			Rect scaledFrame = frame.getScaledRect(scale);
+			float potWidth = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.width));
+			float potHeight = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.height));
+
+			potFrame.size.width *= (potWidth / scaledFrame.size.width);
+			potFrame.size.height *= (potHeight / scaledFrame.size.height);
+
+			Point min = potFrame.origin;
+			Point max = potFrame.max();
 
 			this.vertices = new float[] {
 					min.x, max.y,  0.0f,		// V1 - bottom left
@@ -436,24 +446,26 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		public void update(GL10 gl) {
 			// MLog("Drawing %s", view);
 
-			int width = upperPowerOfTwo((int)Math.ceil(frame.size.width));
-			int height = upperPowerOfTwo((int)Math.ceil(frame.size.height));
-
+			Rect scaledFrame = frame.getScaledRect(scale);
+			int width = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.width));
+			int height = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.height));
 			Benchmark benchmark = new Benchmark();
 			benchmark.start();
 
-			Bitmap bitmap = width > 0 && height > 0? Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444) : null;
-			// bitmap.setDensity(dpi);
+			Bitmap bitmap = width > 0 && height > 0 ? Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888) : null;
 
 			if(bitmap != null) {
 				benchmark.step("Create bitmap");
+
+				bitmap.setDensity(dpi);
+				benchmark.step("Set density");
 
 				Canvas canvas = new Canvas(bitmap);
 				// bitmap.eraseColor(0);
 
 				benchmark.step("Create canvas");
 
-				Context context = new Context(canvas, 1.0f);
+				Context context = new Context(canvas, scale);
 				benchmark.step("Create context");
 				view.draw(context, bounds.copy());
 				benchmark.step("Draw");
@@ -478,7 +490,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 			benchmark.step("Recycle");
 
 			benchmark.end();
-			benchmark.log();
+			// benchmark.log();
 		}
 
 		private int upperPowerOfTwo(int v) {
