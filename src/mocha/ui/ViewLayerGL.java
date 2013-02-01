@@ -6,11 +6,7 @@
 package mocha.ui;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.opengl.GLU;
 import android.opengl.GLUtils;
 import mocha.foundation.Benchmark;
 import mocha.graphics.Context;
@@ -100,7 +96,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		if(!this.needsLayout) {
 			this.needsLayout = true;
 
-			Window.WindowLayerGL windowLayer = this.getWindowLayer();
+			WindowLayerGL windowLayer = this.getWindowLayer();
 			if(windowLayer != null) {
 				windowLayer.scheduleLayout();
 			}
@@ -117,7 +113,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		return sublayersGL;
 	}
 
-	Window.WindowLayerGL getWindowLayer() {
+	WindowLayerGL getWindowLayer() {
 		if(this.superlayer != null) {
 			return superlayer.getWindowLayer();
 		} else {
@@ -225,7 +221,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		if(!this.needsDisplay) {
 			this.needsDisplay = true;
 
-			Window.WindowLayerGL windowLayer = this.getWindowLayer();
+			WindowLayerGL windowLayer = this.getWindowLayer();
 			if(windowLayer != null) {
 				windowLayer.scheduleLayout();
 			}
