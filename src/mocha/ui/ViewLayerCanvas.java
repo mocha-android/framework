@@ -284,11 +284,12 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		boolean needsAlphaLayer = this.alpha < 1.0f;
 
 		canvas.save();
-		canvas.translate((systemFrame.left - systemBounds.left), (systemFrame.top - systemBounds.top));
 
 		if(this.view.clipsToBounds()) {
-			canvas.clipRect(0.0f, 0.0f, systemFrame.width(), systemFrame.height());
+			canvas.clipRect(systemFrame);
 		}
+
+		canvas.translate((systemFrame.left - systemBounds.left), (systemFrame.top - systemBounds.top));
 
 		if(needsAlphaLayer) {
 			canvas.saveLayerAlpha(0, 0, systemFrame.width(), systemFrame.height(), (int)(this.alpha * 255.0f), Canvas.HAS_ALPHA_LAYER_SAVE_FLAG);
