@@ -80,11 +80,11 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	public static float getTextWidth(CharSequence text, Font font, float width, float screenScale) {
-		width = constrainWidth(width);
+		width = constrainWidth(width * screenScale);
 		float[] measuredWidth = new float[] { 0.0f };
 
 		font.paintForScreenScale(screenScale).breakText(text, 0, text.length(), true, width, measuredWidth);
-		return measuredWidth[0];
+		return measuredWidth[0] / screenScale;
 	}
 
 	public static Size getTextSize(CharSequence text, Font font) {
@@ -105,7 +105,7 @@ public class TextDrawing extends mocha.foundation.Object {
 
 	// TODO: Implement line break mode
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
-		constrainedToSize.width = constrainWidth(constrainedToSize.width);
+		constrainedToSize.width = constrainWidth(constrainedToSize.width * screenScale);
 
 		int lineCount = 0;
 
