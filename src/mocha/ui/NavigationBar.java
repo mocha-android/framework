@@ -15,7 +15,7 @@ public class NavigationBar extends View {
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_BUTTON_HEIGHT = 30.0f;
-	static final long ANIMATION_DURATION = 630;
+	static final long ANIMATION_DURATION = 430;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
 	public interface Delegate {
@@ -82,25 +82,33 @@ public class NavigationBar extends View {
 	}
 
 	public void setItems(List<NavigationItem> items) {
-		this.setItems(items, false);
+		this.setItems(items, false, null, null);
 	}
 
-	public void setItems(List<NavigationItem> items, boolean animated) {
+	void setItems(List<NavigationItem> items, boolean animated) {
+		this.setItems(items, animated, null, null);
+	}
+
+	public void setItems(List<NavigationItem> items, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		if(!this.items.equals(items)) {
 			this.items.clear();
 			this.items.addAll(items);
 
-			this.setViewsWithTransition(Transition.PUSH, animated);
+			this.updateItemsWithTransition(Transition.PUSH, animated, additionalTransitions, transitionCompleteCallback);
 		}
 	}
 
 	public void pushNavigationItem(NavigationItem navigationItem, boolean animated) {
+		this.pushNavigationItem(navigationItem, animated, null, null);
+	}
+
+	void pushNavigationItem(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		boolean shouldPush = this.delegate == null || this.delegate.shouldPushItem(this, navigationItem);
 
 		if(shouldPush) {
 			this.items.add(navigationItem);
 
-			this.setViewsWithTransition(Transition.PUSH, animated);
+			this.updateItemsWithTransition(Transition.PUSH, animated, additionalTransitions, transitionCompleteCallback);
 
 			if(this.delegate != null) {
 				this.delegate.didPushItem(this, navigationItem);
@@ -109,13 +117,17 @@ public class NavigationBar extends View {
 	}
 
 	public NavigationItem popNavigationItemAnimated(boolean animated) {
+		return this.popNavigationItemAnimated(animated, null, null);
+	}
+
+	NavigationItem popNavigationItemAnimated(boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		NavigationItem previousItem = this.getTopItem();
 
 		if(previousItem == null || (this.delegate != null && !this.delegate.shouldPopItem(this, previousItem))) {
 			return null;
 		} else {
 			this.items.remove(previousItem);
-			this.setViewsWithTransition(Transition.POP, animated);
+			this.updateItemsWithTransition(Transition.POP, animated, additionalTransitions, transitionCompleteCallback);
 
 			if(this.delegate != null) {
 				this.delegate.didPopItem(this, previousItem);
@@ -133,7 +145,7 @@ public class NavigationBar extends View {
 		this.delegate = delegate;
 	}
 
-	private void setViewsWithTransition(final Transition transition, boolean animated) {
+	private void updateItemsWithTransition(final Transition transition, boolean animated, final Runnable additionalTransitions, final Runnable transitionCompleteCallback) {
 		final View previousLeftView = this.leftView;
 		final View previousRightView = this.rightView;
 		final View previousCenterView = this.centerView;
@@ -262,12 +274,20 @@ public class NavigationBar extends View {
 							previousLeftView.setFrame(getAnimateFromRectForBackButton(previousLeftView, transition, true));
 						}
 					}
+
+					if(additionalTransitions != null) {
+						additionalTransitions.run();
+					}
 				}
 			}, new AnimationCompletion() {
 				public void animationCompletion(boolean finished) {
 					if(previousRightView != null) previousRightView.removeFromSuperview();
 					if(previousLeftView != null) previousLeftView.removeFromSuperview();
 					if(previousCenterView != null) previousCenterView.removeFromSuperview();
+
+					if(transitionCompleteCallback != null) {
+						transitionCompleteCallback.run();
+					}
 				}
 			});
 		} else {
@@ -278,6 +298,14 @@ public class NavigationBar extends View {
 			if(this.centerView != null) this.addSubview(this.centerView);
 			if(this.leftView != null) this.addSubview(this.leftView);
 			if(this.rightView != null) this.addSubview(this.rightView);
+
+			if(additionalTransitions != null) {
+				additionalTransitions.run();
+			}
+
+			if(transitionCompleteCallback != null) {
+				transitionCompleteCallback.run();
+			}
 		}
 	}
 
@@ -335,7 +363,7 @@ public class NavigationBar extends View {
 
 		if(this.needsReload) {
 			this.needsReload = false;
-			this.setViewsWithTransition(Transition.RELOAD, false);
+			this.updateItemsWithTransition(Transition.RELOAD, false, null, null);
 		}
 	}
 

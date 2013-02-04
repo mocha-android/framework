@@ -249,20 +249,6 @@ public class Button extends Control {
 		return this.contentEdgeInsets == null ? bounds : this.contentEdgeInsets.inset(bounds);
 	}
 
-	private Size titleSizeForState(State... states) {
-		CharSequence title = this.getTitleForState(states);
-		Size size = title != null && title.length() > 0 ? TextDrawing.getTextSize(title, this.titleLabel.getFont()) : Size.zero();
-		size.width = ceilf(size.width);
-		size.height = ceilf(size.height);
-		return size;
-	}
-
-	private Size imageSizeForState(State... states) {
-		Image image = this.getImage(states);
-		return image != null ? image.getSize() : Size.zero();
-	}
-
-
 	public Rect getTitleRectForContentRect(Rect contentRect) {
 		CharSequence title = this.getCurrentTitle();
 		if(title == null || title.length() == 0) return Rect.zero();
@@ -274,8 +260,8 @@ public class Button extends Control {
 		float availableWidth = contentRect.size.width - imageWidth;
 
 		Rect rect = contentRect.copy();
-		rect.size.width = Math.min(TextDrawing.getTextWidth(title, font, availableWidth), availableWidth);
-		rect.size.height = Math.min(font.getLineHeight(), contentRect.size.height);
+		rect.size.width = Math.min(ceilf(TextDrawing.getTextWidth(title, font, availableWidth)), availableWidth);
+		rect.size.height = Math.min(ceilf(font.getLineHeight()), contentRect.size.height);
 
 		switch (this.getContentVerticalAlignment()) {
 			case CENTER:
@@ -308,7 +294,7 @@ public class Button extends Control {
 				break;
 		}
 
-		return this.imageEdgeInsets == null ? rect : this.imageEdgeInsets.inset(rect);
+		return this.titleEdgeInsets == null ? rect : this.titleEdgeInsets.inset(rect);
 	}
 
 	public Rect getImageRectForContentRect(Rect contentRect) {
@@ -339,7 +325,7 @@ public class Button extends Control {
 
 		if(alignment != HorizontalAlignment.LEFT && rect.size.width < contentRect.size.width) {
 			CharSequence title = this.getCurrentTitle();
-			float width = title != null && title.length() > 0 ? TextDrawing.getTextWidth(title, this.getTitleLabel().getFont(), contentRect.size.width - rect.size.width) : 0.0f;
+			float width = title != null && title.length() > 0 ? ceilf(TextDrawing.getTextWidth(title, this.getTitleLabel().getFont(), contentRect.size.width - rect.size.width)) : 0.0f;
 
 			switch (alignment) {
 				case CENTER:
@@ -379,16 +365,19 @@ public class Button extends Control {
 
 		if(imageSize.width < size.width) {
 			if(title != null && title.length() > 0) {
-				float titleWidth = TextDrawing.getTextWidth(title, this.titleLabel.getFont(), size.width - imageSize.width);
+				float titleWidth = ceilf(TextDrawing.getTextWidth(title, this.titleLabel.getFont(), size.width - imageSize.width));
 				sizeThatFits.width = imageSize.width + titleWidth;
 			}
 		}
 
 		if(imageSize.height < size.height) {
 			if(title != null && title.length() > 0) {
-				sizeThatFits.height = Math.max(imageSize.height, this.titleLabel.getFont().getLineHeight());
+				sizeThatFits.height = Math.max(imageSize.height, ceilf(this.titleLabel.getFont().getLineHeight()));
 			}
 		}
+
+		sizeThatFits.width += this.contentEdgeInsets.left + this.contentEdgeInsets.right;
+		sizeThatFits.height += this.contentEdgeInsets.top + this.contentEdgeInsets.bottom;
 
 		Image background = this.getCurrentBackgroundImage();
 

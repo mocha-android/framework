@@ -147,8 +147,6 @@ public class NavigationController extends ViewController implements NavigationBa
 
 		animated = animated && this.viewControllers.size() > 0 && this.getView().getWindow() != null;
 
-		this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), true);
-
 		ViewController topViewController = this.getTopViewController();
 		this.viewControllers.add(viewController);
 
@@ -168,10 +166,6 @@ public class NavigationController extends ViewController implements NavigationBa
 		ViewController toViewController = this.viewControllers.get(size - 2);
 
 		animated = animated && this.getView().getWindow() != null;
-
-		this.navigationBar.setDelegate(null);
-		this.navigationBar.popNavigationItemAnimated(animated);
-		this.navigationBar.setDelegate(this);
 
 		poppedViewController.willMoveToParentViewController(null);
 		this.viewControllers.remove(size - 1);
@@ -196,6 +190,18 @@ public class NavigationController extends ViewController implements NavigationBa
 			}
 
 			if(!animated) {
+				this.navigationBar.setDelegate(null);
+
+				if(push) {
+					if(toViewController != null) {
+						this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), false);
+					}
+				} else {
+					this.navigationBar.popNavigationItemAnimated(false);
+				}
+
+				this.navigationBar.setDelegate(this);
+
 				if(fromViewController != null) {
 					fromViewController.beginAppearanceTransition(false, false);
 					fromViewController.getView().removeFromSuperview();
@@ -218,21 +224,50 @@ public class NavigationController extends ViewController implements NavigationBa
 				frame.origin.x = bounds.size.width * (push ? 1.0f : -1.0f);
 				toViewController.getView().setFrame(frame);
 
-				this.transitionFromViewController(fromViewController, toViewController, NavigationBar.ANIMATION_DURATION, new View.Animations() {
-					public void performAnimatedChanges() {
-						View.setAnimationCurve(NavigationBar.ANIMATION_CURVE);
+				Runnable transition = new Runnable() {
+					public void run() {
+						Application.sharedApplication().beginIgnoringInteractionEvents();
+
+						View.setAnimationsEnabled(false, new Runnable() {
+							public void run() {
+								fromViewController.getView().getSuperview().addSubview(toViewController.getView());
+							}
+						});
+
+						fromViewController.beginAppearanceTransition(false, true);
+						toViewController.beginAppearanceTransition(true, true);
+
 						Rect frame = bounds.copy();
 						frame.origin.x = bounds.size.width * (push ? -1.0f : 1.0f);
 						fromViewController.getView().setFrame(frame);
 
 						toViewController.getView().setFrame(bounds);
 					}
-				}, new View.AnimationCompletion() {
-					public void animationCompletion(boolean finished) {
+				};
+
+				Runnable complete = new Runnable() {
+					public void run() {
 						toViewController.getView().setFrame(bounds);
 						if(completion != null) completion.run();
+
+						fromViewController.getView().removeFromSuperview();
+						fromViewController.endAppearanceTransition();
+						toViewController.endAppearanceTransition();
+
+						Application.sharedApplication().endIgnoringInteractionEvents();
 					}
-				});
+				};
+
+
+				this.navigationBar.setDelegate(null);
+
+				if(push) {
+					this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), true, transition, complete);
+				} else {
+					this.navigationBar.popNavigationItemAnimated(true, transition, complete);
+				}
+
+				this.navigationBar.setDelegate(this);
 			}
 		}
 	}

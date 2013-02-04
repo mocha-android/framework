@@ -45,9 +45,9 @@ class NavigationButton extends Button {
 			this.setBackgroundImage(Image.imageNamed(R.drawable.mocha_navigation_bar_default_back).resizableImageWithCapInsets(insets), State.NORMAL);
 			this.setBackgroundImage(Image.imageNamed(R.drawable.mocha_navigation_bar_default_back_pressed).resizableImageWithCapInsets(insets), State.NORMAL, State.HIGHLIGHTED);
 
-			this.setContentEdgeInsets(new EdgeInsets(0.0f, 12.0f, 0.0f, 9.0f));
-			this.setImageEdgeInsets(new EdgeInsets(-1.0f, 0.0f, 1.0f, 0.0f));
-			this.setTitleEdgeInsets(new EdgeInsets(-1.0f, 0.0f, 2.0f, 0.0f));
+			this.setContentEdgeInsets(new EdgeInsets(0.0f, 14.0f, 0.0f, 9.0f));
+			this.setImageEdgeInsets(new EdgeInsets(0.0f, 0.0f, 0.0f, 0.0f));
+			this.setTitleEdgeInsets(new EdgeInsets(0.0f, 0.0f, 0.0f, 0.0f));
 		}
 	}
 
