@@ -63,6 +63,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	public void setView(View view) {
 		this.view = view;
+		this.setTag(view.getClass().toString());
 	}
 
 	public View getView() {
@@ -74,7 +75,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	}
 
 	public void setFrame(Rect frame, Rect bounds) {
-		this.setFrame(frame, bounds, true);
+		this.setFrame(frame, bounds, this.frame == null || frame == null || !this.frame.size.equals(frame.size));
 	}
 
 	void setFrame(Rect frame, Rect bounds, boolean setNeedsLayout) {

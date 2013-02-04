@@ -298,9 +298,15 @@ public class ViewController extends Responder {
 			}
 		}, new View.AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				fromViewController.getView().removeFromSuperview();
-				fromViewController.endAppearanceTransition();
-				toViewController.endAppearanceTransition();
+				if(finished) {
+					fromViewController.getView().removeFromSuperview();
+					fromViewController.endAppearanceTransition();
+					toViewController.endAppearanceTransition();
+				}
+
+				if(completion != null) {
+					completion.animationCompletion(finished);
+				}
 			}
 		});
 	}

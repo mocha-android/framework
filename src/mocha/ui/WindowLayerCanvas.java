@@ -47,6 +47,7 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 
 		if(!handler.layoutScheduled) {
 			handler.sendEmptyMessage(LAYOUT);
+			handler.layoutScheduled = true;
 		}
 	}
 
@@ -55,7 +56,7 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 	}
 
 	class WindowView extends android.view.View {
-		private final boolean showFPS = true;
+		private final boolean showFPS = false;
 
 		//  The number of frames
 		int frameCount = 0;

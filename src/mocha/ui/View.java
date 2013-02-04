@@ -5,10 +5,6 @@
  */
 package mocha.ui;
 
-import mocha.animation.Animator;
-import mocha.animation.AnimatorSet;
-import mocha.animation.TimingFunction;
-import mocha.animation.ViewAnimator;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -16,8 +12,8 @@ import mocha.graphics.Size;
 import java.util.*;
 
 public class View extends Responder {
-	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerCanvas.class;
-	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerCanvas.class;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
 
 	public static boolean SLOW_ANIMATIONS = false;
 
@@ -159,7 +155,8 @@ public class View extends Responder {
 		}
 
 		if(areAnimationsEnabled && currentViewAnimation != null) {
-			currentViewAnimation.addAnimator(ViewAnimator.ofFrame(this, frame));
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
+			this.frame = frame.copy();
 			return;
 		}
 
@@ -172,7 +169,7 @@ public class View extends Responder {
 
 			Rect oldBounds = this.bounds;
 
-			this.frame = new Rect(frame);
+			this.frame = frame.copy();
 			this.bounds = new Rect(this.bounds.origin, this.frame.size);
 			this.layer.setFrame(this.frame, this.bounds);
 			this.boundsDidChange(oldBounds, this.bounds);
@@ -189,7 +186,8 @@ public class View extends Responder {
 		}
 
 		if(areAnimationsEnabled && currentViewAnimation != null) {
-			currentViewAnimation.addAnimator(ViewAnimator.ofBounds(this, frame));
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BOUNDS, bounds);
+			this.bounds = bounds.copy();
 			return;
 		}
 
@@ -246,7 +244,8 @@ public class View extends Responder {
 
 	public void setBackgroundColor(int backgroundColor) {
 		if(areAnimationsEnabled && currentViewAnimation != null) {
-			currentViewAnimation.addAnimator(ViewAnimator.ofBackgroundColor(this, backgroundColor));
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BACKGROUND_COLOR, backgroundColor);
+			this.backgroundColor = backgroundColor;
 			return;
 		}
 
@@ -284,7 +283,7 @@ public class View extends Responder {
 
 	public void setAlpha(float alpha) {
 		if(areAnimationsEnabled && currentViewAnimation != null) {
-			currentViewAnimation.addAnimator(ViewAnimator.ofAlpha(this, alpha));
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.ALPHA, alpha);
 		} else {
 			this.getLayer().setAlpha(alpha);
 		}
@@ -879,91 +878,4 @@ public class View extends Responder {
 		return areAnimationsEnabled;
 	}
 
-	static class ViewAnimation {
-		// We use a hash so if the same property is changed multiple times in the animation
-		// we just override the last one.
-		private HashMap<String,ViewAnimator> animators;
-		long duration = 200;
-		long delay = 0;
-		AnimationCurve animationCurve = AnimationCurve.EASE_IN_OUT;
-		AnimationDidStart didStart;
-		AnimationDidStop didStop;
-		String animationID;
-		Object context;
-
-		void addAnimator(ViewAnimator animator) {
-			if(this.animators == null) {
-				this.animators = new HashMap<String, ViewAnimator>();
-			}
-
-			this.animators.put(animator.getView().hashCode() + "-" + animator.getProperty(), animator);
-		}
-
-		void start() {
-			if(this.animators == null || this.animators.size() == 0) {
-				if(didStart != null) didStart.animationDidStart(animationID, context);
-				if(didStop != null) didStop.animationDidStop(animationID, true, context);
-				return;
-			}
-
-			List<Animator> animators = new ArrayList<Animator>(this.animators.values());
-			Animator animator;
-
-			if(animators.size() == 1) {
-				animator = animators.get(0);
-			} else {
-				animator = AnimatorSet.withAnimators(animators);
-			}
-
-			long timeModifier = SLOW_ANIMATIONS ? 10 : 1;
-
-			animator.setDuration(duration * timeModifier);
-			animator.setStartDelay(delay * timeModifier);
-
-			if(didStart != null || didStop != null) {
-				animator.addListener(new Animator.Listener() {
-					public void onAnimationStart(Animator animator) {
-						if (didStart != null) {
-							didStart.animationDidStart(animationID, context);
-						}
-					}
-
-					public void onAnimationEnd(Animator animator) {
-						if (didStop != null) {
-							didStop.animationDidStop(animationID, true, context);
-						}
-					}
-
-					public void onAnimationCancel(Animator animator) {
-						if (didStop != null) {
-							didStop.animationDidStop(animationID, false, context);
-						}
-					}
-
-					public void onAnimationRepeat(Animator animator) {
-
-					}
-				});
-			}
-
-			switch (animationCurve) {
-				case EASE_IN:
-					animator.setTimingFunction(TimingFunction.EASE_IN);
-					break;
-				case EASE_OUT:
-					animator.setTimingFunction(TimingFunction.EASE_OUT);
-					break;
-				case LINEAR:
-					animator.setTimingFunction(TimingFunction.LINEAR);
-					break;
-				case EASE_IN_OUT:
-				default:
-					animator.setTimingFunction(TimingFunction.EASE_IN_OUT);
-					break;
-			}
-
-			animator.start();
-		}
-
-	}
 }

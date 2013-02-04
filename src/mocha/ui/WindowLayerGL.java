@@ -54,6 +54,7 @@ public final class WindowLayerGL extends ViewLayerGL implements WindowLayer {
 
 		if(!handler.layoutScheduled) {
 			handler.sendEmptyMessage(LAYOUT);
+			handler.layoutScheduled = true;
 		}
 	}
 
@@ -103,7 +104,7 @@ public final class WindowLayerGL extends ViewLayerGL implements WindowLayer {
 		}
 
 		class WindowSurfaceRenderer implements Renderer {
-			private final boolean showFPS = true;
+			private final boolean showFPS = false;
 
 			//  The number of frames
 			int frameCount = 0;

@@ -104,13 +104,9 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	}
 
 	List<ViewLayerGL> getSublayersGL() {
-		List<ViewLayerGL> sublayersGL;
-
 		synchronized(this.sublayers) {
-			sublayersGL = new ArrayList<ViewLayerGL>(this.sublayers);
+			return Collections.unmodifiableList(this.sublayers);
 		}
-
-		return sublayersGL;
 	}
 
 	WindowLayerGL getWindowLayer() {
@@ -142,7 +138,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	}
 
 	public void setFrame(Rect frame, Rect bounds) {
-		this.setFrame(frame, bounds, true);
+		this.setFrame(frame, bounds, this.frame == null || frame == null || !this.frame.size.equals(frame.size));
 	}
 
 	void setFrame(Rect frame, Rect bounds, boolean setNeedsLayout) {

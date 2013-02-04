@@ -95,13 +95,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	}
 
 	List<ViewLayerCanvas> getSublayersCanvas() {
-		List<ViewLayerCanvas> sublayersCanvas;
-
-		synchronized(this.sublayers) {
-			sublayersCanvas = new ArrayList<ViewLayerCanvas>(this.sublayers);
-		}
-
-		return sublayersCanvas;
+		return Collections.unmodifiableList(this.sublayers);
 	}
 
 	WindowLayerCanvas getWindowLayer() {
@@ -134,7 +128,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	}
 
 	public void setFrame(Rect frame, Rect bounds) {
-		this.setFrame(frame, bounds, true);
+		this.setFrame(frame, bounds, this.frame == null || frame == null || !this.frame.size.equals(frame.size));
 	}
 
 	void setFrame(Rect frame, Rect bounds, boolean setNeedsLayout) {
@@ -259,7 +253,9 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	}
 
 	public List<ViewLayer> getSublayers() {
-		return Collections.unmodifiableList(this.sublayersGeneric);
+		synchronized(this.sublayers) {
+			return Collections.unmodifiableList(this.sublayersGeneric);
+		}
 	}
 
 	public ViewLayer getSuperlayer() {

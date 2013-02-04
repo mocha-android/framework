@@ -274,7 +274,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			});
 
-			currentViewAnimation.addAnimator(ViewAnimator.ofPoint(this, "contentOffset", contentOffset));
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_POINT, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+				public void processFrame(Object value) {
+					setContentOffset((Point)value);
+				}
+			});
 
 			View.commitAnimations();
 		} else {
@@ -291,7 +295,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 
 			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimator(ViewAnimator.ofPoint(this, "contentOffset", contentOffset));
+				currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_POINT, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+					public void processFrame(Object value) {
+						setContentOffset((Point)value);
+					}
+				});
 			} else {
 				this.updateScrollPositionWithContentOffset();
 				this.didScroll(false);
