@@ -72,11 +72,19 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	public static float getTextWidth(CharSequence text, Font font) {
-		return getTextWidth(text, font, Screen.mainScreen().getScale());
+		return getTextWidth(text, font, Float.MAX_VALUE, Screen.mainScreen().getScale());
 	}
 
-	public static float getTextWidth(CharSequence text, Font font, float screenScale) {
-		return createPaintForFont(font, screenScale).measureText(text, 0, text.length()) / screenScale;
+	public static float getTextWidth(CharSequence text, Font font, float width) {
+		return getTextWidth(text, font, width, Screen.mainScreen().getScale());
+	}
+
+	public static float getTextWidth(CharSequence text, Font font, float width, float screenScale) {
+		width = constrainWidth(width);
+		float[] measuredWidth = new float[] { 0.0f };
+
+		font.paintForScreenScale(screenScale).breakText(text, 0, text.length(), true, width, measuredWidth);
+		return measuredWidth[0];
 	}
 
 	public static Size getTextSize(CharSequence text, Font font) {
@@ -97,10 +105,7 @@ public class TextDrawing extends mocha.foundation.Object {
 
 	// TODO: Implement line break mode
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
-		// There seems to be a race condition in breakText when MAX_VALUE is passed and the text is too small.
-		// Using a large value like 10000 seems to fix the issue, and shouldn't cause any problems since
-		// we really shouldn't be rendering to a width that large anyway.
-		constrainedToSize.width = Math.min(constrainedToSize.width, 10000);
+		constrainedToSize.width = constrainWidth(constrainedToSize.width);
 
 		int lineCount = 0;
 
@@ -124,6 +129,12 @@ public class TextDrawing extends mocha.foundation.Object {
 		return new Size(width / screenScale, lineCount * font.getLineHeight());
 	}
 
+	private static float constrainWidth(float width) {
+		// There seems to be a race condition in breakText when MAX_VALUE is passed and the text is too small.
+		// Using a large value like 10000 seems to fix the issue, and shouldn't cause any problems since
+		// we really shouldn't be rendering to a width that large anyway.
+		return Math.min(width, 10000);
+	}
 
 	/**
 	 * @deprecated Use Font#paintForScreenScale(float) instead

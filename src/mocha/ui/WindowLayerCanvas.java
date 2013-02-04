@@ -70,18 +70,20 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 			this.setWillNotDraw(false);
 		}
 
-		public void forceLayout() {
-			super.forceLayout();
+		protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+			super.onLayout(changed, left, top, right, bottom);
 
-			ViewGroup view = (ViewGroup)this.getParent();
-			if(view != null) {
-				float scale = getView().scale;
+			if(changed) {
+				ViewGroup view = (ViewGroup)this.getParent();
+				if(view != null) {
+					float scale = getView().scale;
 
-				Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
-				getWindow().superSetFrame(frame);
-				MLog("Window Bounds: " + getView().getBounds().toString());
-				MLog("Window Frame: " + frame);
-				MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
+					Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
+					getWindow().superSetFrame(frame);
+					MLog("Window Bounds: " + getView().getBounds().toString());
+					MLog("Window Frame: " + frame);
+					MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
+				}
 			}
 		}
 

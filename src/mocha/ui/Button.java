@@ -249,11 +249,6 @@ public class Button extends Control {
 		return this.contentEdgeInsets == null ? bounds : this.contentEdgeInsets.inset(bounds);
 	}
 
-	private Size backgroundSizeForState(State... states) {
-		Image backgroundImage = this.getBackgroundImage(states);
-		return backgroundImage != null ? backgroundImage.getSize() : Size.zero();
-	}
-
 	private Size titleSizeForState(State... states) {
 		CharSequence title = this.getTitleForState(states);
 		Size size = title != null && title.length() > 0 ? TextDrawing.getTextSize(title, this.titleLabel.getFont()) : Size.zero();
@@ -267,69 +262,102 @@ public class Button extends Control {
 		return image != null ? image.getSize() : Size.zero();
 	}
 
-	private Rect componentRectForSize(Size size, Rect contentRect, State... states) {
-		Rect rect = new Rect(contentRect.origin, size);
 
-		// clamp the right edge of the rect to the contentRect - this is what the real UIButton appears to do.
-		if (rect.maxX() > contentRect.maxX()) {
-			rect.size.width -= rect.maxX() - contentRect.maxX();
+	public Rect getTitleRectForContentRect(Rect contentRect) {
+		CharSequence title = this.getCurrentTitle();
+		if(title == null || title.length() == 0) return Rect.zero();
+
+		Font font = this.titleLabel.getFont();
+
+		Image image = this.getCurrentImage();
+		float imageWidth = image == null ? 0.0f : image.getSize().width;
+		float availableWidth = contentRect.size.width - imageWidth;
+
+		Rect rect = contentRect.copy();
+		rect.size.width = Math.min(TextDrawing.getTextWidth(title, font, availableWidth), availableWidth);
+		rect.size.height = Math.min(font.getLineHeight(), contentRect.size.height);
+
+		switch (this.getContentVerticalAlignment()) {
+			case CENTER:
+				rect.origin.y += floorf((contentRect.size.height - rect.size.height) / 2.0f);
+				break;
+			case TOP:
+				// Already top aligned
+				break;
+			case BOTTOM:
+				rect.origin.y = contentRect.maxY() - rect.size.height;
+				break;
+			case FILL:
+				rect.size.height = contentRect.size.height;
+				break;
 		}
 
 		switch (this.getContentHorizontalAlignment()) {
 			case CENTER:
-				rect.origin.x += floorf((contentRect.size.width/2.f) - (rect.size.width/2.f));
+				rect.origin.x += imageWidth + floorf((contentRect.size.width - rect.size.width - imageWidth) / 2.0f);
 				break;
-
-			case RIGHT:
-				rect.origin.x += contentRect.size.width - rect.size.width;
-				break;
-
-			case FILL:
-				rect.size.width = contentRect.size.width;
-				break;
-
 			case LEFT:
-				// Already left aligned
+				rect.origin.x += imageWidth;
 				break;
-		}
-
-		switch (this.getContentVerticalAlignment()) {
-			case CENTER:
-				rect.origin.y += floorf((contentRect.size.height/2.f) - (rect.size.height/2.f));
+			case RIGHT:
+				rect.origin.x = contentRect.maxX() - rect.size.width;
 				break;
-
-			case BOTTOM:
-				rect.origin.y += contentRect.size.height - rect.size.height;
-				break;
-
 			case FILL:
-				rect.size.height = contentRect.size.height;
-				break;
-
-			case TOP:
-				// Already top aligned
+				// Not sure what to do here, will just offset by width and treat as left aligned
+				rect.origin.x += imageWidth;
 				break;
 		}
 
-		return rect;
-	}
-
-	public Rect getTitleRectForContentRect(Rect contentRect) {
-		State[] states = this.getStates();
-
-		EdgeInsets inset = this.titleEdgeInsets == null ? EdgeInsets.zero() : this.titleEdgeInsets.copy();
-		inset.left += this.imageSizeForState(states).width;
-
-		return this.componentRectForSize(this.titleSizeForState(states), inset.inset(contentRect), states);
+		return this.imageEdgeInsets == null ? rect : this.imageEdgeInsets.inset(rect);
 	}
 
 	public Rect getImageRectForContentRect(Rect contentRect) {
-		State[] states = this.getStates();
+		Image image = this.getCurrentImage();
+		if(image == null) return Rect.zero();
 
-		EdgeInsets inset = this.imageEdgeInsets == null ? EdgeInsets.zero() : this.imageEdgeInsets.copy();
-		inset.right += this.getTitleRectForContentRect(contentRect).size.width;
+		Rect rect = contentRect.copy();
+		rect.size = image.getSize();
+		rect.size.width = Math.min(rect.size.width, contentRect.size.width);
+		rect.size.height = Math.min(rect.size.height, contentRect.size.height);
 
-		return this.componentRectForSize(this.imageSizeForState(states), inset.inset(contentRect), states);
+		switch (this.getContentVerticalAlignment()) {
+			case CENTER:
+				rect.origin.y += floorf((contentRect.size.height - rect.size.height) / 2.0f);
+				break;
+			case TOP:
+				// Already top aligned
+				break;
+			case BOTTOM:
+				rect.origin.y = contentRect.maxY() - rect.size.height;
+				break;
+			case FILL:
+				rect.size.height = contentRect.size.height;
+				break;
+		}
+
+		HorizontalAlignment alignment = this.getContentHorizontalAlignment();
+
+		if(alignment != HorizontalAlignment.LEFT && rect.size.width < contentRect.size.width) {
+			CharSequence title = this.getCurrentTitle();
+			float width = title != null && title.length() > 0 ? TextDrawing.getTextWidth(title, this.getTitleLabel().getFont(), contentRect.size.width - rect.size.width) : 0.0f;
+
+			switch (alignment) {
+				case CENTER:
+					rect.origin.x += floorf((contentRect.size.width - rect.size.width - width) / 2.0f);
+					break;
+				case LEFT:
+					// Already left aligned
+					break;
+				case RIGHT:
+					rect.origin.x = contentRect.maxX() - rect.size.width - width;
+					break;
+				case FILL:
+					// Not sure what to do here.
+					break;
+			}
+		}
+
+		return this.imageEdgeInsets == null ? rect : this.imageEdgeInsets.inset(rect);
 	}
 
 	public void layoutSubviews() {
@@ -341,29 +369,39 @@ public class Button extends Control {
 		this.backgroundImageView.setFrame(this.getBackgroundRectForBounds(bounds));
 		this.imageView.setFrame(this.getImageRectForContentRect(contentRect));
 		this.titleLabel.setFrame(this.getTitleRectForContentRect(contentRect));
-		MLog("Button title frame: %s", this.titleLabel.getFrame());
 	}
 
 	public Size sizeThatFits(Size size) {
-		State[] states = this.getStates();
+		Image image = this.getCurrentImage();
+		Size imageSize = image == null ? Size.zero() : image.getSize();
+		Size sizeThatFits = imageSize.copy();
+		CharSequence title = this.getCurrentTitle();
 
-		Size imageSize = this.imageSizeForState(states);
-		Size titleSize = this.titleSizeForState(states);
-		MLog("title size: %s", titleSize);
-		Size fitSize = new Size();
-		EdgeInsets insets = this.contentEdgeInsets == null ? EdgeInsets.zero() : this.contentEdgeInsets;
-		fitSize.width = insets.left + insets.right + titleSize.width + imageSize.width;
-		fitSize.height = insets.top + insets.bottom + Math.max(titleSize.height,imageSize.height);
+		if(imageSize.width < size.width) {
+			if(title != null && title.length() > 0) {
+				float titleWidth = TextDrawing.getTextWidth(title, this.titleLabel.getFont(), size.width - imageSize.width);
+				sizeThatFits.width = imageSize.width + titleWidth;
+			}
+		}
+
+		if(imageSize.height < size.height) {
+			if(title != null && title.length() > 0) {
+				sizeThatFits.height = Math.max(imageSize.height, this.titleLabel.getFont().getLineHeight());
+			}
+		}
 
 		Image background = this.getCurrentBackgroundImage();
 
 		if(background != null) {
 			Size backgroundSize = background.getSize();
-			fitSize.width = Math.max(fitSize.width, backgroundSize.width);
-			fitSize.height = Math.max(fitSize.height, backgroundSize.height);
+			sizeThatFits.width = Math.max(sizeThatFits.width, backgroundSize.width);
+			sizeThatFits.height = Math.max(sizeThatFits.height, backgroundSize.height);
 		}
 
-		return fitSize;
+		sizeThatFits.width = Math.min(sizeThatFits.width, size.width);
+		sizeThatFits.height = Math.min(sizeThatFits.height, size.height);
+
+		return sizeThatFits;
 	}
 
 	protected void stateDidChange() {
