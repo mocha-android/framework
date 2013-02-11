@@ -3,18 +3,18 @@ package mocha.ui;
 import mocha.graphics.Image;
 
 public class BarButtonItem extends BarItem {
-	enum SystemItem {
+	public enum SystemItem {
 		DONE, CANCEL, EDIT, SAVE, FLEXIBLE_SPACE, FIXED_SPACE,
 		COMPOSE, REPLY, ACTION, ORGANIZE, BOOKMARKS, SEARCH,
 		REFRESH, STOP, CAMERA, TRASH, PLAY, PAUSE, REWIND,
 		FAST_FORWARD, UNDO, REDO
 	}
 
-	enum Style {
+	public enum Style {
 		PLAIN, BORDERED, DONE
 	}
 
-	interface Action {
+	public interface Action {
 		public void action(BarButtonItem barButtonItem);
 	}
 

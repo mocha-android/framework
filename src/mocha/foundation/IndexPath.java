@@ -11,6 +11,11 @@ public class IndexPath extends mocha.foundation.Object {
 	private final int[] indexes;
 	private final int hashCode;
 
+	// Convenience vars to avoid getters
+	public final int section;
+	public final int row;
+	public final int item;
+
 	public static IndexPath withIndex(int index) {
 		return new IndexPath(index);
 	}
@@ -26,6 +31,22 @@ public class IndexPath extends mocha.foundation.Object {
 	public IndexPath(int... index) {
 		this.indexes = index;
 		this.hashCode = Arrays.hashCode(this.indexes);
+
+		if(this.indexes.length > 0) {
+			this.section = this.indexes[0];
+
+			if(this.indexes.length > 1) {
+				this.row = this.indexes[1];
+				this.item = this.indexes[1];
+			} else {
+				this.row = -1;
+				this.item = -1;
+			}
+		} else {
+			this.section = -1;
+			this.row = -1;
+			this.item = -1;
+		}
 	}
 
 	public int size() {
@@ -51,20 +72,31 @@ public class IndexPath extends mocha.foundation.Object {
 	}
 
 	public int getRow() {
-		return this.indexes[1];
+		return this.row;
 	}
 
 	public int getItem() {
-		return this.indexes[1];
+		return this.item;
 	}
 
 	public int getSection() {
-		return this.indexes[0];
+		return this.section;
 	}
 
 	public boolean equals(java.lang.Object object) {
 		return object == this || (object instanceof IndexPath && this.hashCode == ((IndexPath)object).hashCode);
 	}
+
+	// Only works with section/row index paths
+	public boolean lowerThan(IndexPath indexPath) {
+		return ((indexPath != null && ((this.section < indexPath.section) || (this.section == indexPath.section && this.row < indexPath.row))));
+	}
+
+	// Only works with section/row index paths
+	public boolean greaterThan(IndexPath indexPath) {
+		return ((indexPath != null && ((this.section > indexPath.section) || (this.section == indexPath.section && this.row > indexPath.row))));
+	}
+
 
 	public String toString() {
 		return String.format("<%s 0x%d indexes=%s>", this.getClass(), this.hashCode, Arrays.toString(this.indexes));

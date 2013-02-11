@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 2/4/13
- *	@copyright	2013 TV Guide, Inc. All rights reserved.
+ *	@copyright	2013 enormego. All rights reserved.
  */
 package mocha.ui;
 
@@ -10,13 +10,13 @@ import mocha.graphics.Point;
 import mocha.graphics.Rect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 class ViewAnimation extends mocha.foundation.Object {
 	private static int PROCESS_FRAME = -949484724;
 	private static long DESIRED_ANIMATION_FRAME_RATE = (long)((1.0 / 60.0) * 1000.0);
+	private static boolean PROFILE_FRAME_RATE = true;
 
 	private static ThreadLocal<AnimationHandler> animationHandler = new ThreadLocal<AnimationHandler>();
 	private static final ThreadLocal<ArrayList<ViewAnimation>> activeAnimations = new ThreadLocal<ArrayList<ViewAnimation>>() {
@@ -173,13 +173,15 @@ class ViewAnimation extends mocha.foundation.Object {
 	}
 
 	private void processFrame(float time) {
-		long start = android.os.SystemClock.uptimeMillis();
-		if(this.sinceLastFrameStart > 0) {
-			MLog("time since last frame started: %s | ended: %s", start - this.sinceLastFrameStart, start-this.sinceLastFrameEnd);
+		if(PROFILE_FRAME_RATE) {
+//			long start = android.os.SystemClock.uptimeMillis();
+//			if(this.sinceLastFrameStart > 0) {
+//				MLog("time since last frame started: %s | ended: %s", start - this.sinceLastFrameStart, start-this.sinceLastFrameEnd);
+//			}
+//
+//			this.sinceLastFrameStart = start;
+			this.frameCount++;
 		}
-
-		this.sinceLastFrameStart = start;
-		this.frameCount++;
 
 		// MLog("Running for %f", time);
 		for(Animation animation : this.animations.values()) {
@@ -204,7 +206,9 @@ class ViewAnimation extends mocha.foundation.Object {
 			}
 		}
 
-		this.sinceLastFrameEnd = android.os.SystemClock.uptimeMillis();
+//		if(PROFILE_FRAME_RATE) {
+//			this.sinceLastFrameEnd = android.os.SystemClock.uptimeMillis();
+//		}
 	}
 
 	private Rect interpolate(float time, Rect start, Rect end) {
@@ -272,7 +276,10 @@ class ViewAnimation extends mocha.foundation.Object {
 		double mspf = (double)elapsed / (double)frameCount;
 		double fps = 1000 / mspf;
 
-		mocha.foundation.Object.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
+		if(PROFILE_FRAME_RATE) {
+			mocha.foundation.Object.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
+		}
+
 		if (didStop != null) {
 			didStop.animationDidStop(animationID, true, context);
 		}
@@ -289,7 +296,7 @@ class ViewAnimation extends mocha.foundation.Object {
 		public void handleMessage(android.os.Message message) {
 			if(message.what == PROCESS_FRAME) {
 				long currentTime = android.os.SystemClock.uptimeMillis();
-				List<ViewAnimation> animations = Collections.unmodifiableList(activeAnimations.get());
+				List<ViewAnimation> animations = new ArrayList<ViewAnimation>(activeAnimations.get());
 
 				for(ViewAnimation animation : animations) {
 					if(!animation.hasStarted) {
@@ -317,13 +324,10 @@ class ViewAnimation extends mocha.foundation.Object {
 					} else {
 						this.sendEmptyMessageDelayed(PROCESS_FRAME, delay);
 					}
-				} else {
-					MLog("Appears to be out of active animations??");
 				}
 			}
 		}
 
 	}
-
 
 }

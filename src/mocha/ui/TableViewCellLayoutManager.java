@@ -1,7 +1,7 @@
-/*
+/**
  *  @author Shaun
- *	@date 11/20/12
- *	@copyright	2012 enormego. All rights reserved.
+ *  @date 11/20/12
+ *  @copyright	2012 enormego. All rights reserved.
  */
 package mocha.ui;
 
@@ -13,9 +13,21 @@ import mocha.graphics.TextDrawing;
 abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 	private static TableViewCellLayoutManager DEFAULT = new Default();
 	private static TableViewCellLayoutManager SUBTITLE = new Subtitle();
+	private static TableViewCellLayoutManager CUSTOM = new Custom();
 
-	public static TableViewCellLayoutManager getLayoutManagerForTableViewCellStyle(TableViewCell.CellStyle style) {
-		if(style == TableViewCell.CellStyle.SUBTITLE) {
+	public static TableViewCellLayoutManager getLayoutManagerForTableViewCellStyle(TableViewCell.Style style) {
+		switch (style) {
+			case DEFAULT:
+				return DEFAULT;
+			case VALUE_1: // TODO
+			case VALUE_2: // TODO
+			case SUBTITLE:
+				return SUBTITLE;
+			case CUSTOM:
+				return CUSTOM;
+		}
+
+		if(style == TableViewCell.Style.SUBTITLE) {
 			return SUBTITLE;
 		} else {
 			return DEFAULT;
@@ -23,25 +35,25 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 	}
 
 
-	abstract Rect contentViewRectForCell(TableViewCell cell);
+	abstract Rect getContentViewRectForCell(TableViewCell cell);
 
-	abstract Rect accessoryViewRectForCell(TableViewCell cell);
+	abstract Rect getAccessoryViewRectForCell(TableViewCell cell);
 
-	abstract Rect backgroundViewRectForCell(TableViewCell cell);
+	abstract Rect getBackgroundViewRectForCell(TableViewCell cell);
 
-	abstract Rect separatorViewRectForCell(TableViewCell cell);
+	abstract Rect getSeparatorViewRectForCell(TableViewCell cell);
 
-	abstract Rect imageViewRectForCell(TableViewCell cell);
+	abstract Rect getImageViewRectForCell(TableViewCell cell);
 
-	abstract Rect textLabelRectForCell(TableViewCell cell);
+	abstract Rect getTextLabelRectForCell(TableViewCell cell);
 
-	abstract Rect detailTextLabelRectForCell(TableViewCell cell);
+	abstract Rect getDetailTextLabelRectForCell(TableViewCell cell);
 
 	static class Default extends TableViewCellLayoutManager {
-		Rect contentViewRectForCell(TableViewCell cell) {
+		Rect getContentViewRectForCell(TableViewCell cell) {
 			// Collect pertinent information
-			Rect accessoryRect = this.accessoryViewRectForCell(cell);
-			Rect separatorRect = this.separatorViewRectForCell(cell);
+			Rect accessoryRect = this.getAccessoryViewRectForCell(cell);
+			Rect separatorRect = this.getSeparatorViewRectForCell(cell);
 			float accessoryPadding = this._accessoryViewPaddingForCell(cell);
 			Rect bounds = cell.getBounds();
 
@@ -52,16 +64,16 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 		}
 
 		float _accessoryViewPaddingForCell(TableViewCell cell) {
-			View accessoryView = cell.getAccessoryView();
+			View accessoryView = cell.getActualAccessoryView();
 			if (null == accessoryView) {
 				return 0.0f;
 			}
 
 			// NOTE: We can do this only because the SIZE of the accessory view
 			// never changes, even though the origin might.
-			Size accessorySize = cell.getAccessoryView().getBounds().size;
+			Size accessorySize = cell.getActualAccessoryView().getBounds().size;
 			Rect cellBounds = cell.getBounds();
-			Rect separatorRect = this.separatorViewRectForCell(cell);
+			Rect separatorRect = this.getSeparatorViewRectForCell(cell);
 
 			// Padding is ALWAYS 10 px on the left, but is the LESSER 
 			// (including negative numbers) of 10.0 or the height difference,
@@ -71,14 +83,17 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			return heightDifference < 10.0f ? heightDifference : 10.0f;
 		}
 
-		Rect accessoryViewRectForCell(TableViewCell cell) {
+		Rect getAccessoryViewRectForCell(TableViewCell cell) {
+			if(cell.getActualAccessoryView() == null) return Rect.zero();
+
 			View accessoryView = cell.getAccessoryView();
-			Rect separatorRect = this.separatorViewRectForCell(cell);
+
+			Rect separatorRect = this.getSeparatorViewRectForCell(cell);
 			Rect bounds = cell.getBounds();
 			Rect cellBounds = new Rect(bounds.origin, new Size(bounds.size.width, bounds.size.height - separatorRect.size.height));
 
 			// Custom accessory view always wins
-			if (null != accessoryView) {
+			if (accessoryView != null) {
 				Size accessorySize = accessoryView.sizeThatFits(cellBounds.size);
 
 				// Provide a rect from the right-hand side of the cell,
@@ -100,8 +115,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 				case CHECKMARK:
 				case DISCLOSURE_INDICATOR:
 				case DETAIL_DISCLOSURE_BUTTON:
-					// Hard-coded widths, from the iphone
-					float width = 20.0f;
+					float width = 30.0f;
 
 					if (accessoryType == TableViewCell.AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
 						width = 33.0f;
@@ -114,12 +128,12 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			}
 		}
 
-		Rect backgroundViewRectForCell(TableViewCell cell) {
-			Rect separatorRect = this.separatorViewRectForCell(cell);
+		Rect getBackgroundViewRectForCell(TableViewCell cell) {
+			Rect separatorRect = this.getSeparatorViewRectForCell(cell);
 			return new Rect(0.0f, 0.0f, cell.getBounds().size.width, cell.getBounds().size.height - separatorRect.size.height);
 		}
 
-		Rect separatorViewRectForCell(TableViewCell cell) {
+		Rect getSeparatorViewRectForCell(TableViewCell cell) {
 			if(cell.getSeparatorStyle() != TableViewCell.SeparatorStyle.NONE) {
 				Rect bounds  = cell.getBounds();
 				return new Rect(0.0f, bounds.size.height - 1.0f, bounds.size.width, 1.0f);
@@ -128,7 +142,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			}
 		}
 
-		Rect imageViewRectForCell(TableViewCell cell) {
+		Rect getImageViewRectForCell(TableViewCell cell) {
 			ImageView imageView = cell.getImageView(false);
 			Image image;
 
@@ -141,7 +155,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			// THE IMAGE HEIGHT IS NEVER CONSTRAINED (tested in iOS)
 			Size imageSize = image.getSize();
 			Rect cellBounds = cell.getBounds();
-			Rect separatorRect = this.separatorViewRectForCell(cell);
+			Rect separatorRect = this.getSeparatorViewRectForCell(cell);
 			float maxHeight = cellBounds.size.height - separatorRect.size.height;
 
 			if (imageSize.height < maxHeight) {
@@ -160,7 +174,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			}
 		}
 
-		Rect textLabelRectForCell(TableViewCell cell) {
+		Rect getTextLabelRectForCell(TableViewCell cell) {
 			Label textLabel = cell.getTextLabel(false);
 			
 			if (textLabel == null) {
@@ -178,8 +192,8 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			// The allowable width is always from the right side of the content rect - 10 (padding)
 			// to the greater of the end of the content rect OR the final bounds of the image view - 10 (padding)
 
-			Rect contentRect =this.contentViewRectForCell(cell);
-			Rect imageRect =this.imageViewRectForCell(cell);
+			Rect contentRect = this.getContentViewRectForCell(cell);
+			Rect imageRect = this.getImageViewRectForCell(cell);
 
 			float originX = 0.0f;
 			float width = 0.0f;
@@ -198,7 +212,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			return new Rect(originX, 0.0f, width, contentRect.size.height);
 		}
 
-		Rect detailTextLabelRectForCell(TableViewCell cell) {
+		Rect getDetailTextLabelRectForCell(TableViewCell cell) {
 			return Rect.zero();
 		}
 	}
@@ -227,7 +241,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			return new Size(tvSize.width > dvSize.width ? tvSize.width : dvSize.width, tvSize.height + dvSize.height);
 		}
 
-		Rect textLabelRectForCell(TableViewCell cell) {
+		Rect getTextLabelRectForCell(TableViewCell cell) {
 			Label textLabel = cell.getTextLabel(false);
 			
 			if (textLabel == null) {
@@ -248,8 +262,8 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			Size originalSize = new Size();
 			Size combinedSize = this._combinedLabelsSizeForCell(cell, originalSize, null);
 
-			Rect contentRect = this.contentViewRectForCell(cell);
-			Rect imageRect = this.imageViewRectForCell(cell);
+			Rect contentRect = this.getContentViewRectForCell(cell);
+			Rect imageRect = this.getImageViewRectForCell(cell);
 
 			float originX = 0.0f;
 			float width = 0.0f;
@@ -271,7 +285,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			return new Rect(originX, originY, width, originalSize.height);
 		}
 
-		Rect detailTextLabelRectForCell(TableViewCell cell) {
+		Rect getDetailTextLabelRectForCell(TableViewCell cell) {
 			Label detailTextLabel = cell.getDetailTextLabel(false);
 			if (detailTextLabel == null) {
 				return Rect.zero();
@@ -291,8 +305,8 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			Size originalSize = new Size();
 			Size combinedSize = this._combinedLabelsSizeForCell(cell, null, originalSize);
 
-			Rect contentRect = this.contentViewRectForCell(cell);
-			Rect imageRect = this.imageViewRectForCell(cell);
+			Rect contentRect = this.getContentViewRectForCell(cell);
+			Rect imageRect = this.getImageViewRectForCell(cell);
 
 			float originX = 0.0f;
 			float width = 0.0f;
@@ -314,4 +328,25 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			return new Rect(originX, originY, width, originalSize.height);
 		}
 	}
+
+	static class Custom extends Default {
+
+		Rect getAccessoryViewRectForCell(TableViewCell cell) {
+			return Rect.zero();
+		}
+
+		Rect getImageViewRectForCell(TableViewCell cell) {
+			return Rect.zero();
+		}
+
+		Rect getTextLabelRectForCell(TableViewCell cell) {
+			return Rect.zero();
+		}
+
+		Rect getDetailTextLabelRectForCell(TableViewCell cell) {
+			return Rect.zero();
+		}
+
+	}
+
 }

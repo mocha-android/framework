@@ -70,7 +70,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		return this.view;
 	}
 
-	protected Rect getFrame() {
+	Rect getFrame() {
 		return frame;
 	}
 

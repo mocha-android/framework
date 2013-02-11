@@ -15,7 +15,7 @@ public class NavigationBar extends View {
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_BUTTON_HEIGHT = 30.0f;
-	static final long ANIMATION_DURATION = 430;
+	static final long ANIMATION_DURATION = 330;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
 	public interface Delegate {

@@ -104,9 +104,8 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	}
 
 	List<ViewLayerGL> getSublayersGL() {
-		synchronized(this.sublayers) {
-			return Collections.unmodifiableList(this.sublayers);
-		}
+		// Collections.unmodifiableList has enumrating issues.
+		return new ArrayList<ViewLayerGL>(this.sublayers);
 	}
 
 	WindowLayerGL getWindowLayer() {

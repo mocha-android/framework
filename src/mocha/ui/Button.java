@@ -67,8 +67,16 @@ public class Button extends Control {
 		this.setContent(ContentType.IMAGE, states, image);
 	}
 
+	public void setImage(int resourceID, State... states) {
+		this.setImage(Image.imageNamed(resourceID), states);
+	}
+
 	public void setBackgroundImage(Image backgroundImage, State... states) {
 		this.setContent(ContentType.BACKGROUND_IMAGE, states, backgroundImage);
+	}
+
+	public void setBackgroundImage(int resourceID, State... states) {
+		this.setBackgroundImage(Image.imageNamed(resourceID), states);
 	}
 
 	private void setContent(ContentType type, State[] states, Object value) {

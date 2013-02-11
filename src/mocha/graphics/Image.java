@@ -22,6 +22,8 @@ public class Image extends mocha.foundation.Object {
 	private NinePatch ninePatch;
 
 	public static Image imageNamed(int resourceId) {
+		if(resourceId <= 0) return null;
+
 		android.content.Context context = Screen.mainScreen().getContext();
 		Resources resources = context.getResources();
 		return new Image(BitmapFactory.decodeResource(resources, resourceId));

@@ -43,6 +43,7 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 	private boolean pagingEnabled;
 	private boolean bounces;
 	private Point maxPoint;
+	private boolean cancelled;
 
 	ScrollViewAnimation(ScrollView scrollView) {
 		this.target = scrollView;
@@ -107,6 +108,12 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 				target.delegate.scrollViewWillBeginDecelerating(target);
 			}
 
+			for(ScrollViewAnimation animation : activeAnimations.get()) {
+				if(animation.target == this.target) {
+					throw new RuntimeException("Scroll view already has a deceleration animation");
+				}
+			}
+
 			activeAnimations.get().add(this);
 
 			AnimationHandler handler = animationHandler.get();
@@ -123,6 +130,7 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 	}
 
 	void cancelAnimations() {
+		this.cancelled = true;
 		this.stopDecelerationAnimation();
 	}
 
@@ -165,6 +173,8 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 	}
 
 	private void stepThroughDecelerationAnimation() {
+		if(cancelled) return;
+
 		if (!target.decelerating) {
 			activeAnimations.get().remove(this);
 			return;

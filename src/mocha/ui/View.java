@@ -12,36 +12,27 @@ import mocha.graphics.Size;
 import java.util.*;
 
 public class View extends Responder {
-	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
-	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerCanvas.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerCanvas.class;
 
 	public static boolean SLOW_ANIMATIONS = false;
 
-	private ViewLayer layer;
-	private View superview;
-	private int backgroundColor;
-	private int autoresizingMask;
-	private ArrayList<View> subviews;
-	private boolean autoresizesSubviews;
-	private int tag;
-	private boolean needsLayout;
-	private boolean userInteractionEnabled;
-	Rect frame;
-	private Rect bounds;
-	private ArrayList<GestureRecognizer> gestureRecognizers;
-	private boolean clipsToBounds;
-	public final float scale;
-	private boolean onCreatedCalled;
-	private ViewController _viewController;
+	private static final int AUTORESIZING_NONE = 0;
+	private static final int AUTORESIZING_FLEXIBLE_LEFT_MARGIN = 1 << 0;
+	private static final int AUTORESIZING_FLEXIBLE_WIDTH = 1 << 1;
+	private static final int AUTORESIZING_FLEXIBLE_RIGHT_MARGIN = 1 << 2;
+	private static final int AUTORESIZING_FLEXIBLE_TOP_MARGIN = 1 << 3;
+	private static final int AUTORESIZING_FLEXIBLE_HEIGHT = 1 << 4;
+	private static final int AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN = 1 << 5;
 
 	public enum Autoresizing {
-		NONE(0),
-		FLEXIBLE_LEFT_MARGIN(1 << 0),
-		FLEXIBLE_WIDTH(1 << 1),
-		FLEXIBLE_RIGHT_MARGIN(1 << 2),
-		FLEXIBLE_TOP_MARGIN(1 << 3),
-		FLEXIBLE_HEIGHT(1 << 4),
-		FLEXIBLE_BOTTOM_MARGIN(1 << 5);
+		NONE(AUTORESIZING_NONE),
+		FLEXIBLE_LEFT_MARGIN(AUTORESIZING_FLEXIBLE_LEFT_MARGIN),
+		FLEXIBLE_WIDTH(AUTORESIZING_FLEXIBLE_WIDTH),
+		FLEXIBLE_RIGHT_MARGIN(AUTORESIZING_FLEXIBLE_RIGHT_MARGIN),
+		FLEXIBLE_TOP_MARGIN(AUTORESIZING_FLEXIBLE_TOP_MARGIN),
+		FLEXIBLE_HEIGHT(AUTORESIZING_FLEXIBLE_HEIGHT),
+		FLEXIBLE_BOTTOM_MARGIN(AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN);
 
 		private int value;
 		private Autoresizing(int value) {
@@ -54,6 +45,85 @@ public class View extends Responder {
 
 		public static final EnumSet<Autoresizing> FLEXIBLE_SIZE = EnumSet.of(Autoresizing.FLEXIBLE_WIDTH, Autoresizing.FLEXIBLE_HEIGHT);
 		public static final EnumSet<Autoresizing> FLEXIBLE_MARGINS = EnumSet.of(Autoresizing.FLEXIBLE_TOP_MARGIN, Autoresizing.FLEXIBLE_LEFT_MARGIN, Autoresizing.FLEXIBLE_BOTTOM_MARGIN, Autoresizing.FLEXIBLE_RIGHT_MARGIN);
+	}
+
+	public enum ContentMode {
+		/**
+		 * Scales content to fill the entire bounds
+		 * Aspect ratio will be changed if necessary
+		 */
+		SCALE_TO_FILL,
+
+		/**
+		 * Contents scaled to fit with fixed aspect.
+		 * Remainder is transparent.
+		 */
+		SCALE_ASPECT_FIT,
+
+		/**
+		 * Contents scaled to fill with fixed aspect ratio.
+		 * Some portion of content may be clipped
+		 */
+		SCALE_ASPECT_FILL,
+
+		/**
+		 * Calls setNeedsDisplay on bounds change
+		 */
+		REDRAW,
+
+		/**
+		 * Aligned to the center vertically and horizontally
+		 * Content size will not be changed
+		 */
+		CENTER,
+
+		/**
+		 * Aligned to the top vertically, aligned to the center horizontally
+		 * Content size will not be changed
+		 */
+		TOP,
+
+		/**
+		 * Aligned to the bottom vertically, aligned to the center horizontally
+		 * Content size will not be changed
+		 */
+		BOTTOM,
+
+		/**
+		 * Aligned to the center vertically, aligned to the left horizontally
+		 * Content size will not be changed
+		 */
+		LEFT,
+
+		/**
+		 * Aligned to the center vertically, aligned to the right horizontally
+		 * Content size will not be changed
+		 */
+		RIGHT,
+
+		/**
+		 * Aligned to the top vertically, aligned to the left horizontally
+		 * Content size will not be changed
+		 */
+		TOP_LEFT,
+
+		/**
+		 * Aligned to the top vertically, aligned to the right horizontally
+		 * Content size will not be changed
+		 */
+		TOP_RIGHT,
+
+		/**
+		 * Aligned to the bottom vertically, aligned to the left horizontally
+		 * Content size will not be changed
+		 */
+		BOTTOM_LEFT,
+
+		/**
+		 * Aligned to the bottom vertically, aligned to the right horizontally
+		 * Content size will not be changed
+		 */
+		BOTTOM_RIGHT,
 	}
 
 	public enum AnimationCurve {
@@ -78,6 +148,25 @@ public class View extends Responder {
 	public interface Animations {
 		public void performAnimatedChanges();
 	}
+
+	private ViewLayer layer;
+	private View superview;
+	private int backgroundColor;
+	private int autoresizingMask;
+	private ArrayList<View> subviews;
+	private boolean autoresizesSubviews;
+	private int tag;
+	private boolean needsLayout;
+	private boolean userInteractionEnabled;
+	Rect frame;
+	private Rect bounds;
+	private ArrayList<GestureRecognizer> gestureRecognizers;
+	private boolean clipsToBounds;
+	public final float scale;
+	private boolean onCreatedCalled;
+	private ContentMode contentMode;
+
+	private ViewController _viewController;
 
 	public View() {
 		this(Screen.mainScreen().getContext());
@@ -111,6 +200,7 @@ public class View extends Responder {
 		this.userInteractionEnabled = true;
 		this.gestureRecognizers = new ArrayList<GestureRecognizer>();
 		this.clipsToBounds = false;
+		this.contentMode = ContentMode.SCALE_TO_FILL;
 
 
 		boolean supportsDrawing;
@@ -154,13 +244,13 @@ public class View extends Responder {
 			frame = Rect.zero();
 		}
 
-		if(areAnimationsEnabled && currentViewAnimation != null) {
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
-			this.frame = frame.copy();
-			return;
-		}
-
 		if(!frame.equals(this.frame)) {
+			if(areAnimationsEnabled && currentViewAnimation != null) {
+				currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
+				this.frame = frame.copy();
+				return;
+			}
+
 			if(this.superview != null && !this.superview.getBounds().contains(this.frame)) {
 				// Fixes a weird bug in Android that leaves artifacts on the screen
 				// if the old frame wasn't fully contained within the bounds.
@@ -170,9 +260,20 @@ public class View extends Responder {
 			Rect oldBounds = this.bounds;
 
 			this.frame = frame.copy();
-			this.bounds = new Rect(this.bounds.origin, this.frame.size);
+			boolean boundsChanged;
+
+			if(!this.bounds.size.equals(this.frame.size)) {
+				this.bounds = new Rect(this.bounds.origin, this.frame.size);
+				boundsChanged = true;
+			} else {
+				boundsChanged = false;
+			}
+
 			this.layer.setFrame(this.frame, this.bounds);
-			this.boundsDidChange(oldBounds, this.bounds);
+
+			if(boundsChanged) {
+				this.boundsDidChange(oldBounds, this.bounds);
+			}
 		}
 	}
 
@@ -204,7 +305,7 @@ public class View extends Responder {
 			Rect oldBounds = this.bounds;
 			this.bounds = bounds;
 			this.layer.setBounds(this.bounds);
-			this.boundsDidChange(oldBounds, this.layer.getBounds());
+			this.boundsDidChange(oldBounds, this.bounds);
 		}
 	}
 
@@ -261,6 +362,18 @@ public class View extends Responder {
 		this.autoresizesSubviews = autoresizesSubviews;
 	}
 
+	public ContentMode getContentMode() {
+		return contentMode;
+	}
+
+	public void setContentMode(ContentMode contentMode) {
+		if(contentMode == null) {
+			contentMode = ContentMode.SCALE_TO_FILL;
+		}
+
+		this.contentMode = contentMode;
+	}
+
 	public int getTag() {
 		return tag;
 	}
@@ -307,7 +420,10 @@ public class View extends Responder {
 		return (this.autoresizingMask & mask) != 0;
 	}
 
-	private void superviewSizeDidChange(Size oldSize, Size newSize) {
+	private void superviewSizeDidChange_(Size oldSize, Size newSize) {
+		// NOTE: This is a port from Chameleon and is slightly faster than the version below however the
+		// logic is buggy and doesn't always scale correctly (specifically width+height only scaling, scales margins anyway)
+
 		if (this.autoresizingMask != Autoresizing.NONE.value) {
 			Rect frame = this.getFrame();
 
@@ -356,7 +472,72 @@ public class View extends Responder {
 		}
 	}
 
-	private void boundsDidChange(Rect oldBounds, Rect newBounds) {
+	private void superviewSizeDidChange(Size oldSuperviewSize, Size newSuperviewSize) {
+		int mask = this.autoresizingMask;
+		if(mask == AUTORESIZING_NONE) return;
+
+		Point origin = this.frame.origin.copy();
+		Size size = this.frame.size.copy();
+		float delta;
+
+		if (oldSuperviewSize.width != 0.0f || size.width == 0.0f) {
+			int horizontalMask = (mask & AUTORESIZING_FLEXIBLE_LEFT_MARGIN) + (mask & AUTORESIZING_FLEXIBLE_WIDTH) + (mask & AUTORESIZING_FLEXIBLE_RIGHT_MARGIN);
+
+			if(horizontalMask != AUTORESIZING_NONE) {
+				if(horizontalMask == AUTORESIZING_FLEXIBLE_LEFT_MARGIN) {
+					origin.x += newSuperviewSize.width - oldSuperviewSize.width;
+				} else if(horizontalMask == AUTORESIZING_FLEXIBLE_WIDTH) {
+					size.width = newSuperviewSize.width - (oldSuperviewSize.width - this.frame.size.width);
+				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH)) {
+					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
+					origin.x = (this.frame.origin.x / (oldSuperviewSize.width - delta)) * (newSuperviewSize.width - delta);
+					size.width = newSuperviewSize.width - origin.x - delta;
+				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_RIGHT_MARGIN)) {
+					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
+					origin.x += (newSuperviewSize.width - oldSuperviewSize.width) * (this.frame.origin.x / (this.frame.origin.x + delta));
+				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_RIGHT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH)) {
+					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
+					float scaledRightMargin = (delta / (oldSuperviewSize.width - this.frame.origin.x)) * (newSuperviewSize.width - this.frame.origin.x);
+					size.width = newSuperviewSize.width - origin.x - scaledRightMargin;
+				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH | AUTORESIZING_FLEXIBLE_RIGHT_MARGIN)) {
+					origin.x = (this.frame.origin.x / oldSuperviewSize.width) * newSuperviewSize.width;
+					size.width = (this.frame.size.width / oldSuperviewSize.width) * newSuperviewSize.width;
+				}
+			}
+		}
+
+		if (oldSuperviewSize.height != 0 || size.height == 0) {
+			int verticalMask = (mask & AUTORESIZING_FLEXIBLE_TOP_MARGIN) + (mask & AUTORESIZING_FLEXIBLE_HEIGHT) + (mask & AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN);
+
+			if(verticalMask != AUTORESIZING_NONE) {
+				if(verticalMask == AUTORESIZING_FLEXIBLE_TOP_MARGIN) {
+					origin.y += newSuperviewSize.height - oldSuperviewSize.height;
+				} else if(verticalMask == AUTORESIZING_FLEXIBLE_HEIGHT) {
+					size.height = newSuperviewSize.height - (oldSuperviewSize.height - this.frame.size.height);
+				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT)) {
+					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
+					origin.y = (this.frame.origin.y / (oldSuperviewSize.height - delta)) * (newSuperviewSize.height - delta);
+					size.height = newSuperviewSize.height - origin.y - delta;
+				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN)) {
+					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
+					origin.y += (newSuperviewSize.height - oldSuperviewSize.height) * (this.frame.origin.y / (this.frame.origin.y + delta));
+				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT)) {
+					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
+					float scaledBottomMargin = (delta / (oldSuperviewSize.height - this.frame.origin.y)) * (newSuperviewSize.height - this.frame.origin.y);
+					size.height = newSuperviewSize.height - origin.y - scaledBottomMargin;
+				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT | AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN)) {
+					origin.y = (this.frame.origin.y / oldSuperviewSize.height) * newSuperviewSize.height;
+					size.height = (this.frame.size.height / oldSuperviewSize.height) * newSuperviewSize.height;
+				}
+			}
+		}
+
+		if(!this.frame.origin.equals(origin) || !this.frame.size.equals(size)) {
+			this.setFrame(new Rect(origin, size));
+		}
+	}
+
+	void boundsDidChange(Rect oldBounds, Rect newBounds) {
 		if(oldBounds == null || !oldBounds.equals(newBounds)) {
 			this.setNeedsLayout();
 
@@ -653,14 +834,20 @@ public class View extends Responder {
 	}
 
 	void _layoutSubviews() {
-		if(this._viewController != null) {
-			this._viewController.viewWillLayoutSubviews();
-		}
+		if(this.superview == null) return;
 
-		this.layoutSubviews();
+		if(this.needsLayout) {
+			if(this._viewController != null) {
+				this._viewController.viewWillLayoutSubviews();
+			}
 
-		if(this._viewController != null) {
-			this._viewController.viewDidLayoutSubviews();
+			this.layoutSubviews();
+			this.needsLayout = false;
+
+			if(this._viewController != null) {
+				this._viewController.viewDidLayoutSubviews();
+			}
+
 		}
 	}
 

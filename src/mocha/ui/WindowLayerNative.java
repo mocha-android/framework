@@ -7,6 +7,9 @@ package mocha.ui;
 
 import android.content.Context;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
+import mocha.foundation.*;
+import mocha.graphics.Rect;
 
 public final class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 	private View hitView;
@@ -45,6 +48,25 @@ public final class WindowLayerNative extends ViewLayerNative implements WindowLa
 		this.getWindow().sendEvent(this.lastEvent);
 
 		return true;
+	}
+
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+		super.onLayout(changed, left, top, right, bottom);
+
+		if(changed) {
+			ViewGroup view = (ViewGroup)this.getParent();
+			mocha.foundation.Object.MLog("Parent: " + view);
+
+			if(view != null) {
+				float scale = getView().scale;
+
+				Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
+				getWindow().superSetFrame(frame);
+				mocha.foundation.Object.MLog("Window Bounds: " + getView().getBounds().toString());
+				mocha.foundation.Object.MLog("Window Frame: " + frame);
+				mocha.foundation.Object.MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
+			}
+		}
 	}
 
 }

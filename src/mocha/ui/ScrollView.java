@@ -70,7 +70,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.indicatorStyle = IndicatorStyle.DEFAULT;
 		this.showsHorizontalScrollIndicator = true;
 		this.showsVerticalScrollIndicator = true;
-		this.scrollIndicatorInsets = new EdgeInsets(0, 0, 0, 0);
+		this.scrollIndicatorInsets = EdgeInsets.zero();
 		this.pagingEnabled = false;
 		this.pageSize = new Size();
 		this.bounces = true;
@@ -251,6 +251,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			return;
 		}
 
+		if(this.scrollViewAnimation != null && !internal && !inSimpleAnimation) {
+			this.scrollViewAnimation.cancelAnimations();
+			this.scrollViewAnimation = null;
+		}
+
 		if(animated) {
 			View.beginAnimations(null, null);
 			View.setAnimationDuration(this.pagingEnabled ? PAGING_TRANSITION_DURATION : DEFAULT_TRANSITION_DURATION);
@@ -325,7 +330,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	void snapContentOffsetToBounds(boolean animated) {
-		boolean commit = false;
+		boolean commit;
+
 		Point contentOffset = new Point();
 
 		if (this.pagingEnabled && animated) {
@@ -553,6 +559,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private void panningDidStart(PanGestureRecognizer gestureRecognizer) {
 		if(this.scrollViewAnimation != null) {
 			this.scrollViewAnimation.cancelAnimations();
+			this.scrollViewAnimation = null;
 		}
 
 		this.startContentOffset = this.contentOffset.copy();
@@ -601,11 +608,12 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 		this.dragging = false;
 
-		if(this.scrollViewAnimation == null) {
-			this.scrollViewAnimation = new ScrollViewAnimation(this);
+		if(this.scrollViewAnimation != null) {
+			this.scrollViewAnimation.cancelAnimations();
 		}
 
-		scrollViewAnimation.startDecelerationAnimation();
+		this.scrollViewAnimation = new ScrollViewAnimation(this);
+		this.scrollViewAnimation.startDecelerationAnimation();
 
 		if(this.delegate != null) {
 			this.delegate.scrollViewDidEndDragging(this, this.decelerating);

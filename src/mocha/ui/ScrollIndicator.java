@@ -5,6 +5,8 @@
  */
 package mocha.ui;
 
+import mocha.graphics.Rect;
+
 class ScrollIndicator extends View {
 
 	static final float THICKNESS = 7.0f;
@@ -16,9 +18,11 @@ class ScrollIndicator extends View {
 
 	private boolean visible;
 	private ScrollView.IndicatorStyle indicatorStyle;
+	private Type type;
 
 	public ScrollIndicator(Type type) {
 		this.setUserInteractionEnabled(false);
+		this.type = type;
 	}
 
 	public void setVisible(boolean visible) {

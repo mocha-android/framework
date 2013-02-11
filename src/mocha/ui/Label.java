@@ -8,7 +8,7 @@ package mocha.ui;
 import android.graphics.Color;
 import mocha.graphics.*;
 
-public class Label extends View {
+public class Label extends View implements Highlightable {
 
 
 	private CharSequence text;

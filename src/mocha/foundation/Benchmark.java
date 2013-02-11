@@ -38,6 +38,8 @@ public class Benchmark extends Object {
 	}
 
 	public void log() {
+		if(end == 0) this.end();
+
 		long elapsed = end - start;
 		long last = start;
 

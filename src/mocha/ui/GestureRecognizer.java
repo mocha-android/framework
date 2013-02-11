@@ -171,20 +171,12 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 
 		if (transition.shouldNotify && this.shouldNotifyHandlersForState(this.state)) {
 			for(final GestureHandler gestureHandler : this.registeredGestureHandlers) {
-				this.osHandler.postDelayed(new Runnable() {
-					public void run() {
-						gestureHandler.handleGesture(GestureRecognizer.this);
-					}
-				}, 0);
+				gestureHandler.handleGesture(GestureRecognizer.this);
 			}
 		}
 
 		if(transition.shouldReset) {
-			this.osHandler.postDelayed(new Runnable() {
-				public void run() {
-					GestureRecognizer.this.reset();
-				}
-			}, 0);
+			this.reset();
 		}
 	}
 

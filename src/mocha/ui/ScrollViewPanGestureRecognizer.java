@@ -33,6 +33,8 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 				this.translation = new Point(location.x - this.startTouchPosition.x, location.y - this.startTouchPosition.y);
 				this.panning = true;
 				this.setState(State.BEGAN);
+
+				return;
 			}
 		}
 
