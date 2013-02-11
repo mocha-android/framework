@@ -12,8 +12,8 @@ import mocha.graphics.Size;
 import java.util.*;
 
 public class View extends Responder {
-	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerCanvas.class;
-	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerCanvas.class;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
 
 	public static boolean SLOW_ANIMATIONS = false;
 

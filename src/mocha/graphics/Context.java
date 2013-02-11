@@ -11,7 +11,7 @@ import android.text.TextPaint;
 
 import java.util.ArrayList;
 
-public final class Context {
+public final class Context extends mocha.foundation.Object {
 	private final float scale;
 	private final Canvas canvas;
 	private final ArrayList<Paint> paintStates;
@@ -22,7 +22,7 @@ public final class Context {
 	public Context(Canvas canvas, float scale) {
 		this.scale = scale;
 		this.canvas = canvas;
-		this.paint = new Paint(/*Paint.ANTI_ALIAS_FLAG*/);
+		this.paint = new Paint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.DITHER_FLAG);
 		this.textPaint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG);
 		this.paintStates = new ArrayList<Paint>();
 		this.textPaintStates = new ArrayList<TextPaint>();
@@ -46,12 +46,14 @@ public final class Context {
 	}
 
 	public void setShadow(Size offset, float blur, int color) {
-		if(color == 0 || offset == null ||(offset.width == 0.0f && offset.height == 0.0f)) {
+		if(blur == 0.0f) blur = 0.001f; // 0.0f results in no shadow, 0.001f gives us a no-blur shadow.
+
+		if(color == 0 || offset == null || (offset.width == 0.0f && offset.height == 0.0f)) {
 			this.paint.clearShadowLayer();
 			this.textPaint.clearShadowLayer();
 		} else {
-			this.paint.setShadowLayer(blur, offset.width, offset.height, color);
-			this.textPaint.setShadowLayer(blur, offset.width, offset.height, color);
+			this.paint.setShadowLayer(blur, offset.width * this.scale, offset.height * this.scale, color);
+			this.textPaint.setShadowLayer(blur, offset.width * this.scale, offset.height * this.scale, color);
 		}
 	}
 
