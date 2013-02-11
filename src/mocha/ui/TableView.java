@@ -60,6 +60,22 @@ public class TableView extends ScrollView {
 			public void didDeselectRowAtIndexPath(TableView tableView, IndexPath indexPath);
 		}
 
+		public interface Highlighting extends Delegate {
+			/**
+			 * Control whether or not a row can be highlighted.  Called when a touch
+			 * first comes down on a row.
+			 *
+			 * @param tableView Table view for the row
+			 * @param indexPath Index path for the row
+			 * @return false to halt the selection process, if false, the currently
+			 * selected row (if any) will not be deselected.
+			 */
+			public boolean shouldHighlightRowAtIndexPath(TableView tableView, IndexPath indexPath);
+
+			public void didHighlightRowAtIndexPath(TableView tableView, IndexPath indexPath);
+			public void didUnhighlightRowAtIndexPath(TableView tableView, IndexPath indexPath);
+		}
+
 		public interface Headers extends Delegate {
 			public View getViewForHeaderInSecton(TableView tableView, int section);
 			public float getHeightForHeaderInSection(TableView tableView, int section);
@@ -147,6 +163,7 @@ public class TableView extends ScrollView {
 	private Delegate.RowSizing delegateRowSizing;
 	private Delegate.Selection delegateSelection;
 	private Delegate.Deselection delegateDeselection;
+	private Delegate.Highlighting delegateHighlighting;
 	private Delegate.Headers delegateHeaders;
 	private Delegate.Footers delegateFooters;
 	private Delegate.Editing delegateEditing;
@@ -161,7 +178,9 @@ public class TableView extends ScrollView {
 	private List<TableViewReuseableView> visibleHeaders;
 	private List<TableViewReuseableView> visibleSubviews;
 	private boolean usesCustomRowHeights;
+	private Runnable cellTouchCallback;
 	private TableViewCell touchedCell;
+	private boolean touchesMoved;
 	private IndexPath selectedRowIndexPath;
 	private Set<IndexPath> selectedRowsIndexPaths;
 	private List<IndexPath> cellsBeingEditedPaths;
@@ -275,6 +294,12 @@ public class TableView extends ScrollView {
 				this.delegateDeselection = null;
 			}
 
+			if(delegate instanceof Delegate.Highlighting) {
+				this.delegateHighlighting = (Delegate.Highlighting) delegate;
+			} else {
+				this.delegateHighlighting = null;
+			}
+
 			if(delegate instanceof Delegate.Headers) {
 				this.delegateHeaders = (Delegate.Headers) delegate;
 			} else {
@@ -303,6 +328,7 @@ public class TableView extends ScrollView {
 			this.delegateRowSizing = null;
 			this.delegateSelection = null;
 			this.delegateDeselection = null;
+			this.delegateHighlighting = null;
 			this.delegateHeaders = null;
 			this.delegateFooters = null;
 			this.delegateEditing = null;
@@ -397,6 +423,8 @@ public class TableView extends ScrollView {
 					return cell;
 				}
 			}
+		} else {
+			return null;
 		}
 
 		return null;
@@ -461,6 +489,9 @@ public class TableView extends ScrollView {
 	public void reloadData() {
 		this.updateSectionsInfo();
 
+		boolean areAnimationsEnabled = View.areAnimationsEnabled();
+		View.setAnimationsEnabled(false);
+
 		List<View> subviews = new ArrayList<View>(this.getSubviews());
 		for(View subview : subviews) {
 			if(subview instanceof TableViewReuseableView) {
@@ -476,6 +507,12 @@ public class TableView extends ScrollView {
 		this.viewsToRemove.clear();
 
 		this.layoutSubviews();
+		View.setAnimationsEnabled(areAnimationsEnabled);
+	}
+
+	boolean isEmpty() {
+		MLog("this.sectionsInfo: %s", this.sectionsInfo);
+		return this.sectionsInfo == null || this.sectionsInfo.size() == 0;
 	}
 
 	private void updateSectionsInfo() {
@@ -699,6 +736,8 @@ public class TableView extends ScrollView {
 			if (visibleSubview instanceof TableViewHeader) {
 				this.visibleHeaders.add(0, visibleSubview);
 				changedHeaders = true;
+			} else if(visibleSubview instanceof TableViewCell) {
+				this.tableViewCells.add((TableViewCell)visibleSubview);
 			}
 		}
 
@@ -762,6 +801,8 @@ public class TableView extends ScrollView {
 			if (visibleSubview instanceof TableViewHeader) {
 				this.visibleHeaders.add(visibleSubview);
 				changedHeaders = true;
+			} else if(visibleSubview instanceof TableViewCell) {
+				this.tableViewCells.add((TableViewCell)visibleSubview);
 			}
 		}
 
@@ -1193,6 +1234,10 @@ public class TableView extends ScrollView {
 		this.visibleSubviews.remove(view);
 		this.visibleHeaders.remove(view);
 
+		if(view instanceof TableViewCell) {
+			this.tableViewCells.remove((TableViewCell)view);
+		}
+
 		queuedViews.add(view);
 		view._isQueued = true;
 		this.viewsToRemove.add(view);
@@ -1244,13 +1289,19 @@ public class TableView extends ScrollView {
 		}
 	}
 
-	private void deselectRowAtIndexPathAnimated(IndexPath indexPath, boolean animated) {
+	public void deselectRowAtIndexPath(IndexPath indexPath, boolean animated) {
+		this.deselectRowAtIndexPath(indexPath, animated, false);
+	}
+
+	private void deselectRowAtIndexPath(IndexPath indexPath, boolean animated, boolean alreadyAnimating) {
 		if (indexPath == null) {
 			return;
 		}
 
-		if(this.delegateDeselection != null) {
-			this.delegateDeselection.willDeselectRowAtIndexPath(this, indexPath);
+		if(animated && !alreadyAnimating) {
+			View.beginAnimations(null, null);
+			View.setAnimationCurve(AnimationCurve.LINEAR);
+			View.setAnimationDuration(TableViewCell.ANIMATED_HIGHLIGHT_DURATION);
 		}
 
 		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
@@ -1262,20 +1313,22 @@ public class TableView extends ScrollView {
 			this.selectionDidChangeForRowAtIndexPath(indexPath, false);
 		}
 
-		if(this.delegateDeselection != null) {
-			this.delegateDeselection.didDeselectRowAtIndexPath(this, indexPath);
+		if(animated && !alreadyAnimating) {
+			View.commitAnimations();
 		}
 	}
 
-	private void selectRowAtIndexPath(IndexPath indexPath) {
+	public void selectRowAtIndexPath(IndexPath indexPath, boolean animated) {
 		if (!this.isIndexPathValid(indexPath)) {
 			throw new RuntimeException("Tried to select row with invalid index path: " + indexPath);
 		}
 
 		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
 
-		if(this.delegateSelection != null) {
-			this.delegateSelection.willSelectRowAtIndexPath(this, indexPath);
+		if(animated) {
+			View.beginAnimations(null, null);
+			View.setAnimationCurve(AnimationCurve.LINEAR);
+			View.setAnimationDuration(TableViewCell.ANIMATED_HIGHLIGHT_DURATION);
 		}
 
 		if(this.selectedRowsIndexPaths.size() != 1 || !this.selectedRowsIndexPaths.contains(indexPath)) {
@@ -1283,21 +1336,20 @@ public class TableView extends ScrollView {
 			oldSelectedIndexPaths.remove(indexPath);
 
 			for(IndexPath oldSelectedIndexPath : oldSelectedIndexPaths) {
-				this.deselectRowAtIndexPathAnimated(oldSelectedIndexPath, false);
+				this.deselectRowAtIndexPath(oldSelectedIndexPath, animated, animated);
 			}
 		}
 
 		this.selectedRowsIndexPaths.add(indexPath);
 
 		if (cell != null) {
-			cell.setHighlighted(false);
 			this.markCellAsSelected(cell, true, false);
 		} else {
 			this.selectionDidChangeForRowAtIndexPath(indexPath, true);
 		}
 
-		if(this.delegateSelection != null) {
-			this.delegateSelection.didSelectRowAtIndexPath(this, indexPath);
+		if(animated) {
+			View.commitAnimations();
 		}
 	}
 
@@ -1348,7 +1400,7 @@ public class TableView extends ScrollView {
 		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
 
 		if (cell.isSelected()) {
-			this.deselectRowAtIndexPathAnimated(indexPath, false);
+			this.deselectRowAtIndexPath(indexPath, false);
 		}
 
 		if(this.dataSourceEditing != null) {
@@ -1358,6 +1410,149 @@ public class TableView extends ScrollView {
 
 	private void updateIndex() {
 
+	}
+
+	public void touchesBegan(List<Touch> touches, Event event) {
+		super.touchesBegan(touches, event);
+		this.touchesMoved = false;
+
+		if(touches.size() == 1) {
+			final Touch touch = touches.get(0);
+
+			this.cellTouchCallback = this.performAfterDelay(100, new Runnable() {
+				public void run() {
+					IndexPath indexPath = indexPathForRowAtPoint(touch.locationInView(TableView.this));
+					touchedCell = cellForRowAtIndexPath(indexPath);
+
+					if (touchedCell != null) {
+						if(delegateHighlighting != null) {
+							if(!delegateHighlighting.shouldHighlightRowAtIndexPath(TableView.this, indexPath)) {
+								return;
+							}
+						}
+
+						touchedCell.setHighlighted(true);
+
+						if(delegateHighlighting != null) {
+							delegateHighlighting.didHighlightRowAtIndexPath(TableView.this, indexPath);
+						}
+					}
+				}
+			});
+		}
+	}
+
+	public void touchesMoved(List<Touch> touches, Event event) {
+		super.touchesMoved(touches, event);
+
+		if(this.panGestureRecognizer.getState() != GestureRecognizer.State.POSSIBLE) {
+			if(this.cellTouchCallback != null) {
+				this.cancelCallbacks(cellTouchCallback);
+				this.cellTouchCallback = null;
+			}
+
+			if(this.touchedCell != null) {
+				this.touchedCell.setHighlighted(false);
+				this.touchedCell = null;
+			}
+
+			this.touchesMoved = true;
+		}
+	}
+
+	public void touchesEnded(List<Touch> touches, Event event) {
+		super.touchesEnded(touches, event);
+
+		if(this.cellTouchCallback != null) {
+			this.cancelCallbacks(this.cellTouchCallback);
+			this.cellTouchCallback = null;
+		}
+
+		if(this.touchedCell != null) {
+			this.selectCellDueToTouchEvent(this.touchedCell, this.indexPathForCell(this.touchedCell), false);
+			this.touchedCell = null;
+		} else if(!this.touchesMoved) {
+			Touch touch = touches.get(0);
+
+			IndexPath indexPath = indexPathForRowAtPoint(touch.locationInView(TableView.this));
+			TableViewCell cell = cellForRowAtIndexPath(indexPath);
+
+			if (cell != null) {
+				this.selectCellDueToTouchEvent(cell, indexPath, false);
+			}
+		}
+	}
+
+	private void selectCellDueToTouchEvent(TableViewCell cell, IndexPath indexPath, boolean animated) {
+		TableViewCell selectingCell = cell;
+
+		if(!cell.isHighlighted()) {
+			if(this.delegateHighlighting != null && !this.delegateHighlighting.shouldHighlightRowAtIndexPath(this, indexPath)) {
+				return;
+			}
+
+			cell.setHighlighted(true, animated);
+
+			if(this.delegateHighlighting != null) {
+				this.delegateHighlighting.didHighlightRowAtIndexPath(this, indexPath);
+			}
+		}
+
+		if(this.selectedRowsIndexPaths.size() > 0) {
+			for(IndexPath selectedRowIndexPath : this.selectedRowsIndexPaths) {
+				// TODO: Handle delegate call
+				this.deselectRowAtIndexPath(selectedRowIndexPath, animated, animated);
+			}
+		}
+
+		if(this.delegateSelection != null) {
+			IndexPath newIndexPath = this.delegateSelection.willSelectRowAtIndexPath(this, indexPath);
+
+			if(newIndexPath == null || !newIndexPath.equals(indexPath)) {
+				selectingCell.setHighlighted(false, animated);
+
+				if(this.delegateHighlighting != null) {
+					this.delegateHighlighting.didHighlightRowAtIndexPath(this, indexPath);
+				}
+
+				if(newIndexPath == null) {
+					return;
+				} else {
+					selectingCell = this.cellForRowAtIndexPath(newIndexPath);
+
+					if(selectingCell != null) {
+						selectingCell.setHighlighted(true, animated);
+						indexPath = newIndexPath;
+
+						if(this.delegateHighlighting != null) {
+							this.delegateHighlighting.didHighlightRowAtIndexPath(this, newIndexPath);
+						}
+					} else {
+						return;
+					}
+				}
+			}
+		}
+
+		this.markCellAsSelected(selectingCell, true, animated);
+
+		if(this.delegateSelection != null) {
+			this.delegateSelection.didSelectRowAtIndexPath(this, indexPath);
+		}
+	}
+
+	public void touchesCancelled(List<Touch> touches, Event event) {
+		super.touchesCancelled(touches, event);
+
+		if(this.cellTouchCallback != null) {
+			this.cancelCallbacks(this.cellTouchCallback);
+			this.cellTouchCallback = null;
+		}
+
+		if(this.touchedCell != null) {
+			this.touchedCell.setHighlighted(false);
+			this.touchedCell = null;
+		}
 	}
 
 }

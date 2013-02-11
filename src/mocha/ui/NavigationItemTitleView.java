@@ -61,8 +61,6 @@ class NavigationItemTitleView extends View {
 
 		if(offset.x < 0.0f) offset.x = 0.0f;
 
-		// CGContextSetShadowWithColor(UIGraphicsGetCurrentContext(), CGSizeMake(0.0f, -1.0f), 0.0f, [UIColor blackColor].CGColor);
-
 		this.textRect = new Rect();
 		this.textRect.origin = offset;
 		this.textRect.size.height = size.height;
@@ -74,7 +72,7 @@ class NavigationItemTitleView extends View {
 		if(this.textRect == null) return;
 
 		context.setFillColor(Color.WHITE);
-		context.setShadow(new Size(0.0f, -1.0f), 0.0f, Color.BLACK);
+		context.setShadow(new Size(0.0f, -1.0f), 0.0f, Color.white(0.0f, 0.5f));
 
 		TextDrawing.draw(context, this.navigationItem.getTitle(), textRect, this.font);
 	}

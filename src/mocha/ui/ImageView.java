@@ -30,6 +30,10 @@ public class ImageView extends View implements Highlightable {
 		this.highlightedImage = highlightedImage;
 	}
 
+	public ImageView(int imageResourceID) {
+		this(Image.imageNamed(imageResourceID), null);
+	}
+
 	public ImageView(int imageResourceID, int highlightedImageResourceID) {
 		this(Image.imageNamed(imageResourceID), Image.imageNamed(highlightedImageResourceID));
 	}

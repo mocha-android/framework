@@ -60,14 +60,26 @@ public class NavigationController extends ViewController implements NavigationBa
 		view.addSubview(this.navigationBar);
 	}
 
+	public void viewWillAppear(boolean animated) {
+		super.viewWillAppear(animated);
+		this.getTopViewController().viewWillAppear(animated);
+	}
+
 	public void viewDidAppear(boolean animated) {
 		super.viewDidAppear(animated);
+		this.getTopViewController().viewDidAppear(animated);
 		this.becomeFirstResponder();
 	}
 
 	public void viewWillDisappear(boolean animated) {
 		super.viewWillDisappear(animated);
+		this.getTopViewController().viewWillDisappear(animated);
 		this.resignFirstResponder();
+	}
+
+	public void viewDidDisappear(boolean animated) {
+		super.viewDidDisappear(animated);
+		this.getTopViewController().viewDidDisappear(animated);
 	}
 
 	protected void viewDidLoad() {

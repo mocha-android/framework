@@ -9,7 +9,11 @@ package mocha.ui;
 import mocha.graphics.Font;
 import mocha.graphics.Rect;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TableViewCell extends TableViewReuseableView implements Highlightable {
+	static long ANIMATED_HIGHLIGHT_DURATION = NavigationBar.ANIMATION_DURATION;
 
 	public enum AccessoryType {
 		NONE, DISCLOSURE_INDICATOR, DETAIL_DISCLOSURE_BUTTON, CHECKMARK
@@ -73,6 +77,12 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 		NONE, DELETE, INSERT
 	}
 
+	private static class OriginalViewState {
+		boolean highlighted;
+		boolean opaque;
+		int backgroundColor;
+	}
+
 	private Label textLabel;
 	private Label detailTextLabel;
 
@@ -86,6 +96,8 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 	private boolean editing;
 	private boolean usingDefaultSelectedBackgroundView;
 	private int indentationLevel;
+	private Map<View,OriginalViewState> originalViewStates;
+	private Runnable highlightStateCallback;
 
 	private View contentView;
 	private View backgroundView;
@@ -116,6 +128,7 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 		this.selected = false;
 		this.highlighted = false;
 		this._reuseIdentifier = reuseIdentifier != null ? reuseIdentifier : this.getClass().getName();
+		this.originalViewStates = new HashMap<View, OriginalViewState>();
 		this.layoutManager = TableViewCellLayoutManager.getLayoutManagerForTableViewCellStyle(this.cellStyle);
 
 		this.setBackgroundColor(Color.WHITE);
@@ -194,7 +207,9 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 			this.actualAccessoryView = imageView;
 		}
 
-		this.addSubview(this.actualAccessoryView);
+		if(this.actualAccessoryView.getSuperview() != this) {
+			this.addSubview(this.actualAccessoryView);
+		}
 	}
 
 	private void setupSeparatorView() {
@@ -236,7 +251,21 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 
 		if(this.accessoryType != accessoryType && this.accessoryView == null) {
 			this.accessoryType = accessoryType;
-			this.actualAccessoryView = null;
+
+			if(this.actualAccessoryView != null) {
+				this.actualAccessoryView.removeFromSuperview();
+				this.actualAccessoryView = null;
+			}
+
+			if(this.getSuperview() != null) {
+				this.layoutSubviews();
+
+				if(this.highlighted && this.actualAccessoryView != null) {
+					this.saveViewState(this.actualAccessoryView);
+					this.setViewToTransparent(this.actualAccessoryView);
+					this.setViewToHighlightedState(this.actualAccessoryView);
+				}
+			}
 		}
 	}
 
@@ -283,7 +312,7 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 			return;
 		}
 
-		this.highlighted = highlighted;
+		this.updateSelectionState(highlighted, animated);
 	}
 
 	public boolean isHighlighted() {
@@ -300,11 +329,134 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 		}
 
 		this.selected = selected;
-		// TODO: Make views selected.
+		this.updateSelectionState(selected, animated);
 	}
 
 	public boolean isSelected() {
 		return this.selected;
+	}
+
+	private void updateSelectionState(boolean highlighted, boolean animated) {
+		if(this.selectionStyle == SelectionStyle.NONE || this.highlighted == highlighted) return;
+		this.highlighted = highlighted;
+
+		if(this.highlightStateCallback != null) {
+			this.cancelCallbacks(this.highlightStateCallback);
+			this.highlightStateCallback = null;
+		}
+
+		if(this.highlighted) {
+			if(this.selectedBackgroundView == null) {
+				this.selectedBackgroundView = new ImageView(R.drawable.mocha_table_view_cell_selection);
+				this.selectedBackgroundView.setFrame(this.layoutManager.getBackgroundViewRectForCell(this));
+
+				if(animated) {
+					this.selectedBackgroundView.setAlpha(0.0f);
+				}
+			}
+
+			if(this.backgroundView != null) {
+				this.insertSubviewAboveSubview(this.selectedBackgroundView, this.backgroundView);
+			} else {
+				this.insertSubview(this.selectedBackgroundView, 0);
+			}
+
+			this.selectedBackgroundView.setAlpha(1.0f);
+
+			this.saveViewState(this);
+			this.setViewToTransparent(this);
+
+			if(animated) {
+				this.highlightStateCallback = this.performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
+					public void run() {
+						setViewToHighlightedState(TableViewCell.this);
+						highlightStateCallback = null;
+					}
+				});
+			} else {
+				this.setViewToHighlightedState(this);
+			}
+		} else {
+			this.restoreViewBackgroundState(this);
+
+			if(animated) {
+				this.selectedBackgroundView.setAlpha(0.0f);
+				this.highlightStateCallback = this.performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
+					public void run() {
+						restoreViewHighlightedState(TableViewCell.this);
+						originalViewStates.clear();
+						highlightStateCallback = null;
+					}
+				});
+			} else {
+				this.selectedBackgroundView.removeFromSuperview();
+				this.restoreViewHighlightedState(this);
+				this.originalViewStates.clear();
+			}
+		}
+	}
+
+	private void saveViewState(View view) {
+		if(view != this && view != this.backgroundView && view != this.selectedBackgroundView && view != this.separatorView) {
+			if(!this.originalViewStates.containsKey(view)) {
+				OriginalViewState state = new OriginalViewState();
+				state.highlighted = (view instanceof Highlightable) && ((Highlightable)view).isHighlighted();
+				state.backgroundColor = view.getBackgroundColor();
+				this.originalViewStates.put(view, state);
+			}
+		}
+
+		for(View subview : view.getSubviews()) {
+			this.saveViewState(subview);
+		}
+	}
+
+	private void restoreViewBackgroundState(View view) {
+		OriginalViewState state = this.originalViewStates.get(view);
+
+		if(state != null) {
+			view.setBackgroundColor(state.backgroundColor);
+		}
+
+		for(View subview : view.getSubviews()) {
+			this.restoreViewBackgroundState(subview);
+		}
+	}
+
+	private void restoreViewHighlightedState(View view) {
+		OriginalViewState state = this.originalViewStates.get(view);
+
+		if(state != null) {
+			if(view instanceof Highlightable) {
+				((Highlightable) view).setHighlighted(state.highlighted);
+			}
+		}
+
+		for(View subview : view.getSubviews()) {
+			this.restoreViewHighlightedState(subview);
+		}
+	}
+
+	private void setViewToHighlightedState(View view) {
+		if(view != this && view != this.backgroundView && view != this.selectedBackgroundView && view != this.separatorView) {
+			if(view instanceof Highlightable) {
+				((Highlightable)view).setHighlighted(true);
+			}
+		}
+
+		for(View subview : view.getSubviews()) {
+			this.setViewToHighlightedState(subview);
+		}
+	}
+
+	private void setViewToTransparent(View view) {
+		if(view != this && view != this.backgroundView && view != this.selectedBackgroundView && view != this.separatorView) {
+			view.setBackgroundColor(Color.TRANSPARENT);
+		}
+
+		for(View subview : view.getSubviews()) {
+			this.setViewToTransparent(subview);
+		}
 	}
 
 	public View getContentView() {

@@ -229,6 +229,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		if(canvasLayer.getParent() == this) return;
 		canvasLayer.removeFromSuperlayer();
 
+		index = Math.max(Math.min(index, this.getChildCount()), 0);
 		this.addView(canvasLayer, index);
 	}
 

@@ -245,7 +245,7 @@ public class View extends Responder {
 		}
 
 		if(!frame.equals(this.frame)) {
-			if(areAnimationsEnabled && currentViewAnimation != null) {
+			if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 				currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
 				this.frame = frame.copy();
 				return;
@@ -286,7 +286,7 @@ public class View extends Responder {
 			bounds = Rect.zero();
 		}
 
-		if(areAnimationsEnabled && currentViewAnimation != null) {
+		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BOUNDS, bounds);
 			this.bounds = bounds.copy();
 			return;
@@ -344,7 +344,7 @@ public class View extends Responder {
 	}
 
 	public void setBackgroundColor(int backgroundColor) {
-		if(areAnimationsEnabled && currentViewAnimation != null) {
+		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BACKGROUND_COLOR, backgroundColor);
 			this.backgroundColor = backgroundColor;
 			return;
@@ -395,7 +395,7 @@ public class View extends Responder {
 	}
 
 	public void setAlpha(float alpha) {
-		if(areAnimationsEnabled && currentViewAnimation != null) {
+		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.ALPHA, alpha);
 		} else {
 			this.getLayer().setAlpha(alpha);
@@ -853,23 +853,6 @@ public class View extends Responder {
 
 	public void layoutSubviews() {
 		this.needsLayout = false;
-	}
-
-	// Touches
-	public void touchesBegan(List<Touch> touches, Event event) {
-		// MLog(this.toString() + " touchesBegan");
-	}
-
-	public void touchesMoved(List<Touch> touches, Event event) {
-		// MLog(this.toString() + " touchesMoved");
-	}
-
-	public void touchesEnded(List<Touch> touches, Event event) {
-		// MLog(this.toString() + " touchesEnded");
-	}
-
-	public void touchesCancelled(List<Touch> touches, Event event) {
-		// MLog(this.toString() + " touchesCancelled");
 	}
 
 	public String toString() {
