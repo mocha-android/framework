@@ -3,7 +3,7 @@
  *	@date 10/30/12
  *	@copyright	2012 enormego. All rights reserved.
  */
-package mocha.ui;
+package mocha.graphics;
 
 public final class Offset {
 	// specify amount to offset a position, positive for right or down, negative for left or up
@@ -29,6 +29,10 @@ public final class Offset {
 
 	public boolean equals(Offset offset) {
 		return (this == offset) || (this.horizontal == offset.horizontal && this.vertical == offset.vertical);
+	}
+
+	public String toString() {
+		return String.format("[%s,%s]", ((Float)this.horizontal), ((Float)this.vertical));
 	}
 
 }

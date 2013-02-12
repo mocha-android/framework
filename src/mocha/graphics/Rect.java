@@ -5,8 +5,6 @@
  */
 package mocha.graphics;
 
-import mocha.ui.Offset;
-
 public final class Rect {
 	public Point origin;
 	public Size size;

@@ -329,4 +329,15 @@ public class Control extends View {
 	public void setContentVerticalAlignment(VerticalAlignment contentVerticalAlignment) {
 		this.contentVerticalAlignment = contentVerticalAlignment;
 	}
+
+	static EnumSet<State> getStateSet(State... states) {
+		if(states != null && states.length == 1) {
+			return EnumSet.of(states[0]);
+		} else if(states != null && states.length > 0) {
+			return EnumSet.of(states[0], states);
+		} else {
+			return EnumSet.noneOf(State.class);
+		}
+	}
+
 }

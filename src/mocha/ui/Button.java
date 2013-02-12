@@ -80,7 +80,7 @@ public class Button extends Control {
 	}
 
 	private void setContent(ContentType type, State[] states, Object value) {
-		EnumSet<State> set = this.getStateSet(states);
+		EnumSet<State> set = Control.getStateSet(states);
 
 		HashMap<ContentType, Object> content = this.content.get(set);
 
@@ -120,7 +120,7 @@ public class Button extends Control {
 	}
 
 	private Object getContent(ContentType type, State... states) {
-		EnumSet<State> stateSet = this.getStateSet(states);
+		EnumSet<State> stateSet = Control.getStateSet(states);
 
 		Object object = null;
 		HashMap<ContentType, Object> content = this.content.get(stateSet);
@@ -134,16 +134,6 @@ public class Button extends Control {
 		}
 
 		return object;
-	}
-
-	private EnumSet<State> getStateSet(State... states) {
-		if(states != null && states.length == 1) {
-			return EnumSet.of(states[0]);
-		} else if(states != null && states.length > 0) {
-			return EnumSet.of(states[0], states);
-		} else {
-			return EnumSet.noneOf(State.class);
-		}
 	}
 
 	private int getColor(ContentType type, State... states) {
