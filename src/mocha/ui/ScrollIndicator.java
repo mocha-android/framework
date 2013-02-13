@@ -5,9 +5,10 @@
  */
 package mocha.ui;
 
+import mocha.graphics.Image;
 import mocha.graphics.Rect;
 
-class ScrollIndicator extends View {
+class ScrollIndicator extends ImageView {
 
 	static final float THICKNESS = 7.0f;
 	static final float END_SIZE = 3.0f;
@@ -36,17 +37,22 @@ class ScrollIndicator extends View {
 		if(indicatorStyle != this.indicatorStyle) {
 			this.indicatorStyle = indicatorStyle;
 
+			int resourceId;
+
 			switch (indicatorStyle) {
-				case DEFAULT:
-					this.setBackgroundColor(Color.white(0.2f, 0.7f));
-					break;
 				case BLACK:
-					this.setBackgroundColor(Color.white(0.0f, 0.75f));
+					resourceId = R.drawable.mocha_scroll_indicator_black;
 					break;
 				case WHITE:
-					this.setBackgroundColor(Color.white(1.0f, 0.75f));
+					resourceId = R.drawable.mocha_scroll_indicator_white;
+					break;
+				case DEFAULT:
+				default:
+					resourceId = R.drawable.mocha_scroll_indicator_default;
 					break;
 			}
+
+			this.setImage(Image.imageNamed(resourceId).stretchableImage(3, 3));
 		}
 	}
 

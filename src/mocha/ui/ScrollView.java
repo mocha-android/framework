@@ -262,7 +262,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.setAnimationCurve(AnimationCurve.EASE_IN);
 			View.setAnimationDidStartCallback(new AnimationDidStart() {
 				public void animationDidStart(String animationID, Object context) {
-					MLog("did start");
 					inSimpleAnimation = true;
 					if(delegate != null) {
 						delegate.scrollViewWillBeginScrollingAnimation(ScrollView.this);
@@ -272,9 +271,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.setAnimationDidStopCallback(new AnimationDidStop() {
 				public void animationDidStop(String animationID, boolean finished, Object context) {
 					if (finished) {
-						MLog("did end");
 						inSimpleAnimation = false;
 						didScroll(true);
+						hideScrollIndicators();
 					}
 				}
 			});
@@ -502,37 +501,47 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.updateVerticalScrollIndicator();
 		}
 
-		View.animateWithDuration(100, new Animations() {
+		horizontalScrollIndicator.cancelAnimations();
+		verticalScrollIndicator.cancelAnimations();
+
+		View.animateWithDuration(100, 100, new Animations() {
 			public void performAnimatedChanges() {
+				View.setAnimationCurve(AnimationCurve.LINEAR);
 				if(showHorizontal) horizontalScrollIndicator.setVisible(true);
-				if(showVertical) horizontalScrollIndicator.setVisible(true);
+				if(showVertical) verticalScrollIndicator.setVisible(true);
 			}
 		}, new AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				View.beginAnimations(null, null);
-				View.setAnimationDelay(500);
-				View.setAnimationCurve(AnimationCurve.EASE_OUT);
-				if(showHorizontal) horizontalScrollIndicator.setVisible(false);
-				if(showVertical) horizontalScrollIndicator.setVisible(false);
-				View.commitAnimations();
+				if(finished) {
+					hideScrollIndicators(true);
+				}
 			}
 		});
 	}
 
 	void hideScrollIndicators() {
+		hideScrollIndicators(false);
+	}
+
+	void hideScrollIndicators(boolean fromFlash) {
+		if(!this.horizontalScrollIndicator.isVisible() && !this.verticalScrollIndicator.isVisible()) return;
+
+		horizontalScrollIndicator.cancelAnimations();
+		verticalScrollIndicator.cancelAnimations();
+
 		View.beginAnimations(null, null);
 		View.setAnimationCurve(AnimationCurve.EASE_OUT);
+		View.setAnimationDelay(fromFlash ? 600 : 300);
 		this.horizontalScrollIndicator.setVisible(false);
 		this.verticalScrollIndicator.setVisible(false);
+		View.setAnimationDidStopCallback(new AnimationDidStop() {
+			public void animationDidStop(String animationID, boolean finished, Object context) {
+				if(!finished) {
+					MLogStackTrace("CANCELLED???");
+				}
+			}
+		});
 		View.commitAnimations();
-	}
-
-	private void showHorizontalScrollIndicator() {
-		this.horizontalScrollIndicator.setVisible(true);
-	}
-
-	private void showVerticalScrollIndicator() {
-		this.verticalScrollIndicator.setVisible(true);
 	}
 
 	public void handleGesture(GestureRecognizer gestureRecognizer) {
@@ -571,13 +580,16 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.dragging = true;
 		Size size = this.getBounds().size;
 
+		this.horizontalScrollIndicator.cancelAnimations();
+		this.verticalScrollIndicator.cancelAnimations();
 		View.beginAnimations(null, null);
 		View.setAnimationDuration(100);
+		View.setAnimationCurve(AnimationCurve.LINEAR);
 		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator && (this.adjustedContentSize.width > size.width)) {
-			this.showHorizontalScrollIndicator();
+			this.horizontalScrollIndicator.setVisible(true);
 		}
 		if (this.canScrollVertically && this.showsVerticalScrollIndicator && (this.adjustedContentSize.height > size.height)) {
-			this.showVerticalScrollIndicator();
+			this.verticalScrollIndicator.setVisible(true);
 		}
 		View.commitAnimations();
 	}

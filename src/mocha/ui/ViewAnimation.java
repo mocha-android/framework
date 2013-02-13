@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.os.Message;
 import mocha.animation.TimingFunction;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -29,8 +30,10 @@ class ViewAnimation extends mocha.foundation.Object {
 	// we just override the last one.
 	private HashMap<String,Animation> animations;
 	private TimingFunction timingFunction;
+	private long startTimeDelayed;
 	private long startTime;
 	private boolean hasStarted;
+	private boolean isCancelled;
 
 	// Debug
 	private int frameCount;
@@ -291,6 +294,25 @@ class ViewAnimation extends mocha.foundation.Object {
 		}
 	}
 
+	static void cancelAllAnimationsReferencingView(View view) {
+		AnimationHandler handler = animationHandler.get();
+		if(handler == null) return;
+
+		List<ViewAnimation> viewAnimations = new ArrayList<ViewAnimation>(activeAnimations.get());
+		for(ViewAnimation viewAnimation : viewAnimations) {
+			if(viewAnimation.isCancelled) continue;
+
+			for(Animation animation : viewAnimation.animations.values()) {
+				if(animation.view == view) {
+					viewAnimation.isCancelled = true;
+					activeAnimations.get().remove(viewAnimation);
+					viewAnimation.onAnimationCancel();
+					break;
+				}
+			}
+		}
+	}
+
 	private static class AnimationHandler extends android.os.Handler {
 
 		public void handleMessage(android.os.Message message) {
@@ -299,11 +321,26 @@ class ViewAnimation extends mocha.foundation.Object {
 				List<ViewAnimation> animations = new ArrayList<ViewAnimation>(activeAnimations.get());
 
 				for(ViewAnimation animation : animations) {
+					if(animation.isCancelled) continue;
+
 					if(!animation.hasStarted) {
+						if(animation.delay > 0) {
+							if(animation.startTimeDelayed > 0 && currentTime > animation.startTimeDelayed) {
+								animation.delay = 0;
+							} else {
+								if(animation.startTimeDelayed == 0) {
+									animation.startTimeDelayed = currentTime + animation.delay;
+								}
+
+								continue;
+							}
+						}
+
 						animation.hasStarted = true;
 						animation.startTime = currentTime;
 						animation.onAnimationStart();
 					}
+
 
 					long elapsed = currentTime - animation.startTime;
 					float frame = animation.duration > 0 ? (float)elapsed / animation.duration : 1.0f;
@@ -311,8 +348,8 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.processFrame(frame);
 
 					if(frame == 1.0f) {
-						animation.onAnimationEnd();
 						activeAnimations.get().remove(animation);
+						animation.onAnimationEnd();
 					}
 				}
 

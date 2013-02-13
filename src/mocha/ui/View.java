@@ -651,8 +651,6 @@ public class View extends Responder {
 		}
 	}
 
-	// @property(nonatomic,readonly) UIWindow     *window;
-
 	public void removeFromSuperview() {
 		if(this.superview != null) {
 			Window oldWindow = this.getWindow();
@@ -939,6 +937,20 @@ public class View extends Responder {
 
 	// Animations
 
+	/**
+	 * Cancels any animation blocks referencing this view. This will apply to
+	 * ALL view's in an animation block and not just this view. The animating
+	 * properties will be left the state they were upon cancellation. Meaning,
+	 * if alpha was animating from 0.0f to 1.0f and the animation is cancelled
+	 * half way through, the final alpha value will be 0.5f.
+	 *
+	 * NOTE: Calling this in an animation block will have no affect and be ignored.
+	 */
+	public void cancelAnimations() {
+		if(currentViewAnimation != null) return;
+		ViewAnimation.cancelAllAnimationsReferencingView(this);
+	}
+
 	private static ArrayList<ViewAnimation> viewAnimationStack = new ArrayList<ViewAnimation>();
 	static ViewAnimation currentViewAnimation;
 	static boolean areAnimationsEnabled = true;
@@ -948,8 +960,14 @@ public class View extends Responder {
 	}
 
 	public static void animateWithDuration(long duration, Animations animations, final AnimationCompletion completion) {
+		animateWithDuration(duration, 0, animations, completion);
+	}
+
+
+	public static void animateWithDuration(long duration, long delay, Animations animations, final AnimationCompletion completion) {
 		beginAnimations(null, null);
 		setAnimationDuration(duration);
+		setAnimationDelay(delay);
 
 		if(completion != null) {
 			setAnimationDidStopCallback(new AnimationDidStop() {
