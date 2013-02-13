@@ -59,7 +59,10 @@ public class BarButtonItem extends BarItem {
 		this.backButtonBackgroundVerticalPositionAdjustments = new BarMatricsStorage<Float>();
 		this.backButtonTitlePositionAdjustments = new BarMatricsStorage<Offset>();
 		this.backButtonBackgroundImages = new BarMatricsStorage<Map<EnumSet<Control.State>, Image>>();
-		appearanceManager.apply(this);
+
+		if(appearanceManager != null) {
+			appearanceManager.apply(this);
+		}
 	}
 
 	private BarButtonItem(Action action) {
