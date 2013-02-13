@@ -12,35 +12,45 @@ import java.util.List;
 import java.util.Map;
 
 abstract public class Appearance<C> extends mocha.foundation.Object {
-	private Map<Method,Object[]> storage;
+	private List<StorageItem> storage;
+
+	private static class StorageItem {
+		Method method;
+		Object[] objects;
+
+		private StorageItem(Method method, Object[] objects) {
+			this.method = method;
+			this.objects = objects;
+		}
+	}
 
 	public void apply(C instance) {
 		if(storage == null) return;
 
-		for(Method method : storage.keySet()) {
+		for(StorageItem item : storage) {
 			try {
-				method.invoke(instance, storage.get(method));
+				item.method.invoke(instance, item.objects);
 			} catch (Exception e) {
-				MWarn(e, "Could not apply method: " + method.getName());
+				MWarn(e, "Could not apply method: " + item.method.getName());
 			}
 		}
 	}
 
 	protected void store(Method method, Object... args) {
 		if(this.storage == null) {
-			this.storage = new HashMap<Method, Object[]>();
+			this.storage = new ArrayList<StorageItem>();
 		}
 
-		this.storage.put(method, args);
+		this.storage.add(new StorageItem(method, args));
 	}
 
-	public static class Manager<C, A extends Appearance<C>> extends mocha.foundation.Object {
+	public static class Storage<C, A extends Appearance<C>> extends mocha.foundation.Object {
 
 		private HashMap<Class, A> appearances;
 		private Class<A> appearanceClass;
 		private Class<C> rootClass;
 
-		public Manager(Class<C> rootClass, Class<A> appearanceClass) {
+		public Storage(Class<C> rootClass, Class<A> appearanceClass) {
 			this.appearances = new HashMap<Class, A>();
 			this.appearanceClass = appearanceClass;
 			this.rootClass = rootClass;

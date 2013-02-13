@@ -38,7 +38,7 @@ class NavigationButton extends Button {
 		}
 
 		if(normalAttributes != null && normalAttributes.shadowOffset != null) {
-			this.getTitleLabel().setShadowOffset(new Size(normalAttributes.shadowOffset.horizontal, normalAttributes.shadowOffset.vertical));
+			this.getTitleLabel().setShadowOffset(normalAttributes.shadowOffset);
 		} else {
 			this.getTitleLabel().setShadowOffset(new Size(0.0f, -1.0f));
 		}

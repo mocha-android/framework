@@ -4,6 +4,7 @@ import mocha.graphics.Image;
 import mocha.graphics.Offset;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,21 +31,21 @@ public class BarButtonItem extends BarItem {
 	private Action action;
 	private boolean isSystemItem;
 	private SystemItem systemItem;
-	private BarMatricsStorage<Float> backgroundVerticalPositionAdjustments;
-	private BarMatricsStorage<Offset> titlePositionAdjustments;
-	private BarMatricsStorage<Map<EnumSet<Control.State>, Image>> backgroundImages;
-	private BarMatricsStorage<Float> backButtonBackgroundVerticalPositionAdjustments;
-	private BarMatricsStorage<Offset> backButtonTitlePositionAdjustments;
-	private BarMatricsStorage<Map<EnumSet<Control.State>, Image>> backButtonBackgroundImages;
+	private BarMetricsStorage<Float> backgroundVerticalPositionAdjustments;
+	private BarMetricsStorage<Offset> titlePositionAdjustments;
+	private BarMetricsStorage<Map<EnumSet<Control.State>, Image>> backgroundImages;
+	private BarMetricsStorage<Float> backButtonBackgroundVerticalPositionAdjustments;
+	private BarMetricsStorage<Offset> backButtonTitlePositionAdjustments;
+	private BarMetricsStorage<Map<EnumSet<Control.State>, Image>> backButtonBackgroundImages;
 
-	private static mocha.ui.Appearance.Manager<BarButtonItem, Appearance> appearanceManager;
+	private static mocha.ui.Appearance.Storage<BarButtonItem, Appearance> appearanceStorage;
 
 	public static <E extends BarButtonItem> Appearance appearance(Class<E> cls) {
-		if(appearanceManager == null) {
-			appearanceManager = new mocha.ui.Appearance.Manager<BarButtonItem, Appearance>(BarButtonItem.class, Appearance.class);
+		if(appearanceStorage == null) {
+			appearanceStorage = new mocha.ui.Appearance.Storage<BarButtonItem, Appearance>(BarButtonItem.class, Appearance.class);
 		}
 
-		return appearanceManager.appearance(cls);
+		return appearanceStorage.appearance(cls);
 	}
 
 	public static Appearance appearance() {
@@ -53,16 +54,18 @@ public class BarButtonItem extends BarItem {
 
 	public BarButtonItem() {
 		this.style = Style.PLAIN;
-		this.backgroundVerticalPositionAdjustments = new BarMatricsStorage<Float>();
-		this.titlePositionAdjustments = new BarMatricsStorage<Offset>();
-		this.backgroundImages = new BarMatricsStorage<Map<EnumSet<Control.State>, Image>>();
-		this.backButtonBackgroundVerticalPositionAdjustments = new BarMatricsStorage<Float>();
-		this.backButtonTitlePositionAdjustments = new BarMatricsStorage<Offset>();
-		this.backButtonBackgroundImages = new BarMatricsStorage<Map<EnumSet<Control.State>, Image>>();
+		this.backgroundVerticalPositionAdjustments = new BarMetricsStorage<Float>();
+		this.titlePositionAdjustments = new BarMetricsStorage<Offset>();
+		this.backgroundImages = new BarMetricsStorage<Map<EnumSet<Control.State>, Image>>();
+		this.backButtonBackgroundVerticalPositionAdjustments = new BarMetricsStorage<Float>();
+		this.backButtonTitlePositionAdjustments = new BarMetricsStorage<Offset>();
+		this.backButtonBackgroundImages = new BarMetricsStorage<Map<EnumSet<Control.State>, Image>>();
 
-		if(appearanceManager != null) {
-			appearanceManager.apply(this);
+		if(appearanceStorage != null) {
+			appearanceStorage.apply(this);
 		}
+
+		MLog("Background images: %s", this.backgroundImages.get(BarMetrics.DEFAULT));
 	}
 
 	private BarButtonItem(Action action) {
@@ -158,7 +161,8 @@ public class BarButtonItem extends BarItem {
 	}
 
 	public float getBackgroundVerticalPositionAdjustmentForBarMetrics(BarMetrics barMetrics) {
-		return this.backgroundVerticalPositionAdjustments.get(barMetrics);
+		Float adjustment = this.backgroundVerticalPositionAdjustments.get(barMetrics);
+		return adjustment == null ? 0.0f : adjustment;
 	}
 
 	public void setTitlePositionAdjustment(Offset adjustment, BarMetrics barMetrics) {
@@ -197,7 +201,8 @@ public class BarButtonItem extends BarItem {
 	}
 
 	public float getBackButtonBackgroundVerticalPositionAdjustment(BarMetrics barMetrics) {
-		return this.backButtonBackgroundVerticalPositionAdjustments.get(barMetrics);
+		Float adjustment = this.backButtonBackgroundVerticalPositionAdjustments.get(barMetrics);
+		return adjustment != null ? adjustment : 0.0f;
 	}
 
 	public void setBackButtonTitlePositionAdjustment(Offset adjustment, BarMetrics barMetrics) {

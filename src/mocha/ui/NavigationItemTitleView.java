@@ -12,11 +12,24 @@ class NavigationItemTitleView extends View {
 	private Font font;
 	private Rect textRect;
 	private Rect destinationFrame;
+	private TextAttributes textAttributes;
+	private float verticalPositionAdjustment;
 
-	NavigationItemTitleView(NavigationItem navigationItem) {
+	NavigationItemTitleView(NavigationItem navigationItem, TextAttributes textAttributes, float verticalPositionAdjustment) {
 		this.navigationItem = navigationItem;
-		this.font = Font.getBoldSystemFontWithSize(20.0f);
+		this.textAttributes = textAttributes;
+		this.verticalPositionAdjustment = verticalPositionAdjustment;
 		this.setNeedsDisplay();
+
+		if(this.textAttributes != null && this.textAttributes.font != null) {
+			if(this.textAttributes.font.getPointSize() == 0.0f) {
+				this.font = this.textAttributes.font.getFontWithSize(20.0f);
+			} else {
+				this.font = this.textAttributes.font;
+			}
+		} else {
+			this.font = Font.getBoldSystemFontWithSize(20.0f);
+		}
 	}
 
 	public void setFrame(Rect frame) {
@@ -71,8 +84,17 @@ class NavigationItemTitleView extends View {
 	public void draw(Context context, Rect rect) {
 		if(this.textRect == null) return;
 
-		context.setFillColor(Color.WHITE);
-		context.setShadow(new Size(0.0f, -1.0f), 0.0f, Color.white(0.0f, 0.5f));
+		if(this.textAttributes != null && this.textAttributes.textColor != 0) {
+			context.setFillColor(this.textAttributes.textColor);
+		} else {
+			context.setFillColor(Color.WHITE);
+		}
+
+		if(this.textAttributes != null && this.textAttributes.shadowOffset != null) {
+			context.setShadow(this.textAttributes.shadowOffset, 0.0f, this.textAttributes.shadowColor);
+		} else {
+			context.setShadow(0.0f, -1.0f, 0.0f, Color.white(0.0f, 0.5f));
+		}
 
 		TextDrawing.draw(context, this.navigationItem.getTitle(), textRect, this.font);
 	}

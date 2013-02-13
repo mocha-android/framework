@@ -9,7 +9,11 @@ import mocha.graphics.Font;
 import mocha.graphics.Offset;
 
 public final class TextAttributes {
+	/**
+	 * Font to be used, if 0.0 point size is used, the default font size will be used.
+	 */
 	public final Font font;
+
 	public final int textColor;
 	public final int shadowColor;
 	public final Offset shadowOffset;
@@ -48,4 +52,5 @@ public final class TextAttributes {
 		this.shadowColor = shadowColor;
 		this.shadowOffset = shadowOffset;
 	}
+
 }

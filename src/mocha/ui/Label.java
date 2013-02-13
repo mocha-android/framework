@@ -105,6 +105,10 @@ public class Label extends View implements Highlightable {
 		}
 	}
 
+	public void setShadowOffset(Offset shadowOffset) {
+		this.setShadowOffset(shadowOffset.toSize());
+	}
+
 	public TextAlignment getTextAlignment() {
 		return textAlignment;
 	}

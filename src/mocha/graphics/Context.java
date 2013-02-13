@@ -45,17 +45,26 @@ public final class Context extends mocha.foundation.Object {
 		this.textPaint.setColor(color);
 	}
 
+	public void setShadow(Offset offset, float blur, int color) {
+		this.setShadow(offset.horizontal, offset.vertical, blur, color);
+	}
+
 	public void setShadow(Size offset, float blur, int color) {
+		this.setShadow(offset.width, offset.height, blur, color);
+	}
+
+	public void setShadow(float horizontalOffset, float verticalOffset, float blur, int color) {
 		if(blur == 0.0f) blur = 0.001f; // 0.0f results in no shadow, 0.001f gives us a no-blur shadow.
 
-		if(color == 0 || offset == null || (offset.width == 0.0f && offset.height == 0.0f)) {
+		if(color == 0 || (horizontalOffset == 0.0f && verticalOffset == 0.0f)) {
 			this.paint.clearShadowLayer();
 			this.textPaint.clearShadowLayer();
 		} else {
-			this.paint.setShadowLayer(blur, offset.width * this.scale, offset.height * this.scale, color);
-			this.textPaint.setShadowLayer(blur, offset.width * this.scale, offset.height * this.scale, color);
+			this.paint.setShadowLayer(blur, horizontalOffset * this.scale, verticalOffset * this.scale, color);
+			this.textPaint.setShadowLayer(blur, horizontalOffset * this.scale, verticalOffset * this.scale, color);
 		}
 	}
+
 
 	public void fillRect(Rect rect, int color) {
 		Paint paint = new Paint(this.paint);

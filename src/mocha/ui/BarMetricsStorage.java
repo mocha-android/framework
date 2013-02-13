@@ -5,7 +5,7 @@
  */
 package mocha.ui;
 
-class BarMatricsStorage <E> {
+class BarMetricsStorage<E> {
 	private E defaultValue;
 	private E landscapePhoneValue;
 

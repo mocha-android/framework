@@ -35,4 +35,9 @@ public final class Offset {
 		return String.format("[%s,%s]", ((Float)this.horizontal), ((Float)this.vertical));
 	}
 
+
+	public Size toSize() {
+		return new Size(this.horizontal, this.vertical);
+	}
+
 }

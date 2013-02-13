@@ -7,6 +7,7 @@ package mocha.ui;
 
 import mocha.graphics.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,25 @@ public class NavigationBar extends View {
 	private Image backgroundImage;
 	private boolean leftIsBackButton;
 
+	private TextAttributes titleTextAttributes;
+	private BarMetricsStorage<Float> titleVerticalPositionAdjustment;
+	private BarMetricsStorage<Image> backgroundImages;
+	private Image shadowImage;
+
+	private static mocha.ui.Appearance.Storage<NavigationBar, Appearance> appearanceStorage;
+
+	public static <E extends NavigationBar> Appearance appearance(Class<E> cls) {
+		if(appearanceStorage == null) {
+			appearanceStorage = new mocha.ui.Appearance.Storage<NavigationBar, Appearance>(NavigationBar.class, Appearance.class);
+		}
+
+		return appearanceStorage.appearance(cls);
+	}
+
+	public static Appearance appearance() {
+		return appearance(NavigationBar.class);
+	}
+
 	public NavigationBar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
 
 	public NavigationBar(Rect frame) {
@@ -50,6 +70,13 @@ public class NavigationBar extends View {
 		this.setTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
 		this.backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_background);
 		this.items = new ArrayList<NavigationItem>();
+
+		this.titleVerticalPositionAdjustment = new BarMetricsStorage<Float>();
+		this.backgroundImages = new BarMetricsStorage<Image>();
+
+		if(appearanceStorage != null) {
+			appearanceStorage.apply(this);
+		}
 	}
 
 	public BarStyle getBarStyle() {
@@ -145,6 +172,38 @@ public class NavigationBar extends View {
 		this.delegate = delegate;
 	}
 
+	public Image getShadowImage() {
+		return shadowImage;
+	}
+
+	public void setShadowImage(Image shadowImage) {
+		this.shadowImage = shadowImage;
+	}
+
+	public Image getBackgroundImage(BarMetrics barMetrics) {
+		return this.backgroundImages.get(barMetrics);
+	}
+
+	public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
+		this.backgroundImages.set(barMetrics, backgroundImage);
+	}
+
+	public float getTitleVerticalPositionAdjustment(BarMetrics barMetrics) {
+		return this.titleVerticalPositionAdjustment.get(barMetrics);
+	}
+
+	public void setTitleVerticalPositionAdjustment(float adjustment, BarMetrics barMetrics) {
+		this.titleVerticalPositionAdjustment.set(barMetrics, adjustment);
+	}
+
+	public TextAttributes getTitleTextAttributes() {
+		return this.titleTextAttributes;
+	}
+
+	public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
+		this.titleTextAttributes = titleTextAttributes;
+	}
+
 	private void updateItemsWithTransition(final Transition transition, boolean animated, final Runnable additionalTransitions, final Runnable transitionCompleteCallback) {
 		final View previousLeftView = this.leftView;
 		final View previousRightView = this.rightView;
@@ -199,7 +258,10 @@ public class NavigationBar extends View {
 			this.centerView = topItem.getTitleView();
 
 			if (this.centerView == null) {
-				this.centerView = new NavigationItemTitleView(topItem);
+				Float adjustment = this.titleVerticalPositionAdjustment.get(BarMetrics.DEFAULT);
+				if(adjustment == null) adjustment = 0.0f;
+
+				this.centerView = new NavigationItemTitleView(topItem, this.titleTextAttributes, adjustment);
 			}
 
 			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
@@ -368,7 +430,13 @@ public class NavigationBar extends View {
 	}
 
 	public void draw(Context context, Rect rect) {
-		this.backgroundImage.draw(context, rect);
+		Image image = this.getBackgroundImage(BarMetrics.DEFAULT);
+
+		if(image == null) {
+			image = this.backgroundImage;
+		}
+
+		image.draw(context, rect);
 	}
 
 	private static void setBarButtonSize(View view) {
@@ -414,6 +482,39 @@ public class NavigationBar extends View {
 			setBarButtonSize(button);
 
 			return button;
+		}
+	}
+
+	public static class Appearance extends mocha.ui.Appearance <NavigationBar> {
+		private Method setShadowImage;
+		private Method setBackgroundImage;
+		private Method setTitleVerticalPositionAdjustment;
+		private Method setTitleTextAttributes;
+
+		public Appearance() {
+			try {
+				this.setShadowImage = NavigationBar.class.getMethod("setShadowImage", Image.class);
+				this.setBackgroundImage = NavigationBar.class.getMethod("setBackgroundImage", Image.class, BarMetrics.class);
+				this.setTitleTextAttributes = NavigationBar.class.getMethod("setTitleTextAttributes", TextAttributes.class);
+				this.setTitleVerticalPositionAdjustment = NavigationBar.class.getMethod("setTitleVerticalPositionAdjustment", Float.TYPE, BarMetrics.class);
+			} catch (NoSuchMethodException ignored) { }
+		}
+
+		public void setShadowImage(Image shadowImage) {
+			this.store(this.setShadowImage, shadowImage);
+		}
+
+		public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
+			this.store(this.setBackgroundImage, backgroundImage, barMetrics);
+		}
+
+		public void setTitleVerticalPositionAdjustment(float adjustment, BarMetrics barMetrics) {
+			this.store(this.setTitleVerticalPositionAdjustment, adjustment, barMetrics);
+		}
+
+
+		public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
+			this.store(this.setTitleTextAttributes, titleTextAttributes);
 		}
 	}
 
