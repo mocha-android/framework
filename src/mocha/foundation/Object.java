@@ -62,7 +62,7 @@ public class Object {
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
 	 * anonymous classes.  This callback should be passed to Object#cancelCallbacks when cancelling.
 	 */
-	public Runnable performAfterDelay(long delayInMillis, Runnable callback) {
+	public static Runnable performAfterDelay(long delayInMillis, Runnable callback) {
 		// If we're on the main looper, there's no sense in creating
 		// another local looper/thread just for this.
 
@@ -83,7 +83,7 @@ public class Object {
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
 	 * anonymous classes.  This callback should be passed to Object#cancelCallbacks when cancelling.
 	 */
-	public Runnable performOnMainAfterDelay(long delayInMillis, Runnable callback) {
+	public static Runnable performOnMainAfterDelay(long delayInMillis, Runnable callback) {
 		getMainHandler().postDelayed(callback, delayInMillis);
 		return callback;
 	}
@@ -97,9 +97,9 @@ public class Object {
 	 *                      If false, the callback will be posted to the main thread.
 	 * @param callback Callback to be called on the main thread
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to Object#cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to Object.cancelCallbacks when cancelling.
 	 */
-	public Runnable performOnMain(boolean waitUntilDone, final Runnable callback) {
+	public static Runnable performOnMain(boolean waitUntilDone, final Runnable callback) {
 		if(waitUntilDone) {
 			if(Looper.myLooper() == getMainHandler().getLooper()) {
 				callback.run();
@@ -131,7 +131,7 @@ public class Object {
 	 *
 	 * @param runnable Callback passed to performAfterDelay/performOnMainAfterDelay/performOnMain
 	 */
-	public void cancelCallbacks(Runnable runnable) {
+	public static void cancelCallbacks(Runnable runnable) {
 		Handler handler = getHandler(true);
 
 		if(handler != null) {

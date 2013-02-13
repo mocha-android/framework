@@ -367,7 +367,7 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 			this.setViewToTransparent(this);
 
 			if(animated) {
-				this.highlightStateCallback = this.performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
+				this.highlightStateCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
 					public void run() {
 						setViewToHighlightedState(TableViewCell.this);
 						highlightStateCallback = null;
@@ -381,7 +381,7 @@ public class TableViewCell extends TableViewReuseableView implements Highlightab
 
 			if(animated) {
 				this.selectedBackgroundView.setAlpha(0.0f);
-				this.highlightStateCallback = this.performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
+				this.highlightStateCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
 					public void run() {
 						restoreViewHighlightedState(TableViewCell.this);
 						originalViewStates.clear();

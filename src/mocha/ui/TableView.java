@@ -181,6 +181,7 @@ public class TableView extends ScrollView {
 	private Runnable cellTouchCallback;
 	private TableViewCell touchedCell;
 	private boolean touchesMoved;
+	private boolean ignoreTouches;
 	private IndexPath selectedRowIndexPath;
 	private Set<IndexPath> selectedRowsIndexPaths;
 	private List<IndexPath> cellsBeingEditedPaths;
@@ -1416,10 +1417,13 @@ public class TableView extends ScrollView {
 		super.touchesBegan(touches, event);
 		this.touchesMoved = false;
 
+		ignoreTouches = this.decelerating;
+		if(ignoreTouches) return;
+
 		if(touches.size() == 1) {
 			final Touch touch = touches.get(0);
 
-			this.cellTouchCallback = this.performAfterDelay(100, new Runnable() {
+			this.cellTouchCallback = performAfterDelay(100, new Runnable() {
 				public void run() {
 					IndexPath indexPath = indexPathForRowAtPoint(touch.locationInView(TableView.this));
 					touchedCell = cellForRowAtIndexPath(indexPath);
@@ -1444,6 +1448,7 @@ public class TableView extends ScrollView {
 
 	public void touchesMoved(List<Touch> touches, Event event) {
 		super.touchesMoved(touches, event);
+		if(ignoreTouches) return;
 
 		if(this.panGestureRecognizer.getState() != GestureRecognizer.State.POSSIBLE) {
 			if(this.cellTouchCallback != null) {
@@ -1462,6 +1467,7 @@ public class TableView extends ScrollView {
 
 	public void touchesEnded(List<Touch> touches, Event event) {
 		super.touchesEnded(touches, event);
+		if(ignoreTouches) return;
 
 		if(this.cellTouchCallback != null) {
 			this.cancelCallbacks(this.cellTouchCallback);
