@@ -8,7 +8,7 @@ package mocha.ui;
 
 import mocha.graphics.*;
 
-abstract class TableViewHeader extends TableViewReuseableView {
+abstract class TableViewHeader extends TableViewSubview {
 	protected Label label;
 
 	TableViewHeader(Rect frame) {

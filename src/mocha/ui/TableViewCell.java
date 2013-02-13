@@ -12,7 +12,7 @@ import mocha.graphics.Rect;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TableViewCell extends TableViewReuseableView implements Highlightable {
+public class TableViewCell extends TableViewSubview implements Highlightable {
 	static long ANIMATED_HIGHLIGHT_DURATION = NavigationBar.ANIMATION_DURATION;
 
 	public enum AccessoryType {

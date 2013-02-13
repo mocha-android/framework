@@ -103,6 +103,10 @@ public class NavigationController extends ViewController implements NavigationBa
 		return true;
 	}
 
+	public NavigationBar getNavigationBar() {
+		return navigationBar;
+	}
+
 	public ViewController getTopViewController() {
 		int size;
 		return (size = this.viewControllers.size()) > 0 ? this.viewControllers.get(size - 1) : null;

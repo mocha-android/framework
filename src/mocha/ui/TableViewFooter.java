@@ -8,7 +8,7 @@ package mocha.ui;
 
 import mocha.graphics.Rect;
 
-class TableViewFooter extends TableViewReuseableView {
+class TableViewFooter extends TableViewSubview {
 	private Label label;
 
 	public TableViewFooter() {

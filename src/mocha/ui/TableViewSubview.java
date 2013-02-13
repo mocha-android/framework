@@ -10,16 +10,18 @@ import mocha.foundation.IndexPath;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
-abstract public class TableViewReuseableView extends View {
+abstract public class TableViewSubview extends View {
 	boolean _isQueued;
 	Info _dataSourceInfo;
 
+	// Only applies to headers/footers
+	boolean createdByTableView;
 
-	public TableViewReuseableView() {
+	public TableViewSubview() {
 		super();
 	}
 
-	public TableViewReuseableView(Rect frame) {
+	public TableViewSubview(Rect frame) {
 		super(frame);
 	}
 
@@ -30,8 +32,10 @@ abstract public class TableViewReuseableView extends View {
 
 		Type type;
 		int section;
-		IndexPath indexPath;
 		Size size = new Size();
+
+		// Only applies to cells
+		IndexPath indexPath;
 
 		Info(Type type, int section) {
 			this.type = type;

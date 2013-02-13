@@ -724,6 +724,8 @@ public class View extends Responder {
 	}
 
 	public void bringSubviewToFront(View view) {
+		if(view.superview != this) return;
+
 		view.layer.removeFromSuperlayer();
 		this.layer.addSublayer(view.layer);
 		this.subviews.remove(view);
@@ -731,7 +733,7 @@ public class View extends Responder {
 	}
 
 	public void sendSubviewToBack(View view) {
-		if(view.layer.getSuperlayer() != this.layer) return;
+		if(view.superview != this) return;
 
 		view.layer.removeFromSuperlayer();
 		this.layer.insertSublayerAtIndex(view.layer, 0);
