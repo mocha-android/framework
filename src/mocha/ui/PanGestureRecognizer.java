@@ -86,7 +86,6 @@ public class PanGestureRecognizer extends GestureRecognizer {
 
 		if(touch != null) {
 			this.lastTouchPosition = touch.location.copy();
-			this.addTrackingDataPoint(this.lastTouchPosition, event);
 
 			Point location = touch.location;
 			this.translation = new Point(location.x - this.startTouchPosition.x, location.y - this.startTouchPosition.y);
@@ -95,10 +94,19 @@ public class PanGestureRecognizer extends GestureRecognizer {
 				this.setState(State.CHANGED);
 			} else {
 				if (Math.abs(this.translation.x) >= MINIMUM_TRACKING_FOR_PAN || Math.abs(this.translation.y) >= MINIMUM_TRACKING_FOR_PAN) {
+					this.startTouchPosition = touch.location.copy();
+					this.trackingDataPoints.clear();
+					this.translation.x = 0.0f;
+					this.translation.y = 0.0f;
+
 					this.panning = true;
 					this.setState(State.BEGAN);
+				} else {
+					return;
 				}
 			}
+
+			this.addTrackingDataPoint(this.lastTouchPosition, event);
 		} else if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 			this.setState(State.CANCELLED);
 			this.tracking = false;
