@@ -534,13 +534,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		View.setAnimationDelay(fromFlash ? 600 : 300);
 		this.horizontalScrollIndicator.setVisible(false);
 		this.verticalScrollIndicator.setVisible(false);
-		View.setAnimationDidStopCallback(new AnimationDidStop() {
-			public void animationDidStop(String animationID, boolean finished, Object context) {
-				if(!finished) {
-					MLogStackTrace("CANCELLED???");
-				}
-			}
-		});
 		View.commitAnimations();
 	}
 

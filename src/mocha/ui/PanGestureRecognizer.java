@@ -64,7 +64,7 @@ public class PanGestureRecognizer extends GestureRecognizer {
 
 	Touch findTouch(Event event) {
 		List<Touch> touches = event.touchesForGestureRecognizer(this);
-		return touches != null && touches.size() == 1 ? touches.get(0) : null;
+		return touches != null && touches.size() > 0 ? touches.get(0) : null;
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {

@@ -176,7 +176,11 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		}
 
 		if(transition.shouldReset) {
-			this.reset();
+			performAfterDelay(0, new Runnable() {
+				public void run() {
+					reset();
+				}
+			});
 		}
 	}
 

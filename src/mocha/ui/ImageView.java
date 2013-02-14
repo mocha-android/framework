@@ -49,6 +49,7 @@ public class ImageView extends View implements Highlightable {
 
 	public void setImage(Image image) {
 		this.image = image;
+		this.setNeedsDisplay();
 	}
 
 	public void setImage(int resourceID) {
@@ -65,6 +66,10 @@ public class ImageView extends View implements Highlightable {
 
 	public void setHighlightedImage(int resourceID) {
 		this.setHighlightedImage(Image.imageNamed(resourceID));
+
+		if(this.isHighlighted()) {
+			this.setNeedsDisplay();
+		}
 	}
 
 	public boolean isHighlighted() {
