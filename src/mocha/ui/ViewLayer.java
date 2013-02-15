@@ -19,6 +19,9 @@ public interface ViewLayer {
 	public void setSupportsDrawing(boolean supportsDrawing);
 	public void setBackgroundColor(int backgroundColor);
 
+	public void setClipsToBounds(boolean clipsToBounds);
+	public boolean clipsToBounds();
+
 	// public void setFrame(Rect frame);
 	public void setFrame(Rect frame, Rect bounds);
 

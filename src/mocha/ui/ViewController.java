@@ -100,7 +100,7 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition will be animated
 	 */
 	public void viewWillAppear(boolean animated) {
-
+		this.notifyChildrenAppearanceTransitionBegin(true, animated);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition was animated
 	 */
 	public void viewDidAppear(boolean animated) {
-
+		this.notifyChildrenAppearanceTransitionEnded();
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition will be animated
 	 */
 	public void viewWillDisappear(boolean animated) {
-
+		this.notifyChildrenAppearanceTransitionBegin(false, animated);
 	}
 
 	/**
@@ -127,7 +127,33 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition was animated
 	 */
 	public void viewDidDisappear(boolean animated) {
+		this.notifyChildrenAppearanceTransitionEnded();
+	}
 
+	/**
+	 * Notifies all child view controllers of an appearance transition
+	 *
+	 * @param isAppearing true if the child view controller’s view is about to be added to the view
+	 *                    hierarchy, false if it is being removed.
+	 * @param animated Whether or not the transition was animated
+	 */
+	private void notifyChildrenAppearanceTransitionBegin(boolean isAppearing, boolean animated) {
+		if(this.shouldAutomaticallyForwardAppearanceMethods()) {
+			for(ViewController viewController : this.childViewControllers) {
+				viewController.beginAppearanceTransition(isAppearing, animated);
+			}
+		}
+	}
+
+	/**
+	 * Notifies all child view controllers than the previous appearance transition has ended
+	 */
+	private void notifyChildrenAppearanceTransitionEnded() {
+		if(this.shouldAutomaticallyForwardAppearanceMethods()) {
+			for(ViewController viewController : this.childViewControllers) {
+				viewController.endAppearanceTransition();
+			}
+		}
 	}
 
 	/**
@@ -239,7 +265,7 @@ public class ViewController extends Responder {
 	 *
 	 * @param childViewController The view controller to be added as a child.
 	 */
-	protected void addChildViewController(ViewController childViewController) {
+	public void addChildViewController(ViewController childViewController) {
 		if(childViewController.parentViewController != null) {
 			childViewController.willMoveToParentViewController(null);
 			childViewController.removeFromParentViewController();
@@ -254,7 +280,7 @@ public class ViewController extends Responder {
 	 * Removes the the receiver from its parent's children controllers array. If this method is
 	 * overridden then the super implementation must be called.
 	 */
-	protected void removeFromParentViewController() {
+	public void removeFromParentViewController() {
 		this.parentViewController.childViewControllers.remove(this);
 		this.parentViewController = null;
 		this.didMoveToParentViewController(null);
@@ -280,7 +306,7 @@ public class ViewController extends Responder {
 	 *
 	 * @see View.animateWithDuration()
 	 */
-	protected void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final long duration, final View.Animations animations, final View.AnimationCompletion completion) {
+	public void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final long duration, final View.Animations animations, final View.AnimationCompletion completion) {
 		View.animateWithDuration(duration, new View.Animations() {
 			public void performAnimatedChanges() {
 				View.setAnimationsEnabled(false, new Runnable() {
@@ -321,7 +347,7 @@ public class ViewController extends Responder {
 	 *                    hierarchy, false if it is being removed.
 	 * @param animated If true, the transition is being animated.
 	 */
-	protected void beginAppearanceTransition(boolean isAppearing, boolean animated) {
+	public void beginAppearanceTransition(boolean isAppearing, boolean animated) {
 		this.appearanceTransitionIsAppearing = isAppearing ? 1 : -1;
 		this.appearanceTransitionAnimated = animated ? 1 : -1;
 
@@ -338,7 +364,7 @@ public class ViewController extends Responder {
 	 * If you are implementing a custom container controller, use this method to tell the child that
 	 * the view transition is complete.
 	 */
-	protected void endAppearanceTransition() {
+	public void endAppearanceTransition() {
 		if(this.appearanceTransitionIsAppearing == 1) {
 			this.viewDidAppear(this.appearanceTransitionAnimated == 1);
 		} else if(this.appearanceTransitionIsAppearing == -1) {
@@ -365,7 +391,7 @@ public class ViewController extends Responder {
 	 *
 	 * @param parentViewController The parent view controller, or null if there is no parent.
 	 */
-	protected void willMoveToParentViewController(ViewController parentViewController) {
+	public void willMoveToParentViewController(ViewController parentViewController) {
 
 	}
 
@@ -384,8 +410,29 @@ public class ViewController extends Responder {
 	 *
 	 * @param parentViewController The parent view controller, or null if there is no parent.
 	 */
-	protected void didMoveToParentViewController(ViewController parentViewController) {
+	public void didMoveToParentViewController(ViewController parentViewController) {
 
+	}
+
+	/**
+	 * Returns a Boolean value indicating whether appearance methods are forwarded to child view controllers
+	 *
+	 * This method is called to determine whether to automatically forward appearance-related containment
+	 * callbacks to child view controllers.
+	 *
+	 * The default implementation returns true. Subclasses of the ViewController class that implement
+	 * containment logic may override this method to control how these methods are forwarded. If you override
+	 * this method and return false, you are responsible for telling the child when its views are going to
+	 * appear or disappear. You do this by calling the child view controller’s beginAppearanceTransition() and
+	 * endAppearanceTransition() methods.
+	 *
+	 * Any child view controller attached to a superview, will be sent appearance methods if this is enabled.
+	 * If the child view controller is not attached to a superview, appearance methods will not be delivered.
+	 *
+	 * @return true if appearance methods are forwarded or false if they are not.
+	 */
+	public boolean shouldAutomaticallyForwardAppearanceMethods() {
+		return true;
 	}
 
 	/**

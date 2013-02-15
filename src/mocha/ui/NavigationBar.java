@@ -9,6 +9,7 @@ import mocha.graphics.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class NavigationBar extends View {
@@ -145,6 +146,28 @@ public class NavigationBar extends View {
 
 	public NavigationItem popNavigationItemAnimated(boolean animated) {
 		return this.popNavigationItemAnimated(animated, null, null);
+	}
+
+	void popToNavigationItemAnimated(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
+		if(!this.items.contains(navigationItem)) return;
+
+		NavigationItem topItem = this.getTopItem();
+		if(topItem == navigationItem) return;
+
+		List<NavigationItem> items = new ArrayList<NavigationItem>(this.items);
+		boolean shouldRemove = false;
+
+		for(NavigationItem item : items) {
+			if(shouldRemove) {
+				if(item != topItem) {
+					this.items.remove(item);
+				}
+			} else if(item == navigationItem) {
+				shouldRemove = true;
+			}
+		}
+
+		this.popNavigationItemAnimated(animated, additionalTransitions, transitionCompleteCallback);
 	}
 
 	NavigationItem popNavigationItemAnimated(boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
@@ -357,9 +380,20 @@ public class NavigationBar extends View {
 			if(previousLeftView != null) previousLeftView.removeFromSuperview();
 			if(previousCenterView != null) previousCenterView.removeFromSuperview();
 
-			if(this.centerView != null) this.addSubview(this.centerView);
-			if(this.leftView != null) this.addSubview(this.leftView);
-			if(this.rightView != null) this.addSubview(this.rightView);
+			if(this.centerView != null) {
+				this.centerView.setAlpha(1.0f);
+				this.addSubview(this.centerView);
+			}
+
+			if(this.leftView != null) {
+				this.leftView.setAlpha(1.0f);
+				this.addSubview(this.leftView);
+			}
+
+			if(this.rightView != null) {
+				this.rightView.setAlpha(1.0f);
+				this.addSubview(this.rightView);
+			}
 
 			if(additionalTransitions != null) {
 				additionalTransitions.run();

@@ -60,28 +60,6 @@ public class NavigationController extends ViewController implements NavigationBa
 		view.addSubview(this.navigationBar);
 	}
 
-	public void viewWillAppear(boolean animated) {
-		super.viewWillAppear(animated);
-		this.getTopViewController().viewWillAppear(animated);
-	}
-
-	public void viewDidAppear(boolean animated) {
-		super.viewDidAppear(animated);
-		this.getTopViewController().viewDidAppear(animated);
-		this.becomeFirstResponder();
-	}
-
-	public void viewWillDisappear(boolean animated) {
-		super.viewWillDisappear(animated);
-		this.getTopViewController().viewWillDisappear(animated);
-		this.resignFirstResponder();
-	}
-
-	public void viewDidDisappear(boolean animated) {
-		super.viewDidDisappear(animated);
-		this.getTopViewController().viewDidDisappear(animated);
-	}
-
 	protected void viewDidLoad() {
 		super.viewDidLoad();
 
@@ -193,6 +171,34 @@ public class NavigationController extends ViewController implements NavigationBa
 		});
 	}
 
+	public List<ViewController> popToRootViewControllerAnimated(boolean animated) {
+		if(this.viewControllers.size() > 0) {
+			return this.popToViewController(this.viewControllers.get(0), animated);
+		} else {
+			return new ArrayList<ViewController>();
+		}
+	}
+
+	public List<ViewController> popToViewController(ViewController toViewController, boolean animated) {
+		if(this.viewControllers.size() == 0 || !this.viewControllers.contains(toViewController) || this.getTopViewController() == toViewController) {
+			return new ArrayList<ViewController>();
+		}
+
+		final List<ViewController> poppingViewControllers = new ArrayList<ViewController>(this.viewControllers.subList(this.viewControllers.indexOf(toViewController) + 1, this.viewControllers.size()));
+		ViewController fromViewController = this.getTopViewController();
+		this.viewControllers.removeAll(poppingViewControllers);
+
+		this.transitionFromViewController(fromViewController, toViewController, animated, false, new Runnable() {
+			public void run() {
+				for(ViewController viewController : poppingViewControllers) {
+					viewController.removeFromParentViewController();
+				}
+			}
+		});
+
+		return poppingViewControllers;
+	}
+
 	private void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, boolean animated, final boolean push, final Runnable completion) {
 		animated = animated && fromViewController != null && toViewController != null;
 
@@ -213,7 +219,9 @@ public class NavigationController extends ViewController implements NavigationBa
 						this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), false);
 					}
 				} else {
-					this.navigationBar.popNavigationItemAnimated(false);
+					if(toViewController != null) {
+						this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), false, null, null);
+					}
 				}
 
 				this.navigationBar.setDelegate(this);
@@ -280,7 +288,7 @@ public class NavigationController extends ViewController implements NavigationBa
 				if(push) {
 					this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), true, transition, complete);
 				} else {
-					this.navigationBar.popNavigationItemAnimated(true, transition, complete);
+					this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), true, transition, complete);
 				}
 
 				this.navigationBar.setDelegate(this);

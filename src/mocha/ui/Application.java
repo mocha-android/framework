@@ -7,8 +7,13 @@ package mocha.ui;
 
 public class Application {
 
+	public interface Delegate {
+
+	}
+
 	static Application application;
 	private int ignoreInteractionEventsLevel = 0;
+	private Delegate delegate;
 
 	/**
 	 * Returns the singleton application instance
@@ -25,6 +30,14 @@ public class Application {
 
 	Application(Activity activity) {
 
+	}
+
+	public Delegate getDelegate() {
+		return delegate;
+	}
+
+	public void setDelegate(Delegate delegate) {
+		this.delegate = delegate;
 	}
 
 	/**

@@ -38,6 +38,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	private boolean supportsDrawing;
 	private Paint paint;
 	private Bitmap cachedDrawing;
+	private boolean clipsToBounds;
 	final float scale;
 	final int dpi;
 
@@ -120,6 +121,14 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 
 	public void setSupportsDrawing(boolean supportsDrawing) {
 		this.supportsDrawing = supportsDrawing;
+	}
+
+	public boolean clipsToBounds() {
+		return clipsToBounds;
+	}
+
+	public void setClipsToBounds(boolean clipsToBounds) {
+		this.clipsToBounds = clipsToBounds;
 	}
 
 	public void setBackgroundColor(int backgroundColor) {
@@ -285,7 +294,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 
 		canvas.save();
 
-		if(this.view.clipsToBounds()) {
+		if(this.clipsToBounds()) {
 			canvas.clipRect(systemFrame);
 		}
 

@@ -150,6 +150,7 @@ public class TableView extends ScrollView {
 
 	private Style tableStyle;
 	private TableViewCell.SeparatorStyle separatorStyle;
+	private int separatorColor;
 	private boolean editing;
 	private float rowHeight;
 	private boolean allowsSelection;
@@ -170,7 +171,6 @@ public class TableView extends ScrollView {
 	private Delegate.AccessorySelection delegateAccessorySelection;
 
 	private int numberOfSections;
-	private boolean populatesAllCells;
 	private List<SectionInfo> sectionsInfo;
 	private HashMap<Object,List<TableViewCell>> cellsQueuedForReuse;
 	private List<TableViewSubview> headersQueuedForReuse;
@@ -185,6 +185,12 @@ public class TableView extends ScrollView {
 	private IndexPath selectedRowIndexPath;
 	private Set<IndexPath> selectedRowsIndexPaths;
 	private List<IndexPath> cellsBeingEditedPaths;
+	private View tableHeaderView;
+	private View tableFooterView;
+	private float tableHeaderHeight;
+	private float tableFooterHeight;
+	private boolean tableHeaderAttached;
+	private boolean tableFooterAttached;
 
 	private List<TableViewSubview> tableViewHeaders;
 	private List<TableViewCell> tableViewCells;
@@ -200,10 +206,10 @@ public class TableView extends ScrollView {
 		this.setBackgroundColor(Color.WHITE);
 		this.tableStyle = style == null ? Style.PLAIN : style;
 		this.separatorStyle = TableViewCell.SeparatorStyle.SINGLE_LINE;
+		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.numberOfSections = 1;
 		this.setRowHeight(DEFAULT_ROW_HEIGHT);
 		this.setAllowsSelection(true);
-		this.populatesAllCells = false;
 		this.sectionsInfo = new ArrayList<SectionInfo>();
 		this.cellsQueuedForReuse = new HashMap<Object, List<TableViewCell>>();
 		this.headersQueuedForReuse = new ArrayList<TableViewSubview>();
@@ -234,6 +240,14 @@ public class TableView extends ScrollView {
 
 	public void setSeparatorStyle(TableViewCell.SeparatorStyle separatorStyle) {
 		this.separatorStyle = separatorStyle;
+	}
+
+	public int getSeparatorColor() {
+		return separatorColor;
+	}
+
+	public void setSeparatorColor(int separatorColor) {
+		this.separatorColor = separatorColor;
 	}
 
 	public DataSource getDataSource() {
@@ -388,6 +402,52 @@ public class TableView extends ScrollView {
 		return this.allowsSelection;
 	}
 
+	public View getTableHeaderView() {
+		return this.tableHeaderView;
+	}
+
+	public void setTableHeaderView(View tableHeaderView) {
+		if(this.tableHeaderView != tableHeaderView) {
+			if(this.tableHeaderView != null) {
+				this.tableHeaderView.removeFromSuperview();
+			}
+
+			this.tableHeaderView = tableHeaderView;
+		}
+
+
+		float oldHeight = this.tableHeaderHeight;
+		this.tableHeaderHeight = this.tableHeaderView != null ? this.tableHeaderView.getFrame().size.height : 0.0f;
+		this.updateTableHeaderHeight(oldHeight, this.tableHeaderHeight);
+		this.tableHeaderAttached = false;
+
+		this.setNeedsLayout();
+	}
+
+	public View getTableFooterView() {
+		return this.tableFooterView;
+	}
+
+	public void setTableFooterView(View tableFooterView) {
+		if(this.tableFooterView != tableFooterView) {
+			if(this.tableFooterView != null) {
+				this.tableFooterView.removeFromSuperview();
+			}
+
+			this.tableFooterView = tableFooterView;
+		}
+
+		float oldHeight = this.tableFooterHeight;
+		this.tableFooterHeight = this.tableFooterView != null ? this.tableFooterView.getFrame().size.height : 0.0f;
+		this.tableFooterAttached = false;
+
+		Size contentSize = this.getContentSize();
+		contentSize.height += this.tableFooterHeight - oldHeight;
+		this.setContentSize(contentSize);
+
+		this.setNeedsLayout();
+	}
+
 	public void setFrame(Rect frame) {
 		Size oldSize = this.getFrame().size;
 		super.setFrame(frame);
@@ -438,7 +498,7 @@ public class TableView extends ScrollView {
 
 	public TableViewCell cellForRowAtIndexPath(IndexPath indexPath) {
 		if (indexPath != null && this.isIndexPathValid(indexPath)) {
-			List<TableViewCell> cells = this.populatesAllCells ? this.tableViewCells : this.getVisibleCells();
+			List<TableViewCell> cells = this.getVisibleCells();
 
 			for(TableViewCell cell : cells) {
 				if (indexPath.equals(this.indexPathForCell(cell))) {
@@ -457,18 +517,19 @@ public class TableView extends ScrollView {
 	}
 
 	public int sectionAtPoint(Point point) {
-		int section = 0;
+		int sectionAtPoint = -1;
+		int numberOfSections = this.sectionsInfo.size();
 
-		for(int b = 0, a = this.sectionsInfo.size(); b < a; b++) {
-			if (this.sectionsInfo.get(b).y > point.y) {
-				section = b;
+		for(int section = 0; section < numberOfSections; section++) {
+			if (this.sectionsInfo.get(section).y > point.y) {
+				sectionAtPoint = section;
 				break;
 			}
 		}
 
-		section = Math.max(0, section - 1);
+		sectionAtPoint = Math.max(0, sectionAtPoint - 1);
 
-		return (section >= this.numberOfSections) ? -1 : section;
+		return (sectionAtPoint >= this.numberOfSections) ? -1 : sectionAtPoint;
 	}
 
 	public IndexPath indexPathForRowAtPoint(Point point) {
@@ -565,7 +626,7 @@ public class TableView extends ScrollView {
 			footer = new TableViewFooter();
 		}
 
-		float tableHeight = 0;
+		float tableHeight = this.tableHeaderHeight;
 
 		for (int section = 0; section < this.numberOfSections; section++) {
 			SectionInfo sectionInfo = new SectionInfo();
@@ -648,7 +709,21 @@ public class TableView extends ScrollView {
 			tableHeight += GROUPED_TABLE_Y_MARGIN + 1.0f;
 		}
 
+		tableHeight += this.tableFooterHeight;
+
 		this.setContentSize(new Size(this.getBounds().size.width, tableHeight));
+	}
+
+	private void updateTableHeaderHeight(float oldHeight, float newHeight) {
+		float delta = newHeight - oldHeight;
+
+		for(SectionInfo sectionInfo : this.sectionsInfo) {
+			sectionInfo.y += delta;
+		}
+
+		Size contentSize = this.getContentSize();
+		contentSize.height += delta;
+		this.setContentSize(contentSize);
 	}
 
 	public void layoutSubviews() {
@@ -661,9 +736,38 @@ public class TableView extends ScrollView {
 		float minY = this.getContentOffset().y;
 		float maxY = minY + this.getBounds().size.height;
 
+		if(this.tableHeaderView != null) {
+			if(minY <= this.tableHeaderHeight) {
+				if(!this.tableHeaderAttached) {
+					this.tableHeaderView.setFrame(new Rect(0.0f, 0.0f, this.getFrame().size.width, this.tableHeaderHeight));
+					this.tableHeaderView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
+					this.insertSubview(this.tableHeaderView, 0);
+					this.tableHeaderAttached = true;
+				}
+			} else if(this.tableHeaderAttached) {
+				this.tableHeaderView.removeFromSuperview();
+				this.tableHeaderAttached = false;
+			}
+		}
+
+		if(this.tableFooterView != null) {
+			float offset = this.getContentSize().height - tableFooterHeight;
+			if(maxY >= offset) {
+				if(!this.tableFooterAttached) {
+					this.tableFooterView.setFrame(new Rect(0.0f, offset, this.getFrame().size.width, this.tableFooterHeight));
+					this.tableFooterView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
+					this.insertSubview(this.tableFooterView, 0);
+					this.tableFooterAttached = true;
+				}
+			} else if(this.tableFooterAttached) {
+				this.tableFooterView.removeFromSuperview();
+				this.tableFooterAttached = false;
+			}
+		}
+
 		int section = this.sectionAtPoint(this.getContentOffset());
 
-		if (!this.populatesAllCells && minY >= 0 && minY <= this.maxPoint.y) {
+		if (minY >= 0 && minY <= this.maxPoint.y) {
 			this.scanSubviewsForQueuing(minY, maxY, section);
 		}
 
@@ -732,7 +836,7 @@ public class TableView extends ScrollView {
 			return;
 		}
 
-		float offsetY = this.populatesAllCells ? 0 : visibleSubview.getFrame().origin.y;
+		float offsetY = visibleSubview.getFrame().origin.y;
 		boolean isPlain = this.tableStyle == Style.PLAIN;
 		View header = null;
 
@@ -805,7 +909,7 @@ public class TableView extends ScrollView {
 		if (visibleSubview == null) {
 			visibleSubview = new TableViewFooter();
 			if (section == 0) {
-				offsetY = 0;
+				offsetY = this.tableHeaderHeight;
 				visibleSubview._dataSourceInfo = this.getInfoForFooter(-1);
 			} else {
 				offsetY = this.sectionsInfo.get(section).y;
@@ -814,11 +918,6 @@ public class TableView extends ScrollView {
 		} else {
 			offsetY = visibleSubview.getFrame().maxY();
 		}
-
-		if (this.populatesAllCells) {
-			maxY = this.getContentSize().height;
-		}
-
 
 		boolean changedHeaders = false;
 
@@ -1284,6 +1383,7 @@ public class TableView extends ScrollView {
 
 		cell.setSelected(this.isRowAtIndexPathSelected(indexPath));
 		cell.setSeparatorStyle(this.separatorStyle);
+		cell.setSeparatorColor(this.separatorColor);
 
 		Rect frame = cell.getFrame();
 		frame.size.width = this.getBounds().size.width;

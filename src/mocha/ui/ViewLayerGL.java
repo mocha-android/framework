@@ -36,6 +36,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	private ViewLayerGL superlayer;
 	private int backgroundColor;
 	private boolean supportsDrawing;
+	private boolean clipsToBounds;
 	private Texture texture;
 	final float scale;
 	final int dpi;
@@ -130,6 +131,14 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 
 	public void setSupportsDrawing(boolean supportsDrawing) {
 		this.supportsDrawing = supportsDrawing;
+	}
+
+	public boolean clipsToBounds() {
+		return clipsToBounds;
+	}
+
+	public void setClipsToBounds(boolean clipsToBounds) {
+		this.clipsToBounds = clipsToBounds;
 	}
 
 	public void setBackgroundColor(int backgroundColor) {
@@ -355,7 +364,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		if(this.sublayers.size() > 0) {
 			gl.glPushMatrix();
 
-//			if(this.view.clipsToBounds()) {
+//			if(this.clipsToBounds) {
 //				Point point = this.view.convertPointToWindow(Point.zero());
 //				Rect frame = (new Rect(point, this.frame.size)).getScaledRect(scale);
 //				Point max = frame.max();

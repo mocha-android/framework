@@ -230,7 +230,7 @@ public class View extends Responder {
 
 	public void setClipsToBounds(boolean clipsToBounds) {
 		if(this.clipsToBounds != clipsToBounds) {
-			this.clipsToBounds = clipsToBounds;
+			this.layer.setClipsToBounds(clipsToBounds);
 			this.setNeedsDisplay();
 		}
 	}
@@ -856,7 +856,7 @@ public class View extends Responder {
 	}
 
 	public String toString() {
-		return String.format("<%s: 0x%d; frame = %s; hidden = %b; layer = %s>", this.getClass().toString(), this.hashCode(), this.getFrame().toString(), this.isHidden(), this.getLayer().toString());
+		return String.format("<%s: 0x%d; frame = %s; hidden = %b; layer = %s%s>", this.getClass().toString(), this.hashCode(), this.getFrame().toString(), this.isHidden(), this.getLayer().toString(), (this.tag != 0 ? "; tag = "+this.tag : ""));
 	}
 
 	// Rendering

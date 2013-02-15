@@ -64,6 +64,12 @@ class NavigationItemTitleView extends View {
 	private void updateTextRect(Rect parentBounds) {
 		CharSequence text = this.navigationItem.getTitle();
 
+		if(text == null) {
+			this.textRect = null;
+			this.setNeedsDisplay();
+			return;
+		}
+
 		Rect bounds = this.getBounds();
 		Size size = TextDrawing.getTextSize(text, this.font, bounds.size);
 

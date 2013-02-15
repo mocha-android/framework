@@ -24,12 +24,13 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private Rect bounds;
 	private View view;
 	private boolean supportsDrawing;
+	private boolean clipsToBounds;
 	public final float scale;
 
 	public ViewLayerNative(Context context) {
 		super(context);
 		this.setClipToPadding(false);
-		this.setClipChildren(false);
+		this.setClipsToBounds(false);
 		this.scale = context.getResources().getDisplayMetrics().density;
 	}
 
@@ -51,6 +52,15 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 			// this.setDrawingCacheEnabled(true);
 			// this.setDrawingCacheQuality(android.view.View.DRAWING_CACHE_QUALITY_HIGH);
 		}
+	}
+
+	public void setClipsToBounds(boolean clipsToBounds) {
+		this.setClipChildren(clipsToBounds);
+		this.clipsToBounds = clipsToBounds;
+	}
+
+	public boolean clipsToBounds() {
+		return this.clipsToBounds;
 	}
 
 	public void setBackgroundColor(int backgroundColor) {
@@ -172,21 +182,6 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	public static int round(float f) {
 		return (int)(f + 0.5f);
-	}
-
-	public void draw(Canvas canvas) {
-		boolean clips = this.view.clipsToBounds();
-
-		if(clips) {
-			canvas.save();
-			canvas.clipRect(new RectF(0.0f, 0.0f, this.bounds.size.width, this.bounds.size.height));
-		}
-
-		super.draw(canvas);
-
-		if(clips) {
-			canvas.restore();
-		}
 	}
 
 	// ViewLayer

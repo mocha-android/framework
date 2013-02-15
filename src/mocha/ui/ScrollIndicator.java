@@ -10,9 +10,6 @@ import mocha.graphics.Rect;
 
 class ScrollIndicator extends ImageView {
 
-	static final float THICKNESS = 7.0f;
-	static final float END_SIZE = 3.0f;
-
 	enum Type {
 		HORIZONTAL, VERTICAL
 	}
@@ -20,6 +17,7 @@ class ScrollIndicator extends ImageView {
 	private boolean visible;
 	private ScrollView.IndicatorStyle indicatorStyle;
 	private Type type;
+	private float thickness;
 
 	public ScrollIndicator(Type type) {
 		this.setUserInteractionEnabled(false);
@@ -38,22 +36,31 @@ class ScrollIndicator extends ImageView {
 			this.indicatorStyle = indicatorStyle;
 
 			int resourceId;
+			int capSize;
 
 			switch (indicatorStyle) {
 				case BLACK:
 					resourceId = R.drawable.mocha_scroll_indicator_black;
+					capSize = 2;
 					break;
 				case WHITE:
 					resourceId = R.drawable.mocha_scroll_indicator_white;
+					capSize = 2;
 					break;
 				case DEFAULT:
 				default:
 					resourceId = R.drawable.mocha_scroll_indicator_default;
+					capSize = 3;
 					break;
 			}
 
-			this.setImage(Image.imageNamed(resourceId).stretchableImage(3, 3));
+			this.thickness = (capSize * 2) + 1.0f;
+			this.setImage(Image.imageNamed(resourceId).stretchableImage(capSize, capSize));
 		}
+	}
+
+	public float getThickness() {
+		return thickness;
 	}
 
 	public boolean isVisible() {

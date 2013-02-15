@@ -163,6 +163,9 @@ class ViewAnimation extends mocha.foundation.Object {
 
 		long timeModifier = View.SLOW_ANIMATIONS ? 10 : 1;
 
+		this.duration *= timeModifier;
+		this.delay *= timeModifier;
+
 		activeAnimations.get().add(this);
 
 		AnimationHandler handler = animationHandler.get();

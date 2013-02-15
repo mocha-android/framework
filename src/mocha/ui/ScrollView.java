@@ -433,20 +433,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		float maxX = size.width - this.scrollIndicatorInsets.right - 1;
 
 		if (this.canScrollVertically && this.showsVerticalScrollIndicator) {
-			maxX -= ScrollIndicator.THICKNESS - 1.0f;
+			maxX -= this.verticalScrollIndicator.getThickness() - 1.0f;
 		}
 
 		float adjustedWidth = maxX - minX;
 		float width = Math.max(MIN_INDICATOR_LENGTH, roundf((size.width / this.adjustedContentSize.width) * adjustedWidth));
-		float y = size.height - ScrollIndicator.THICKNESS - this.scrollIndicatorInsets.bottom - 1;
+		float y = size.height - this.horizontalScrollIndicator.getThickness() - this.scrollIndicatorInsets.bottom - 1;
 		float x;
 
 		if (this.contentOffset.x < 0) {
-			width = roundf(Math.max(width + this.contentOffset.x, ScrollIndicator.THICKNESS));
+			width = roundf(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 			x = minX;
 		} else {
 			if (this.contentOffset.x > this.maxPoint.x) {
-				width = roundf(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, ScrollIndicator.THICKNESS));
+				width = roundf(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 				x = maxX - width;
 			} else {
 				float b = (this.contentOffset.x / (this.adjustedContentSize.width - size.width));
@@ -454,7 +454,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
-		this.horizontalScrollIndicator.setFrame(new Rect(bounds.origin.x + x, y, width, ScrollIndicator.THICKNESS));
+		this.horizontalScrollIndicator.setFrame(new Rect(bounds.origin.x + x, y, width, this.horizontalScrollIndicator.getThickness()));
 	}
 
 	private void updateVerticalScrollIndicator() {
@@ -465,20 +465,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		float maxY = size.height - this.scrollIndicatorInsets.bottom - 1;
 
 		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
-			maxY -= ScrollIndicator.THICKNESS - 1;
+			maxY -= this.horizontalScrollIndicator.getThickness() - 1;
 		}
 
 		float adjustedHeight = maxY - minY;
 		float height = Math.max(MIN_INDICATOR_LENGTH, roundf((size.height / this.adjustedContentSize.height) * adjustedHeight));
-		float x = size.width - ScrollIndicator.THICKNESS - this.scrollIndicatorInsets.right - 1;
+		float x = size.width - this.verticalScrollIndicator.getThickness() - this.scrollIndicatorInsets.right - 1;
 		float y;
 
 		if (this.contentOffset.y < 0) {
-			height = roundf(Math.max(height + this.contentOffset.y, ScrollIndicator.THICKNESS));
+			height = roundf(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 			y = minY;
 		} else {
 			if (this.contentOffset.y > this.maxPoint.y) {
-				height = roundf(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, ScrollIndicator.THICKNESS));
+				height = roundf(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 				y = maxY - height;
 			} else {
 				float c = (this.contentOffset.y / (this.adjustedContentSize.height - size.height));
@@ -486,7 +486,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
-		this.verticalScrollIndicator.setFrame(new Rect(x, bounds.origin.y + y, ScrollIndicator.THICKNESS, height));
+		this.verticalScrollIndicator.setFrame(new Rect(x, bounds.origin.y + y, this.verticalScrollIndicator.getThickness(), height));
 	}
 
 	public void flashScrollIndicators() {
@@ -501,8 +501,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.updateVerticalScrollIndicator();
 		}
 
-		horizontalScrollIndicator.cancelAnimations();
-		verticalScrollIndicator.cancelAnimations();
+		this.horizontalScrollIndicator.cancelAnimations();
+		this.verticalScrollIndicator.cancelAnimations();
 
 		View.animateWithDuration(100, 100, new Animations() {
 			public void performAnimatedChanges() {

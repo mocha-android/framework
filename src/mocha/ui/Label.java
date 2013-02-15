@@ -42,7 +42,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public CharSequence getText() {
-		return text;
+		return text == null ? "" : text;
 	}
 
 	public void setText(CharSequence text) {

@@ -87,6 +87,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private Label detailTextLabel;
 
 	private SeparatorStyle separatorStyle;
+	private int separatorColor;
 	private SelectionStyle selectionStyle;
 	private AccessoryType accessoryType;
 	private boolean highlighted;
@@ -123,6 +124,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.cellStyle = style != null ? style : Style.DEFAULT;
 		this.selectionStyle = SelectionStyle.BLUE;
 		this.separatorStyle = SeparatorStyle.SINGLE_LINE;
+		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.accessoryType = AccessoryType.NONE;
 		this.editingStyle = EditingStyle.NONE;
 		this.selected = false;
@@ -217,7 +219,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		if(this.getSeparatorStyle() == SeparatorStyle.NONE) return;
 
 		this.separatorView = new View();
-		this.separatorView.setBackgroundColor(Color.white(0.88f, 1.0f));
+		this.separatorView.setBackgroundColor(this.separatorColor);
 		this.addSubview(this.separatorView);
 	}
 
@@ -278,8 +280,21 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	public void setAccessoryView(View accessoryView) {
-		this.accessoryView = accessoryView;
-		this.actualAccessoryView = accessoryView;
+		if(this.accessoryView != accessoryView) {
+			if(this.accessoryView != null) {
+				this.accessoryView.removeFromSuperview();
+			}
+
+			if(this.actualAccessoryView != null) {
+				this.actualAccessoryView.removeFromSuperview();
+			}
+
+			this.accessoryView = accessoryView;
+			this.actualAccessoryView = accessoryView;
+
+			this.addSubview(this.actualAccessoryView);
+			this.setNeedsLayout();
+		}
 	}
 
 	View getActualAccessoryView() {
@@ -301,6 +316,23 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	SeparatorStyle getSeparatorStyle() {
 		return this.separatorStyle;
+	}
+
+	int getSeparatorColor() {
+		return separatorColor;
+	}
+
+	void setSeparatorColor(int separatorColor) {
+		if(this.separatorColor != separatorColor) {
+			this.separatorColor = separatorColor;
+
+			if(this.separatorView != null) {
+				this.separatorView.removeFromSuperview();
+				this.separatorView = null;
+
+				this.setNeedsLayout();
+			}
+		}
 	}
 
 	public void setHighlighted(boolean highlighted) {
@@ -549,7 +581,9 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public void setSelectedBackgroundView(View selectedBackgroundView) {
 		if (selectedBackgroundView != this.selectedBackgroundView) {
-			this.selectedBackgroundView.removeFromSuperview();
+			if(this.selectedBackgroundView != null) {
+				this.selectedBackgroundView.removeFromSuperview();
+			}
 
 			if (selectedBackgroundView != null) {
 				this.selectedBackgroundView = selectedBackgroundView;
@@ -563,8 +597,11 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 					this.setNeedsLayout();
 				}
+
+				this.usingDefaultSelectedBackgroundView = false;
 			} else {
 				this.selectedBackgroundView = null;
+				this.usingDefaultSelectedBackgroundView = true;
 			}
 		}
 	}

@@ -99,8 +99,8 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 				// Provide a rect from the right-hand side of the cell,
 				// with the frame centered in the cell
 
-				float tbr_padding = this._accessoryViewPaddingForCell(cell);
-				float x = cellBounds.size.width - accessorySize.width - tbr_padding;
+				float padding = this._accessoryViewPaddingForCell(cell);
+				float x = cellBounds.size.width - accessorySize.width - padding;
 				float y = (float)Math.round((cellBounds.size.height - accessorySize.height) / 2.0);
 
 				return new Rect(x, y, accessorySize.width, accessorySize.height);
