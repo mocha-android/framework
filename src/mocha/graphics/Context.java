@@ -145,6 +145,7 @@ public final class Context extends mocha.foundation.Object {
 
 		this.paint.setXfermode(xfermode);
 		this.textPaint.setXfermode(xfermode);
+		this.strokePaint.setXfermode(xfermode);
 	}
 
 	public void setAlpha(float alpha) {
