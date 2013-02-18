@@ -112,6 +112,9 @@ public class Image extends mocha.foundation.Object {
 		return this.resizableImageWithCapInsets(insets);
 	}
 
+	public Bitmap getBitmap() {
+		return bitmap;
+	}
 
 	public void recycle() {
 		this.bitmap.recycle();

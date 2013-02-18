@@ -96,7 +96,7 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 			if (this.pagingEnabled) {
 				this.nextPageContentOffset = new Point((this.decelerationVelocity.x > 0) ? this.maxDecelerationPoint.x : this.minDecelerationPoint.x, (this.decelerationVelocity.y > 0) ? this.maxDecelerationPoint.y : this.minDecelerationPoint.y);
 			} else {
-				if(target.delegate != null) {
+				if(target.listenerDragging != null) {
 					this.adjustedDecelerationParameters();
 				}
 			}
@@ -104,8 +104,8 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 			this.animatedContentOffset = target.contentOffset.copy();
 			this.previousDecelerationFrame = android.os.SystemClock.uptimeMillis();
 
-			if(target.delegate != null) {
-				target.delegate.scrollViewWillBeginDecelerating(target);
+			if(target.listenerDecelerating != null) {
+				target.listenerDecelerating.willBeginDecelerating(target);
 			}
 
 			for(ScrollViewAnimation animation : activeAnimations.get()) {
@@ -144,8 +144,8 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 
 		Point originalTargetContentOffset = targetContentOffset.copy();
 
-		if(target.delegate != null) {
-			target.delegate.scrollViewWillEndDraggingWithVelocityAndTargetContentOffset(target, velocity, targetContentOffset);
+		if(target.listenerDragging != null) {
+			target.listenerDragging.willEndDraggingWithVelocityAndTargetContentOffset(target, velocity, targetContentOffset);
 		}
 
 		if (originalTargetContentOffset.equals(targetContentOffset)) {
@@ -290,8 +290,8 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 
 		target.snapContentOffsetToBounds(false);
 
-		if(target.delegate != null) {
-			target.delegate.scrollViewDidEndDecelerating(target);
+		if(target.listenerDecelerating != null) {
+			target.listenerDecelerating.didEndDecelerating(target);
 		}
 	}
 

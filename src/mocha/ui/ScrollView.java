@@ -5,7 +5,6 @@
  */
 package mocha.ui;
 
-import mocha.animation.ViewAnimator;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -13,14 +12,23 @@ import mocha.graphics.Size;
 public class ScrollView extends View implements GestureRecognizer.GestureHandler {
 
 	public interface Listener {
-		public void scrollViewWillBeginDragging(ScrollView scrollView);
-		public void scrollViewWillBeginScrollingAnimation(ScrollView scrollView);
-		public void scrollViewDidEndScrollingAnimation(ScrollView scrollView);
-		public void scrollViewDidScroll(ScrollView scrollView);
-		public void scrollViewWillEndDraggingWithVelocityAndTargetContentOffset(ScrollView scrollView, Point velocity, Point targetContentOffset);
-		public void scrollViewDidEndDragging(ScrollView scrollView, boolean decelerating);
-		public void scrollViewWillBeginDecelerating(ScrollView scrollView);
-		public void scrollViewDidEndDecelerating(ScrollView scrollView);
+		public void didScroll(ScrollView scrollView);
+
+		public interface Dragging extends Listener {
+			public void willBeginDragging(ScrollView scrollView);
+			public void willEndDraggingWithVelocityAndTargetContentOffset(ScrollView scrollView, Point velocity, Point targetContentOffset);
+			public void didEndDragging(ScrollView scrollView, boolean decelerating);
+		}
+
+		public interface Decelerating extends Listener {
+			public void willBeginDecelerating(ScrollView scrollView);
+			public void didEndDecelerating(ScrollView scrollView);
+		}
+
+		public interface Animations extends Listener {
+			public void willBeginScrollingAnimation(ScrollView scrollView);
+			public void didEndScrollingAnimation(ScrollView scrollView);
+		}
 	}
 
 	private static float MIN_INDICATOR_LENGTH = 34.0f;
@@ -46,7 +54,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private boolean bounces;
 	private boolean alwaysBounceHorizontal;
 	private boolean alwaysBounceVertical;
-	Listener delegate;
+	Listener listener;
+	Listener.Dragging listenerDragging;
+	Listener.Decelerating listenerDecelerating;
+	Listener.Animations listenerAnimations;
 	ScrollViewPanGestureRecognizer panGestureRecognizer;
 	Point maxPoint;
 	boolean canScrollVertically;
@@ -76,7 +87,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.bounces = true;
 		this.alwaysBounceHorizontal = false;
 		this.alwaysBounceVertical = false;
-		this.delegate = null;
+		this.listener = null;
 		this.contentInset = EdgeInsets.zero();
 		this.panGestureRecognizer = new ScrollViewPanGestureRecognizer(this);
 		this.setUserInteractionEnabled(true);
@@ -115,6 +126,41 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	private void updateAlwaysBounce() {
 
+	}
+
+	public Listener getListener() {
+		return listener;
+	}
+
+	public void setListener(Listener listener) {
+		if(listener != null) {
+			this.listener = listener;
+
+			if(listener instanceof Listener.Dragging) {
+				this.listenerDragging = (Listener.Dragging)listener;
+			} else {
+				this.listenerDragging = null;
+			}
+
+			if(listener instanceof Listener.Decelerating) {
+				this.listenerDecelerating = (Listener.Decelerating)listener;
+			} else {
+				this.listenerDecelerating = null;
+			}
+
+			if(listener instanceof Listener.Animations) {
+				this.listenerAnimations = (Listener.Animations)listener;
+			} else {
+				this.listenerAnimations = null;
+			}
+
+
+		} else {
+			this.listener = null;
+			this.listenerDragging = null;
+			this.listenerDecelerating = null;
+			this.listenerAnimations = null;
+		}
 	}
 
 	public void setFrame(Rect frame) {
@@ -263,8 +309,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.setAnimationDidStartCallback(new AnimationDidStart() {
 				public void animationDidStart(String animationID, Object context) {
 					inSimpleAnimation = true;
-					if(delegate != null) {
-						delegate.scrollViewWillBeginScrollingAnimation(ScrollView.this);
+					if(listenerAnimations != null) {
+						listenerAnimations.willBeginScrollingAnimation(ScrollView.this);
 					}
 				}
 			});
@@ -566,8 +612,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 		this.startContentOffset = this.contentOffset.copy();
 
-		if(this.delegate != null) {
-			this.delegate.scrollViewWillBeginDragging(this);
+		if(this.listenerDragging != null) {
+			this.listenerDragging.willBeginDragging(this);
 		}
 
 		this.dragging = true;
@@ -620,8 +666,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.scrollViewAnimation = new ScrollViewAnimation(this);
 		this.scrollViewAnimation.startDecelerationAnimation();
 
-		if(this.delegate != null) {
-			this.delegate.scrollViewDidEndDragging(this, this.decelerating);
+		if(this.listenerDragging != null) {
+			this.listenerDragging.didEndDragging(this, this.decelerating);
 		}
 
 		if (!this.decelerating) {
@@ -640,8 +686,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.dragging = false;
 		this.snapContentOffsetToBounds(true);
 
-		if(this.delegate != null) {
-			this.delegate.scrollViewDidEndDragging(this, false);
+		if(this.listenerDragging != null) {
+			this.listenerDragging.didEndDragging(this, false);
 		}
 
 		this.hideScrollIndicators();
@@ -653,13 +699,13 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.contentOffset.y = roundf(this.contentOffset.y);
 			this.updateScrollPositionWithContentOffset();
 
-			if(this.delegate != null) {
-				this.delegate.scrollViewDidEndScrollingAnimation(this);
+			if(this.listenerAnimations != null) {
+				this.listenerAnimations.didEndScrollingAnimation(this);
 			}
 		}
 
-		if(this.delegate != null) {
-			this.delegate.scrollViewDidScroll(this);
+		if(this.listener != null) {
+			this.listener.didScroll(this);
 		}
 	}
 

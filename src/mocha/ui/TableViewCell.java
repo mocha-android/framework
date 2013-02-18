@@ -16,7 +16,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	static long ANIMATED_HIGHLIGHT_DURATION = NavigationBar.ANIMATION_DURATION;
 
 	public enum AccessoryType {
-		NONE, DISCLOSURE_INDICATOR, DETAIL_DISCLOSURE_BUTTON, CHECKMARK
+			NONE, DISCLOSURE_INDICATOR, DETAIL_DISCLOSURE_BUTTON, CHECKMARK
 	}
 
 	public enum SelectionStyle {
