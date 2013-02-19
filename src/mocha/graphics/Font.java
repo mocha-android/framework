@@ -1,7 +1,7 @@
-/*
+/**
  *  @author Shaun
- *	@date 11/19/12
- *	@copyright	2012 enormego. All rights reserved.
+ *  @date 11/19/12
+ *  @copyright	2012 enormego. All rights reserved.
  */
 package mocha.graphics;
 
@@ -16,6 +16,10 @@ public final class Font {
 	private final Typeface typeface;
 	private final float pointSize;
 	private final float lineHeight;
+	private final float ascender;
+	private final float descender;
+	private final float leading;
+
 	private HashMap<Float,TextPaint> cachedPaints;
 
 	public Font(Typeface typeface, float pointSize) {
@@ -26,9 +30,13 @@ public final class Font {
 		float screenScale = Screen.mainScreen().getScale();
 
 		TextPaint textPaint = this.paintForScreenScale(screenScale);
-		android.graphics.Rect textBounds = new android.graphics.Rect();
-		textPaint.getTextBounds("Py", 0, 2, textBounds);
-		this.lineHeight = (float)textBounds.height() / screenScale;
+		android.graphics.Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
+
+		this.ascender = -(fontMetrics.ascent / screenScale);
+		this.descender = -(fontMetrics.descent / screenScale);
+		this.leading = fontMetrics.leading / screenScale;
+
+		this.lineHeight = (float)(Math.ceil(this.ascender) - Math.ceil(this.descender) + Math.ceil(this.leading));
 	}
 
 	public static Font getSystemFontWithSize(float pointSize) {
@@ -49,6 +57,18 @@ public final class Font {
 
 	public float getLineHeight() {
 		return lineHeight;
+	}
+
+	public float getAscender() {
+		return ascender;
+	}
+
+	public float getDescender() {
+		return descender;
+	}
+
+	public float getLeading() {
+		return leading;
 	}
 
 	public Font getFontWithSize(float pointSize) {
