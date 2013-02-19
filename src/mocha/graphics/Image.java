@@ -29,6 +29,24 @@ public class Image extends mocha.foundation.Object {
 		return new Image(BitmapFactory.decodeResource(resources, resourceId));
 	}
 
+	public static Image imageWithData(byte[] bytes) {
+		if(bytes == null) {
+			return null;
+		} else {
+			return imageWithData(bytes, 0, bytes.length);
+		}
+	}
+
+	public static Image imageWithData(byte[] bytes, int offset, int length) {
+		Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, offset, length);
+
+		if(bitmap != null) {
+			return new Image(bitmap);
+		} else {
+			return null;
+		}
+	}
+
 	public Image(Bitmap bitmap) {
 		this.bitmap = bitmap;
 		this.size = new Size(bitmap.getScaledWidth(DisplayMetrics.DENSITY_MEDIUM), bitmap.getScaledHeight(DisplayMetrics.DENSITY_MEDIUM));
