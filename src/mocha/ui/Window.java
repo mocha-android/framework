@@ -156,6 +156,8 @@ public final class Window extends View {
 	}
 
 	private void sendTouches(List<Touch> touches, Touch.Phase phase, Event event, View view) {
+		if(view == null) return;
+
 		List<GestureRecognizer> gestureRecognizers = view.getGestureRecognizers();
 
 		if(gestureRecognizers != null && gestureRecognizers.size() > 0) {
