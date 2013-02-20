@@ -7,6 +7,7 @@ package mocha.ui;
 
 import mocha.graphics.Rect;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -103,7 +104,6 @@ public final class Window extends View {
 		this.makeKeyWindow();
 	}
 
-
 	public void sendEvent(Event event) {
 		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
 		
@@ -116,36 +116,61 @@ public final class Window extends View {
 			}
 
 			for(GestureRecognizer gestureRecognizer : gestureRecognizers) {
-//				if(gestureRecognizer.getState() == GestureRecognizer.State.POSSIBLE) {
-//					boolean prevented = false;
-//					for(GestureRecognizer otherGestureRecognizer : gestureRecognizers) {
-//						if(otherGestureRecognizer.getState() == GestureRecognizer.State.BEGAN || otherGestureRecognizer.getState() == GestureRecognizer.State.CHANGED) {
-//							if(otherGestureRecognizer.canPreventGestureRecognizer(gestureRecognizer)) {
-//								prevented = true;
-//								break;
-//							}
-//						}
-//					}
-//
-//					if(prevented) continue;
-//				}
-
 				gestureRecognizer.recognizeTouches(touches, event);
 			}
 
-			for(Touch touch : touches) {
-				Touch.Phase phase = touch.getPhase();
+			int numberOfTouches = touches.size();
 
-				if(phase == Touch.Phase.BEGAN) {
-					touch.getView().touchesBegan(touches, event);
-				} else if(phase == Touch.Phase.MOVED) {
-					touch.getView().touchesMoved(touches, event);
-				} else if(phase == Touch.Phase.ENDED) {
-					touch.getView().touchesEnded(touches, event);
-				} else if(phase == Touch.Phase.CANCELLED) {
-					touch.getView().touchesCancelled(touches, event);
+			if(numberOfTouches == 1) {
+				Touch touch = touches.get(0);
+				this.sendTouches(touches, touch.getPhase(), event, touch.getView());
+			} else if(numberOfTouches > 1) {
+				// TODO: Come up with a more performant way to do this..
+
+				List<Touch> undeliveredTouches = new ArrayList<Touch>(touches);
+				List<Touch> touchesToDeliver = new ArrayList<Touch>();
+
+				int remainingTouches;
+				while((remainingTouches = undeliveredTouches.size()) > 0) {
+					Touch touch = undeliveredTouches.get(0);
+					touchesToDeliver.clear();
+					touchesToDeliver.add(touch);
+
+					// Find other touches with the same state and view
+					for(int i = 1; i < remainingTouches; i++) {
+						Touch nextTouch = undeliveredTouches.get(i);
+
+						if(nextTouch.getPhase() == touch.getPhase() && nextTouch.getView() == touch.getView()) {
+							touchesToDeliver.add(touch);
+						}
+					}
+
+					undeliveredTouches.removeAll(touchesToDeliver);
+
+					// Send related touches
+					this.sendTouches(touchesToDeliver, touch.getPhase(), event, touch.getView());
 				}
 			}
+		}
+	}
+
+	private void sendTouches(List<Touch> touches, Touch.Phase phase, Event event, View view) {
+		switch (phase) {
+			case BEGAN:
+				view.touchesBegan(touches, event);
+				break;
+			case MOVED:
+				view.touchesMoved(touches, event);
+				break;
+			case ENDED:
+				view.touchesEnded(touches, event);
+				break;
+			case CANCELLED:
+				view.touchesCancelled(touches, event);
+				break;
+			default:
+				// Do nothing
+				break;
 		}
 	}
 
