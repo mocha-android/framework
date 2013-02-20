@@ -117,7 +117,7 @@ public final class Window extends View {
 			}
 
 			for(GestureRecognizer gestureRecognizer : gestureRecognizers) {
-				gestureRecognizer.recognizeTouches(touches, event);
+				gestureRecognizer.recognizeTouches(event.touchesForGestureRecognizer(gestureRecognizer), event);
 			}
 
 			int numberOfTouches = touches.size();
