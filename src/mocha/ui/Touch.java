@@ -99,6 +99,10 @@ public final class Touch extends mocha.foundation.Object {
 		this.magnification = 0.0f;
 	}
 
+	void setPhase(Phase phase) {
+		this.phase = phase;
+	}
+
 	void updatePhase(Phase phase, Point screenLocation, long timestamp) {
 		if(!screenLocation.equals(this.location)) {
 			this.previousLocation = this.location;

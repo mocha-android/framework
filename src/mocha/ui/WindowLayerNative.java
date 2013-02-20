@@ -37,15 +37,14 @@ public final class WindowLayerNative extends ViewLayerNative implements WindowLa
 	}
 
 	public boolean onTouchEvent(MotionEvent motionEvent) {
-		// 	MLog("Touch Event: " + getActionTitle(motionEvent.getAction()) +  " | Touches: " + motionEvent.getPointerCount());
+		Window window = getWindow();
 
-		if(this.lastEvent == null) {
-			this.lastEvent = new Event(motionEvent, this.getWindow());
-		} else {
-			this.lastEvent.updateMotionEvent(motionEvent, this.getWindow());
+		if(lastEvent == null) {
+			lastEvent = Event.touchEvent(window);
 		}
 
-		this.getWindow().sendEvent(this.lastEvent);
+		lastEvent.updateMotionEvent(motionEvent, window);
+		window.sendEvent(lastEvent);
 
 		return true;
 	}

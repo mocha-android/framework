@@ -89,13 +89,14 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 		}
 
 		public boolean onTouchEvent(MotionEvent motionEvent) {
+			Window window = getWindow();
+
 			if(lastEvent == null) {
-				lastEvent = new Event(motionEvent, getWindow());
-			} else {
-				lastEvent.updateMotionEvent(motionEvent, getWindow());
+				lastEvent = Event.touchEvent(window);
 			}
 
-			getWindow().sendEvent(lastEvent);
+			lastEvent.updateMotionEvent(motionEvent, window);
+			window.sendEvent(lastEvent);
 
 			return true;
 		}

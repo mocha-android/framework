@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
- *	@date 11/13/12
- *	@copyright	2012 enormego. All rights reserved.
+ *  @date 11/13/12
+ *  @copyright 2012 enormego. All rights reserved.
  */
 package mocha.ui;
 
@@ -9,10 +9,7 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import mocha.graphics.Point;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class Event extends mocha.foundation.Object {
 	private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout();
@@ -31,7 +28,7 @@ public final class Event extends mocha.foundation.Object {
 	/**
 	 * Touches for the current event
 	 */
-	private List<Touch> touches;
+	private List<Touch> currentTouches;
 
 	/**
 	 * Touches that have occurred since the first touch went down.
@@ -46,24 +43,25 @@ public final class Event extends mocha.foundation.Object {
 	private Map<Integer,Touch> lifetimeTouches;
 
 	/**
+	 * Touches currently on the screen, they may not be part of the current event
+	 * if they're stationary.
+	 */
+	private List<Touch> allTouches;
+
+	/**
 	 * Underlying motion event
 	 */
 	private MotionEvent motionEvent;
 
 	/**
-	 * Reused in #updateMotionEvent() each time it's called
-	 *
-	 * The references is stored here strictly to avoid objection creation
-	 * every time #updateMotionEvent() is called.
-	 */
-	private MotionEvent.PointerProperties pointerProperties;
-
-	/**
 	 * If true, we clear out lifetimeTouches on the next
 	 * #updateMotionEvent() call.
 	 */
-	private boolean resetTouchesOnNextUpdate;
+	private boolean resetTouchesOnNextClean;
 
+	/**
+	 * Event type
+	 */
 	public enum Type {
 		TOUCHES,
 		SYSTEM,
@@ -83,19 +81,22 @@ public final class Event extends mocha.foundation.Object {
 		return event;
 	}
 
-	private Event() { }
-
 	/**
-	 * Create a motion event
-	 * @param motionEvent system motion event
+	 * Create a touch event
+	 *
 	 * @param window window the event will be sent to
+	 * @return touch event
 	 */
-	Event(MotionEvent motionEvent, Window window) {
-		this.lifetimeTouches = new HashMap<Integer, Touch>();
-		this.touches = new ArrayList<Touch>();
-		this.pointerProperties = new MotionEvent.PointerProperties();
-		this.updateMotionEvent(motionEvent, window);
+	static Event touchEvent(Window window) {
+		Event event = new Event();
+		event.lifetimeTouches = new HashMap<Integer, Touch>();
+		event.currentTouches = new ArrayList<Touch>();
+		event.allTouches = new ArrayList<Touch>();
+		event.type = Type.TOUCHES;
+		return event;
 	}
+
+	private Event() { }
 
 	/**
 	 * Update this event with a new motion event
@@ -106,60 +107,138 @@ public final class Event extends mocha.foundation.Object {
 	void updateMotionEvent(MotionEvent motionEvent, Window window) {
 		this.type = Type.TOUCHES;
 		this.timestamp = motionEvent.getEventTime();
-		int action = motionEvent.getActionMasked();
 		this.motionEvent = motionEvent;
+		this.currentTouches.clear();
 
-		int numberOfTouches = motionEvent.getPointerCount();
+		int action = motionEvent.getActionMasked();
 
-		if(this.resetTouchesOnNextUpdate || action == MotionEvent.ACTION_DOWN) {
-			this.lifetimeTouches.clear();
-		}
+		if(action == MotionEvent.ACTION_MOVE) {
+			// Move events do not provide the pointer(s) responsible
+			// so we need to loop through all of them and figure out
+			// which ones moved and which didn't.
 
-		this.touches.clear();
+			int numberOfTouches = motionEvent.getPointerCount();
 
-		Touch.Phase phase = null;
-		this.resetTouchesOnNextUpdate = false;
+			for(int pointerIndex = 0; pointerIndex < numberOfTouches; pointerIndex++) {
+				Touch touch = this.getTouchForPointerIndex(motionEvent, pointerIndex);
+				Touch.Phase phase = touch.getPhase();
 
-		if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-			phase = Touch.Phase.BEGAN;
-		} else if(action == MotionEvent.ACTION_MOVE) {
-			phase = Touch.Phase.MOVED;
-		} else if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) {
-			phase = Touch.Phase.ENDED;
-			this.resetTouchesOnNextUpdate = action == MotionEvent.ACTION_UP;
-		} else if(action == MotionEvent.ACTION_CANCEL) {
-			phase = Touch.Phase.CANCELLED;
+				if(phase == Touch.Phase.BEGAN || phase == Touch.Phase.MOVED || phase == Touch.Phase.STATIONARY) {
+					Point point = new Point(motionEvent.getX(pointerIndex) / window.scale, motionEvent.getY(pointerIndex) / window.scale);
+
+					if(!point.equals(touch.location)) {
+						touch.updatePhase(Touch.Phase.MOVED, point, this.timestamp);
+						this.currentTouches.add(touch);
+					} else {
+						touch.updatePhase(Touch.Phase.STATIONARY, point, this.timestamp);
+					}
+				}
+			}
 		} else {
-			this.type = Type.UNKNOWN;
-		}
+			// Most likely a UP/DOWN action, which means it's only a single
+			// touch and we need to use the action index
 
-		for(int i = 0; i < numberOfTouches; i++) {
-			motionEvent.getPointerProperties(i, this.pointerProperties);
-			int touchId = this.pointerProperties.id;
+			int actionIndex = motionEvent.getActionIndex();
 
-			Touch touch = this.lifetimeTouches.get(touchId);
-
-			if(touch == null) {
-				touch = new Touch();
-				this.lifetimeTouches.put(touchId, touch);
+			// Ensure we have a valid index
+			if(actionIndex < 0 || actionIndex >= motionEvent.getPointerCount()) {
+				return;
 			}
 
-			this.touches.add(touch);
+			// Get touch/point
+			Touch touch = this.getTouchForPointerIndex(motionEvent, actionIndex);
+			Point point = new Point(motionEvent.getX(actionIndex) / window.scale, motionEvent.getY(actionIndex) / window.scale);
+			this.currentTouches.add(touch);
 
-			Point point = new Point(motionEvent.getX(i) / window.scale, motionEvent.getY(i) / window.scale);
+			Touch.Phase phase = null;
+
+			// Determine phase for motion event action
+			switch (action) {
+				case MotionEvent.ACTION_DOWN:
+				case MotionEvent.ACTION_POINTER_DOWN:
+					phase = Touch.Phase.BEGAN;
+					this.allTouches.add(touch);
+					break;
+				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_POINTER_UP:
+					phase = Touch.Phase.ENDED;
+					this.resetTouchesOnNextClean = action == MotionEvent.ACTION_UP;
+					break;
+				case MotionEvent.ACTION_CANCEL:
+					phase = Touch.Phase.CANCELLED;
+					break;
+				default:
+					this.type = Type.UNKNOWN;
+			}
+
+			// Update/set touch for phase
 			if(phase == Touch.Phase.BEGAN) {
-				int tapCount = 1;
-
-				if(this.timestamp - touch.getTimestamp() < DOUBLE_TAP_TIMEOUT) {
-					tapCount += touch.getTapCount();
-				}
-
-				touch.setPhase(phase, point, tapCount, this.timestamp);
+				touch.setPhase(phase, point, 1, this.timestamp);
 				touch.setTouchedView(window.hitTest(touch.location, this));
-			} else {
+			} else if(phase == Touch.Phase.ENDED || phase == Touch.Phase.CANCELLED) {
 				touch.updatePhase(phase, point, this.timestamp);
 			}
+
+			// Set all other touches to stationary
+			for(Touch otherTouch : this.allTouches) {
+				if(otherTouch == touch) continue;
+
+				Touch.Phase touchPhase = otherTouch.getPhase();
+
+				if(touchPhase == Touch.Phase.BEGAN || touchPhase == Touch.Phase.MOVED) {
+					otherTouch.setPhase(Touch.Phase.STATIONARY);
+				}
+			}
 		}
+	}
+
+	/**
+	 * Gets or creates a touch instance for a pointer index in a motion event
+	 *
+	 * @param motionEvent motion event for the pointer index
+	 * @param pointerIndex pointer index
+	 * @return touch
+	 */
+	private Touch getTouchForPointerIndex(MotionEvent motionEvent, int pointerIndex) {
+		int touchId = motionEvent.getPointerId(pointerIndex);
+		Touch touch = this.lifetimeTouches.get(touchId);
+
+		if(touch == null) {
+			touch = new Touch();
+			this.lifetimeTouches.put(touchId, touch);
+		}
+
+		return touch;
+	}
+
+	/**
+	 * Clean up touches after the event has been processed.
+	 */
+	void cleanTouches() {
+		if(this.resetTouchesOnNextClean) {
+			this.lifetimeTouches.clear();
+			this.allTouches.clear();
+			this.currentTouches.clear();
+			this.resetTouchesOnNextClean = false;
+		} else {
+			List<Touch> touches = new ArrayList<Touch>(this.allTouches);
+
+			for(Touch touch : touches) {
+				if(touch.getPhase() == Touch.Phase.ENDED || touch.getPhase() == Touch.Phase.CANCELLED) {
+					this.allTouches.remove(touch);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get the current touches for when the event was last updated
+	 * by a MotionEvent.
+	 *
+	 * @return current touches
+	 */
+	List<Touch> getCurrentTouches() {
+		return currentTouches;
 	}
 
 	/**
@@ -183,7 +262,7 @@ public final class Event extends mocha.foundation.Object {
 	/**
 	 * Get the timestamp for the event
 	 *
-	 * @return event typestamp
+	 * @return event timestamp
 	 */
 	public long getTimestamp() {
 		return timestamp;
@@ -195,7 +274,7 @@ public final class Event extends mocha.foundation.Object {
 	 * @return touches for the event
 	 */
 	public List<Touch>allTouches() {
-		return this.touches;
+		return Collections.unmodifiableList(this.allTouches);
 	}
 
 	/**
@@ -207,7 +286,7 @@ public final class Event extends mocha.foundation.Object {
 	public List<Touch>touchesForView(View view) {
 		List<Touch> touches = new ArrayList<Touch>();
 
-		for(Touch touch : this.allTouches()) {
+		for(Touch touch : this.allTouches) {
 			if (touch.getView() == view) {
 				touches.add(touch);
 			}
@@ -225,7 +304,7 @@ public final class Event extends mocha.foundation.Object {
 	public List<Touch>touchesForWindow(Window window) {
 		List<Touch> touches = new ArrayList<Touch>();
 
-		for(Touch touch : this.allTouches()) {
+		for(Touch touch : this.allTouches) {
 			if (touch.getWindow() == window) {
 				touches.add(touch);
 			}
@@ -243,7 +322,7 @@ public final class Event extends mocha.foundation.Object {
 	public List<Touch>touchesForGestureRecognizer(GestureRecognizer gestureRecognizer) {
 		List<Touch> touches = new ArrayList<Touch>();
 
-		for(Touch touch : this.allTouches()) {
+		for(Touch touch : this.allTouches) {
 			if (touch.getGestureRecognizers().contains(gestureRecognizer)) {
 				touches.add(touch);
 			}

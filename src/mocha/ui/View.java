@@ -165,6 +165,8 @@ public class View extends Responder {
 	public final float scale;
 	private boolean onCreatedCalled;
 	private ContentMode contentMode;
+	private boolean multipleTouchEnabled;
+	Touch trackingSingleTouch;
 
 	private ViewController _viewController;
 
@@ -201,7 +203,7 @@ public class View extends Responder {
 		this.gestureRecognizers = new ArrayList<GestureRecognizer>();
 		this.clipsToBounds = false;
 		this.contentMode = ContentMode.SCALE_TO_FILL;
-
+		this.multipleTouchEnabled = false;
 
 		boolean supportsDrawing;
 		
@@ -412,6 +414,14 @@ public class View extends Responder {
 
 	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
 		this.userInteractionEnabled = userInteractionEnabled;
+	}
+
+	public boolean isMultipleTouchEnabled() {
+		return multipleTouchEnabled;
+	}
+
+	public void setMultipleTouchEnabled(boolean multipleTouchEnabled) {
+		this.multipleTouchEnabled = multipleTouchEnabled;
 	}
 
 	// Layout

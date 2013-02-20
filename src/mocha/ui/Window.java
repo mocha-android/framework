@@ -110,7 +110,7 @@ public final class Window extends View {
 		
 		if(event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
-			List<Touch> touches = event.touchesForWindow(this);
+			List<Touch> touches = event.getCurrentTouches();
 
 			for(Touch touch : touches) {
 				gestureRecognizers.addAll(touch.getGestureRecognizers());
@@ -126,8 +126,6 @@ public final class Window extends View {
 				Touch touch = touches.get(0);
 				this.sendTouches(touches, touch.getPhase(), event, touch.getView());
 			} else if(numberOfTouches > 1) {
-				// TODO: Come up with a more performant way to do this..
-
 				List<Touch> undeliveredTouches = new ArrayList<Touch>(touches);
 				List<Touch> touchesToDeliver = new ArrayList<Touch>();
 
@@ -152,6 +150,8 @@ public final class Window extends View {
 					this.sendTouches(touchesToDeliver, touch.getPhase(), event, touch.getView());
 				}
 			}
+
+			event.cleanTouches();
 		}
 	}
 
@@ -174,6 +174,28 @@ public final class Window extends View {
 						// don't ignore touches
 				}
 			}
+		}
+
+		if(!view.isMultipleTouchEnabled()) {
+			boolean skipContainsCheck = false;
+
+			if(phase == Touch.Phase.BEGAN && view.trackingSingleTouch == null) {
+				view.trackingSingleTouch = touches.get(0);
+				skipContainsCheck = true;
+			}
+
+			if(!skipContainsCheck && !touches.contains(view.trackingSingleTouch)) return;
+
+			if(touches.size() > 1) {
+				touches.clear();
+				touches.add(view.trackingSingleTouch);
+			}
+
+			if(phase == Touch.Phase.CANCELLED || phase == Touch.Phase.ENDED) {
+				view.trackingSingleTouch = null;
+			}
+		} else if(view.trackingSingleTouch != null) {
+			view.trackingSingleTouch = null;
 		}
 
 		if(touches.size() == 0) return;
