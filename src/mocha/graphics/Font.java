@@ -15,6 +15,7 @@ import java.util.HashMap;
 public final class Font {
 	private final Typeface typeface;
 	private final float pointSize;
+	private final float measuredLineHeight;
 	private final float lineHeight;
 	private final float ascender;
 	private final float descender;
@@ -37,6 +38,10 @@ public final class Font {
 		this.leading = fontMetrics.leading / screenScale;
 
 		this.lineHeight = (float)(Math.ceil(this.ascender) - Math.ceil(this.descender) + Math.ceil(this.leading));
+
+		android.graphics.Rect textBounds = new android.graphics.Rect();
+		textPaint.getTextBounds("Py", 0, 2, textBounds);
+		this.measuredLineHeight = (float)textBounds.height() / screenScale;
 	}
 
 	public static Font getSystemFontWithSize(float pointSize) {
@@ -73,6 +78,10 @@ public final class Font {
 
 	public Font getFontWithSize(float pointSize) {
 		return new Font(this.typeface, pointSize);
+	}
+
+	float getMeasuredLineHeight() {
+		return measuredLineHeight;
 	}
 
 	TextPaint paintForScreenScale(float screenScale) {

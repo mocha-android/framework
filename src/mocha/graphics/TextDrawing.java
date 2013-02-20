@@ -48,13 +48,15 @@ public class TextDrawing extends mocha.foundation.Object {
 
 		float y = rect.origin.y + (rect.size.height / 2.0f) + ((font.getLineHeight() * scale) / 2.0f) - scale;
 
+		y -= Math.floor(((font.getLineHeight() - font.getMeasuredLineHeight()) / 2.0f) * scale);
+
 		context.getCanvas().drawText(text, 0, text.length(), x, y, textPaint);
 
 		return new Size(textWidth / scale, font.getLineHeight());
 	}
 
 	public static CharSequence fitToRect(Context context, CharSequence text, Rect targetRect, Font font) {
-		return fitToWidth(context, text, targetRect.size.width, createPaintForFont(font, context.getScale()));
+		return fitToWidth(context, text, targetRect.size.width, font.paintForScreenScale(context.getScale()));
 	}
 
 	private static CharSequence fitToWidth(Context context, CharSequence text, float width, TextPaint paint) {
@@ -134,17 +136,6 @@ public class TextDrawing extends mocha.foundation.Object {
 		// Using a large value like 10000 seems to fix the issue, and shouldn't cause any problems since
 		// we really shouldn't be rendering to a width that large anyway.
 		return Math.min(width, 10000);
-	}
-
-	/**
-	 * @deprecated Use Font#paintForScreenScale(float) instead
-	 * @param font Font to get get paint for
-	 * @param screenScale screen scale to get paint for
-	 * @see Font#paintForScreenScale(float)
-	 * @return TextPaint instance for Font
-	 */
-	static TextPaint createPaintForFont(Font font, float screenScale) {
-		return font.paintForScreenScale(screenScale);
 	}
 
 }
