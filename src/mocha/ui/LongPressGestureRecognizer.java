@@ -46,7 +46,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 	private void cancelWaiting() {
 		if (this.waiting) {
 			this.waiting = false;
-			this.getOsHandler().removeCallbacks(this.beginGestureRunnable);
+			cancelCallbacks(this.beginGestureRunnable);
 			this.setState(State.FAILED);
 		}
 	}
@@ -57,7 +57,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		if (!this.waiting && this.getState() == State.POSSIBLE && touch.getTapCount() >= this.numberOfTapsRequired) {
 			this.beginLocation = touch.location;
 			this.waiting = true;
-			this.getOsHandler().postDelayed(this.beginGestureRunnable, this.minimumPressDuration);
+			performAfterDelay(this.minimumPressDuration, this.beginGestureRunnable);
 		}
 	}
 

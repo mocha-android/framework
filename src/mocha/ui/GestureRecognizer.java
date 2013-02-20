@@ -20,8 +20,9 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	private View view;
 	private ArrayList<GestureHandler> registeredGestureHandlers;
 	private List<Touch> trackingTouches;
-	private android.os.Handler osHandler;
+	private List<Touch> ignoredTouches;
 	private Event lastEvent;
+	private boolean stateSet;
 
 	public enum State {
 		POSSIBLE,
@@ -29,13 +30,16 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		CHANGED,
 		ENDED,
 		CANCELLED,
-		FAILED
+		FAILED,
+
+		// Only used for discrete gestures like Tap
+		RECOGNIZED
 	}
 
 	public interface Delegate {
-		public boolean gestureRecognizerShouldBegin(GestureRecognizer gestureRecognizer);
-		public boolean gestureRecognizerShouldReceiveTouch(GestureRecognizer gestureRecognizer, Touch touch);
-		public boolean gestureRecognizerShouldRecognizeSimultaneouslyWithGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
+		public boolean shouldBegin(GestureRecognizer gestureRecognizer);
+		public boolean shouldReceiveTouch(GestureRecognizer gestureRecognizer, Touch touch);
+		public boolean shouldRecognizeSimultaneouslyWithGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
 	}
 
 	public interface GestureHandler {
@@ -51,7 +55,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 
 		this.registeredGestureHandlers = new ArrayList<GestureHandler>();
 		this.trackingTouches = new ArrayList<Touch>();
-		this.osHandler = new android.os.Handler();
+		this.ignoredTouches = new ArrayList<Touch>();
 	}
 
 	public GestureRecognizer(GestureHandler gestureHandler) {
@@ -104,7 +108,6 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		return this.trackingTouches.get(touchIndex).locationInView(view);
 	}
 
-
 	public int numberOfTouches() {
 		return this.trackingTouches.size();
 	}
@@ -154,6 +157,19 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	}
 
 	protected void setState(State state) {
+		if((state == State.BEGAN || state == State.RECOGNIZED) && this.delegate != null) {
+			if(!this.delegate.shouldBegin(this)) {
+				this.state = State.POSSIBLE;
+				performAfterDelay(0, new Runnable() {
+					public void run() {
+						reset();
+					}
+				});
+				return;
+			}
+		}
+
+		this.stateSet = true;
 		StateTransition transition = null;
 
 		for(StateTransition allowedTransition : allowedTransitions) {
@@ -199,24 +215,45 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		if(!this.shouldAttemptToRecognize()) return;
 		this.trackingTouches.clear();
 		this.trackingTouches.addAll(touches);
+		this.trackingTouches.removeAll(this.ignoredTouches);
+
+		if(this.delegate != null) {
+			boolean shouldRemoveAgain = false;
+
+			for(Touch touch : this.trackingTouches) {
+				if(touch.getPhase() == Touch.Phase.BEGAN) {
+					if(!this.delegate.shouldReceiveTouch(this, touch)) {
+						this.ignoreTouch(touch, event);
+						shouldRemoveAgain = true;
+					}
+				}
+			}
+
+			if(shouldRemoveAgain) {
+				this.trackingTouches.removeAll(this.ignoredTouches);
+			}
+		}
+
+		if(this.trackingTouches.size() == 0) return;
 
 		this.lastEvent = event;
+		this.stateSet = false;
 
-		for(Touch touch : touches) {
+		for(Touch touch : this.trackingTouches) {
 			switch (touch.getPhase()) {
 				case BEGAN:
-					this.touchesBegan(touches, event);
+					this.touchesBegan(this.trackingTouches, event);
 					break;
 				case MOVED:
-					this.touchesMoved(touches, event);
+					this.touchesMoved(this.trackingTouches, event);
 					break;
 				case STATIONARY:
 					break;
 				case ENDED:
-					this.touchesEnded(touches, event);
+					this.touchesEnded(this.trackingTouches, event);
 					break;
 				case CANCELLED:
-					this.touchesCancelled(touches, event);
+					this.touchesCancelled(this.trackingTouches, event);
 					break;
 				case GESTURE_BEGAN:
 					break;
@@ -224,6 +261,14 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 					break;
 				case GESTURE_ENDED:
 					break;
+			}
+		}
+
+		// If state is already changed, and it wasn't set in this loop, we'll notify
+		// the handlers anyway.
+		if(!this.stateSet && this.getState() == State.CHANGED) {
+			for(GestureHandler gestureHandler : this.registeredGestureHandlers) {
+				gestureHandler.handleGesture(GestureRecognizer.this);
 			}
 		}
 	}
@@ -237,14 +282,15 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	protected void reset() {
 		this.state = State.POSSIBLE;
 		this.trackingTouches.clear();
+		this.ignoredTouches.clear();
 	}
 
 	protected void ignoreTouch(Touch touch, Event event) {
-
+		this.ignoredTouches.add(touch);
 	}
 	
 	protected boolean canPreventGestureRecognizer(GestureRecognizer preventingGestureRecognizer) {
-		return !(preventingGestureRecognizer instanceof TapGestureRecognizer);
+		return true;
 	}
 
 	protected boolean canBePreventedByGestureRecognizer(GestureRecognizer preventingGestureRecognizer) {
@@ -260,10 +306,6 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		return true;
 	}
 
-	protected android.os.Handler getOsHandler() {
-		return osHandler;
-	}
-
 	////
 
 	private boolean shouldAttemptToRecognize() {
@@ -273,7 +315,6 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	public String toString() {
 		return String.format("<%s: 0x%d; state = %s; view = %s>", this.getClass(), this.hashCode(), this.state, this.view.toString());
 	}
-
 
 	private static class StateTransition {
 		public State fromState;
@@ -293,6 +334,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		new StateTransition(State.POSSIBLE,		State.BEGAN,		true,	false),
 		new StateTransition(State.POSSIBLE,		State.FAILED,		false,	true),
 		new StateTransition(State.POSSIBLE,		State.ENDED,		true,	true),
+		new StateTransition(State.POSSIBLE,		State.RECOGNIZED,	true,	true),
 		new StateTransition(State.BEGAN,		State.CHANGED,		true,	false),
 		new StateTransition(State.BEGAN,		State.CANCELLED,	true,	true),
 		new StateTransition(State.BEGAN,		State.ENDED,		true,	true),
@@ -301,4 +343,5 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		new StateTransition(State.CHANGED,		State.ENDED,		true,	true),
 		new StateTransition(State.FAILED,		State.POSSIBLE,		false,	false),
 	};
+
 }

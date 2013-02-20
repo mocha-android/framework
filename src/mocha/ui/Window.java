@@ -8,6 +8,7 @@ package mocha.ui;
 import mocha.graphics.Rect;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -155,6 +156,28 @@ public final class Window extends View {
 	}
 
 	private void sendTouches(List<Touch> touches, Touch.Phase phase, Event event, View view) {
+		List<GestureRecognizer> gestureRecognizers = view.getGestureRecognizers();
+
+		if(gestureRecognizers != null && gestureRecognizers.size() > 0) {
+			for (GestureRecognizer gestureRecognizer : view.getGestureRecognizers()) {
+				if(!gestureRecognizer.getCancelsTouchesInView()) continue;
+
+				switch (gestureRecognizer.getState()) {
+					case BEGAN:
+					case CHANGED:
+					case ENDED:
+					case RECOGNIZED:
+						touches.removeAll(gestureRecognizer.getTrackingTouches());
+						break;
+
+					default:
+						// don't ignore touches
+				}
+			}
+		}
+
+		if(touches.size() == 0) return;
+
 		switch (phase) {
 			case BEGAN:
 				view.touchesBegan(touches, event);
