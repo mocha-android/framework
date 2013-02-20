@@ -178,6 +178,8 @@ public final class Window extends View {
 			}
 		}
 
+		if(touches.size() == 0) return;
+
 		if(!view.isMultipleTouchEnabled()) {
 			boolean skipContainsCheck = false;
 
