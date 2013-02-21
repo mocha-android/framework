@@ -7,10 +7,96 @@ package mocha.ui;
 
 import mocha.graphics.Point;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 abstract public class GestureRecognizer extends mocha.foundation.Object {
+	public enum State {
+		// State     Recognized		Reset		Notify		Finished
+		POSSIBLE	(false,			false,		false,		false),
+		BEGAN		(true,			false,		true,		false),
+		CHANGED		(true,			false,		true,		false),
+		ENDED		(true,			true,		true,		true),
+		CANCELLED	(false,			true,		true,		true),
+		FAILED		(false,			true,		false,		true),
+
+		// Only used for discrete gestures like Tap and Swipe
+		RECOGNIZED	(true,			true,		true,		true);
+
+		private boolean recognized;
+		private boolean needsReset;
+		private boolean notifyHandlers;
+		private boolean finished;
+
+		State(boolean recognized, boolean needsReset, boolean notifyHandlers, boolean finished) {
+			this.recognized = recognized;
+			this.needsReset = needsReset;
+			this.notifyHandlers = notifyHandlers;
+			this.finished = finished;
+		}
+	}
+
+	public interface Delegate {
+		/**
+		 * Called when the gesture recognizer attempts to change it's state from
+		 * State.POSSIBLE to a recognized state.
+		 *
+		 * Returning true will allow the gesture recognizer to continue handling
+		 * touches.
+		 *
+		 * Returning false will cause the gesture recognizer to switch to State.FAILED
+		 *
+		 * Default is true
+		 *
+		 * @param gestureRecognizer gesture recognizer checking if it should begin
+		 * @return whether or not the recognizer should begin
+		 */
+		public boolean shouldBegin(GestureRecognizer gestureRecognizer);
+
+		/**
+		 * Called right before the gesture recognizer calls #touchesBegan()
+		 *
+		 * Returning true will allow the gesture recognizer to handle the touch
+		 *
+		 * Returning false will stop the gesture recognizer from ever seeing the touch
+		 *
+		 * Default is true
+		 *
+		 * @param gestureRecognizer gesture recognizer checking to see if it can recieve
+		 *                          the touch
+		 * @param touch Touch to be received by the gesture recognizer
+		 * @return whether or not a gesture recognizer can receive the touch
+		 */
+		public boolean shouldReceiveTouch(GestureRecognizer gestureRecognizer, Touch touch);
+
+		/**
+		 * Called when one of the gesture recognizers attempts to recognize it's gesture
+		 * that would prevent the other from recognizing it's own gesture.
+		 *
+		 * Returning true will guarantee both gesture recognizers can recognizer their
+		 * gestures simultaneously.
+		 *
+		 * Returning false does not guarantee both gesture recognizers won't recognize
+		 * their gestures simultaneously, as the other gesture recognizer's delegate
+		 * call return true and allow it.
+		 *
+		 * Default is false, no two gestures can be recognized at the same time.
+		 *
+		 * @param gestureRecognizer gesture recognizer who's delegate is being called
+		 * @param otherGestureRecognizer other gesture recognizer
+		 * @return whether or not the gesture recognizers can recognize their gestures
+		 * simultaneously.
+		 */
+		public boolean shouldRecognizeSimultaneously(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
+	}
+
+	public interface GestureHandler {
+		public void handleGesture(GestureRecognizer gestureRecognizer);
+	}
+
 	private Delegate delegate;
 	private boolean delaysTouchesBegan;
 	private boolean delaysTouchesEnded;
@@ -22,29 +108,11 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	private List<Touch> trackingTouches;
 	private List<Touch> ignoredTouches;
 	private Event lastEvent;
-	private boolean stateSet;
-
-	public enum State {
-		POSSIBLE,
-		BEGAN,
-		CHANGED,
-		ENDED,
-		CANCELLED,
-		FAILED,
-
-		// Only used for discrete gestures like Tap
-		RECOGNIZED
-	}
-
-	public interface Delegate {
-		public boolean shouldBegin(GestureRecognizer gestureRecognizer);
-		public boolean shouldReceiveTouch(GestureRecognizer gestureRecognizer, Touch touch);
-		public boolean shouldRecognizeSimultaneouslyWithGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
-	}
-
-	public interface GestureHandler {
-		public void handleGesture(GestureRecognizer gestureRecognizer);
-	}
+	private boolean didSetState;
+	private Set<WeakReference<GestureRecognizer>> failureRequirements;
+	private Set<WeakReference<GestureRecognizer>> failureDependents;
+	private boolean failureRequirementsSatisfied;
+	private boolean passedPreventionTests;
 
 	public GestureRecognizer() {
 		this.state = State.POSSIBLE;
@@ -56,6 +124,9 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		this.registeredGestureHandlers = new ArrayList<GestureHandler>();
 		this.trackingTouches = new ArrayList<Touch>();
 		this.ignoredTouches = new ArrayList<Touch>();
+
+		this.failureRequirements = new HashSet<WeakReference<GestureRecognizer>>();
+		this.failureDependents = new HashSet<WeakReference<GestureRecognizer>>();
 	}
 
 	public GestureRecognizer(GestureHandler gestureHandler) {
@@ -72,7 +143,8 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	}
 
 	public void requireGestureRecognizerToFail(GestureRecognizer gestureRecognizer) {
-
+		this.failureRequirements.add(new WeakReference<GestureRecognizer>(gestureRecognizer));
+		gestureRecognizer.failureDependents.add(new WeakReference<GestureRecognizer>(this));
 	}
 
 	List<Touch> getTrackingTouches() {
@@ -157,9 +229,50 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	}
 
 	protected void setState(State state) {
-		if((state == State.BEGAN || state == State.RECOGNIZED) && this.delegate != null) {
-			if(!this.delegate.shouldBegin(this)) {
-				this.state = State.POSSIBLE;
+		if(state == null) {
+			throw new RuntimeException("You can not set state to null.");
+		}
+
+		// Not sure if iOS enforces this, but it makes sense to.
+		if(this.state.finished && state != State.POSSIBLE) {
+			throw new RuntimeException("This gesture has already finished and can only be set to a POSSIBLE state.");
+		}
+
+		// In testing, iOS doesn't allow you to skip from POSSIBLE to CHANGED
+		// when you set state to CHANGED from a POSSIBLE state, it ignores
+		// you and sets it to BEGAN anyway.
+		if(this.state == State.POSSIBLE && state == State.CHANGED) {
+			state = State.BEGAN;
+		}
+
+		// iOS doesn't allow you to go backwards, so if your state was changed
+		// and you switch to BEGAN, it ignores you and treats it as if you set
+		// state to CHANGED
+		else if(this.state == State.CHANGED && state == State.BEGAN) {
+			state = State.CHANGED;
+		}
+
+		// You can only fail from a POSSIBLE state, once you recognize the
+		// gesture, iOS treats setting a FAILED state as a CANCELLED state
+		else if(state == State.FAILED && this.state != State.POSSIBLE) {
+			state = State.CANCELLED;
+		}
+
+		// We need to make sure we can transition to a recognized state first
+		if(this.state == State.POSSIBLE && state.recognized) {
+			// Then check with the delegate, if we have one
+			boolean prevented = this.delegate != null && !this.delegate.shouldBegin(this);
+
+			if(!prevented) {
+				// If the delegate hasn't prevented us, let's hand it over to
+				// the prevention test
+				prevented = !this.didPassPreventionTest(this.lastEvent);
+			}
+
+			// If we've been prevented, fail and then reset
+			if(prevented) {
+				this.state = State.FAILED;
+				this.notifyDependentsOfFailure();
 				performAfterDelay(0, new Runnable() {
 					public void run() {
 						reset();
@@ -169,29 +282,37 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 			}
 		}
 
-		this.stateSet = true;
-		StateTransition transition = null;
+		State lastState = this.state;
+		this.didSetState = true;
+		this.state = state;
 
-		for(StateTransition allowedTransition : allowedTransitions) {
-			if (allowedTransition.fromState == this.state && allowedTransition.toState == state) {
-				transition = allowedTransition;
-				break;
+		boolean shouldNotify = this.shouldNotifyHandlersForState(this.state);
+
+		// Notify handlers if the state wants it AND we're allowed to.
+		if (shouldNotify) {
+			if(lastState == State.POSSIBLE && this.state.recognized) {
+				this.notifyDependentsOfRecognition();
 			}
-		}
 
-		if(transition == null) {
-			throw new RuntimeException("Invalid state transition from " + this.state + " to " + state + ".");
-		}
-
-		this.state = transition.toState;
-
-		if (transition.shouldNotify && this.shouldNotifyHandlersForState(this.state)) {
-			for(final GestureHandler gestureHandler : this.registeredGestureHandlers) {
+			for(GestureHandler gestureHandler : this.registeredGestureHandlers) {
 				gestureHandler.handleGesture(GestureRecognizer.this);
 			}
 		}
 
-		if(transition.shouldReset) {
+		boolean needsReset = state.needsReset;
+
+		if(needsReset && (state == State.ENDED || state == State.RECOGNIZED)) {
+			// We don't want to reset until we can notify, if we can't notify
+			// it's because we still have a failure dependency we're waiting on
+			needsReset = shouldNotify;
+		}
+
+		// Notify failure dependents if we've failed/cancelled
+		if(this.state == State.FAILED || this.state == State.CANCELLED) {
+			this.notifyDependentsOfFailure();
+		}
+
+		if(needsReset) {
 			performAfterDelay(0, new Runnable() {
 				public void run() {
 					reset();
@@ -204,8 +325,6 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		return this.view;
 	}
 
-	/// Internal
-
 	void setView(View view) {
 		this.reset();
 		this.view = view;
@@ -213,6 +332,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 
 	void recognizeTouches(List<Touch> touches, Event event) {
 		if(!this.shouldAttemptToRecognize()) return;
+
 		this.trackingTouches.clear();
 		this.trackingTouches.addAll(touches);
 		this.trackingTouches.removeAll(this.ignoredTouches);
@@ -237,7 +357,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		if(this.trackingTouches.size() == 0) return;
 
 		this.lastEvent = event;
-		this.stateSet = false;
+		this.didSetState = false;
 
 		for(Touch touch : this.trackingTouches) {
 			switch (touch.getPhase()) {
@@ -266,7 +386,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 
 		// If state is already changed, and it wasn't set in this loop, we'll notify
 		// the handlers anyway.
-		if(!this.stateSet && this.getState() == State.CHANGED) {
+		if(!this.didSetState && this.getState() == State.CHANGED && this.shouldNotifyHandlersForState(State.CHANGED)) {
 			for(GestureHandler gestureHandler : this.registeredGestureHandlers) {
 				gestureHandler.handleGesture(GestureRecognizer.this);
 			}
@@ -277,12 +397,12 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		return this.lastEvent;
 	}
 
-	/// Subclass use
-
 	protected void reset() {
 		this.state = State.POSSIBLE;
 		this.trackingTouches.clear();
 		this.ignoredTouches.clear();
+		this.failureRequirementsSatisfied = false;
+		this.passedPreventionTests = false;
 	}
 
 	protected void ignoreTouch(Touch touch, Event event) {
@@ -302,46 +422,125 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	abstract protected void touchesEnded(List<Touch> touches, Event event);
 	abstract protected void touchesCancelled(List<Touch> touches, Event event);
 
-	protected boolean shouldNotifyHandlersForState(State state) {
+	private boolean shouldNotifyHandlersForState(State state) {
+		// iOS always notifies for CANCELLED, regardless of failure requirements
+		return state == State.CANCELLED || state.notifyHandlers && this.areFailureRequirementsSatisfied();
+	}
+
+	private boolean areFailureRequirementsSatisfied() {
+		if(this.failureRequirementsSatisfied) {
+			return this.failureRequirementsSatisfied;
+		}
+
+		if(this.failureRequirements.size() == 0) {
+			return true;
+		}
+
+		for(WeakReference<GestureRecognizer> reference : this.failureRequirements) {
+			GestureRecognizer gestureRecognizer = reference.get();
+			if(gestureRecognizer == null || gestureRecognizer.getView() == null) continue;
+
+			if(gestureRecognizer.state != State.FAILED && gestureRecognizer.state != State.CANCELLED) {
+				return false;
+			}
+		}
+
+		this.failureRequirementsSatisfied = true;
 		return true;
 	}
 
-	////
+	private void failureRequirementDidFail(GestureRecognizer gestureRecognizer, Event event) {
+		if(!this.state.recognized || !this.state.notifyHandlers) return;
+
+		if(this.didPassPreventionTest(event)) {
+			if(this.state == State.CHANGED || this.state == State.BEGAN) {
+				this.notifyHandlersWithTemporaryState(State.BEGAN);
+			} else {
+				this.notifyHandlersWithTemporaryState(this.state);
+			}
+
+			this.notifyDependentsOfRecognition();
+		}
+	}
+
+	private void failureRequirementWasRecognized(GestureRecognizer gestureRecognizer) {
+		this.setState(State.FAILED);
+	}
+
+	private void notifyHandlersWithTemporaryState(State state) {
+		State restoreState = this.state;
+		this.state = state;
+
+		for(GestureHandler gestureHandler : this.registeredGestureHandlers) {
+			gestureHandler.handleGesture(GestureRecognizer.this);
+		}
+
+		this.state = restoreState;
+	}
+
+	private void notifyDependentsOfFailure() {
+		for(WeakReference<GestureRecognizer> reference : this.failureDependents) {
+			GestureRecognizer gestureRecognizer = reference.get();
+
+			if(gestureRecognizer != null) {
+				gestureRecognizer.failureRequirementDidFail(this, this.lastEvent);
+			}
+		}
+	}
+
+	private void notifyDependentsOfRecognition() {
+		for(WeakReference<GestureRecognizer> reference : this.failureDependents) {
+			GestureRecognizer gestureRecognizer = reference.get();
+
+			if(gestureRecognizer != null) {
+				gestureRecognizer.failureRequirementWasRecognized(this);
+			}
+		}
+	}
 
 	private boolean shouldAttemptToRecognize() {
 		return (this.enabled && this.state != State.FAILED && this.state != State.CANCELLED && this.state != State.ENDED);
 	}
 
+	private boolean didPassPreventionTest(Event event) {
+		if(!this.areFailureRequirementsSatisfied()) {
+			return true;
+		}
+
+		if(this.passedPreventionTests) {
+			return true;
+		}
+
+		List<Touch> touches = event.touchesForGestureRecognizer(this);
+		touches.removeAll(this.ignoredTouches);
+
+		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
+
+		for(Touch touch : touches) {
+			gestureRecognizers.addAll(touch.getGestureRecognizers());
+		}
+
+		gestureRecognizers.remove(this);
+
+		for(GestureRecognizer otherGestureRecognizer : gestureRecognizers) {
+			if(!otherGestureRecognizer.state.recognized) continue;
+
+			if(otherGestureRecognizer.canPreventGestureRecognizer(this) && this.canBePreventedByGestureRecognizer(otherGestureRecognizer)) {
+				boolean should = this.delegate != null && this.delegate.shouldRecognizeSimultaneously(this, otherGestureRecognizer);
+				boolean otherShould = otherGestureRecognizer.delegate != null && otherGestureRecognizer.delegate.shouldRecognizeSimultaneously(otherGestureRecognizer, this);
+
+				if(!should && !otherShould) {
+					return false;
+				}
+			}
+		}
+
+		this.passedPreventionTests = true;
+		return true;
+	}
+
 	public String toString() {
 		return String.format("<%s: 0x%d; state = %s; view = %s>", this.getClass(), this.hashCode(), this.state, this.view.toString());
 	}
-
-	private static class StateTransition {
-		public State fromState;
-		public State toState;
-		public boolean shouldNotify;
-		public boolean shouldReset;
-
-		public StateTransition(State fromState, State toState, boolean  shouldNotify, boolean  shouldReset) {
-			this.fromState = fromState;
-			this.toState = toState;
-			this.shouldNotify = shouldNotify;
-			this.shouldReset = shouldReset;
-		}
-	}
-
-	private static StateTransition[] allowedTransitions = new StateTransition[] {
-		new StateTransition(State.POSSIBLE,		State.BEGAN,		true,	false),
-		new StateTransition(State.POSSIBLE,		State.FAILED,		false,	true),
-		new StateTransition(State.POSSIBLE,		State.ENDED,		true,	true),
-		new StateTransition(State.POSSIBLE,		State.RECOGNIZED,	true,	true),
-		new StateTransition(State.BEGAN,		State.CHANGED,		true,	false),
-		new StateTransition(State.BEGAN,		State.CANCELLED,	true,	true),
-		new StateTransition(State.BEGAN,		State.ENDED,		true,	true),
-		new StateTransition(State.CHANGED,		State.CHANGED,		true,	false),
-		new StateTransition(State.CHANGED,		State.CANCELLED,	true,	true),
-		new StateTransition(State.CHANGED,		State.ENDED,		true,	true),
-		new StateTransition(State.FAILED,		State.POSSIBLE,		false,	false),
-	};
 
 }
