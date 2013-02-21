@@ -114,11 +114,17 @@ public class NavigationController extends ViewController implements NavigationBa
 			viewController.willMoveToParentViewController(null);
 		}
 
+		List<NavigationItem> navigationItems = new ArrayList<NavigationItem>();
+
 		for(ViewController viewController : this.viewControllers) {
 			if(viewController.getParentViewController() != this) {
 				this.addChildViewController(viewController);
 			}
+
+			navigationItems.add(viewController.getNavigationItem());
 		}
+
+		navigationItems.remove(navigationItems.size() - 1);
 
 		Runnable finish = new Runnable() {
 			public void run() {
@@ -133,6 +139,7 @@ public class NavigationController extends ViewController implements NavigationBa
 		};
 
 		ViewController newTopViewController = this.getTopViewController();
+		this.navigationBar.setItemsWithoutUpdatingView(navigationItems);
 		this.transitionFromViewController(previousTopViewController, newTopViewController, animated, true, finish);
 	}
 

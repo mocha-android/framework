@@ -117,6 +117,11 @@ public class NavigationBar extends View {
 		this.setItems(items, animated, null, null);
 	}
 
+	void setItemsWithoutUpdatingView(List<NavigationItem> items) {
+		this.items.clear();
+		this.items.addAll(items);
+	}
+
 	public void setItems(List<NavigationItem> items, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		if(!this.items.equals(items)) {
 			this.items.clear();
@@ -184,6 +189,25 @@ public class NavigationBar extends View {
 			}
 
 			return previousItem;
+		}
+	}
+
+	void clearNavigationItems() {
+		this.items.clear();
+
+		if(this.leftView != null) {
+			this.leftView.removeFromSuperview();
+			this.leftView = null;
+		}
+
+		if(this.centerView != null) {
+			this.centerView.removeFromSuperview();
+			this.centerView = null;
+		}
+
+		if(this.rightView != null) {
+			this.rightView.removeFromSuperview();
+			this.rightView = null;
 		}
 	}
 
