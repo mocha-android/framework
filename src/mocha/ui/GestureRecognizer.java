@@ -312,6 +312,13 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 			this.notifyDependentsOfFailure();
 		}
 
+		// Remove ourself from all touches if we're finished
+		if(this.state.finished) {
+			for(Touch touch : this.lastEvent.allTouches()) {
+				touch.removeGestureRecognizer(this);
+			}
+		}
+
 		if(needsReset) {
 			performAfterDelay(0, new Runnable() {
 				public void run() {

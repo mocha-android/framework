@@ -217,7 +217,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.pagingEnabled = pagingEnabled;
 	}
 
-	public boolean isShowsHorizontalScrollIndicator() {
+	public boolean showsHorizontalScrollIndicator() {
 		return this.showsHorizontalScrollIndicator;
 	}
 
@@ -225,7 +225,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.showsHorizontalScrollIndicator = showsHorizontalScrollIndicator;
 	}
 
-	public boolean isShowsVerticalScrollIndicator() {
+	public boolean showsVerticalScrollIndicator() {
 		return this.showsVerticalScrollIndicator;
 	}
 
@@ -255,6 +255,14 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public void setScrollEnabled(boolean scrollEnabled) {
 		this.panGestureRecognizer.setEnabled(scrollEnabled);
+	}
+
+	public boolean isDirectionalLockEnabled() {
+		return this.panGestureRecognizer.isDirectionalLockEnabled();
+	}
+
+	public void setDirectionalLockEnabled(boolean directionalLockEnabled) {
+		this.panGestureRecognizer.setDirectionalLockEnabled(directionalLockEnabled);
 	}
 
 	public void scrollRectToVisible(Rect rect, boolean animated) {

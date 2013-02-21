@@ -155,6 +155,10 @@ public final class Touch extends mocha.foundation.Object {
 		this.view = null;
 	}
 
+	void removeGestureRecognizer(GestureRecognizer gestureRecognizer) {
+		this.gestureRecognizers.remove(gestureRecognizer);
+	}
+
 	void setTouchPhaseCancelled() {
 		this.phase = Phase.CANCELLED;
 	}

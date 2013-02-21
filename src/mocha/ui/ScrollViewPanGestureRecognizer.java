@@ -11,7 +11,17 @@ import java.util.List;
 
 class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
+	private enum ScrollDirection {
+		VERTICAL, HORIZONTAL
+	}
+
 	// TODO: Add support for nested scroll views
+
+	private boolean directionalLockEnabled;
+	private ScrollDirection scrollDirection;
+	private ScrollDirection lastScrollDirection;
+	private Point startLocation;
+	private Point lastLocation;
 
 	ScrollViewPanGestureRecognizer(GestureHandler gestureHandler) {
 		super(gestureHandler);
@@ -20,9 +30,9 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	protected void touchesBegan(List<Touch> touches, Event event) {
 		ScrollView scrollView;
 
-		if(!this.tracking && !this.panning && (scrollView = this.getScrollView()) != null && scrollView.decelerating) {
-			Touch touch = this.findTouch(event);
+		Touch touch = this.findTouch(event);
 
+		if(!this.tracking && !this.panning && (scrollView = this.getScrollView()) != null && scrollView.decelerating) {
 			if(touch != null) {
 				this.startTouchPosition = touch.location.copy();
 				this.tracking = true;
@@ -32,13 +42,105 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 				Point location = touch.location;
 				this.translation = new Point(location.x - this.startTouchPosition.x, location.y - this.startTouchPosition.y);
 				this.panning = true;
-				this.setState(State.BEGAN);
+				this.scrollDirection = this.lastScrollDirection;
+				this.setState(State.BEGAN, true);
 
 				return;
 			}
 		}
 
+		if(touch != null) {
+			this.startLocation = touch.location.copy();
+			this.lastLocation = this.startLocation.copy();
+		}
+
 		super.touchesBegan(touches, event);
+	}
+
+	protected void touchesMoved(List<Touch> touches, Event event) {
+		if(this.directionalLockEnabled && this.scrollDirection == null) {
+			Touch touch = this.findTouch(event);
+
+			if(touch != null) {
+				this.lastLocation = touch.location.copy();
+			}
+		}
+
+		super.touchesMoved(touches, event);
+	}
+
+	protected void setState(State state) {
+		this.setState(state, false);
+	}
+
+	protected void setState(State state, boolean skipDirectionCheck) {
+		if(!skipDirectionCheck && state == State.BEGAN && this.directionalLockEnabled) {
+			Point abs = new Point(Math.abs(this.startLocation.x - this.lastLocation.x), Math.abs(this.startLocation.y - this.lastLocation.y));
+
+			if(abs.x > abs.y) {
+				this.scrollDirection = ScrollDirection.HORIZONTAL;
+			} else {
+				this.scrollDirection = ScrollDirection.VERTICAL;
+			}
+
+			ScrollView scrollView = this.getScrollView();
+
+			if(scrollView != null) {
+				if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
+					if(scrollView.getContentSize().width <= scrollView.getFrame().size.width) {
+						state = State.FAILED;
+					}
+				} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
+					if(scrollView.getContentSize().height <= scrollView.getFrame().size.height) {
+						state = State.FAILED;
+					}
+				}
+			}
+		}
+
+		super.setState(state);
+	}
+
+	public Point translationInView(View view) {
+		Point point = super.translationInView(view);
+
+		if(this.directionalLockEnabled) {
+			if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
+				point.y = 0.0f;
+			} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
+				point.x = 0.0f;
+			}
+		}
+
+		return point;
+	}
+
+	public Point velocityInView(View view) {
+		Point point = super.velocityInView(view);
+
+		if(this.directionalLockEnabled) {
+			if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
+				point.y = 0.0f;
+			} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
+				point.x = 0.0f;
+			}
+		}
+
+		return point;
+	}
+
+	protected void reset() {
+		this.lastScrollDirection = this.scrollDirection;
+		this.scrollDirection = null;
+		super.reset();
+	}
+
+	boolean isDirectionalLockEnabled() {
+		return directionalLockEnabled;
+	}
+
+	void setDirectionalLockEnabled(boolean directionalLockEnabled) {
+		this.directionalLockEnabled = directionalLockEnabled;
 	}
 
 	private ScrollView getScrollView() {
