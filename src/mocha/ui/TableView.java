@@ -594,7 +594,6 @@ public class TableView extends ScrollView {
 	}
 
 	boolean isEmpty() {
-		MLog("this.sectionsInfo: %s", this.sectionsInfo);
 		return this.sectionsInfo == null || this.sectionsInfo.size() == 0;
 	}
 
@@ -656,7 +655,7 @@ public class TableView extends ScrollView {
 							headerHeight = header.sizeThatFits(this.getBounds().size).height;
 						}
 					} else {
-						if (headerTitle != null || hasHeaderViews) {
+						if (headerTitle != null) {
 							headerHeight = PLAIN_HEADER_HEIGHT;
 						}
 					}
@@ -1636,7 +1635,7 @@ public class TableView extends ScrollView {
 
 		if(this.panGestureRecognizer.getState() != GestureRecognizer.State.POSSIBLE) {
 			if(this.cellTouchCallback != null) {
-				this.cancelCallbacks(cellTouchCallback);
+				cancelCallbacks(cellTouchCallback);
 				this.cellTouchCallback = null;
 			}
 
@@ -1654,7 +1653,7 @@ public class TableView extends ScrollView {
 		if(ignoreTouches) return;
 
 		if(this.cellTouchCallback != null) {
-			this.cancelCallbacks(this.cellTouchCallback);
+			cancelCallbacks(this.cellTouchCallback);
 			this.cellTouchCallback = null;
 		}
 
@@ -1735,7 +1734,7 @@ public class TableView extends ScrollView {
 		super.touchesCancelled(touches, event);
 
 		if(this.cellTouchCallback != null) {
-			this.cancelCallbacks(this.cellTouchCallback);
+			cancelCallbacks(this.cellTouchCallback);
 			this.cellTouchCallback = null;
 		}
 
