@@ -27,6 +27,14 @@ public class Color extends mocha.foundation.Object {
 		return android.graphics.Color.argb((int)Math.round(alpha * 255.0f), (int)Math.round(red * 255.0f), (int)Math.round(green * 255.0f), (int)Math.round(blue * 255.0f));
 	}
 
+	public static int rgb(int red, int green, int blue) {
+		return android.graphics.Color.rgb(red, green, blue);
+	}
+
+	public static int rgba(int red, int green, int blue, int alpha) {
+		return android.graphics.Color.argb(alpha, red, green, blue);
+	}
+
 	public static int white(float white, float alpha) {
 		return rgba(white, white, white, alpha);
 	}
@@ -47,7 +55,6 @@ public class Color extends mocha.foundation.Object {
 		return android.graphics.Color.alpha(color);
 	}
 
-
 	public static float redf(int color) {
 		return (float)android.graphics.Color.red(color) / 255.0f;
 	}
@@ -62,6 +69,33 @@ public class Color extends mocha.foundation.Object {
 
 	public static float alphaf(int color) {
 		return (float)android.graphics.Color.alpha(color) / 255.0f;
+	}
+
+	public static int colorWithAlpha(int color, float alpha) {
+		return colorWithAlpha(color, Math.round(alpha * 255.0f));
+	}
+
+	public static int colorWithAlpha(int color, int alpha) {
+		int red = Color.red(color);
+		int green = Color.green(color);
+		int blue = Color.blue(color);
+		return android.graphics.Color.argb(alpha, red, green, blue);
+	}
+
+	public static int[] components(int color) {
+		return new int[] { Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color) };
+	}
+
+	public static float[] componentsf(int color) {
+		return new float[] { Color.redf(color), Color.greenf(color), Color.bluef(color), Color.alphaf(color) };
+	}
+
+	public static String toString(int color) {
+		float red = Color.redf(color);
+		float green = Color.greenf(color);
+		float blue = Color.bluef(color);
+		float alpha = Color.alphaf(color);
+		return String.format("<Color red = %.03f, green = %.03f, blue = %.03f, alpha = %.03f>", red, green, blue, alpha);
 	}
 
 }

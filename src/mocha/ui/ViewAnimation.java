@@ -5,7 +5,6 @@
  */
 package mocha.ui;
 
-import android.os.Message;
 import mocha.animation.TimingFunction;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -67,6 +66,7 @@ class ViewAnimation extends mocha.foundation.Object {
 	}
 
 	/**
+	 * Add an animation to the view
 	 *
 	 * @param view view the animation should be applied to
 	 * @param type type of animation
@@ -77,7 +77,6 @@ class ViewAnimation extends mocha.foundation.Object {
 		if(this.animations == null) {
 			this.animations = new HashMap<String, Animation>();
 		}
-
 
 		String key = view.hashCode() + "-" + type.toString();
 
@@ -100,12 +99,16 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.startValue = view.getAlpha();
 					break;
 				case BACKGROUND_COLOR:
-					animation.startValue = view.getBackgroundColor();
+					animation.startValue = Color.components(view.getBackgroundColor());
 					break;
 			}
 		}
 
-		animation.endValue = endValue;
+		if(type == Type.BACKGROUND_COLOR) {
+			animation.endValue = Color.components((Integer) endValue);
+		} else {
+			animation.endValue = endValue;
+		}
 	}
 
 	/**
@@ -204,7 +207,15 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.view.setAlpha(this.interpolate(time, (Float) animation.startValue, (Float) animation.endValue));
 					break;
 				case BACKGROUND_COLOR:
-					animation.view.setBackgroundColor(this.interpolate(time, (Integer) animation.startValue, (Integer) animation.endValue));
+					int[] start = (int[])animation.startValue;
+					int[] end = (int[])animation.endValue;
+
+					int red = this.interpolate(time, start[0], end[0]);
+					int green = this.interpolate(time, start[1], end[1]);
+					int blue = this.interpolate(time, start[2], end[2]);
+					int alpha = this.interpolate(time, start[3], end[3]);
+
+					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
 					break;
 				case CALLBACK_POINT:
 					animation.processFrameCallback.processFrame(this.interpolate(time, (Point)animation.startValue, (Point)animation.endValue));
@@ -264,7 +275,6 @@ class ViewAnimation extends mocha.foundation.Object {
 	private int interpolate(float time, int start, int end) {
 		return (int)this.interpolate(time, (float)start, (float)end);
 	}
-
 
 	/// New implementation
 

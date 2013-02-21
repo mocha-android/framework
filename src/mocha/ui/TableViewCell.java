@@ -99,6 +99,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private int indentationLevel;
 	private Map<View,OriginalViewState> originalViewStates;
 	private Runnable highlightStateCallback;
+	private Runnable restoreBackgroundCallback;
 
 	private View contentView;
 	private View backgroundView;
@@ -373,8 +374,13 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.highlighted = highlighted;
 
 		if(this.highlightStateCallback != null) {
-			this.cancelCallbacks(this.highlightStateCallback);
+			cancelCallbacks(this.highlightStateCallback);
 			this.highlightStateCallback = null;
+		}
+
+		if(this.restoreBackgroundCallback != null) {
+			cancelCallbacks(this.restoreBackgroundCallback);
+			this.restoreBackgroundCallback = null;
 		}
 
 		if(this.highlighted) {
@@ -394,9 +400,12 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 			}
 
 			this.selectedBackgroundView.setAlpha(1.0f);
-
 			this.saveViewState(this);
+
+			boolean areAnimationsEnabled = View.areAnimationsEnabled();
+			View.setAnimationsEnabled(false);
 			this.setViewToTransparent(this);
+			View.setAnimationsEnabled(areAnimationsEnabled);
 
 			if(animated) {
 				this.highlightStateCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
@@ -409,10 +418,10 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 				this.setViewToHighlightedState(this);
 			}
 		} else {
-			this.restoreViewBackgroundState(this);
 
 			if(animated) {
 				this.selectedBackgroundView.setAlpha(0.0f);
+
 				this.highlightStateCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
 					public void run() {
 						restoreViewHighlightedState(TableViewCell.this);
@@ -420,7 +429,15 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 						highlightStateCallback = null;
 					}
 				});
+
+				this.restoreBackgroundCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION, new Runnable() {
+					public void run() {
+						restoreViewBackgroundState(TableViewCell.this);
+						restoreBackgroundCallback = null;
+					}
+				});
 			} else {
+				this.restoreViewBackgroundState(this);
 				this.selectedBackgroundView.removeFromSuperview();
 				this.restoreViewHighlightedState(this);
 				this.originalViewStates.clear();
@@ -483,7 +500,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	private void setViewToTransparent(View view) {
 		if(view != this && view != this.backgroundView && view != this.selectedBackgroundView && view != this.separatorView) {
-			view.setBackgroundColor(Color.TRANSPARENT);
+			view.setBackgroundColor(Color.colorWithAlpha(view.getBackgroundColor(), 0));
 		}
 
 		for(View subview : view.getSubviews()) {

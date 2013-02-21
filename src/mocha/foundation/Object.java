@@ -15,6 +15,10 @@ public class Object {
 	private static ThreadLocal<Handler> handler = new ThreadLocal<Handler>();
 	private static Handler mainHandler;
 
+	public String toString() {
+		return String.format("<%s 0x%s>", this.getClass().getCanonicalName(), this.hashCode());
+	}
+
 	private static Handler getMainHandler() {
 		return getMainHandler(false);
 	}

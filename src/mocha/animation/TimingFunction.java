@@ -21,8 +21,6 @@ abstract public class TimingFunction {
 	public static final TimingFunction EASE_OUT = new CubicBezierCurveTimingFunction(0.0f, 0.0f, 0.58f, 1.0f);
 	public static final TimingFunction EASE_IN_OUT = new CubicBezierCurveTimingFunction(0.42f, 0.0f, 0.58f, 1.0f);
 
-	static final TimingFunction INTERNAL_DEFAULT = EASE_IN_OUT;
-
 	public static class CubicBezierCurveTimingFunction extends TimingFunction {
 		private final float c1x;
 		private final float c1y;
