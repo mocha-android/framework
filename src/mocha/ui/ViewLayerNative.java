@@ -7,10 +7,12 @@ package mocha.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 
@@ -23,6 +25,8 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private Rect frame;
 	private Rect bounds;
 	private View view;
+	private AffineTransform transform;
+	private Matrix matrix;
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
 	public final float scale;
@@ -32,6 +36,8 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		this.setClipToPadding(false);
 		this.setClipsToBounds(false);
 		this.scale = context.getResources().getDisplayMetrics().density;
+		this.transform = AffineTransform.identity();
+		this.matrix = null;
 	}
 
 	private static boolean pushIgnoreLayout() {
@@ -117,8 +123,8 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private void layoutRelativeToBounds(Rect bounds) {
 		boolean ignoreLayout = pushIgnoreLayout();
 		this.layout(0, 0, ceil(this.frame.size.width), ceil(this.frame.size.height));
-		this.setX(this.frame.origin.x - bounds.origin.x);
-		this.setY(this.frame.origin.y - bounds.origin.y);
+		this.setX((this.frame.origin.x - bounds.origin.x));
+		this.setY((this.frame.origin.y - bounds.origin.y));
 		popIgnoreLayout(ignoreLayout);
 	}
 
@@ -172,6 +178,25 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		view.draw(new mocha.graphics.Context(canvas, this.scale), new Rect(view.getBounds()));
 	}
 
+	public void draw(android.graphics.Canvas canvas) {
+		if(this.matrix == null) {
+			super.draw(canvas);
+		} else {
+			canvas.save();
+
+			float centerX = this.bounds.size.width / 2.0f;
+			float centerY = this.bounds.size.height / 2.0f;
+
+			canvas.translate(centerX, centerY); // Push center
+			canvas.concat(this.matrix);
+			canvas.translate(-centerX, -centerY); // Pop center
+
+			super.draw(canvas);
+
+			canvas.restore();
+		}
+	}
+
 	public static int ceil(float f) {
 		return (int)Math.ceil((double)f);
 	}
@@ -185,6 +210,41 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	}
 
 	// ViewLayer
+
+	public AffineTransform getTransform() {
+		return this.transform;
+	}
+
+	public void setTransform(AffineTransform transform) {
+		if(transform == null) transform = AffineTransform.identity();
+		if(this.transform.equals(transform)) return;
+		this.transform = transform.copy();
+
+		if(this.transform.isIdentity()) {
+			this.matrix = null;
+		} else {
+			float[] values = new float[] {
+					this.transform.getA(), this.transform.getB(),
+					this.transform.getC(), this.transform.getD(),
+
+					this.transform.getTx() * this.scale,
+					this.transform.getTy() * this.scale
+			};
+
+			if(this.matrix == null) {
+				this.matrix = new Matrix();
+			}
+
+			this.matrix.setValues(new float[]{
+					values[0], values[2], values[4],
+					values[1], values[3], values[5],
+					0.0f, 0.0f, 1.0f
+			});
+		}
+
+		this.setNeedsDisplay();
+		this.getSuperlayer().setNeedsDisplay();
+	}
 
 	public boolean isHidden() {
 		return this.getVisibility() == GONE;

@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.opengl.GLUtils;
 import mocha.foundation.Benchmark;
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Context;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -37,6 +38,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	private int backgroundColor;
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
+	private AffineTransform transform;
 	private Texture texture;
 	final float scale;
 	final int dpi;
@@ -57,6 +59,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		this.sublayersGeneric = new ArrayList<ViewLayer>();
 		this.scale = context.getResources().getDisplayMetrics().density;
 		this.dpi = context.getResources().getDisplayMetrics().densityDpi;
+		this.transform = AffineTransform.identity();
 
 		ByteBuffer ibb = ByteBuffer.allocateDirect(indices.length * 2);
 		ibb.order(ByteOrder.nativeOrder());
@@ -203,6 +206,14 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 
 	public Rect getBounds() {
 		return this.bounds.copy();
+	}
+
+	public AffineTransform getTransform() {
+		return transform;
+	}
+
+	public void setTransform(AffineTransform transform) {
+		this.transform = transform;
 	}
 
 	public boolean isHidden() {

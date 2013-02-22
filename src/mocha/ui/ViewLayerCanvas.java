@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import mocha.foundation.Benchmark;
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Context;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -39,6 +40,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	private Paint paint;
 	private Bitmap cachedDrawing;
 	private boolean clipsToBounds;
+	private AffineTransform transform;
 	final float scale;
 	final int dpi;
 
@@ -55,6 +57,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		this.dpi = context.getResources().getDisplayMetrics().densityDpi;
 		this.paint = new Paint();
 		this.needsDisplay = true;
+		this.transform = AffineTransform.identity();
 	}
 
 	private static boolean pushIgnoreLayout() {
@@ -169,6 +172,14 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 
 	public Rect getBounds() {
 		return this.bounds.copy();
+	}
+
+	public AffineTransform getTransform() {
+		return transform;
+	}
+
+	public void setTransform(AffineTransform transform) {
+		this.transform = transform;
 	}
 
 	public boolean isHidden() {

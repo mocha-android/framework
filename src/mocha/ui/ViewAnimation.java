@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import mocha.animation.TimingFunction;
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 
@@ -50,7 +51,7 @@ class ViewAnimation extends mocha.foundation.Object {
 
 
 	enum Type {
-		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, CALLBACK_POINT
+		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, TRANSFORM, CALLBACK_POINT
 	}
 
 	interface ProcessFrameCallback {
@@ -100,6 +101,9 @@ class ViewAnimation extends mocha.foundation.Object {
 					break;
 				case BACKGROUND_COLOR:
 					animation.startValue = Color.components(view.getBackgroundColor());
+					break;
+				case TRANSFORM:
+					animation.startValue = view.getTransform().copy();
 					break;
 			}
 		}
@@ -207,15 +211,29 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.view.setAlpha(this.interpolate(time, (Float) animation.startValue, (Float) animation.endValue));
 					break;
 				case BACKGROUND_COLOR:
-					int[] start = (int[])animation.startValue;
-					int[] end = (int[])animation.endValue;
+					int[] startColor = (int[])animation.startValue;
+					int[] endColor = (int[])animation.endValue;
 
-					int red = this.interpolate(time, start[0], end[0]);
-					int green = this.interpolate(time, start[1], end[1]);
-					int blue = this.interpolate(time, start[2], end[2]);
-					int alpha = this.interpolate(time, start[3], end[3]);
+					int red = this.interpolate(time, startColor[0], endColor[0]);
+					int green = this.interpolate(time, startColor[1], endColor[1]);
+					int blue = this.interpolate(time, startColor[2], endColor[2]);
+					int alpha = this.interpolate(time, startColor[3], endColor[3]);
 
 					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
+					break;
+				case TRANSFORM:
+					AffineTransform startTransform = (AffineTransform)animation.startValue;
+					AffineTransform endTransform = (AffineTransform)animation.endValue;
+
+					float a = this.interpolate(time, startTransform.getA(), endTransform.getA());
+					float b = this.interpolate(time, startTransform.getB(), endTransform.getB());
+					float c = this.interpolate(time, startTransform.getC(), endTransform.getC());
+					float d = this.interpolate(time, startTransform.getD(), endTransform.getD());
+
+					float tx = this.interpolate(time, startTransform.getTx(), endTransform.getTx());
+					float ty = this.interpolate(time, startTransform.getTy(), endTransform.getTy());
+
+					animation.view.setTransform(new AffineTransform(a, b, c, d, tx, ty));
 					break;
 				case CALLBACK_POINT:
 					animation.processFrameCallback.processFrame(this.interpolate(time, (Point)animation.startValue, (Point)animation.endValue));

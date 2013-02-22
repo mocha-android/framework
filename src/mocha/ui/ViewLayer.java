@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Rect;
 
 import java.util.List;
@@ -43,6 +44,9 @@ public interface ViewLayer {
 	public void insertSublayerAtIndex(ViewLayer layer, int index);
 	public void insertSublayerBelow(ViewLayer layer, ViewLayer sibling);
 	public void insertSublayerAbove(ViewLayer layer, ViewLayer sibling);
+
+	public void setTransform(AffineTransform transform);
+	public AffineTransform getTransform();
 
 	public void didMoveToSuperlayer();
 

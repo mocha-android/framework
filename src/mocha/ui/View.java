@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -356,6 +357,24 @@ public class View extends Responder {
 		this.layer.setBackgroundColor(backgroundColor);
 	}
 
+	public void setTransform(AffineTransform transform) {
+		if(transform == null) {
+			transform = AffineTransform.identity();
+		} else {
+			transform = transform.copy();
+		}
+
+		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
+			currentViewAnimation.addAnimation(this, ViewAnimation.Type.TRANSFORM, transform);
+		} else {
+			this.layer.setTransform(transform);
+		}
+	}
+
+	public AffineTransform getTransform() {
+		return this.layer.getTransform();
+	}
+
 	public boolean doesAutoresizeSubviews() {
 		return autoresizesSubviews;
 	}
@@ -565,7 +584,7 @@ public class View extends Responder {
 
 	Point convertPointToWindow(Point point) {
 		View view = this;
-		Point convertedPoint = new Point(point);
+		Point convertedPoint = point.copy();
 
 		while(view != null) {
 			point.x += view.getFrame().origin.x - view.getBounds().origin.x;
@@ -628,7 +647,7 @@ public class View extends Responder {
 	}
 
 	public boolean pointInside(Point point, Event event) {
-		return this.getBounds().contains(point);
+		return this.getTransform().apply(this.getBounds()).contains(point);
 	}
 
 	// Hierarchy
