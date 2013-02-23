@@ -210,4 +210,5 @@ public class AffineTransform extends mocha.foundation.Object {
 	public String toString() {
 		return String.format("[%s, %s, %s, %s, %s, %s]", this.a, this.b, this.c, this.d, this.tx, this.ty);
 	}
+
 }

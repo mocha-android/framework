@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.util.FloatMath;
 import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
@@ -103,13 +104,15 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.startValue = Color.components(view.getBackgroundColor());
 					break;
 				case TRANSFORM:
-					animation.startValue = view.getTransform().copy();
+					animation.startValue = new AffineTransformHolder(view.getTransform());
 					break;
 			}
 		}
 
 		if(type == Type.BACKGROUND_COLOR) {
-			animation.endValue = Color.components((Integer) endValue);
+			animation.endValue = Color.components((Integer)endValue);
+		} else if(type == Type.TRANSFORM) {
+			animation.endValue = new AffineTransformHolder((AffineTransform)endValue);
 		} else {
 			animation.endValue = endValue;
 		}
@@ -222,18 +225,19 @@ class ViewAnimation extends mocha.foundation.Object {
 					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
 					break;
 				case TRANSFORM:
-					AffineTransform startTransform = (AffineTransform)animation.startValue;
-					AffineTransform endTransform = (AffineTransform)animation.endValue;
+					AffineTransformHolder startTransform = (AffineTransformHolder)animation.startValue;
+					AffineTransformHolder endTransform = (AffineTransformHolder)animation.endValue;
+					AffineTransform transform;
 
-					float a = this.interpolate(time, startTransform.getA(), endTransform.getA());
-					float b = this.interpolate(time, startTransform.getB(), endTransform.getB());
-					float c = this.interpolate(time, startTransform.getC(), endTransform.getC());
-					float d = this.interpolate(time, startTransform.getD(), endTransform.getD());
+					if(time <= 0.0f) {
+						transform = startTransform.transform;
+					} else if(time >= 1.0f) {
+						transform = endTransform.transform;
+					} else {
+						transform = AffineTransformHelper.interpolate(this.timingFunction, time, this.duration, startTransform.decomposed, endTransform.decomposed);
+					}
 
-					float tx = this.interpolate(time, startTransform.getTx(), endTransform.getTx());
-					float ty = this.interpolate(time, startTransform.getTy(), endTransform.getTy());
-
-					animation.view.setTransform(new AffineTransform(a, b, c, d, tx, ty));
+					animation.view.setTransform(transform);
 					break;
 				case CALLBACK_POINT:
 					animation.processFrameCallback.processFrame(this.interpolate(time, (Point)animation.startValue, (Point)animation.endValue));
@@ -397,5 +401,177 @@ class ViewAnimation extends mocha.foundation.Object {
 		}
 
 	}
+
+	static class AffineTransformHolder {
+		final AffineTransform transform;
+		final AffineTransformHelper.Decomposed decomposed;
+
+		AffineTransformHolder(AffineTransform transform) {
+			this.transform = transform;
+			this.decomposed = new AffineTransformHelper.Decomposed();
+			AffineTransformHelper.decompose(transform, this.decomposed);
+		}
+	}
+
+	static class AffineTransformHelper {
+		/**
+		 * This code has been ported from WebKit.
+		 *
+		 * The original code can be found here:
+		 * http://trac.webkit.org/browser/trunk/Source/WebCore/platform/graphics/transforms/TransformationMatrix.cpp?rev=143810
+		 */
+
+		private static final float PI = (float)Math.PI;
+
+		static class Decomposed {
+			float scaleX, scaleY;
+			float angle;
+			float remainderA, remainderB, remainderC, remainderD;
+			float translateX, translateY;
+
+			Decomposed copy() {
+				Decomposed decomposed = new Decomposed();
+				decomposed.scaleX = this.scaleX;
+				decomposed.scaleY = this.scaleY;
+				decomposed.angle = this.angle;
+				decomposed.remainderA = this.remainderA;
+				decomposed.remainderB = this.remainderB;
+				decomposed.remainderC = this.remainderC;
+				decomposed.remainderD = this.remainderD;
+				decomposed.translateX = this.translateX;
+				decomposed.translateY = this.translateY;
+				return decomposed;
+			}
+		}
+
+		public static AffineTransform interpolate(TimingFunction timingFunction, float time, long duration, AffineTransform start, AffineTransform end) {
+			Decomposed srA = new Decomposed();
+			Decomposed srB = new Decomposed();
+
+			decompose(start, srA);
+			decompose(end, srB);
+
+			return interpolate(timingFunction, time, duration, srA, srB);
+		}
+
+		// Modified from the WebKit version for use with our timing functions.
+		public static AffineTransform interpolate(TimingFunction timingFunction, float time, long duration, Decomposed start, Decomposed end) {
+			start = start.copy();
+			end = end.copy();
+
+			// If x-axis of one is flipped, and y-axis of the other, convert to an unflipped rotation.
+			if ((start.scaleX < 0 && end.scaleY < 0) || (start.scaleY < 0 &&  end.scaleX < 0)) {
+				start.scaleX = -start.scaleX;
+				start.scaleY = -start.scaleY;
+				start.angle += start.angle < 0 ? PI : -PI;
+			}
+
+			// Don't rotate the long way around.
+			start.angle = start.angle % (2 * PI);
+			end.angle = end.angle % (2 * PI);
+
+			if (Math.abs(start.angle - end.angle) > PI) {
+				if (start.angle > end.angle)
+					start.angle -= PI * 2;
+				else
+					end.angle -= PI * 2;
+			}
+
+			if(start.scaleX != end.scaleX) {
+				start.scaleX = timingFunction.interpolate(time, duration, start.scaleX, end.scaleX);
+			}
+
+			if(start.scaleY != end.scaleY) {
+				start.scaleY = timingFunction.interpolate(time, duration, start.scaleY, end.scaleY);
+			}
+
+			if(start.angle != end.angle) {
+				start.angle = timingFunction.interpolate(time, duration, start.angle, end.angle);
+			}
+
+			if(start.remainderA != end.remainderA) {
+				start.remainderA = timingFunction.interpolate(time, duration, start.remainderA, end.remainderA);
+			}
+
+			if(start.remainderB != end.remainderB) {
+				start.remainderB = timingFunction.interpolate(time, duration, start.remainderB, end.remainderB);
+			}
+
+			if(start.remainderC != end.remainderC) {
+				start.remainderC = timingFunction.interpolate(time, duration, start.remainderC, end.remainderC);
+			}
+
+			if(start.remainderC != end.remainderC) {
+				start.remainderC = timingFunction.interpolate(time, duration, start.remainderC, end.remainderC);
+			}
+
+			if(start.translateX != end.translateX) {
+				start.translateX = timingFunction.interpolate(time, duration, start.translateX, end.translateX);
+			}
+
+			if(start.translateY != end.translateY) {
+				start.translateY = timingFunction.interpolate(time, duration, start.translateY, end.translateY);
+			}
+
+			return recompose(start);
+		}
+
+		public static boolean decompose(AffineTransform transform, Decomposed decomp) {
+			transform = transform.copy();
+
+			// Compute scaling factors
+			float sx = xScale(transform);
+			float sy = yScale(transform);
+
+			// Compute cross product of transformed unit vectors. If negative,
+			// one axis was flipped.
+			if (transform.getA() * transform.getD() - transform.getC() * transform.getB() < 0) {
+				// Flip axis with minimum unit vector dot product
+				if (transform.getA() < transform.getD())
+					sx = -sx;
+				else
+					sy = -sy;
+			}
+
+			// Remove scale from matrix
+			transform.scale(1.0f / sx, 1.0f / sy);
+
+			// Compute rotation
+			float angle = (float)Math.atan2(transform.getB(), transform.getA());
+
+			// Remove rotation from matrix
+			transform.rotate(-angle);
+
+			// Return results
+			decomp.scaleX = sx;
+			decomp.scaleY = sy;
+			decomp.angle = angle;
+			decomp.remainderA = transform.getA();
+			decomp.remainderB = transform.getB();
+			decomp.remainderC = transform.getC();
+			decomp.remainderD = transform.getD();
+			decomp.translateX = transform.getTx();
+			decomp.translateY = transform.getTy();
+
+			return true;
+		}
+
+		public static AffineTransform recompose(Decomposed decomp) {
+			AffineTransform recomposed = new AffineTransform(decomp.remainderA, decomp.remainderB, decomp.remainderC, decomp.remainderD, decomp.translateX, decomp.translateY);
+			recomposed.rotate(decomp.angle);
+			recomposed.scale(decomp.scaleX, decomp.scaleY);
+			return recomposed;
+		}
+
+		private static float xScale(AffineTransform transform) {
+			return FloatMath.sqrt(transform.getA() * transform.getA() + transform.getB() * transform.getB());
+		}
+
+		private static float yScale(AffineTransform transform) {
+			return FloatMath.sqrt(transform.getC() * transform.getC() + transform.getD() * transform.getD());
+		}
+
+	}
+
 
 }
