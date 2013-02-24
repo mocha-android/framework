@@ -591,6 +591,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		View.commitAnimations();
 	}
 
+	public boolean isDragging() {
+		return dragging;
+	}
+
 	public void handleGesture(GestureRecognizer gestureRecognizer) {
 		if(gestureRecognizer != this.panGestureRecognizer) return;
 
