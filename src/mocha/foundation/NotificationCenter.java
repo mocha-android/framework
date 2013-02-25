@@ -6,6 +6,8 @@
 package mocha.foundation;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
@@ -25,8 +27,13 @@ public class NotificationCenter extends Object {
 	}
 
 	private static class Observeration {
+		WeakReference<java.lang.Object> target;
+		Method method;
+		boolean methodTakesNotificationParameter;
+
 		WeakReference<Observer> observer;
 		WeakReference<java.lang.Object> sender;
+
 		String name;
 
 		boolean isObserving(String name, java.lang.Object sender) {
@@ -118,12 +125,32 @@ public class NotificationCenter extends Object {
 		this.lock.release();
 
 		for(Observeration observation : observations) {
-			Observer observer = observation.observer.get();
+			if(observation.observer != null) {
+				Observer observer = observation.observer.get();
 
-			if(observer != null) {
-				observer.observe(notification);
-			} else {
-				MWarn("Trying to send notification %s to a GC'd observer.", name);
+				if(observer != null) {
+					observer.observe(notification);
+				} else {
+					MWarn("Trying to send notification %s to a GC'd observer.", name);
+				}
+			} else if(observation.target != null) {
+				java.lang.Object target = observation.target.get();
+
+				if(target != null) {
+					try {
+						if(observation.methodTakesNotificationParameter) {
+							observation.method.invoke(target, notification);
+						} else {
+							observation.method.invoke(target);
+						}
+					} catch (IllegalAccessException e) {
+						MWarn(e, "Could not post notification to %s#%s", target, observation.method);
+					} catch (InvocationTargetException e) {
+						throw new RuntimeException(e.getCause());
+					}
+				} else {
+					MWarn("Trying to send notification %s to a GC'd observer.", name);
+				}
 			}
 		}
 	}
@@ -204,12 +231,112 @@ public class NotificationCenter extends Object {
 	}
 
 	/**
+	 * Add a target/action observer for a notification name and/or sender.
+	 *
+	 * @see NotificationCenter#addObserver(mocha.foundation.NotificationCenter.Observer, String, java.lang.Object)
+	 *
+	 * @param target Notification observer target to send action to
+	 * @param action Action to send to target, should accept a single Notification parameter or none
+	 * @param notificationName Notification name to observe or null
+	 * @param notificationSender Notification sender to observer or null
+	 */
+	@SuppressWarnings("unchecked")
+	public void addObserver(java.lang.Object target, Method action, String notificationName, java.lang.Object notificationSender) {
+		if(notificationName == null && notificationSender == null) {
+			throw new RuntimeException("You must observe at least a notification name or a notification sender.");
+		}
+
+		if(target == null || action == null) {
+			throw new RuntimeException("You must provide both a target and an action.");
+		}
+
+		boolean passedParameterCheck;
+		boolean methodTakesNotificationParameter = action.getParameterTypes().length == 1;
+
+		if(methodTakesNotificationParameter) {
+			Class parameter = action.getParameterTypes()[0];
+			passedParameterCheck = !(parameter != Notification.class && !parameter.isAssignableFrom(Notification.class));
+		} else {
+			passedParameterCheck = action.getParameterTypes().length == 0;
+		}
+
+		if(!passedParameterCheck) {
+			throw new RuntimeException("Notification target action can only accept a single Notification parameter or no parameters at all.");
+		}
+
+		MLog("Adding target/action observer %s %s for %s", target, action, notificationName);
+
+		Observeration observation = new Observeration();
+		observation.target = new WeakReference<java.lang.Object>(target);
+		observation.method = action;
+		observation.methodTakesNotificationParameter = methodTakesNotificationParameter;
+		observation.name = notificationName;
+
+		if(notificationSender != null) {
+			observation.sender = new WeakReference<java.lang.Object>(notificationSender);
+		}
+
+		this.lock.acquireUninterruptibly();
+
+		if(notificationName != null) {
+			List<Observeration> observations = this.observationsByName.get(notificationName);
+
+			if(observations == null) {
+				observations = new ArrayList<Observeration>();
+				this.observationsByName.put(notificationName, observations);
+			}
+
+			observations.add(observation);
+		}
+
+		if(notificationSender != null) {
+			Integer sender = notificationSender.hashCode();
+			List<Observeration> observations = this.observationsBySender.get(sender);
+
+			if(observations == null) {
+				observations = new ArrayList<Observeration>();
+				this.observationsBySender.put(sender, observations);
+			}
+
+			observations.add(observation);
+		}
+
+		this.lock.release();
+	}
+
+	/**
+	 * Add a target/action observer for a notification name and/or sender.
+	 *
+	 * @see NotificationCenter#addObserver(java.lang.Object, java.lang.reflect.Method, String, java.lang.Object)
+	 *
+	 * @param target Notification observer target to send action to
+	 * @param actionMethodName Name of the action method to send to target, should accept a single Notification parameter or none.
+	 * @param notificationName Notification name to observe or null
+	 * @param notificationSender Notification sender to observer or null
+	 */
+	public void addObserver(java.lang.Object target, String actionMethodName, String notificationName, java.lang.Object notificationSender) {
+		Method method;
+
+		try {
+			method = target.getClass().getMethod(actionMethodName, Notification.class);
+		} catch (NoSuchMethodException e) {
+			try {
+				method = target.getClass().getMethod(actionMethodName);
+			} catch (NoSuchMethodException e1) {
+				throw new RuntimeException("Could not find method " + actionMethodName + " on target " + target + " that accepts a Notification parameter or none at all.");
+			}
+		}
+
+		this.addObserver(target, method, notificationName, notificationSender);
+	}
+
+	/**
 	 * Remove an observer from all previously added observations
 	 * regardless of their notificaiton name or notificaiton sender.
 	 *
 	 * @param observer Observer to remove
 	 */
-	public void removeObserver(Observer observer) {
+	public void removeObserver(java.lang.Object observer) {
 		this.removeObserver(observer, null, null);
 	}
 
@@ -225,7 +352,7 @@ public class NotificationCenter extends Object {
 	 *                              the notificaton sender will not be used when determining whether or
 	 *                              not the observation matches.
 	 */
-	public void removeObserver(Observer observer, String notificationName, java.lang.Object notificationSender) {
+	public void removeObserver(java.lang.Object observer, String notificationName, java.lang.Object notificationSender) {
 		if(observer == null) return;
 
 		this.lock.acquireUninterruptibly();
@@ -282,17 +409,15 @@ public class NotificationCenter extends Object {
 		this.lock.release();
 	}
 
-	private void removeObserver(List<Observeration> observations, Observer observer, String name, java.lang.Object sender) {
+	private void removeObserver(List<Observeration> observations, java.lang.Object observer, String name, java.lang.Object sender) {
 		Iterator<Observeration> iterator = observations.iterator();
 
 		while (iterator.hasNext()) {
 			Observeration observation = iterator.next();
-			Observer observer1 = observation.observer.get();
-			if(observer1 == null || (observer1 == observer && observation.isObserving(name, sender))) {
-				MLog("Trying to remove %s", observer1);
+			Observer observer1 = observation.observer == null ? null : observation.observer.get();
+			java.lang.Object target = observation.target == null ? null : observation.target.get();
+			if((observer1 == null && target == null) || ((observer1 == observer || target == observation) && observation.isObserving(name, sender))) {
 				iterator.remove();
-			} else {
-				MLog("%s isn't observing %s %s", name, sender);
 			}
 		}
 	}
