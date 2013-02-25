@@ -5,7 +5,7 @@
  */
 package mocha.graphics;
 
-public final class Offset {
+public final class Offset implements mocha.foundation.Copying <Offset> {
 	// specify amount to offset a position, positive for right or down, negative for left or up
 	public float horizontal;
 	public float vertical;
@@ -38,6 +38,10 @@ public final class Offset {
 
 	public Size toSize() {
 		return new Size(this.horizontal, this.vertical);
+	}
+
+	public Offset copy() {
+		return new Offset(this.horizontal, this.vertical);
 	}
 
 }

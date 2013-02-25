@@ -5,7 +5,7 @@
  */
 package mocha.graphics;
 
-public final class Point {
+public final class Point implements mocha.foundation.Copying <Point> {
 	public float x;
 	public float y;
 

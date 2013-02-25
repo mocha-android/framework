@@ -7,7 +7,7 @@ package mocha.ui;
 
 import mocha.graphics.Rect;
 
-public final class EdgeInsets {
+public final class EdgeInsets implements mocha.foundation.Copying <EdgeInsets> {
 	// specify amount to inset (positive) for each of the edges. values can be negative to 'outset'
 	public float top;
 	public float left;

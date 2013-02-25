@@ -423,13 +423,13 @@ class ViewAnimation extends mocha.foundation.Object {
 
 		private static final float PI = (float)Math.PI;
 
-		static class Decomposed {
+		static class Decomposed implements mocha.foundation.Copying <Decomposed> {
 			float scaleX, scaleY;
 			float angle;
 			float remainderA, remainderB, remainderC, remainderD;
 			float translateX, translateY;
 
-			Decomposed copy() {
+			public Decomposed copy() {
 				Decomposed decomposed = new Decomposed();
 				decomposed.scaleX = this.scaleX;
 				decomposed.scaleY = this.scaleY;

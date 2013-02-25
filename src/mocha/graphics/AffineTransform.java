@@ -7,7 +7,7 @@ package mocha.graphics;
 
 import android.util.FloatMath;
 
-public class AffineTransform extends mocha.foundation.Object {
+public class AffineTransform extends mocha.foundation.Object implements mocha.foundation.Copying <AffineTransform> {
 	private static final AffineTransform IDENTITY = new AffineTransform(1, 0, 0, 1, 0, 0);
 
 	private float a, b, c, d;

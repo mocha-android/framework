@@ -5,7 +5,7 @@
  */
 package mocha.graphics;
 
-public final class Size {
+public final class Size implements mocha.foundation.Copying <Size> {
 	public float width;
 	public float height;
 

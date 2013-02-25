@@ -5,7 +5,7 @@
  */
 package mocha.graphics;
 
-public final class Rect {
+public final class Rect implements mocha.foundation.Copying <Rect> {
 	public Point origin;
 	public Size size;
 

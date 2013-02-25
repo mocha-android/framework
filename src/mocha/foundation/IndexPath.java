@@ -7,7 +7,7 @@ package mocha.foundation;
 
 import java.util.Arrays;
 
-public class IndexPath extends mocha.foundation.Object {
+public class IndexPath extends mocha.foundation.Object implements mocha.foundation.Copying <IndexPath> {
 	private final int[] indexes;
 	private final int hashCode;
 
@@ -100,6 +100,11 @@ public class IndexPath extends mocha.foundation.Object {
 
 	public String toString() {
 		return String.format("<%s 0x%d indexes=%s>", this.getClass(), this.hashCode, Arrays.toString(this.indexes));
+	}
+
+	public IndexPath copy() {
+		int[] indexes = this.indexes.clone();
+		return new IndexPath(indexes);
 	}
 
 }
