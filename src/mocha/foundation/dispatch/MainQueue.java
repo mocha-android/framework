@@ -10,8 +10,9 @@ import android.os.Looper;
 
 import java.util.concurrent.Semaphore;
 
-public class MainQueue implements Queue {
+public class MainQueue extends mocha.foundation.Object implements Queue {
 	private Handler handler;
+	private Semaphore lock = new Semaphore(1);
 	private static MainQueue instance;
 
 	/**
@@ -60,14 +61,15 @@ public class MainQueue implements Queue {
 		if(Looper.myLooper() == this.handler.getLooper()) {
 			runnable.run();
 		} else {
-			final Semaphore done = new Semaphore(1);
+			this.lock.acquireUninterruptibly();
 			this.handler.post(new Runnable() {
 				public void run() {
 					runnable.run();
-					done.release();
+					lock.release();
 				}
 			});
-			done.acquireUninterruptibly();
+			this.lock.acquireUninterruptibly();
+			this.lock.release();
 		}
 	}
 

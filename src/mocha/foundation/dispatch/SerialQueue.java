@@ -17,7 +17,7 @@ public class SerialQueue extends mocha.foundation.Object implements Queue {
 	private int threadPriority;
 	private Handler handler;
 	private SerialQueue targetQueue;
-	private Semaphore lock = new Semaphore(0);
+	private Semaphore lock = new Semaphore(1);
 	private boolean global;
 	private static HashMap<Priority,SerialQueue> globalQueues = new HashMap<Priority, SerialQueue>();
 
