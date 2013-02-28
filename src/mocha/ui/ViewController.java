@@ -5,6 +5,9 @@
  */
 package mocha.ui;
 
+import mocha.foundation.NotificationCenter;
+
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +22,20 @@ public class ViewController extends Responder {
 	private String title;
 	private Responder nextResponder;
 
+	private static Method didReceiveMemoryWarningMethod;
+
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
+
+		if(didReceiveMemoryWarningMethod == null) {
+			try {
+				didReceiveMemoryWarningMethod = ViewController.class.getMethod("didReceiveMemoryWarning");
+			} catch (NoSuchMethodException e) {
+				MWarn(e, "Could not find memory warning method.");
+			}
+		}
+
+		NotificationCenter.defaultCenter().addObserver(this, didReceiveMemoryWarningMethod, Application.APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, null);
 	}
 
 	/**

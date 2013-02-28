@@ -7,6 +7,7 @@ package mocha.ui;
 
 import android.content.res.Configuration;
 import android.view.WindowManager;
+import mocha.foundation.NotificationCenter;
 
 import java.util.ArrayList;
 
@@ -78,4 +79,11 @@ public class Activity extends android.app.Activity {
 			window.onResume();
 		}
 	}
+
+	public void onLowMemory() {
+		super.onLowMemory();
+
+		NotificationCenter.defaultCenter().post(Application.APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, this.application);
+	}
+
 }

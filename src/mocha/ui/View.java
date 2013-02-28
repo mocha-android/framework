@@ -12,7 +12,7 @@ import mocha.graphics.Size;
 
 import java.util.*;
 
-public class View extends Responder {
+public class View extends Responder implements Accessibility {
 	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
 	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
 
@@ -170,6 +170,18 @@ public class View extends Responder {
 	Touch trackingSingleTouch;
 
 	private ViewController _viewController;
+
+	// Accesibility
+	private boolean isAccessibilityElement;
+	private String accessibilityLabel;
+	private String accessibilityHint;
+	private String accessibilityValue;
+	private Trait[] accessibilityTraits;
+	private Rect accessibilityFrame;
+	private Point accessibilityActivationPoint;
+	private boolean accessibilityElementsHidden;
+	private boolean accessibilityViewIsModal;
+	private boolean shouldGroupAccessibilityChildren;
 
 	public View() {
 		this(Screen.mainScreen().getContext());
@@ -964,6 +976,88 @@ public class View extends Responder {
 
 	public Class<? extends ViewLayer> getLayerClass() {
 		return VIEW_LAYER_CLASS;
+	}
+
+	// Accessibility
+
+	public boolean isAccessibilityElement() {
+		return isAccessibilityElement;
+	}
+
+	public void setIsAccessibilityElement(boolean accessibilityElement) {
+		isAccessibilityElement = accessibilityElement;
+	}
+
+	public String getAccessibilityLabel() {
+		return accessibilityLabel;
+	}
+
+	public void setAccessibilityLabel(String accessibilityLabel) {
+		this.accessibilityLabel = accessibilityLabel;
+	}
+
+	public String getAccessibilityHint() {
+		return accessibilityHint;
+	}
+
+	public void setAccessibilityHint(String accessibilityHint) {
+		this.accessibilityHint = accessibilityHint;
+	}
+
+	public String getAccessibilityValue() {
+		return accessibilityValue;
+	}
+
+	public void setAccessibilityValue(String accessibilityValue) {
+		this.accessibilityValue = accessibilityValue;
+	}
+
+	public Trait[] getAccessibilityTraits() {
+		return accessibilityTraits;
+	}
+
+	public void setAccessibilityTraits(Trait... accessibilityTraits) {
+		this.accessibilityTraits = accessibilityTraits;
+	}
+
+	public Rect getAccessibilityFrame() {
+		return accessibilityFrame;
+	}
+
+	public void setAccessibilityFrame(Rect accessibilityFrame) {
+		this.accessibilityFrame = accessibilityFrame;
+	}
+
+	public Point getAccessibilityActivationPoint() {
+		return accessibilityActivationPoint;
+	}
+
+	public void setAccessibilityActivationPoint(Point accessibilityActivationPoint) {
+		this.accessibilityActivationPoint = accessibilityActivationPoint;
+	}
+
+	public boolean getAccessibilityElementsHidden() {
+		return accessibilityElementsHidden;
+	}
+
+	public void setAccessibilityElementsHidden(boolean accessibilityElementsHidden) {
+		this.accessibilityElementsHidden = accessibilityElementsHidden;
+	}
+
+	public boolean getAccessibilityViewIsModal() {
+		return accessibilityViewIsModal;
+	}
+
+	public void setAccessibilityViewIsModal(boolean accessibilityViewIsModal) {
+		this.accessibilityViewIsModal = accessibilityViewIsModal;
+	}
+
+	public boolean shouldGroupAccessibilityChildren() {
+		return shouldGroupAccessibilityChildren;
+	}
+
+	public void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren) {
+		this.shouldGroupAccessibilityChildren = shouldGroupAccessibilityChildren;
 	}
 
 	// Animations

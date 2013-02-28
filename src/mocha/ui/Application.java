@@ -6,6 +6,7 @@
 package mocha.ui;
 
 public class Application {
+	public static final String APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
 
 	public interface Delegate {
 
@@ -78,4 +79,5 @@ public class Application {
 	public boolean isIgnoringInteractionEvents() {
 		return this.ignoreInteractionEventsLevel > 0;
 	}
+
 }
