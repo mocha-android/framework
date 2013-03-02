@@ -187,6 +187,15 @@ public class ViewController extends Responder {
 
 	}
 
+	/**
+	 * Get the current orientation for the interface
+	 * @return interface orientation
+	 */
+	public InterfaceOrientation getInterfaceOrientation() {
+		// TODO: this needs to be smarter, shouldn't just grab the status bar orientation
+		return Application.sharedApplication().getStatusBarOrientation();
+	}
+
 	public String getTitle() {
 		return title;
 	}
