@@ -5,13 +5,10 @@
  */
 package mocha.graphics;
 
-import android.graphics.Paint;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import mocha.foundation.*;
+import android.util.FloatMath;
 import mocha.ui.Screen;
-
-import java.util.Arrays;
 
 public class TextDrawing extends mocha.foundation.Object {
 
@@ -20,47 +17,123 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font, TextAlignment textAlignment) {
-		return draw(context, text, rect, font, TextAlignment.LEFT, LineBreakMode.WORD_WRAPPING);
+		return draw(context, text, rect, font, textAlignment, LineBreakMode.WORD_WRAPPING);
 	}
 
-	// TODO: Implement line break mode
+	// TODO: Implement real line break mode instead of just char wrapping, fix truncation issues.
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
+		float scale = context.getScale();
+		float lineHeight = font.getLineHeight() * scale;
+		float maxWidth = constrainWidth(rect.size.width * scale);
+		float maxHeight = rect.size.height * scale;
+		float lineHeightAdjustment = FloatMath.floor((font.getLineHeightDrawingAdjustment() / 2.0f) * scale);
+
+		TextPaint textPaint = context.getTextPaint();
+		textPaint.setTypeface(font.getTypeface());
+		textPaint.setTextSize(font.getPointSize() * scale);
+
+		int index = 0;
+		int length = text.length();
+		float[] measuredWidth = new float[] { 0.0f };
+		Size size = new Size();
+
+		float y = (rect.origin.y * scale) + (lineHeight / 2.0f) + lineHeightAdjustment;
+		float originX = rect.origin.x * scale;
+
+		while(index < length - 1) {
+			int measured = textPaint.breakText(text, index, length, true, maxWidth, measuredWidth);
+
+			size.width = Math.max(measuredWidth[0], size.width);
+			size.height += lineHeight;
+
+			boolean lastLine = size.height + lineHeight > maxHeight;
+
+			CharSequence textToDraw;
+
+			if(lastLine) {
+				// textToDraw = TextUtils.ellipsize(TextUtils.substring(text, index, text.length()), textPaint, maxWidth, lineBreakMode.truncateAt());
+				textToDraw = TextUtils.substring(text, index, index + measured);
+			} else  {
+				textToDraw = TextUtils.substring(text, index, index + measured);
+			}
+
+			index += measured;
+			float x;
+
+			if(textAlignment == TextAlignment.CENTER || textAlignment == TextAlignment.RIGHT) {
+				float textWidth = textPaint.measureText(textToDraw, 0, textToDraw.length());
+
+				if(textAlignment == TextAlignment.RIGHT) {
+					x = originX + (maxWidth - textWidth);
+				} else {
+					x = originX + ((maxWidth - textWidth) / 2);
+				}
+			} else {
+				x = originX;
+			}
+
+			context.getCanvas().drawText(textToDraw, 0, textToDraw.length(), x, y, textPaint);
+
+			y += lineHeight;
+
+			if(measured == 0 || lastLine) {
+				break;
+			}
+		}
+
+		return new Size(FloatMath.ceil(size.width / scale), FloatMath.ceil(size.height / scale));
+	}
+
+	/**
+	 * Draws a single line of text, line breaks are ignored.
+	 * Truncated based on LineBreakMode.WORD_WRAPPING.
+	 *
+	 * @param context Context to draw text in
+	 * @param text Text to draw
+	 * @param point Point to draw text at
+	 * @param font Font to draw text with
+	 * @return Size of the drawing rounded up to the nearest point.
+	 */
+	public static Size draw(Context context, CharSequence text, Point point, Font font) {
+		return draw(context, text, point, font, 0.0f, LineBreakMode.WORD_WRAPPING);
+	}
+
+	/**
+	 * Draws a single line of text capped at a max width, line breaks are ignored.
+	 *
+	 * @param context Context to draw text in
+	 * @param text Text to draw
+	 * @param point Point to draw text at
+	 * @param font Font to draw text with
+	 * @param maxWidth Maximum width text can be, if <= 0.0f, no max width is assumed.
+	 * @param lineBreakMode Determines how truncation should work, still only draws a single line.
+	 * @return Size of the drawing rounded up to the nearest point.
+	 */
+	public static Size draw(Context context, CharSequence text, Point point, Font font, float maxWidth, LineBreakMode lineBreakMode) {
 		float scale = context.getScale();
 
 		TextPaint textPaint = context.getTextPaint();
 		textPaint.setTypeface(font.getTypeface());
 		textPaint.setTextSize(font.getPointSize() * scale);
 
-
-		text = fitToWidth(context, text, rect.size.width, textPaint);
-		float textWidth = textPaint.measureText(text, 0, text.length());
-		rect = rect.getScaledRect(scale);
-
-		float x;
-
-		if(textAlignment == TextAlignment.CENTER) {
-			x = rect.origin.x + ((rect.size.width - textWidth) / 2);
-		} else if(textAlignment == TextAlignment.RIGHT) {
-			x = rect.origin.x + (rect.size.width - textWidth);
-		} else {
-			x = rect.origin.x;
+		if(maxWidth > 0.0f) {
+			text = fitToWidth(context, text, maxWidth, lineBreakMode, textPaint);
 		}
 
-		float y = rect.origin.y + (rect.size.height / 2.0f) + ((font.getLineHeight() * scale) / 2.0f) - scale;
+		float textWidth = textPaint.measureText(text, 0, text.length());
 
-		y -= Math.floor(((font.getLineHeight() - font.getMeasuredLineHeight()) / 2.0f) * scale);
+		float x = point.x * scale;
+		float y = (point.y - FloatMath.floor((font.getLineHeightDrawingAdjustment() / 2.0f))) * scale;
 
 		context.getCanvas().drawText(text, 0, text.length(), x, y, textPaint);
 
-		return new Size(textWidth / scale, font.getLineHeight());
+		return new Size(FloatMath.ceil(textWidth / scale), FloatMath.ceil(font.getLineHeight()));
 	}
 
-	public static CharSequence fitToRect(Context context, CharSequence text, Rect targetRect, Font font) {
-		return fitToWidth(context, text, targetRect.size.width, font.paintForScreenScale(context.getScale()));
-	}
+	private static CharSequence fitToWidth(Context context, CharSequence text, float width, LineBreakMode lineBreakMode, TextPaint paint) {
+		if(lineBreakMode == null) lineBreakMode = LineBreakMode.WORD_WRAPPING;
 
-	private static CharSequence fitToWidth(Context context, CharSequence text, float width, TextPaint paint) {
-		text = TextUtils.ellipsize(text, paint, width * context.getScale(), TextUtils.TruncateAt.END);
+		text = TextUtils.ellipsize(text, paint, width * context.getScale(), lineBreakMode.truncateAt());
 
 		if(text == null) {
 			return null;
@@ -114,21 +187,24 @@ public class TextDrawing extends mocha.foundation.Object {
 		int index = 0;
 		int length = text.length();
 		float[] measuredWidth = new float[] { 0.0f };
-		float width = 0.0f;
+		Size size = new Size();
+		float lineHeight = font.getLineHeight();
+		float maxHeight = constrainedToSize.height * screenScale;
 
 		while(index < length - 1) {
 			int measured = textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
 			index += measured;
 			lineCount++;
 
-			width = Math.max(measuredWidth[0], width);
+			size.width = Math.max(measuredWidth[0], size.width);
+			size.height += lineHeight;
 
-			if(measured == 0) {
+			if(measured == 0 || (size.height + lineHeight > maxHeight)) {
 				break;
 			}
 		}
 
-		return new Size(width / screenScale, lineCount * font.getLineHeight());
+		return new Size(FloatMath.ceil(size.width / screenScale), FloatMath.ceil(size.height / screenScale));
 	}
 
 	private static float constrainWidth(float width) {

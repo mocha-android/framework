@@ -20,8 +20,11 @@ public class Label extends View implements Highlightable {
 	private TextAlignment textAlignment;
 	private LineBreakMode lineBreakMode;
 	private boolean enabled;
-	private int numberOfLines;					// currently only supports 0 or 1
+	private int numberOfLines;
 	private boolean highlighted;
+	private boolean textNeedsMeasuring;
+	private Size lastSize;
+	private Size textSize;
 
 	public Label() { }
 	public Label(Rect frame) { super(frame); }
@@ -48,6 +51,7 @@ public class Label extends View implements Highlightable {
 	public void setText(CharSequence text) {
 		if(this.text != text) {
 			this.text = text;
+			this.textNeedsMeasuring = true;
 			this.setNeedsDisplay();
 		}
 	}
@@ -59,6 +63,7 @@ public class Label extends View implements Highlightable {
 	public void setFont(Font font) {
 		if(this.font != font) {
 			this.font = font;
+			this.textNeedsMeasuring = true;
 			this.setNeedsDisplay();
 		}
 	}
@@ -127,6 +132,7 @@ public class Label extends View implements Highlightable {
 	public void setLineBreakMode(LineBreakMode lineBreakMode) {
 		if(this.lineBreakMode != lineBreakMode) {
 			this.lineBreakMode = lineBreakMode;
+			this.textNeedsMeasuring = true;
 			this.setNeedsDisplay();
 		}
 	}
@@ -149,6 +155,7 @@ public class Label extends View implements Highlightable {
 	public void setNumberOfLines(int numberOfLines) {
 		if(this.numberOfLines != numberOfLines) {
 			this.numberOfLines = numberOfLines;
+			this.textNeedsMeasuring = true;
 			this.setNeedsDisplay();
 		}
 	}
@@ -173,7 +180,7 @@ public class Label extends View implements Highlightable {
 		}
 	}
 
-	public Rect textRectForBound(Rect bounds, int numberOfLines) {
+	public Rect getTextRectForBound(Rect bounds, int numberOfLines) {
 		if(this.text != null && this.text.length() > 0) {
 			Size maxSize = new Size(bounds.size);
 
@@ -198,23 +205,25 @@ public class Label extends View implements Highlightable {
 	public void draw(Context context, Rect rect) {
 		if(this.text == null || this.text.length() == 0) return;
 
-
 		Rect bounds = this.getBounds();
 		Rect drawRect = Rect.zero();
 
-		// find out the actual size of the text given the size of our bounds
-		Size maxSize = new Size(bounds.size);
+		if(lastSize == null || this.textNeedsMeasuring || bounds.size.equals(lastSize)) {
+			Size maxSize = bounds.size.copy();
 
-		if (this.numberOfLines > 0) {
-			maxSize.height = this.font.getLineHeight() * this.numberOfLines;
+			if (this.numberOfLines > 0) {
+				maxSize.height = this.font.getLineHeight() * this.numberOfLines;
+			}
+
+			this.textSize = TextDrawing.getTextSize(this.text, this.font, maxSize, this.lineBreakMode);
+			lastSize = bounds.size.copy();
+			this.textNeedsMeasuring = false;
 		}
 
-		drawRect.size = TextDrawing.getTextSize(this.text, this.font, maxSize, this.lineBreakMode);
-
+		drawRect.size = this.textSize;
 		drawRect.origin.y = roundf((bounds.size.height - drawRect.size.height) / 2.0f);
 		drawRect.origin.x = 0;
 		drawRect.size.width = bounds.size.width;
-
 
 		this.drawTextInRect(context, drawRect);
 	}

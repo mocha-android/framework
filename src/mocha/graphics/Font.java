@@ -20,6 +20,7 @@ public final class Font {
 	private final float ascender;
 	private final float descender;
 	private final float leading;
+	private final float lineHeightDrawingAdjustment;
 
 	private HashMap<Float,TextPaint> cachedPaints;
 
@@ -42,6 +43,8 @@ public final class Font {
 		android.graphics.Rect textBounds = new android.graphics.Rect();
 		textPaint.getTextBounds("Py", 0, 2, textBounds);
 		this.measuredLineHeight = (float)textBounds.height() / screenScale;
+
+		this.lineHeightDrawingAdjustment = this.lineHeight - this.measuredLineHeight;
 	}
 
 	public static Font getSystemFontWithSize(float pointSize) {
@@ -82,6 +85,10 @@ public final class Font {
 
 	float getMeasuredLineHeight() {
 		return measuredLineHeight;
+	}
+
+	float getLineHeightDrawingAdjustment() {
+		return lineHeightDrawingAdjustment;
 	}
 
 	TextPaint paintForScreenScale(float screenScale) {
