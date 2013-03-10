@@ -283,6 +283,10 @@ public final class Context extends mocha.foundation.Object {
 		this.restore();
 	}
 
+	public void draw(android.view.View view) {
+		view.draw(this.canvas);
+	}
+
 	public void save() {
 		this.canvas.save();
 
