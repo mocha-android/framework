@@ -50,7 +50,7 @@ public class WebView extends View {
 
 		this.setClipsToBounds(true);
 
-		this.webView = new android.webkit.WebView(Screen.mainScreen().getContext());
+		this.webView = new android.webkit.WebView(Application.sharedApplication().getContext());
 		this.webView.setWebViewClient(new WebViewClient());
 		this.webView.getSettings().setJavaScriptEnabled(true);
 

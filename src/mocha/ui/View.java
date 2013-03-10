@@ -184,11 +184,11 @@ public class View extends Responder implements Accessibility {
 	private boolean shouldGroupAccessibilityChildren;
 
 	public View() {
-		this(Screen.mainScreen().getContext());
+		this(Application.sharedApplication().getContext());
 	}
 
 	public View(Rect frame) {
-		this(Screen.mainScreen().getContext(), frame);
+		this(Application.sharedApplication().getContext(), frame);
 	}
 
 	View(android.content.Context context) {

@@ -8,6 +8,7 @@ package mocha.graphics;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.util.DisplayMetrics;
+import mocha.ui.Application;
 import mocha.ui.EdgeInsets;
 import mocha.ui.Screen;
 
@@ -24,7 +25,7 @@ public class Image extends mocha.foundation.Object {
 	public static Image imageNamed(int resourceId) {
 		if(resourceId <= 0) return null;
 
-		android.content.Context context = Screen.mainScreen().getContext();
+		android.content.Context context = Application.sharedApplication().getContext();
 		Resources resources = context.getResources();
 		return new Image(BitmapFactory.decodeResource(resources, resourceId));
 	}

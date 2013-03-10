@@ -131,9 +131,9 @@ public class TextView extends View {//ScrollView implements ScrollView.Listener 
 			}
 
 			if(this.editable) {
-				this.textView = new EditText(Screen.mainScreen().getContext());
+				this.textView = new EditText(Application.sharedApplication().getContext());
 			} else {
-				this.textView = new android.widget.TextView(Screen.mainScreen().getContext());
+				this.textView = new android.widget.TextView(Application.sharedApplication().getContext());
 			}
 
 			this.textView.setBackgroundColor(Color.TRANSPARENT);

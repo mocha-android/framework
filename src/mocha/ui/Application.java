@@ -133,4 +133,13 @@ public class Application extends mocha.foundation.Object {
 		return this.ignoreInteractionEventsLevel > 0;
 	}
 
+	/**
+	 * Get's the current context of the application
+	 *
+	 * @return Application context
+	 */
+	public android.content.Context getContext() {
+		return this.activity;
+	}
+
 }

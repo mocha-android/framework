@@ -29,11 +29,8 @@ public class Screen extends mocha.foundation.Object {
 
 	private mocha.graphics.Rect bounds;
 	private DisplayMetrics displayMetrics;
-	private WeakReference<Context> weakReference;
 
 	private Screen(Activity activity) {
-		this.weakReference = new WeakReference<Context>(activity);
-
 		this.displayMetrics = activity.getResources().getDisplayMetrics();
 
 		android.graphics.Point size = new android.graphics.Point();
@@ -56,7 +53,4 @@ public class Screen extends mocha.foundation.Object {
 		return new mocha.graphics.Rect(this.bounds);
 	}
 
-	public Context getContext() {
-		return this.weakReference.get();
-	}
 }
