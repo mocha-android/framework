@@ -7,65 +7,64 @@ package mocha.ui;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.view.*;
-import android.view.View;
-import android.widget.AdapterView;
+import mocha.graphics.Rect;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class AlertView extends mocha.foundation.Object {
+// TODO: Properly implement show() methods, currently just shows in the middle like an alert view of the screen.
+
+public class ActionSheet extends mocha.foundation.Object {
 
 	public interface Listener {
 		/**
 		 * Called when the button is clicked, before the dialog
 		 * is dismissed.
 		 *
-		 * @param alertView Alert view
+		 * @param actionSheet Action sheet
 		 * @param buttonIndex Button index that clicked (guaranteed not to be cancel button index)
 		 */
-		public void onClickedButtonAtIndex(AlertView alertView, int buttonIndex);
+		public void onClickedButtonAtIndex(ActionSheet actionSheet, int buttonIndex);
 
 		/**
 		 * Called when the dialog was cancelled
 		 *
-		 * @param alertView Alert view
+		 * @param actionSheet Action sheet
 		 */
-		public void onCancel(AlertView alertView);
+		public void onCancel(ActionSheet actionSheet);
 
 
 		public interface Presentation extends Listener {
 			/**
-			 * Called before the alert view appears on screen
+			 * Called before the action sheet appears on screen
 			 *
-			 * @param alertView Alert view
+			 * @param actionSheet Action sheet
 			 */
-			public void willPresentAlertView(AlertView alertView);
+			public void willPresentActionSheet(ActionSheet actionSheet);
 
 			/**
-			 * Calls after the alert view appears on screen
+			 * Calls after the action sheet appears on screen
 			 *
-			 * @param alertView Alert view
+			 * @param actionSheet Action sheet
 			 */
-			public void didPresentAlertView(AlertView alertView);
+			public void didPresentActionSheet(ActionSheet actionSheet);
 
 			/**
-			 * Called before the alert view dismisses from screen, after Listener#onClickedButtonAtIndex is called.
+			 * Called before the action sheet dismisses from screen, after Listener#onClickedButtonAtIndex is called.
 			 *
-			 * @param alertView Alert view
+			 * @param actionSheet Action sheet
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
-			public void willDismissWithButtonIndex(AlertView alertView, int buttonIndex);
+			public void willDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 
 			/**
-			 * Called after the alert view is removed from the screen.
+			 * Called after the action sheet is removed from the screen.
 			 *
-			 * @param alertView Alert view
+			 * @param actionSheet Action sheet
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
-			public void didDismissWithButtonIndex(AlertView alertView, int buttonIndex);
+			public void didDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 		}
 	}
 
@@ -76,30 +75,26 @@ public class AlertView extends mocha.foundation.Object {
 	private Listener listener;
 	private Listener.Presentation presentationListener;
 	private CharSequence title;
-	private CharSequence message;
 	private CharSequence cancelButtonTitle;
 	private List<CharSequence> otherButtonTitles;
 	private AlertDialog alertDialog;
 	private Style style;
-	private boolean destructive;
 	private int dismissedWithButtonIndex;
 	private final int cancelButtonIndex = -1;
 
 	/**
-	 * Create an alert view
+	 * Create an action sheet
 	 *
-	 * @param title Title of the alert view
-	 * @param message Message body of the alert view (will not appear if there are more than 3 total buttons, including cancel)
-	 * @param listener Listener for the alert
+	 * @param title Title of the action sheet
+	 * @param listener Listener for the action sheet
 	 * @param cancelButtonTitle Cancel button title, may be null
 	 * @param otherButtonTitles Other button titles, may be null
 	 */
-	public AlertView(CharSequence title, CharSequence message, Listener listener, CharSequence cancelButtonTitle, CharSequence... otherButtonTitles) {
+	public ActionSheet(CharSequence title, Listener listener, CharSequence cancelButtonTitle, CharSequence... otherButtonTitles) {
 		this.style = Style.DARK;
 		this.setListener(listener);
 
 		this.title = title;
-		this.message = message;
 		this.cancelButtonTitle = cancelButtonTitle;
 		this.otherButtonTitles = new ArrayList<CharSequence>();
 
@@ -131,41 +126,21 @@ public class AlertView extends mocha.foundation.Object {
 	}
 
 	/**
-	 * Get the title of the alert
+	 * Get the title of the action sheet
 	 *
-	 * @return Alert title
+	 * @return Action sheet title
 	 */
 	public CharSequence getTitle() {
 		return this.title;
 	}
 
 	/**
-	 * Set the alert title
+	 * Set the action sheet title
 	 *
-	 * @param title Alert title
+	 * @param title Action sheet title
 	 */
 	public void setTitle(CharSequence title) {
 		this.title = title;
-	}
-
-	/**
-	 * Get the alert message body
-	 *
-	 * @return Alert message body
-	 */
-	public CharSequence getMessage() {
-		return this.message;
-	}
-
-	/**
-	 * Set the alert message body
-	 *
-	 * Note: This will not appear if there are more than 3 total buttons, including the cancel button.
-	 *
-	 * @param message alert message body
-	 */
-	public void setMessage(CharSequence message) {
-		this.message = message;
 	}
 
 	/**
@@ -194,25 +169,25 @@ public class AlertView extends mocha.foundation.Object {
 	}
 
 	/**
-	 * Get the style of the alert
+	 * Get the style of the action sheet
 	 *
-	 * @return Alert style
+	 * @return Action sheet style
 	 */
 	public Style getStyle() {
 		return style;
 	}
 
 	/**
-	 * Set the style of the alert
+	 * Set the style of the action sheet
 	 *
-	 * @param style Alert style
+	 * @param style Action sheet style
 	 */
 	public void setStyle(Style style) {
 		this.style = style;
 	}
 
 	/**
-	 * Check whether or not the view alert is currently visible
+	 * Check whether or not the action sheet is currently visible
 	 *
 	 * @return Is visible
 	 */
@@ -230,37 +205,43 @@ public class AlertView extends mocha.foundation.Object {
 	}
 
 	/**
-	 * Get whether or not an alert is destructive.
-	 * If the alert is destructive, a warning icon will be set with the title.
+	 * Show the action sheet from a bar button item
 	 *
-	 * @return Is alert destructive
+	 * @param item Bar button item to show from
+	 * @param animated Whether or not the presentation is animated
 	 */
-	public boolean isDestructive() {
-		return destructive;
+	public void show(BarButtonItem item, boolean animated) {
+		this.show();
 	}
 
 	/**
-	 * Set whether or not an alert is destructive.
-	 * If the alert is destructive, a warning icon will be set with the title.
+	 * Show the action sheet from a view, around the rect
 	 *
-	 * @param destructive Is alert destructive
+	 * @param rect Rect to show from
+	 * @param view View to show in
+	 * @param animated Whether or not the presentation is animated
 	 */
-	public void setDestructive(boolean destructive) {
-		this.destructive = destructive;
+	public void show(Rect rect, View view, boolean animated) {
+		this.show();
 	}
 
 	/**
-	 * Show the alert
+	 * Show the action sheet from a view
+	 *
+	 * @param view View to show from
 	 */
-	public void show() {
+	public void show(View view) {
+		this.show();
+	}
+
+	/**
+	 * Show the actions heet
+	 */
+	private void show() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(Application.sharedApplication().getContext(), this.style == Style.LIGHT ? AlertDialog.THEME_HOLO_LIGHT : AlertDialog.THEME_HOLO_DARK);
 
 		if(this.title != null) {
 			builder.setTitle(this.title);
-		}
-
-		if(this.message != null) {
-			builder.setMessage(this.message);
 		}
 
 		if(this.cancelButtonTitle != null) {
@@ -282,24 +263,12 @@ public class AlertView extends mocha.foundation.Object {
 		}
 
 		if(this.otherButtonTitles.size() > 0) {
-			if(this.otherButtonTitles.size() == 1) {
-				builder.setPositiveButton(this.otherButtonTitles.get(0), new OnClickListener(0));
-			} else if(this.otherButtonTitles.size() == 2) {
-				builder.setNeutralButton(this.otherButtonTitles.get(0), new OnClickListener(0));
-				builder.setPositiveButton(this.otherButtonTitles.get(1), new OnClickListener(1));
-			} else {
-				CharSequence[] otherButtonTitles = this.otherButtonTitles.toArray(new CharSequence[this.otherButtonTitles.size()]);
-				builder.setMessage(null);
-				builder.setItems(otherButtonTitles, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialogInterface, int which) {
-						_dismissWithClickedButtonIndex(which);
-					}
-				});
-			}
-		}
-
-		if(this.destructive) {
-			builder.setIcon(android.R.drawable.ic_dialog_alert);
+			CharSequence[] otherButtonTitles = this.otherButtonTitles.toArray(new CharSequence[this.otherButtonTitles.size()]);
+			builder.setItems(otherButtonTitles, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialogInterface, int which) {
+					_dismissWithClickedButtonIndex(which);
+				}
+			});
 		}
 
 		this.alertDialog = builder.create();
@@ -309,14 +278,14 @@ public class AlertView extends mocha.foundation.Object {
 		this.alertDialog.setOnDismissListener(alertListener);
 
 		if(this.presentationListener != null) {
-			this.presentationListener.willPresentAlertView(this);
+			this.presentationListener.willPresentActionSheet(this);
 		}
 
 		this.alertDialog.show();
 	}
 
 	/**
-	 * Dismiss the alert view with a specified button index
+	 * Dismiss the action sheet with a specified button index
 	 * This call is not needed if the user presses a button
 	 *
 	 * @param buttonIndex Button index
@@ -359,7 +328,7 @@ public class AlertView extends mocha.foundation.Object {
 	private class AlertListener implements DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
 		public void onDismiss(DialogInterface dialogInterface) {
 			if(presentationListener != null) {
-				presentationListener.didDismissWithButtonIndex(AlertView.this, dismissedWithButtonIndex);
+				presentationListener.didDismissWithButtonIndex(ActionSheet.this, dismissedWithButtonIndex);
 			}
 
 			alertDialog = null;
@@ -367,7 +336,7 @@ public class AlertView extends mocha.foundation.Object {
 
 		public void onShow(DialogInterface dialogInterface) {
 			if(presentationListener != null) {
-				presentationListener.didPresentAlertView(AlertView.this);
+				presentationListener.didPresentActionSheet(ActionSheet.this);
 			}
 		}
 	}
