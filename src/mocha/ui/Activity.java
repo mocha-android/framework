@@ -17,6 +17,7 @@ public class Activity extends android.app.Activity {
 	private boolean setup;
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
+		this.setTheme(android.R.style.Theme_Holo);
 		super.onCreate(savedInstanceState);
 
 		if(!this.setup) {
