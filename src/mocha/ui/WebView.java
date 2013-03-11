@@ -288,7 +288,10 @@ public class WebView extends View {
 
 		private void loadDidStart() {
 			isLoading = true;
-			delegate.didStartLoad(WebView.this);
+
+			if(delegate != null && !ignorePageLoadChanges) {
+				delegate.didStartLoad(WebView.this);
+			}
 		}
 
 		public void loadDidEnd(boolean failed) {

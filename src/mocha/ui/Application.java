@@ -6,9 +6,12 @@
 package mocha.ui;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
+import mocha.foundation.Bundle;
 
 public class Application extends mocha.foundation.Object {
 	public static final String APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
@@ -21,6 +24,7 @@ public class Application extends mocha.foundation.Object {
 	private int ignoreInteractionEventsLevel = 0;
 	private Delegate delegate;
 	private Activity activity;
+	private Bundle bundle;
 
 	/**
 	 * Returns the singleton application instance
@@ -37,6 +41,7 @@ public class Application extends mocha.foundation.Object {
 
 	Application(Activity activity) {
 		this.activity = activity;
+		this.bundle = new Bundle(this);
 	}
 
 	public Delegate getDelegate() {
@@ -45,6 +50,10 @@ public class Application extends mocha.foundation.Object {
 
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
+	}
+
+	public Bundle getBundle() {
+		return bundle;
 	}
 
 	public InterfaceOrientation getStatusBarOrientation() {
@@ -140,6 +149,83 @@ public class Application extends mocha.foundation.Object {
 	 */
 	public android.content.Context getContext() {
 		return this.activity;
+	}
+
+	/**
+	 * Checks whether the system can open the url
+	 *
+	 * @param url Url to open
+	 * @return Whether the system can open it
+	 */
+	public boolean canOpenUrl(String url) {
+		try {
+			return this.canOpenUri(Uri.parse(url));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Tells the system to open a url
+	 *
+	 * @param url Url to open
+	 * @return Whether the system was able to open it
+	 */
+	public boolean openUrl(String url) {
+		try {
+			return this.openUri(Uri.parse(url));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Checks whether the system can open the uri
+	 *
+	 * @param uri Uri to open
+	 * @return Whether the system can open it
+	 */
+	public boolean canOpenUri(Uri uri) {
+		return this.canOpenIntent(new Intent(Intent.ACTION_VIEW, uri));
+	}
+
+	/**
+	 * Tells the system to open a url
+	 *
+	 * @param uri Url to open
+	 * @return Whether the system was able to open it
+	 */
+	public boolean openUri(Uri uri) {
+		return this.openIntent(new Intent(Intent.ACTION_VIEW, uri));
+	}
+
+	/**
+	 * Checks whether the system can open the intent
+	 *
+	 * @param intent Intent to open
+	 * @return Whether the system can open it
+	 */
+	public boolean canOpenIntent(Intent intent) {
+		try {
+			return this.activity.getPackageManager().resolveActivity(intent, 0) != null;
+		} catch(Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Opens an intent
+	 *
+	 * @param intent Intent to open
+	 * @return Whether or not the intent was opened
+	 */
+	public boolean openIntent(Intent intent) {
+		try {
+			this.activity.startActivity(intent);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 }
