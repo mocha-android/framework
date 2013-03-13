@@ -38,7 +38,7 @@ public class NotificationCenter extends Object {
 
 		boolean isObserving(String name, java.lang.Object sender) {
 			boolean nameMatch = name == null || (this.name != null && this.name.equals(name));
-			boolean senderMatch = sender == null || (this.sender.get() == sender);
+			boolean senderMatch = sender == null || this.sender == null || (this.sender.get() == sender);
 			return nameMatch && senderMatch;
 		}
 	}

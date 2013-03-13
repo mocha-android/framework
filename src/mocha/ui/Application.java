@@ -14,7 +14,9 @@ import android.view.WindowManager;
 import mocha.foundation.Bundle;
 
 public class Application extends mocha.foundation.Object {
-	public static final String APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
+	public static final String DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
+	public static final String WILL_RESIGN_ACTIVE_NOTIFICATION = "APPLICATION_DID_WILL_RESIGN_ACTIVE_NOTIFICATION";
+	public static final String DID_BECOME_ACTIVE_NOTIFICATION = "APPLICATION_DID_BECOME_ACTIVE_NOTIFICATION";
 
 	public interface Delegate {
 

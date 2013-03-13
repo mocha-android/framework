@@ -50,6 +50,11 @@ public class TableView extends ScrollView {
 			public float getHeightForRowAtIndexPath(TableView tableView, IndexPath indexPath);
 		}
 
+		public interface RowDisplay extends Delegate {
+			public void willDisplayCell(TableView tableView, TableViewCell cell, IndexPath indexPath);
+			public void didEndDisplayingCell(TableView tableView, TableViewCell cell, IndexPath indexPath);
+		}
+
 		public interface Selection extends Delegate {
 			public IndexPath willSelectRowAtIndexPath(TableView tableView, IndexPath indexPath);
 			public void didSelectRowAtIndexPath(TableView tableView, IndexPath indexPath);
@@ -95,6 +100,7 @@ public class TableView extends ScrollView {
 		public interface AccessorySelection extends Delegate {
 			public void accessoryButtonTappedForRowWithIndexPath(TableView tableView, IndexPath indexPath);
 		}
+
 	}
 
 	private static class SectionInfo {
@@ -162,6 +168,7 @@ public class TableView extends ScrollView {
 
 	private Delegate delegate;
 	private Delegate.RowSizing delegateRowSizing;
+	private Delegate.RowDisplay delegateRowDisplay;
 	private Delegate.Selection delegateSelection;
 	private Delegate.Deselection delegateDeselection;
 	private Delegate.Highlighting delegateHighlighting;
@@ -316,6 +323,12 @@ public class TableView extends ScrollView {
 				this.delegateRowSizing = (Delegate.RowSizing) delegate;
 			} else {
 				this.delegateRowSizing = null;
+			}
+
+			if(delegate instanceof Delegate.RowDisplay) {
+				this.delegateRowDisplay = (Delegate.RowDisplay) delegate;
+			} else {
+				this.delegateRowDisplay = null;
 			}
 
 			if(delegate instanceof Delegate.Selection) {
@@ -579,6 +592,12 @@ public class TableView extends ScrollView {
 		for(View subview : subviews) {
 			if(subview instanceof TableViewSubview) {
 				subview.removeFromSuperview();
+
+				if(subview instanceof TableViewCell) {
+					if(this.delegateRowDisplay != null) {
+						this.delegateRowDisplay.didEndDisplayingCell(this, (TableViewCell)subview, ((TableViewCell) subview)._dataSourceInfo.indexPath);
+					}
+				}
 			}
 		}
 
@@ -810,6 +829,10 @@ public class TableView extends ScrollView {
 						List<TableViewCell> queuedCells = new ArrayList<TableViewCell>();
 						this.cellsQueuedForReuse.put(cell._reuseIdentifier, queuedCells);
 						queuedViews = queuedCells;
+					}
+
+					if(this.delegateRowDisplay != null) {
+						this.delegateRowDisplay.didEndDisplayingCell(this, cell, info.indexPath);
 					}
 				} else {
 					if (info.type == TableViewSubview.Info.Type.HEADER) {
@@ -1388,6 +1411,10 @@ public class TableView extends ScrollView {
 		frame.size.width = this.getBounds().size.width;
 		frame.size.height = this.usesCustomRowHeights ? this.sectionsInfo.get(indexPath.section).rowHeights[indexPath.row] : this.getRowHeight();
 		cell.setFrame(frame);
+
+		if(this.delegateRowDisplay != null) {
+			this.delegateRowDisplay.willDisplayCell(this, cell, indexPath);
+		}
 
 		if (cell.getSuperview() != this) {
 			cell.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);

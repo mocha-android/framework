@@ -15,6 +15,7 @@ public class Activity extends android.app.Activity {
 	private ArrayList<Window> windows;
 	private Application application;
 	private boolean setup;
+	private boolean hasPreviouslyLaunched;
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		this.setTheme(android.R.style.Theme_Holo);
@@ -68,6 +69,8 @@ public class Activity extends android.app.Activity {
 	protected void onPause() {
 		super.onPause();
 
+		NotificationCenter.defaultCenter().post(Application.WILL_RESIGN_ACTIVE_NOTIFICATION, this.application);
+
 		for(Window window : this.windows) {
 			window.onPause();
 		}
@@ -79,12 +82,18 @@ public class Activity extends android.app.Activity {
 		for(Window window : this.windows) {
 			window.onResume();
 		}
+
+		if(this.hasPreviouslyLaunched) {
+			NotificationCenter.defaultCenter().post(Application.DID_BECOME_ACTIVE_NOTIFICATION, this.application);
+		} else {
+			this.hasPreviouslyLaunched = true;
+		}
 	}
 
 	public void onLowMemory() {
 		super.onLowMemory();
 
-		NotificationCenter.defaultCenter().post(Application.APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, this.application);
+		NotificationCenter.defaultCenter().post(Application.DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, this.application);
 	}
 
 }

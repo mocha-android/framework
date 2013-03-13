@@ -35,7 +35,7 @@ public class ViewController extends Responder {
 			}
 		}
 
-		NotificationCenter.defaultCenter().addObserver(this, didReceiveMemoryWarningMethod, Application.APPLICATION_DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, null);
+		NotificationCenter.defaultCenter().addObserver(this, didReceiveMemoryWarningMethod, Application.DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, null);
 	}
 
 	/**
