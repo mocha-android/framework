@@ -208,7 +208,7 @@ public class Label extends View implements Highlightable {
 		Rect bounds = this.getBounds();
 		Rect drawRect = Rect.zero();
 
-		if(lastSize == null || this.textNeedsMeasuring || bounds.size.equals(lastSize)) {
+		if(lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
 			Size maxSize = bounds.size.copy();
 
 			if (this.numberOfLines > 0) {

@@ -188,7 +188,7 @@ public class TextDrawing extends mocha.foundation.Object {
 		int length = text.length();
 		float[] measuredWidth = new float[] { 0.0f };
 		Size size = new Size();
-		float lineHeight = font.getLineHeight();
+		float lineHeight = font.getLineHeight() * screenScale;
 		float maxHeight = constrainedToSize.height * screenScale;
 
 		while(index < length - 1) {

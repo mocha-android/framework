@@ -264,8 +264,6 @@ public class NotificationCenter extends Object {
 			throw new RuntimeException("Notification target action can only accept a single Notification parameter or no parameters at all.");
 		}
 
-		MLog("Adding target/action observer %s %s for %s", target, action, notificationName);
-
 		Observeration observation = new Observeration();
 		observation.target = new WeakReference<java.lang.Object>(target);
 		observation.method = action;
