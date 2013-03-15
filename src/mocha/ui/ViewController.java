@@ -21,6 +21,9 @@ public class ViewController extends Responder {
 	private NavigationItem navigationItem;
 	private String title;
 	private Responder nextResponder;
+	private boolean willAppear;
+	private boolean didAppear;
+
 
 	private static Method didReceiveMemoryWarningMethod;
 
@@ -115,6 +118,7 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition will be animated
 	 */
 	public void viewWillAppear(boolean animated) {
+		this.willAppear = true;
 		this.notifyChildrenAppearanceTransitionBegin(true, animated);
 	}
 
@@ -124,6 +128,8 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition was animated
 	 */
 	public void viewDidAppear(boolean animated) {
+		this.willAppear = false;
+		this.didAppear = true;
 		this.notifyChildrenAppearanceTransitionEnded();
 	}
 
@@ -133,6 +139,8 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition will be animated
 	 */
 	public void viewWillDisappear(boolean animated) {
+		this.didAppear = false;
+		this.willAppear = false;
 		this.notifyChildrenAppearanceTransitionBegin(false, animated);
 	}
 
@@ -142,6 +150,8 @@ public class ViewController extends Responder {
 	 * @param animated Whether or not the transition was animated
 	 */
 	public void viewDidDisappear(boolean animated) {
+		this.didAppear = false;
+		this.willAppear = false;
 		this.notifyChildrenAppearanceTransitionEnded();
 	}
 
@@ -372,6 +382,8 @@ public class ViewController extends Responder {
 	 * @param animated If true, the transition is being animated.
 	 */
 	public void beginAppearanceTransition(boolean isAppearing, boolean animated) {
+		if(isAppearing && this.parentViewController != null && !this.parentViewController.willAppear && !this.parentViewController.didAppear) return;
+
 		this.appearanceTransitionIsAppearing = isAppearing ? 1 : -1;
 		this.appearanceTransitionAnimated = animated ? 1 : -1;
 
@@ -389,6 +401,8 @@ public class ViewController extends Responder {
 	 * the view transition is complete.
 	 */
 	public void endAppearanceTransition() {
+		if(this.appearanceTransitionIsAppearing == 1 && this.parentViewController != null && !this.parentViewController.willAppear && !this.parentViewController.didAppear) return;
+
 		if(this.appearanceTransitionIsAppearing == 1) {
 			this.viewDidAppear(this.appearanceTransitionAnimated == 1);
 		} else if(this.appearanceTransitionIsAppearing == -1) {

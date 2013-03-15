@@ -6,8 +6,12 @@
 package mocha.ui;
 
 import android.app.Application;
+import mocha.foundation.Notification;
 import mocha.graphics.Rect;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class Control extends View {
@@ -84,6 +88,14 @@ public class Control extends View {
 		this.enabled = true;
 		this.contentHorizontalAlignment = HorizontalAlignment.CENTER;
 		this.contentVerticalAlignment = VerticalAlignment.CENTER;
+	}
+
+	public void addTargetAction(Object target, String actionMethodName, ControlEvent... controlEvents) {
+		this.addActionTarget(new RuntimeTargetAction(target, actionMethodName), controlEvents);
+	}
+
+	public void addTargetAction(Object target, Method action, ControlEvent... controlEvents) {
+		this.addActionTarget(new RuntimeTargetAction(target, action), controlEvents);
 	}
 
 	public void addActionTarget(ActionTarget actionTarget, ControlEvent... controlEvents) {
@@ -337,6 +349,70 @@ public class Control extends View {
 			return EnumSet.of(states[0], states);
 		} else {
 			return EnumSet.noneOf(State.class);
+		}
+	}
+
+	static class RuntimeTargetAction implements ActionTarget {
+
+		private static Method resolveActionMethodName(Object target, String actionMethodName) {
+			Method method;
+
+			try {
+				method = target.getClass().getMethod(actionMethodName, ControlEvent.class);
+			} catch (NoSuchMethodException e) {
+				try {
+					method = target.getClass().getMethod(actionMethodName);
+				} catch (NoSuchMethodException e1) {
+					throw new RuntimeException("Could not find method " + actionMethodName + " on target " + target + " that accepts a ControlEvent parameter or none at all.");
+				}
+			}
+
+			return method;
+		}
+
+		private boolean methodTakesControlEventParameter;
+		private WeakReference<Object> target;
+		private Method action;
+
+		public RuntimeTargetAction(Object target, String actionMethodName) {
+			this(target, resolveActionMethodName(target, actionMethodName));
+		}
+
+		public RuntimeTargetAction(Object target, Method action) {
+			boolean passedParameterCheck;
+			this.methodTakesControlEventParameter = action.getParameterTypes().length == 1;
+
+			if(this.methodTakesControlEventParameter) {
+				Class parameter = action.getParameterTypes()[0];
+				//noinspection unchecked
+				passedParameterCheck = !(parameter != ControlEvent.class && !parameter.isAssignableFrom(ControlEvent.class));
+			} else {
+				passedParameterCheck = action.getParameterTypes().length == 0;
+			}
+
+			if(!passedParameterCheck) {
+				throw new RuntimeException("Control target action can only accept a single ControlEvent parameter or no parameters at all.");
+			}
+
+			this.target = new WeakReference<Object>(target);
+			this.action = action;
+		}
+
+		public void onControlEvent(Control control, ControlEvent controlEvent) {
+			Object target = this.target.get();
+			if(target == null) return;
+
+			try {
+				if(this.methodTakesControlEventParameter) {
+					this.action.invoke(target, controlEvent);
+				} else {
+					this.action.invoke(target);
+				}
+			} catch (IllegalAccessException e) {
+				MWarn(e, "Could not send control event to %s#%s", this.target, this.action);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

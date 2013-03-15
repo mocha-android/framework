@@ -146,7 +146,7 @@ public class NotificationCenter extends Object {
 					} catch (IllegalAccessException e) {
 						MWarn(e, "Could not post notification to %s#%s", target, observation.method);
 					} catch (InvocationTargetException e) {
-						throw new RuntimeException(e.getCause());
+						throw new RuntimeException(e);
 					}
 				} else {
 					MWarn("Trying to send notification %s to a GC'd observer.", name);

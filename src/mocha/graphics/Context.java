@@ -45,6 +45,12 @@ public final class Context extends mocha.foundation.Object {
 	public Context(Canvas canvas, float scale) {
 		this(scale);
 		this.canvas = canvas;
+
+		if(!canvas.isHardwareAccelerated()) {
+			this.paint.setAntiAlias(true);
+			this.strokePaint.setAntiAlias(true);
+			this.textPaint.setAntiAlias(true);
+		}
 	}
 
 	public Context(Size size, float scale) {
@@ -59,6 +65,16 @@ public final class Context extends mocha.foundation.Object {
 		this.bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
 		this.bitmap.setDensity(Math.round(DisplayMetrics.DENSITY_MEDIUM * scale));
 		this.canvas = new Canvas(this.bitmap);
+	}
+
+	public Rect getClipBoundingBox() {
+		android.graphics.Rect clipBounds = this.canvas.getClipBounds();
+		Rect bounds = new Rect();
+		bounds.origin.x = (float)clipBounds.left / this.scale;
+		bounds.origin.y = (float)clipBounds.top / this.scale;
+		bounds.size.width = (float)clipBounds.width() / this.scale;
+		bounds.size.height = (float)clipBounds.height() / this.scale;
+		return bounds;
 	}
 
 	public Image getImage() {
@@ -82,6 +98,10 @@ public final class Context extends mocha.foundation.Object {
 		return this.textPaint;
 	}
 
+	Paint getPaint() {
+		return paint;
+	}
+
 	public void setFillColor(int color) {
 		this.paint.setColor(color);
 		this.textPaint.setColor(color);
@@ -91,58 +111,48 @@ public final class Context extends mocha.foundation.Object {
 		this.strokePaint.setColor(color);
 	}
 
-	public void setBlendMode(BlendMode blendMode) {
-		android.graphics.Xfermode xfermode;
+	static android.graphics.Xfermode getXferMode(BlendMode blendMode) {
+		if(blendMode == null || blendMode == BlendMode.NORMAL) {
+			return null;
+		}
 
 		switch (blendMode) {
 			case MULTIPLY:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY);
 			case SCREEN:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.SCREEN);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.SCREEN);
 			case OVERLAY:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.OVERLAY);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.OVERLAY);
 			case DARKEN:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.DARKEN);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.DARKEN);
 			case LIGHTEN:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN);
 			case CLEAR:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
 			case SOURCE_IN:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.SRC_IN);
 			case SOURCE_OUT:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT);
 			case SOURCE_ATOP:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP);
 			case DESTINATION_OVER:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_OVER);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.DST_OVER);
 			case DESTINATION_IN:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
 			case DESTINATION_OUT:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_OUT);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.DST_OUT);
 			case DESTINATION_ATOP:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP);
 			case XOR:
-				xfermode = new PorterDuffXfermode(PorterDuff.Mode.XOR);
-				break;
+				return new PorterDuffXfermode(PorterDuff.Mode.XOR);
 			case NORMAL:
 			default:
-				xfermode = null;
-				break;
+				return null;
 		}
+	}
 
+	public void setBlendMode(BlendMode blendMode) {
+		android.graphics.Xfermode xfermode = getXferMode(blendMode);
 		this.paint.setXfermode(xfermode);
 		this.textPaint.setXfermode(xfermode);
 		this.strokePaint.setXfermode(xfermode);

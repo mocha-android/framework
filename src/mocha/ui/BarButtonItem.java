@@ -52,7 +52,7 @@ public class BarButtonItem extends BarItem {
 		return appearance(BarButtonItem.class);
 	}
 
-	public BarButtonItem() {
+	private BarButtonItem() {
 		this.style = Style.PLAIN;
 		this.backgroundVerticalPositionAdjustments = new BarMetricsStorage<Float>();
 		this.titlePositionAdjustments = new BarMetricsStorage<Offset>();

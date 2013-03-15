@@ -160,10 +160,17 @@ public class Image extends mocha.foundation.Object {
 	}
 
 	public void draw(Context context, Rect rect) {
+		this.draw(context, rect, Context.BlendMode.NORMAL, 1.0f);
+	}
+
+	public void draw(Context context, Rect rect, Context.BlendMode blendMode, float alpha) {
 		Canvas canvas = context.getCanvas();
 
-		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
+		Paint paint = new Paint(context.getPaint());
 		paint.setColor(0xff000000);
+		paint.setFlags(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
+		paint.setXfermode(Context.getXferMode(blendMode));
+		paint.setAlpha(Math.round(alpha * 255.0f));
 
 		if(this.ninePatch != null) {
 			this.ninePatch.draw(canvas, rect.toSystemRect(context.getScale()), paint);
@@ -174,6 +181,10 @@ public class Image extends mocha.foundation.Object {
 
 	public void draw(Context context, Point point) {
 		this.draw(context, new Rect(point, this.size));
+	}
+
+	public void draw(Context context, Point point, Context.BlendMode blendMode, float alpha) {
+		this.draw(context, new Rect(point, this.size), blendMode, alpha);
 	}
 
 	/**

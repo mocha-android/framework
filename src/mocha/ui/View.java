@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.util.FloatMath;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -453,6 +454,34 @@ public class View extends Responder implements Accessibility {
 
 	public void setMultipleTouchEnabled(boolean multipleTouchEnabled) {
 		this.multipleTouchEnabled = multipleTouchEnabled;
+	}
+
+	/**
+	 * Change the backing layer type, if we're using ViewLayerNative.
+	 * Changing this shouldn't be necessary unless you're using something like
+	 * blending modes in your view's draw() method that isn't supported by
+	 * hardware layers yet.
+	 *
+	 * @param hardwareAccelerationEnabled Whether or not hardware acceleration is enabled
+	 */
+	public void setHardwareAccelerationEnabled(boolean hardwareAccelerationEnabled) {
+		ViewLayer layer = this.getLayer();
+
+		if(layer instanceof ViewLayerNative) {
+			if(hardwareAccelerationEnabled) {
+				((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_NONE, null);
+			} else {
+				((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
+			}
+		}
+	}
+
+	/**
+	 * @return Whether or not the view is hardware accelerated
+	 */
+	public boolean isHardwareAccelerationEnabled() {
+		ViewLayer layer = this.getLayer();
+		return layer instanceof ViewLayerNative && ((ViewLayerNative) layer).isHardwareAccelerated();
 	}
 
 	// Layout
@@ -937,27 +966,39 @@ public class View extends Responder implements Accessibility {
 	// Helpers
 
 	public static int ceil(float f) {
-		return (int)Math.ceil((double)f);
+		return (int)FloatMath.ceil(f);
+	}
+
+	public static int ceil(double d) {
+		return (int)Math.ceil(d);
 	}
 
 	public static int floor(float f) {
-		return (int)f;
+		return (int)FloatMath.floor(f);
+	}
+
+	public static int floor(double d) {
+		return (int)Math.floor(d);
 	}
 
 	public static int round(float f) {
-		return (int)(f + 0.5f);
+		return (int)FloatMath.floor(f + 0.5f);
+	}
+
+	public static int round(double d) {
+		return (int)Math.round(d);
 	}
 
 	public static float ceilf(float f) {
-		return (float)((int)Math.ceil((double)f));
+		return FloatMath.ceil(f);
 	}
 
 	public static float floorf(float f) {
-		return (float)((int)f);
+		return FloatMath.floor(f);
 	}
 
 	public static float roundf(float f) {
-		return (float)((int)(f + 0.5f));
+		return FloatMath.floor(f + 0.5f);
 	}
 
 	public static float clampf(float value, float minimum, float maximum) {
@@ -1105,6 +1146,10 @@ public class View extends Responder implements Accessibility {
 		animations.performAnimatedChanges();
 
 		commitAnimations();
+	}
+
+	public static void beginAnimations() {
+		beginAnimations(null, null);
 	}
 
 	public static void beginAnimations(String animationID, Object context) {

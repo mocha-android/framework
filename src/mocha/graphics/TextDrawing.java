@@ -26,7 +26,7 @@ public class TextDrawing extends mocha.foundation.Object {
 		float lineHeight = font.getLineHeight() * scale;
 		float maxWidth = constrainWidth(rect.size.width * scale);
 		float maxHeight = rect.size.height * scale;
-		float lineHeightAdjustment = FloatMath.floor((font.getLineHeightDrawingAdjustment() / 2.0f) * scale);
+		float lineHeightAdjustment = FloatMath.floor((font.getLineHeightDrawingAdjustment()) * scale);
 
 		TextPaint textPaint = context.getTextPaint();
 		textPaint.setTypeface(font.getTypeface());
@@ -123,7 +123,9 @@ public class TextDrawing extends mocha.foundation.Object {
 		float textWidth = textPaint.measureText(text, 0, text.length());
 
 		float x = point.x * scale;
-		float y = (point.y - FloatMath.floor((font.getLineHeightDrawingAdjustment() / 2.0f))) * scale;
+		float lineHeightAdjustment = (font.getLineHeightDrawingAdjustment() * scale);
+		float lineHeight = font.getLineHeight() * scale;
+		float y = (point.y * scale) + (lineHeight / 2.0f) + lineHeightAdjustment;
 
 		context.getCanvas().drawText(text, 0, text.length(), x, y, textPaint);
 
