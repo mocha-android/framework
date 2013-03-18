@@ -98,6 +98,10 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 			}
 		}
 
+		if(state == State.BEGAN && this.areAnyEnclosingScrollViewsDecelerating()) {
+			state = State.FAILED;
+		}
+
 		super.setState(state);
 	}
 
@@ -130,6 +134,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	protected void reset() {
+		MLogStackTrace("PANNING %s %s", this.getScrollView() != null ? this.getScrollView().getClass().getName() : null, MGetCurrentMethodName());
 		this.lastScrollDirection = this.scrollDirection;
 		this.scrollDirection = null;
 		super.reset();
@@ -149,6 +154,57 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		} else {
 			return null;
 		}
+	}
+
+	private ScrollView getEnclosingScrollView() {
+		ScrollView scrollView = this.getScrollView();
+		if(scrollView == null) return null;
+
+		View superview = scrollView;
+
+		while((superview = superview.getSuperview()) != null) {
+			if(superview instanceof ScrollView) {
+				return (ScrollView)superview;
+			}
+		}
+
+		return null;
+	}
+
+	private boolean areAnyEnclosingScrollViewsScrolling() {
+		ScrollView enclosingScrollView = this.getEnclosingScrollView();
+
+		if(enclosingScrollView == null) {
+			return false;
+		}
+
+		do {
+			ScrollViewPanGestureRecognizer recognizer = enclosingScrollView.panGestureRecognizer;
+			if(recognizer.panning) return true;
+			ScrollView scrollView = recognizer.getScrollView();
+			if(scrollView == null) return false;
+			if(scrollView.decelerating) return true;
+			enclosingScrollView = recognizer.getEnclosingScrollView();
+		} while(enclosingScrollView != null);
+
+		return false;
+	}
+
+	private boolean areAnyEnclosingScrollViewsDecelerating() {
+		ScrollView scrollView = this.getScrollView();
+		if(scrollView == null) return false;
+
+		View superview = scrollView;
+
+		while((superview = superview.getSuperview()) != null) {
+			if(superview instanceof ScrollView) {
+				if(((ScrollView) superview).decelerating) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 }

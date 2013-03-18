@@ -113,6 +113,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	private Set<WeakReference<GestureRecognizer>> failureDependents;
 	private boolean failureRequirementsSatisfied;
 	private boolean passedPreventionTests;
+	private Runnable resetCallback;
 
 	public GestureRecognizer() {
 		this.state = State.POSSIBLE;
@@ -273,11 +274,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 			if(prevented) {
 				this.state = State.FAILED;
 				this.notifyDependentsOfFailure();
-				performAfterDelay(0, new Runnable() {
-					public void run() {
-						reset();
-					}
-				});
+				this.scheduleReset();
 				return;
 			}
 		}
@@ -320,11 +317,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		}
 
 		if(needsReset) {
-			performAfterDelay(0, new Runnable() {
-				public void run() {
-					reset();
-				}
-			});
+			this.scheduleReset();
 		}
 	}
 
@@ -362,6 +355,10 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		}
 
 		if(this.trackingTouches.size() == 0) return;
+
+		if(this.resetCallback != null) {
+			this.reset();
+		}
 
 		this.lastEvent = event;
 		this.didSetState = false;
@@ -404,12 +401,26 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		return this.lastEvent;
 	}
 
+	private void scheduleReset() {
+		this.resetCallback = performOnMainAfterDelay(0, new Runnable() {
+			public void run() {
+				resetCallback = null;
+				reset();
+			}
+		});
+	}
+
 	protected void reset() {
 		this.state = State.POSSIBLE;
 		this.trackingTouches.clear();
 		this.ignoredTouches.clear();
 		this.failureRequirementsSatisfied = false;
 		this.passedPreventionTests = false;
+
+		if(this.resetCallback != null) {
+			cancelCallbacks(this.resetCallback);
+			this.resetCallback = null;
+		}
 	}
 
 	protected void ignoreTouch(Touch touch, Event event) {
