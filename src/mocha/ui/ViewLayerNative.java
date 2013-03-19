@@ -12,9 +12,7 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import mocha.graphics.AffineTransform;
-import mocha.graphics.Point;
-import mocha.graphics.Rect;
+import mocha.graphics.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +28,11 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
 	private View clipToView;
+	private int shadowColor;
+	private float shadowOpacity;
+	private Size shadowOffset;
+	private float shadowRadius;
+	private Path shadowPath;
 	public final float scale;
 
 	public ViewLayerNative(Context context) {
@@ -294,6 +297,51 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 		this.setNeedsDisplay();
 		this.getSuperlayer().setNeedsDisplay();
+	}
+
+	public int getShadowColor() {
+		return shadowColor;
+	}
+
+	public void setShadowColor(int shadowColor) {
+		this.shadowColor = shadowColor;
+		this.setNeedsDisplay();
+	}
+
+	public float getShadowOpacity() {
+		return shadowOpacity;
+	}
+
+	public void setShadowOpacity(float shadowOpacity) {
+		this.shadowOpacity = shadowOpacity;
+		this.setNeedsDisplay();
+	}
+
+	public Size getShadowOffset() {
+		return shadowOffset;
+	}
+
+	public void setShadowOffset(Size shadowOffset) {
+		this.shadowOffset = shadowOffset;
+		this.setNeedsDisplay();
+	}
+
+	public float getShadowRadius() {
+		return shadowRadius;
+	}
+
+	public void setShadowRadius(float shadowRadius) {
+		this.shadowRadius = shadowRadius;
+		this.setNeedsDisplay();
+	}
+
+	public Path getShadowPath() {
+		return shadowPath;
+	}
+
+	public void setShadowPath(Path shadowPath) {
+		this.shadowPath = shadowPath;
+		this.setNeedsDisplay();
 	}
 
 	public boolean isHidden() {

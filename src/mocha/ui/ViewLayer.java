@@ -6,7 +6,9 @@
 package mocha.ui;
 
 import mocha.graphics.AffineTransform;
+import mocha.graphics.Path;
 import mocha.graphics.Rect;
+import mocha.graphics.Size;
 
 import java.util.List;
 
@@ -54,6 +56,21 @@ public interface ViewLayer {
 
 	public ViewLayer getSuperlayer();
 	public void removeFromSuperlayer();
+
+	public int getShadowColor();
+	public void setShadowColor(int shadowColor);
+
+	public float getShadowOpacity();
+	public void setShadowOpacity(float shadowOpacity);
+
+	public Size getShadowOffset();
+	public void setShadowOffset(Size shadowOffset);
+
+	public float getShadowRadius();
+	public void setShadowRadius(float shadowRadius);
+
+	public Path getShadowPath();
+	public void setShadowPath(Path shadowPath);
 
 	public class InvalidSubLayerClassException extends RuntimeException {
 		public InvalidSubLayerClassException(ViewLayer parent, ViewLayer child) {

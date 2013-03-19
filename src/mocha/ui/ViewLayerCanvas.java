@@ -9,10 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import mocha.foundation.Benchmark;
-import mocha.graphics.AffineTransform;
-import mocha.graphics.Context;
-import mocha.graphics.Point;
-import mocha.graphics.Rect;
+import mocha.graphics.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -41,6 +38,11 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	private Bitmap cachedDrawing;
 	private boolean clipsToBounds;
 	private AffineTransform transform;
+	private int shadowColor;
+	private float shadowOpacity;
+	private Size shadowOffset;
+	private float shadowRadius;
+	private Path shadowPath;
 	final float scale;
 	final int dpi;
 
@@ -379,4 +381,43 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		this.needsDisplay = false;
 	}
 
+	public int getShadowColor() {
+		return shadowColor;
+	}
+
+	public void setShadowColor(int shadowColor) {
+		this.shadowColor = shadowColor;
+	}
+
+	public float getShadowOpacity() {
+		return shadowOpacity;
+	}
+
+	public void setShadowOpacity(float shadowOpacity) {
+		this.shadowOpacity = shadowOpacity;
+	}
+
+	public Size getShadowOffset() {
+		return shadowOffset;
+	}
+
+	public void setShadowOffset(Size shadowOffset) {
+		this.shadowOffset = shadowOffset;
+	}
+
+	public float getShadowRadius() {
+		return shadowRadius;
+	}
+
+	public void setShadowRadius(float shadowRadius) {
+		this.shadowRadius = shadowRadius;
+	}
+
+	public Path getShadowPath() {
+		return shadowPath;
+	}
+
+	public void setShadowPath(Path shadowPath) {
+		this.shadowPath = shadowPath;
+	}
 }
