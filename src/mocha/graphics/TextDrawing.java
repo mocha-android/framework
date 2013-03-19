@@ -40,7 +40,7 @@ public class TextDrawing extends mocha.foundation.Object {
 		float y = (rect.origin.y * scale) + (lineHeight / 2.0f) + lineHeightAdjustment;
 		float originX = rect.origin.x * scale;
 
-		while(index < length - 1) {
+		while(index < length) {
 			int measured = textPaint.breakText(text, index, length, true, maxWidth, measuredWidth);
 
 			size.width = Math.max(measuredWidth[0], size.width);
@@ -184,8 +184,6 @@ public class TextDrawing extends mocha.foundation.Object {
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
 		constrainedToSize.width = constrainWidth(constrainedToSize.width * screenScale);
 
-		int lineCount = 0;
-
 		int index = 0;
 		int length = text.length();
 		float[] measuredWidth = new float[] { 0.0f };
@@ -193,10 +191,9 @@ public class TextDrawing extends mocha.foundation.Object {
 		float lineHeight = font.getLineHeight() * screenScale;
 		float maxHeight = constrainedToSize.height * screenScale;
 
-		while(index < length - 1) {
+		while(index < length) {
 			int measured = textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
 			index += measured;
-			lineCount++;
 
 			size.width = Math.max(measuredWidth[0], size.width);
 			size.height += lineHeight;

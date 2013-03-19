@@ -98,6 +98,10 @@ public final class Context extends mocha.foundation.Object {
 		return this.textPaint;
 	}
 
+	Paint getStrokePaint() {
+		return strokePaint;
+	}
+
 	Paint getPaint() {
 		return paint;
 	}

@@ -5,8 +5,25 @@
  */
 package mocha.graphics;
 
+import android.graphics.Matrix;
+import android.graphics.RectF;
+
+import java.util.Collections;
+import java.util.EnumSet;
+
 public class Path extends mocha.foundation.Object {
 	// TODO: Build out class
+
+	private final android.graphics.Path nativePath;
+	private float lineWidth;
+	private LineCap lineCapStyle;
+	private LineJoin lineJoinStyle;
+	private float miterLimit;
+	private float flatness;
+	private boolean usesEvenOddFillRule;
+	private Rect cachedBounds;
+	private android.graphics.Path cachedScaledPath;
+	private float cachedScaledPathFactor;
 
 	public enum LineCap {
 		BUTT,
@@ -20,7 +37,285 @@ public class Path extends mocha.foundation.Object {
 		BEVEL
 	}
 
-	private Path() {
+	public enum Corner {
+		TOP_LEFT,
+		TOP_RIGHT,
+		BOTTOM_LEFT,
+		BOTTOM_RIGHT;
 
+		public final static Corner[] ALL = new Corner[] { TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT };
+	}
+
+	public Path() {
+		this(new android.graphics.Path());
+	}
+
+	private Path(android.graphics.Path nativePath) {
+		this.nativePath = nativePath;
+		this.lineWidth = 1.0f;
+		this.lineCapStyle = LineCap.BUTT;
+		this.lineJoinStyle = LineJoin.MITER;
+	}
+
+	public static Path withRect(Rect rect) {
+		Path path = new Path();
+		path.nativePath.addRect(rect.toSystemRectF(), android.graphics.Path.Direction.CW);
+		return path;
+	}
+
+	public static Path withRoundedRect(Rect rect, float cornerRadius) {
+		return withRoundedRect(rect, new Size(cornerRadius,cornerRadius), Corner.ALL);
+	}
+
+	public static Path withRoundedRect(Rect rect, Size cornerRadii, Corner... byRoundingCorners) {
+		android.graphics.Path path = new android.graphics.Path();
+		EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
+		Collections.addAll(corners, byRoundingCorners);
+
+		Point min = rect.origin;
+		Point max = rect.max();
+
+		if(corners.contains(Corner.TOP_LEFT)) {
+			path.moveTo(min.x, min.y + cornerRadii.height);
+			path.quadTo(min.x, min.y, min.x + cornerRadii.width, min.y);
+		} else {
+			path.moveTo(rect.origin.x, rect.origin.y);
+		}
+
+		if(corners.contains(Corner.TOP_RIGHT)) {
+			path.lineTo(max.x - cornerRadii.width, min.y);
+			path.quadTo(max.x, min.y, max.x, min.y + cornerRadii.height);
+		} else {
+			path.lineTo(rect.origin.x + rect.size.width, rect.origin.y);
+		}
+
+		if(corners.contains(Corner.BOTTOM_RIGHT)) {
+			path.lineTo(max.x, max.y - cornerRadii.height);
+			path.quadTo(max.x, max.y, max.x - cornerRadii.width, max.y);
+		} else {
+			path.lineTo(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+		}
+
+		if(corners.contains(Corner.BOTTOM_LEFT)) {
+			path.lineTo(min.x + cornerRadii.width, max.y);
+			path.quadTo(min.x, max.y, min.x, max.y - cornerRadii.height);
+		} else {
+			path.lineTo(rect.origin.x, rect.origin.y + rect.size.height);
+		}
+
+		path.close();
+
+		return new Path(path);
+	}
+
+	public void moveToPoint(Point point) {
+		this.nativePath.moveTo(point.x, point.y);
+		this.invalidateCache();
+	}
+
+	public void addLineToPoint(Point point) {
+		this.nativePath.lineTo(point.x, point.y);
+		this.invalidateCache();
+	}
+
+	public void addCurveToPoint(Point endPoint, Point controlPoint1, Point controlPoint2) {
+		this.nativePath.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, endPoint.x, endPoint.y);
+		this.invalidateCache();
+	}
+
+	public void addQuadCurveToPoint(Point endPoint, Point controlPoint) {
+		this.nativePath.quadTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
+		this.invalidateCache();
+	}
+
+//	public void addArcWithCenter(Point center, float radius, float startAngle, float endAngle, boolean clockwise) {
+//
+//	}
+
+	public void closePath() {
+		this.nativePath.close();
+		this.invalidateCache();
+	}
+
+	public void removeAllPoints() {
+		this.nativePath.reset();
+		this.invalidateCache();
+	}
+
+	public void appendPath(Path path) {
+		this.nativePath.addPath(path.nativePath);
+		this.invalidateCache();
+	}
+
+	public Path getReversedPath() {
+		return null;
+	}
+
+	public void applyTransform(AffineTransform transform) {
+		Matrix matrix = new Matrix();
+
+		if(!transform.isIdentity()) {
+			float[] values = new float[] {
+				transform.getA(), transform.getB(),
+				transform.getC(), transform.getD(),
+
+				transform.getTx(),
+				transform.getTy()
+			};
+
+			matrix.setValues(new float[]{
+					values[0], values[2], values[4],
+					values[1], values[3], values[5],
+					0.0f, 0.0f, 1.0f
+			});
+		}
+
+		this.nativePath.transform(matrix);
+		this.invalidateCache();
+	}
+
+	public boolean isEmpty() {
+		return this.nativePath.isEmpty();
+	}
+
+	public Rect getBounds() {
+		if(this.cachedBounds == null) {
+			RectF rectF = new RectF();
+			this.nativePath.computeBounds(rectF, true);
+			this.cachedBounds = new Rect(rectF);
+		}
+
+		return this.cachedBounds;
+	}
+
+	public Point getCurrentPoint() {
+		return null;
+	}
+
+	public boolean containsPoint(Point point) {
+		return this.getBounds().contains(point);
+	}
+
+	public float getLineWidth() {
+		return lineWidth;
+	}
+
+	public void setLineWidth(float lineWidth) {
+		this.lineWidth = lineWidth;
+	}
+
+	public LineCap getLineCapStyle() {
+		return lineCapStyle;
+	}
+
+	public void setLineCapStyle(LineCap lineCapStyle) {
+		this.lineCapStyle = lineCapStyle;
+	}
+
+	public LineJoin getLineJoinStyle() {
+		return lineJoinStyle;
+	}
+
+	public void setLineJoinStyle(LineJoin lineJoinStyle) {
+		this.lineJoinStyle = lineJoinStyle;
+	}
+
+	public float getMiterLimit() {
+		return miterLimit;
+	}
+
+	public void setMiterLimit(float miterLimit) {
+		this.miterLimit = miterLimit;
+	}
+
+	public float getFlatness() {
+		return flatness;
+	}
+
+	public void setFlatness(float flatness) {
+		this.flatness = flatness;
+	}
+
+	public boolean isUsesEvenOddFillRule() {
+		return usesEvenOddFillRule;
+	}
+
+	public void setUsesEvenOddFillRule(boolean usesEvenOddFillRule) {
+		this.usesEvenOddFillRule = usesEvenOddFillRule;
+
+		if(usesEvenOddFillRule) {
+			this.nativePath.setFillType(android.graphics.Path.FillType.EVEN_ODD);
+		} else {
+			this.nativePath.setFillType(android.graphics.Path.FillType.WINDING);
+		}
+	}
+
+	public void setLineDash(float[] pattern, int count, float phase) {
+
+	}
+
+	public float[] getLineDash(int[] count, float[] phase) {
+		return null;
+	}
+
+	public void setupStrokePropertiesInContext(Context context) {
+		context.setLineWidth(this.lineWidth);
+		context.setLineCap(this.lineCapStyle);
+		context.setLineJoin(this.lineJoinStyle);
+		// context.setFlatness(this.getFlatness());
+		// context.setMiterLimit(this.getMiterLimit());
+	}
+
+	public void fill(Context context) {
+		context.save();
+		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getPaint());
+		context.restore();
+	}
+
+	public void stroke(Context context) {
+		context.save();
+		this.setupStrokePropertiesInContext(context);
+		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getStrokePaint());
+		context.restore();
+	}
+
+	// These methods do not affect the blend mode or alpha of the current graphics context
+	public void fill(Context context, Context.BlendMode blendMode, float alpha) {
+		context.save();
+		context.setBlendMode(blendMode);
+		context.setAlpha(alpha);
+		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getPaint());
+
+		context.restore();
+	}
+
+	public void stroke(Context context, Context.BlendMode blendMode, float alpha) {
+		context.save();
+		context.setBlendMode(blendMode);
+		context.setAlpha(alpha);
+		this.setupStrokePropertiesInContext(context);
+		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getStrokePaint());
+		context.restore();
+	}
+
+	public void addClip(Context context) {
+		context.getCanvas().clipPath(this.getScaledNativePath(context.getScale()));
+	}
+
+	private android.graphics.Path getScaledNativePath(float scale) {
+		if(this.cachedScaledPath == null || this.cachedScaledPathFactor != scale) {
+			Matrix matrix = new Matrix();
+			matrix.setScale(scale, scale);
+			this.cachedScaledPath = new android.graphics.Path(this.nativePath);
+			this.cachedScaledPath.transform(matrix);
+		}
+
+		return this.cachedScaledPath;
+	}
+
+	private void invalidateCache() {
+		this.cachedBounds = null;
+		this.cachedScaledPath = null;
+		this.cachedScaledPathFactor = 0.0f;
 	}
 }
