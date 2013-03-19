@@ -178,7 +178,7 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 		if (!target.decelerating) {
 			activeAnimations.get().remove(this);
 			return;
-		}	
+		}
 
 		long currentTime = android.os.SystemClock.uptimeMillis();
 		long frameDelta = currentTime - this.previousDecelerationFrame;

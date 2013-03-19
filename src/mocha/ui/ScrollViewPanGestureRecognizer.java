@@ -134,7 +134,6 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	protected void reset() {
-		MLogStackTrace("PANNING %s %s", this.getScrollView() != null ? this.getScrollView().getClass().getName() : null, MGetCurrentMethodName());
 		this.lastScrollDirection = this.scrollDirection;
 		this.scrollDirection = null;
 		super.reset();

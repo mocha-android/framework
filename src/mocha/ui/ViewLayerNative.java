@@ -29,12 +29,14 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private Matrix matrix;
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
+	private View clipToView;
 	public final float scale;
 
 	public ViewLayerNative(Context context) {
 		super(context);
 		this.setClipToPadding(false);
-		this.setClipsToBounds(false);
+		this.setClipChildren(false);
+		this.clipsToBounds = false;
 		this.scale = context.getResources().getDisplayMetrics().density;
 		this.transform = AffineTransform.identity();
 		this.matrix = null;
@@ -61,8 +63,27 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	}
 
 	public void setClipsToBounds(boolean clipsToBounds) {
-		this.setClipChildren(clipsToBounds);
-		this.clipsToBounds = clipsToBounds;
+		if(this.clipsToBounds != clipsToBounds) {
+			this.clipsToBounds = clipsToBounds;
+			this.updateHierarchyClips();
+		}
+	}
+
+	private void updateHierarchyClips() {
+		for(ViewLayer sublayer : this.getSublayers()) {
+			if(sublayer instanceof ViewLayerNative) {
+				if(this.clipsToBounds) {
+					((ViewLayerNative)sublayer).setClipToView(this.getView());
+				} else {
+					((ViewLayerNative)sublayer).setClipToView(this.clipToView);
+				}
+			}
+		}
+	}
+
+	private void setClipToView(View clipToView) {
+		this.clipToView = clipToView;
+		this.updateHierarchyClips();
 	}
 
 	public boolean clipsToBounds() {
@@ -178,11 +199,36 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		view.draw(new mocha.graphics.Context(canvas, this.scale), new Rect(view.getBounds()));
 	}
 
+	private boolean updateClippingRect(Canvas canvas) {
+		RectF clippingRect = null;
+		if(this.clipsToBounds) {
+			clippingRect = new RectF(0.0f, 0.0f, this.bounds.size.width, this.bounds.size.height);
+		} else if(this.clipToView != null) {
+			// TODO: Properly handle this scenario
+//			Rect bounds = this.clipToView.convertRectToView(this.clipToView.getBounds(), this.view);
+//
+//			if(!bounds.contains(this.view.frame)) {
+//				mocha.foundation.Object.MLog("SELF: %s %s | CANVAS: %s | CLIPPING TO: %s %s | adjusted: %s", this.view.getClass().getName(), this.frame, canvas.getClipBounds(), this.clipToView.getClass().getName(), this.clipToView.getBounds(), bounds);
+//				// clippingRect = bounds.toSystemRectF(this.scale);
+//			}
+		}
+
+		if(clippingRect != null) {
+			canvas.save(Canvas.CLIP_SAVE_FLAG);
+			canvas.clipRect(clippingRect);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public void draw(android.graphics.Canvas canvas) {
+		boolean restore = this.updateClippingRect(canvas);
+
 		if(this.matrix == null) {
 			super.draw(canvas);
 		} else {
-			canvas.save();
+			canvas.save(Canvas.MATRIX_SAVE_FLAG);
 
 			float centerX = this.bounds.size.width / 2.0f;
 			float centerY = this.bounds.size.height / 2.0f;
@@ -193,6 +239,10 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 			super.draw(canvas);
 
+			canvas.restore();
+		}
+
+		if(restore) {
 			canvas.restore();
 		}
 	}
@@ -269,6 +319,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	public void addSublayer(ViewLayer layer) {
 		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
 		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
+		canvasLayer.setClipToView(this.clipsToBounds ? this.getView() : this.clipToView);
 
 		if(canvasLayer.getParent() == this) return;
 		canvasLayer.removeFromSuperlayer();
@@ -280,6 +331,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		if(!(layer instanceof ViewLayerNative)) throw new InvalidSubLayerClassException(this, layer);
 
 		ViewLayerNative canvasLayer = (ViewLayerNative)layer;
+		canvasLayer.setClipToView(this.clipsToBounds ? this.getView() : this.clipToView);
 
 		if(canvasLayer.getParent() == this) return;
 		canvasLayer.removeFromSuperlayer();

@@ -734,7 +734,6 @@ public class TableView extends ScrollView {
 
 	private void updateTableHeaderHeight(float oldHeight, float newHeight) {
 		float delta = newHeight - oldHeight;
-
 		for(SectionInfo sectionInfo : this.sectionsInfo) {
 			sectionInfo.y += delta;
 		}
@@ -803,7 +802,7 @@ public class TableView extends ScrollView {
 		this.viewsToRemove.clear();
 
 		if (this.tableStyle == Style.PLAIN) {
-			this.updatePlainHeaderPositions(minY, section);
+			this.updateStickyHeaderPositions(minY, section);
 		}
 	}
 
@@ -984,48 +983,40 @@ public class TableView extends ScrollView {
 		}
 	}
 
-	private void updatePlainHeaderPositions(float minY, int section) {
+	private void updateStickyHeaderPositions(float minY, int section) {
 		List<TableViewSubview> visibleHeaders = this.visibleHeaders;
 		TableViewSubview header;
 		int headerSection;
 		TableViewSubview nextHeader;
 		float y;
 
-		float boundsY = this.getBounds().origin.y;
-
 		for (int idx = visibleHeaders.size() - 1; idx >= 0; idx--) {
 			header = visibleHeaders.get(idx);
 			headerSection = header._dataSourceInfo.section;
-			int path;
 
 			if (headerSection == section) {
 				if (visibleHeaders.size() > idx + 1 && (nextHeader = visibleHeaders.get(idx + 1)) != null && nextHeader.getFrame().origin.y < minY + header.getFrame().size.height) {
 					y = nextHeader.getFrame().origin.y - nextHeader.getFrame().size.height;
-					path = 1;
 				} else {
-					y = minY;
-					path = 2;
+					if(this.tableHeaderView != null) {
+						y = Math.max(minY, this.tableHeaderHeight);
+					} else {
+						y = minY;
+					}
 				}
 
 				float y2 = Math.max(0.0f, y);
 
 				if(y2 != y) {
-					if(path == 1) {
-						path = 5;
-					} else {
-						path = 6;
-					}
-
 					y = y2;
 				}
 			} else {
 				y = this.sectionsInfo.get(headerSection).y;
-				path = 3;
 			}
 
 			Rect frame = header.getFrame();
 			frame.origin.x = 0.0f;
-			frame.origin.y = path == 2 ? boundsY : y;
+			frame.origin.y = y;
 			header.setFrame(frame);
 		}
 	}
