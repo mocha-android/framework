@@ -242,6 +242,12 @@ public final class Context extends mocha.foundation.Object {
 		}
 	}
 
+	public void clearShadow() {
+		this.paint.clearShadowLayer();
+		this.textPaint.clearShadowLayer();
+		this.strokePaint.clearShadowLayer();
+	}
+
 	public void fillRect(Rect rect, int color) {
 		Paint paint = new Paint(this.paint);
 		paint.setColor(color);

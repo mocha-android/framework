@@ -43,6 +43,10 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		this.scale = context.getResources().getDisplayMetrics().density;
 		this.transform = AffineTransform.identity();
 		this.matrix = null;
+		this.shadowColor = Color.BLACK;
+		this.shadowOpacity = 0.0f;
+		this.shadowOffset = new Size(0.0f, -3.0f);
+		this.shadowRadius = 3.0f;
 	}
 
 	private static boolean pushIgnoreLayout() {
@@ -313,7 +317,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	}
 
 	public void setShadowOpacity(float shadowOpacity) {
-		this.shadowOpacity = shadowOpacity;
+		this.shadowOpacity = Math.max(Math.min(shadowOpacity, 1.0f), 0.0f);
 		this.setNeedsDisplay();
 	}
 
