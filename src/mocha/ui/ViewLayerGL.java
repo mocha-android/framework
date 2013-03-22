@@ -59,8 +59,8 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		this.hidden = false;
 		this.sublayers = new ArrayList<ViewLayerGL>();
 		this.sublayersGeneric = new ArrayList<ViewLayer>();
-		this.scale = context.getResources().getDisplayMetrics().density;
-		this.dpi = context.getResources().getDisplayMetrics().densityDpi;
+		this.scale = Screen.mainScreen().getScale();
+		this.dpi = Screen.mainScreen().getDpi();
 		this.transform = AffineTransform.identity();
 
 		ByteBuffer ibb = ByteBuffer.allocateDirect(indices.length * 2);

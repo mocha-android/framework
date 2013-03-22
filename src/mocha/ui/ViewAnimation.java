@@ -18,7 +18,7 @@ import java.util.List;
 class ViewAnimation extends mocha.foundation.Object {
 	private static int PROCESS_FRAME = -949484724;
 	private static long DESIRED_ANIMATION_FRAME_RATE = (long)((1.0 / 60.0) * 1000.0);
-	private static boolean PROFILE_FRAME_RATE = true;
+	private static boolean PROFILE_FRAME_RATE = false;
 
 	private static ThreadLocal<AnimationHandler> animationHandler = new ThreadLocal<AnimationHandler>();
 	private static final ThreadLocal<ArrayList<ViewAnimation>> activeAnimations = new ThreadLocal<ArrayList<ViewAnimation>>() {

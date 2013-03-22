@@ -35,6 +35,22 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		this.numberOfTapsRequired = numberOfTapsRequired;
 	}
 
+	public float getAllowableMovement() {
+		return allowableMovement;
+	}
+
+	public void setAllowableMovement(float allowableMovement) {
+		this.allowableMovement = allowableMovement;
+	}
+
+	public long getMinimumPressDuration() {
+		return minimumPressDuration;
+	}
+
+	public void setMinimumPressDuration(long minimumPressDuration) {
+		this.minimumPressDuration = minimumPressDuration;
+	}
+
 	private void beginGesture() {
 		this.waiting = false;
 

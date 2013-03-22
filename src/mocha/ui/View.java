@@ -197,7 +197,7 @@ public class View extends Responder implements Accessibility {
 	}
 
 	View(android.content.Context context, Rect frame) {
-		this.scale = context.getResources().getDisplayMetrics().density;
+		this.scale = Screen.mainScreen().getScale();
 
 		try {
 			this.layer = getLayerClass().getConstructor(android.content.Context.class).newInstance(context);

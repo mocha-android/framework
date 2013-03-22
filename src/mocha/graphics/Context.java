@@ -279,6 +279,20 @@ public final class Context extends mocha.foundation.Object {
 		this.canvas.clipRect(rect.toSystemRect(this.scale));
 	}
 
+	public void fillEllipseInRect(Rect rect) {
+		boolean isAntiAlias = this.paint.isAntiAlias();
+		if(!isAntiAlias) this.paint.setAntiAlias(true);
+		this.canvas.drawOval(rect.toSystemRectF(this.scale), this.paint);
+		if(!isAntiAlias) this.paint.setAntiAlias(false);
+	}
+
+	public void strokeEllipseInRect(Rect rect) {
+		boolean isAntiAlias = this.strokePaint.isAntiAlias();
+		if(!isAntiAlias) this.strokePaint.setAntiAlias(true);
+		this.canvas.drawOval(rect.toSystemRectF(this.scale), this.strokePaint);
+		if(!isAntiAlias) this.strokePaint.setAntiAlias(false);
+	}
+
 	// TODO: Add support for Gradient.DrawingOptions
 	public void drawLinearGradient(Gradient gradient, Point startPoint, Point endPoint, Gradient.DrawingOptions... options) {
 		if(gradient == null || gradient.colors == null || gradient.colors.length == 0) return;

@@ -579,7 +579,9 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public void setBackgroundView(View backgroundView) {
 		if (backgroundView != this.backgroundView) {
-			this.backgroundView.removeFromSuperview();
+			if(this.backgroundView != null) {
+				this.backgroundView.removeFromSuperview();
+			}
 
 			if (backgroundView != null) {
 				this.backgroundView = backgroundView;

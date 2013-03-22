@@ -40,7 +40,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		this.setClipToPadding(false);
 		this.setClipChildren(false);
 		this.clipsToBounds = false;
-		this.scale = context.getResources().getDisplayMetrics().density;
+		this.scale = Screen.mainScreen().getScale();
 		this.transform = AffineTransform.identity();
 		this.matrix = null;
 		this.shadowColor = Color.BLACK;

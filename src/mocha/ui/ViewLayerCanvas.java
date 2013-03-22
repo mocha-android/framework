@@ -55,8 +55,8 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		this.hidden = false;
 		this.sublayers = new ArrayList<ViewLayerCanvas>();
 		this.sublayersGeneric = new ArrayList<ViewLayer>();
-		this.scale = context.getResources().getDisplayMetrics().density;
-		this.dpi = context.getResources().getDisplayMetrics().densityDpi;
+		this.scale = Screen.mainScreen().getScale();
+		this.dpi = Screen.mainScreen().getDpi();
 		this.paint = new Paint();
 		this.needsDisplay = true;
 		this.transform = AffineTransform.identity();

@@ -5,10 +5,7 @@
  */
 package mocha.ui;
 
-import android.content.Context;
 import android.util.DisplayMetrics;
-
-import java.lang.ref.WeakReference;
 
 public class Screen extends mocha.foundation.Object {
 	private static Screen MAIN_SCREEN;
