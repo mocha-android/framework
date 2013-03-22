@@ -838,6 +838,10 @@ public class View extends Responder implements Accessibility {
 
 	private void willMoveWindows(Window oldWindow, Window newWindow) {
 		if(oldWindow != newWindow) {
+			if(newWindow == null && this.isFirstResponder()) {
+				this.resignFirstResponder();
+			}
+
 			this.willMoveToWindow(newWindow);
 
 			for(View subview : this.subviews) {

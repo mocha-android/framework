@@ -124,8 +124,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 		if(this.editable != editable) {
 			this.editable = editable;
 
-			if(!this.editable && this.textView != null && (this.textView instanceof EditText) && this.textView.isFocused()) {
-				((EditText)this.textView)._clearFocus();
+			if(!this.editable && this.textView != null && this.isFirstResponder()) {
 				this.resignFirstResponder();
 			}
 
@@ -192,7 +191,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public boolean resignFirstResponder() {
 		if(super.resignFirstResponder()) {
-			if(this.textView instanceof EditText && this.editable && this.textView.isFocused()) {
+			if(this.textView instanceof EditText && this.textView.isFocused()) {
 				((EditText)this.textView)._clearFocus();
 			}
 

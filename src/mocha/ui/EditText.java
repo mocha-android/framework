@@ -120,7 +120,6 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.allowFocusChange = false;
 		this.didTryToFocus = false;
 		boolean result = super.onTouchEvent(event);
-		this.autoClearFocusOnFocus = false;
 
 		if(this.didTryToFocus) {
 			if(this.containerView.canBecomeFirstResponder()) {
