@@ -2,6 +2,8 @@ package mocha.ui;
 
 import mocha.graphics.Image;
 import mocha.graphics.Offset;
+import mocha.graphics.Point;
+import mocha.graphics.Rect;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -9,12 +11,12 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BarButtonItem extends BarItem {
+public class BarButtonItem extends BarItem implements Accessibility {
 	public enum SystemItem {
-		DONE, CANCEL, EDIT, SAVE, FLEXIBLE_SPACE, FIXED_SPACE,
-		COMPOSE, REPLY, ACTION, ORGANIZE, BOOKMARKS, SEARCH,
-		REFRESH, STOP, CAMERA, TRASH, PLAY, PAUSE, REWIND,
-		FAST_FORWARD, UNDO, REDO
+		DONE, CANCEL, EDIT, SAVE, ADD, FLEXIBLE_SPACE, FIXED_SPACE,
+		COMPOSE, REPLY, ACTION, ORGANIZE, BOOKMARKS, SEARCH, REFRESH,
+		STOP, CAMERA, TRASH, PLAY, PAUSE, REWIND, FAST_FORWARD, UNDO,
+		REDO, PAGE_CURL
 	}
 
 	public enum Style {
@@ -119,7 +121,7 @@ public class BarButtonItem extends BarItem {
 	}
 
 	float _getWidth() {
-		return width > 0.0f ? width : this.getView() != null ? this.view.getFrame().size.width : 0.0f;
+		return width > 0.0f ? width : this.getView() != null ? this.getView().getFrame().size.width : 0.0f;
 	}
 
 	public void setWidth(float width) {
@@ -295,4 +297,77 @@ public class BarButtonItem extends BarItem {
 		}
 	}
 
+	// TODO
+
+
+	public boolean isAccessibilityElement() {
+		return false;
+	}
+
+	public void setIsAccessibilityElement(boolean isAccessibilityElement) {
+	}
+
+	public String getAccessibilityLabel() {
+		return null;
+	}
+
+	public void setAccessibilityLabel(String accessibilityLabel) {
+	}
+
+	public String getAccessibilityHint() {
+		return null;
+	}
+
+	public void setAccessibilityHint(String accessibilityHint) {
+	}
+
+	public String getAccessibilityValue() {
+		return null;
+	}
+
+	public void setAccessibilityValue(String accessibilityValue) {
+	}
+
+	public Trait[] getAccessibilityTraits() {
+		return new Trait[0];
+	}
+
+	public void setAccessibilityTraits(Trait... accessibilityTraits) {
+	}
+
+	public Rect getAccessibilityFrame() {
+		return null;
+	}
+
+	public void setAccessibilityFrame(Rect accessibilityFrame) {
+	}
+
+	public Point getAccessibilityActivationPoint() {
+		return null;
+	}
+
+	public void setAccessibilityActivationPoint(Point accessibilityActivationPoint) {
+	}
+
+	public boolean getAccessibilityElementsHidden() {
+		return false;
+	}
+
+	public void setAccessibilityElementsHidden(boolean accessibilityElementsHidden) {
+	}
+
+	public boolean getAccessibilityViewIsModal() {
+		return false;
+	}
+
+	public void setAccessibilityViewIsModal(boolean accessibilityViewIsModal) {
+	}
+
+	public boolean shouldGroupAccessibilityChildren() {
+		return false;
+	}
+
+	public void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren) {
+
+	}
 }
