@@ -28,6 +28,7 @@ public class BarButtonItem extends BarItem {
 	private Style style;
 	private float width;
 	private View customView;
+	private View view;
 	private Action action;
 	private boolean isSystemItem;
 	private SystemItem systemItem;
@@ -68,14 +69,19 @@ public class BarButtonItem extends BarItem {
 		MLog("Background images: %s", this.backgroundImages.get(BarMetrics.DEFAULT));
 	}
 
-	private BarButtonItem(Action action) {
+	private BarButtonItem(Action action, Style style) {
 		this();
 
 		this.action = action;
+		this.style = style == null ? Style.PLAIN : style;
 	}
 
 	public BarButtonItem(SystemItem systemItem, Action action) {
-		this(action);
+		this(systemItem, Style.BORDERED, action);
+	}
+
+	public BarButtonItem(SystemItem systemItem, Style style, Action action) {
+		this(action, style);
 
 		this.isSystemItem = true;
 		this.systemItem = systemItem;
@@ -87,7 +93,7 @@ public class BarButtonItem extends BarItem {
 	}
 
 	public BarButtonItem(String title, Style style, Action action) {
-		this(action);
+		this(action, style);
 		this.setTitle(title);
 	}
 
@@ -96,7 +102,7 @@ public class BarButtonItem extends BarItem {
 	}
 
 	public BarButtonItem(Image image, Image landscapeImagePhone, Style style, Action action) {
-		this(action);
+		this(action, style);
 		this.setImage(image);
 	}
 
@@ -112,6 +118,10 @@ public class BarButtonItem extends BarItem {
 		return width;
 	}
 
+	float _getWidth() {
+		return width > 0.0f ? width : this.getView() != null ? this.view.getFrame().size.width : 0.0f;
+	}
+
 	public void setWidth(float width) {
 		this.width = width;
 	}
@@ -124,6 +134,26 @@ public class BarButtonItem extends BarItem {
 		if(!this.isSystemItem) {
 			this.customView = customView;
 		}
+	}
+
+	void setView(View view) {
+		this.view = view;
+	}
+
+	View getView() {
+		if(this.isSystemItem || this.view != null) {
+			return this.view;
+		} else {
+			return this.customView;
+		}
+	}
+
+	public SystemItem getSystemItem() {
+		return systemItem;
+	}
+
+	public boolean isSystemItem() {
+		return isSystemItem;
 	}
 
 	public Action getAction() {

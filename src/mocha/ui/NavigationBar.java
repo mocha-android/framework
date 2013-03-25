@@ -9,14 +9,12 @@ import mocha.graphics.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class NavigationBar extends View {
 	private static final EdgeInsets BUTTON_EDGE_INSETS = new EdgeInsets(7.0f, 5.0f, 0.0f, 5.0f);
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
-	private static final float MAX_BUTTON_HEIGHT = 30.0f;
 	static final long ANIMATION_DURATION = 330;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
@@ -497,25 +495,24 @@ public class NavigationBar extends View {
 		image.draw(context, rect);
 	}
 
-	private static void setBarButtonSize(View view) {
+	private void setBarButtonSize(View view) {
 		Rect frame = view.getFrame();
-		frame.size = view.sizeThatFits(new Size(MAX_BUTTON_WIDTH, MAX_BUTTON_HEIGHT));
+		frame.size = view.sizeThatFits(this.getBounds().size);
 		frame.size.width = Math.max(frame.size.width, MIN_BUTTON_WIDTH);
-		frame.size.height = MAX_BUTTON_HEIGHT;
 		view.setFrame(frame);
 	}
 
 	private Button getBackItemButton(NavigationItem navigationItem) {
 		if(navigationItem == null) return null;
 
-		NavigationButton button = NavigationButton.backButton(navigationItem);
+		BarButton button = BarButton.backButton(navigationItem);
 		button.addActionTarget(new Control.ActionTarget() {
 			public void onControlEvent(Control control, Control.ControlEvent controlEvent) {
 				NavigationBar.this.popNavigationItemAnimated(true);
 			}
 		}, Control.ControlEvent.TOUCH_UP_INSIDE);
 
-		setBarButtonSize(button);
+		this.setBarButtonSize(button);
 
 		return button;
 	}
@@ -526,18 +523,8 @@ public class NavigationBar extends View {
 		if(barButtonItem.getCustomView() != null) {
 			return barButtonItem.getCustomView();
 		} else {
-			NavigationButton button = NavigationButton.button(barButtonItem);
-			button.addActionTarget(new Control.ActionTarget() {
-				public void onControlEvent(Control control, Control.ControlEvent controlEvent) {
-					BarButtonItem.Action action = barButtonItem.getAction();
-
-					if(action != null) {
-						action.action(barButtonItem);
-					}
-				}
-			}, Control.ControlEvent.TOUCH_UP_INSIDE);
-
-			setBarButtonSize(button);
+			BarButton button = BarButton.button(barButtonItem);
+			this.setBarButtonSize(button);
 
 			return button;
 		}

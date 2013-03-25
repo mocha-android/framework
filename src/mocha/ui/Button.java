@@ -36,6 +36,10 @@ public class Button extends Control {
 
 		this.content = new HashMap<EnumSet<State>, HashMap<ContentType, Object>>();
 
+		this.contentEdgeInsets = EdgeInsets.zero();
+		this.titleEdgeInsets = EdgeInsets.zero();
+		this.imageEdgeInsets = EdgeInsets.zero();
+
 		this.backgroundImageView = new ImageView();
 		this.backgroundImageView.setBackgroundColor(Color.TRANSPARENT);
 		this.addSubview(this.backgroundImageView);
