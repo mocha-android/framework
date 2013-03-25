@@ -5,19 +5,21 @@
  */
 package mocha.ui;
 
-import mocha.graphics.Font;
 import mocha.graphics.Rect;
-import mocha.graphics.TextAlignment;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NavigationController extends ViewController implements NavigationBar.Delegate {
+// TODO: Properly transition nav bar in/out when setNavigationBarHidden() is called during a push/pop
+
+public class NavigationController extends ViewController {
 	private NavigationBar navigationBar;
 	private View containerView;
 	private List<ViewController> viewControllers;
 	private boolean navigationBarHidden;
+	public static final long HIDE_SHOW_BAR_DURATION = 330;
+	private NavigationBar.Delegate navigationBarDelegate;
 
 	public NavigationController(ViewController rootViewController) {
 		this();
@@ -31,9 +33,27 @@ public class NavigationController extends ViewController implements NavigationBa
 
 	public NavigationController() {
 		this.viewControllers = new ArrayList<ViewController>();
+		this.navigationBarDelegate = new NavigationBar.Delegate() {
+			public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item) {
+				return true;
+			}
+
+			public void didPushItem(NavigationBar navigationBar, NavigationItem item) {
+
+			}
+
+			public boolean shouldPopItem(NavigationBar navigationBar, NavigationItem item) {
+				popViewControllerAnimated(true);
+				return false;
+			}
+
+			public void didPopItem(NavigationBar navigationBar, NavigationItem item) {
+
+			}
+		};
 
 		this.navigationBar = new NavigationBar();
-		this.navigationBar.setDelegate(this);
+		this.navigationBar.setDelegate(this.navigationBarDelegate);
 	}
 
 	protected void loadView() {
@@ -45,7 +65,14 @@ public class NavigationController extends ViewController implements NavigationBa
 		Rect bounds = view.getBounds();
 
 		float navBarHeight = 44.0f;
-		this.navigationBar.setFrame(new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight));
+
+		if(this.navigationBarHidden) {
+			this.navigationBar.setFrame(new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight));
+			navBarHeight = 0.0f;
+		} else {
+			this.navigationBar.setFrame(new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight));
+		}
+
 		this.navigationBar.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH);
 
 		Rect frame = bounds.copy();
@@ -231,7 +258,7 @@ public class NavigationController extends ViewController implements NavigationBa
 					}
 				}
 
-				this.navigationBar.setDelegate(this);
+				this.navigationBar.setDelegate(this.navigationBarDelegate);
 
 				if(fromViewController != null) {
 					fromViewController.beginAppearanceTransition(false, false);
@@ -298,26 +325,9 @@ public class NavigationController extends ViewController implements NavigationBa
 					this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), true, transition, complete);
 				}
 
-				this.navigationBar.setDelegate(this);
+				this.navigationBar.setDelegate(this.navigationBarDelegate);
 			}
 		}
-	}
-
-	public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item) {
-		return true;
-	}
-
-	public void didPushItem(NavigationBar navigationBar, NavigationItem item) {
-
-	}
-
-	public boolean shouldPopItem(NavigationBar navigationBar, NavigationItem item) {
-		this.popViewControllerAnimated(true);
-		return false;
-	}
-
-	public void didPopItem(NavigationBar navigationBar, NavigationItem item) {
-
 	}
 
 	public void backKeyPressed(Event event) {
@@ -327,4 +337,98 @@ public class NavigationController extends ViewController implements NavigationBa
 			super.backKeyPressed(event);
 		}
 	}
+
+	/**
+	 * @return Navigation bar visiblity
+	 */
+	public boolean isNavigationBarHidden() {
+		return navigationBarHidden;
+	}
+
+	/**
+	 * Change navigation bar visibility without animation
+	 *
+	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 */
+	public void setNavigationBarHidden(boolean hidden) {
+		this.setNavigationBarHidden(hidden, false);
+	}
+
+	/**
+	 * Change navigation bar visibility
+	 *
+	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 * @param animated Set true to animate the changes, or false to change without animations.
+	 */
+	public void setNavigationBarHidden(boolean hidden, boolean animated) {
+		this.setNavigationBarHidden(hidden, animated, null, null);
+	}
+
+	/**
+	 * Change navigation bar visibility
+	 *
+	 * NOTE: The animations and completion callbacks are called regardless of whether or
+	 * not the animated propery is true.
+	 *
+	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 * @param animated Set true to animate the changes, or false to change without animations.
+	 * @param animations Callback to be called from within the animation block
+	 * @param completion Completion to be called after animations have ended.
+	 */
+	public void setNavigationBarHidden(boolean hidden, boolean animated, final View.Animations animations, final View.AnimationCompletion completion) {
+		boolean wasHidden = this.navigationBarHidden;
+		this.navigationBarHidden = hidden;
+
+		if(wasHidden == this.navigationBarHidden || !this.isViewLoaded()) {
+			animations.performAnimatedChanges();
+			completion.animationCompletion(true);
+			return;
+		}
+
+		Rect bounds = this.getView().getBounds();
+
+		final Rect navigationFrame;
+		float navBarHeight = this.navigationBar.getFrame().size.height;
+
+		if(this.navigationBarHidden) {
+			navigationFrame = new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight);
+			navBarHeight = 0.0f;
+		} else {
+			navigationFrame = new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight);
+		}
+
+		final Rect containerFrame = bounds.copy();
+		containerFrame.origin.y += navBarHeight;
+		containerFrame.size.height -= navBarHeight;
+
+		if(!animated) {
+			this.navigationBar.setFrame(navigationFrame);
+			this.navigationBar.setHidden(this.navigationBarHidden);
+			this.containerView.setFrame(containerFrame);
+		} else {
+			this.navigationBar.setHidden(false);
+
+			View.animateWithDuration(HIDE_SHOW_BAR_DURATION, new View.Animations() {
+				public void performAnimatedChanges() {
+					navigationBar.setFrame(navigationFrame);
+					containerView.setFrame(containerFrame);
+
+					if(animations != null) {
+						animations.performAnimatedChanges();
+					}
+				}
+			}, new View.AnimationCompletion() {
+				public void animationCompletion(boolean finished) {
+					if(navigationBarHidden && finished) {
+						navigationBar.setHidden(true);
+					}
+
+					if(completion != null) {
+						completion.animationCompletion(finished);
+					}
+				}
+			});
+		}
+	}
+
 }
