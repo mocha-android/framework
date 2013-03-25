@@ -50,6 +50,23 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 	abstract Rect getDetailTextLabelRectForCell(TableViewCell cell);
 
 	static class Default extends TableViewCellLayoutManager {
+		private final float separatorHeight;
+		private final float scale;
+
+		Default() {
+			this.scale = Screen.mainScreen().getScale();
+
+			if(this.scale > 1.0f && this.scale < 2.0f) {
+				if(this.scale > 1.5f) {
+					this.separatorHeight = 2.0f / this.scale;
+				} else {
+					this.separatorHeight = 1.0f / this.scale;
+				}
+			} else {
+				this.separatorHeight = 1.0f;
+			}
+		}
+
 		Rect getContentViewRectForCell(TableViewCell cell) {
 			// Collect pertinent information
 			Rect accessoryRect = this.getAccessoryViewRectForCell(cell);
@@ -136,7 +153,7 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 		Rect getSeparatorViewRectForCell(TableViewCell cell) {
 			if(cell.getSeparatorStyle() != TableViewCell.SeparatorStyle.NONE) {
 				Rect bounds  = cell.getBounds();
-				return new Rect(0.0f, bounds.size.height - 1.0f, bounds.size.width, 1.0f);
+				return new Rect(0.0f, bounds.size.height - this.separatorHeight, bounds.size.width, this.separatorHeight);
 			} else {
 				return Rect.zero();
 			}

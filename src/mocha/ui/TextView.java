@@ -5,7 +5,6 @@
  */
 package mocha.ui;
 
-import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
 import mocha.graphics.*;
@@ -153,7 +152,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 			if(this.editable) {
 				this.textView = new EditText(Application.sharedApplication().getContext(), this, true);
-				this.synchronizeTextInputTraits();
+				this.setupTextInputTraits();
 			} else {
 				this.textView = new android.widget.TextView(Application.sharedApplication().getContext());
 			}
@@ -220,7 +219,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setAutocapitalizationType(TextInput.AutocapitalizationType autocapitalizationType) {
 		this.autocapitalizationType = autocapitalizationType;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public TextInput.AutocorrectionType getAutocorrectionType() {
@@ -229,7 +228,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setAutocorrectionType(TextInput.AutocorrectionType autocorrectionType) {
 		this.autocorrectionType = autocorrectionType;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public TextInput.SpellCheckingType getSpellCheckingType() {
@@ -238,7 +237,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setSpellCheckingType(TextInput.SpellCheckingType spellCheckingType) {
 		this.spellCheckingType = spellCheckingType;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public TextInput.Keyboard.Type getKeyboardType() {
@@ -252,7 +251,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 			this.keyboardType = TextInput.Keyboard.Type.DEFAULT;
 		}
 
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public TextInput.Keyboard.Appearance getKeyboardAppearance() {
@@ -261,7 +260,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setKeyboardAppearance(TextInput.Keyboard.Appearance keyboardAppearance) {
 		this.keyboardAppearance = keyboardAppearance;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public TextInput.Keyboard.ReturnKeyType getReturnKeyType() {
@@ -270,7 +269,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setReturnKeyType(TextInput.Keyboard.ReturnKeyType returnKeyType) {
 		this.returnKeyType = returnKeyType;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public boolean enablesReturnKeyAutomatically() {
@@ -279,7 +278,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically) {
 		this.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
 	public boolean isSecureTextEntry() {
@@ -288,10 +287,10 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 
 	public void setSecureTextEntry(boolean secureTextEntry) {
 		this.secureTextEntry = secureTextEntry;
-		this.synchronizeTextInputTraits();
+		this.setupTextInputTraits();
 	}
 
-	private void synchronizeTextInputTraits() {
+	private void setupTextInputTraits() {
 		if(this.textView != null && this.textView instanceof EditText) {
 			((EditText) this.textView).setupEditTextWithTraits(this);
 		}

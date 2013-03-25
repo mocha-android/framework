@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import android.util.DisplayMetrics;
+import android.util.FloatMath;
 
 public class Screen extends mocha.foundation.Object {
 	private static Screen MAIN_SCREEN;
@@ -34,8 +35,8 @@ public class Screen extends mocha.foundation.Object {
 		activity.getWindowManager().getDefaultDisplay().getSize(size);
 
 		this.bounds = new mocha.graphics.Rect();
-		this.bounds.size.width = size.x / getScale();
-		this.bounds.size.height = size.y / getScale();
+		this.bounds.size.width = FloatMath.floor((size.x / getScale()) + 0.5f);
+		this.bounds.size.height = FloatMath.floor((size.y / getScale()) + 0.5f);
 	}
 
 	public float getScale() {
