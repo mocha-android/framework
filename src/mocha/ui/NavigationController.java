@@ -380,8 +380,13 @@ public class NavigationController extends ViewController {
 		this.navigationBarHidden = hidden;
 
 		if(wasHidden == this.navigationBarHidden || !this.isViewLoaded()) {
-			animations.performAnimatedChanges();
-			completion.animationCompletion(true);
+			if(animations != null) {
+				animations.performAnimatedChanges();
+			}
+
+			if(completion != null) {
+				completion.animationCompletion(true);
+			}
 			return;
 		}
 
@@ -405,6 +410,14 @@ public class NavigationController extends ViewController {
 			this.navigationBar.setFrame(navigationFrame);
 			this.navigationBar.setHidden(this.navigationBarHidden);
 			this.containerView.setFrame(containerFrame);
+
+			if(animations != null) {
+				animations.performAnimatedChanges();
+			}
+
+			if(completion != null) {
+				completion.animationCompletion(true);
+			}
 		} else {
 			this.navigationBar.setHidden(false);
 

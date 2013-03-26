@@ -5,10 +5,15 @@
  */
 package mocha.ui;
 
+import android.util.TypedValue;
 import android.view.Gravity;
 import mocha.graphics.*;
 
 public class TextField extends Control implements TextInput.Traits {
+
+	public static final String DID_BEGIN_EDITING_NOTIFICATION = "TEXT_FIELD_DID_BEGIN_EDITING_NOTIFICATION";
+	public static final String END_EDITING_NOTIFICATION = "TEXT_FIELD_END_EDITING_NOTIFICATION";
+	public static final String TEXT_DID_CHANGE_NOTIFICATION = "TEXT_FIELD_TEXT_DID_CHANGE_NOTIFICATION";
 
 	public enum ViewMode {
 		NEVER,
@@ -64,6 +69,7 @@ public class TextField extends Control implements TextInput.Traits {
 		TextInput.setupDefaultTraits(this);
 
 		this.nativeView = new NativeView<EditText>(this.editText);
+		// this.nativeView.setBackgroundColor(Color.GREEN);
 		this.addSubview(this.nativeView);
 
 		this.setTextColor(Color.BLACK);
@@ -72,6 +78,27 @@ public class TextField extends Control implements TextInput.Traits {
 		this.setPlaceholderColor(Color.white(0.7f, 1.0f));
 	}
 
+	public boolean canBecomeFirstResponder() {
+		return true;
+	}
+
+	public boolean becomeFirstResponder() {
+		if(super.becomeFirstResponder()) {
+			this.editText._requestFocus();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean resignFirstResponder() {
+		if(super.resignFirstResponder()) {
+			this.editText.clearFocus();
+			return true;
+		} else {
+			return false;
+		}
+	}
 	public CharSequence getText() {
 		return this.editText.getText();
 	}
@@ -96,7 +123,7 @@ public class TextField extends Control implements TextInput.Traits {
 	public void setFont(Font font) {
 		this.font = font;
 		this.editText.setTypeface(font.getTypeface());
-		this.editText.setTextSize(font.getPointSize() * this.scale);
+		this.editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, font.getPointSize() * this.scale);
 	}
 
 	public TextAlignment getTextAlignment() {

@@ -7,7 +7,6 @@ package mocha.ui;
 
 import mocha.graphics.*;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 
@@ -231,7 +230,6 @@ public class Button extends Control {
 
 	private void updateContent() {
 		State[] states = this.getStates();
-
 
 		this.titleLabel.setText(this.getTitleForState(states));
 		this.titleLabel.setTextColor(this.getTitleColor());

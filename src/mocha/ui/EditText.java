@@ -36,6 +36,8 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.setOnFocusChangeListener(this);
 		this.setOnClickListener(this);
 		this.setOnEditorActionListener(this);
+
+		this.setBackgroundDrawable(null);
 	}
 
 	private void showKeyboard() {
@@ -133,7 +135,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	void setupEditTextWithTraits(TextInput.Traits traits) {
 		this.setImeActionLabel(null, EditorInfo.IME_NULL);
 
-		switch (traits.getReturnKeyType()) {
+		if(traits.getReturnKeyType() != null) switch (traits.getReturnKeyType()) {
 			case DEFAULT:
 				this.setImeOptions(0);
 				break;
@@ -163,7 +165,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 		int inputType = 0;
 		boolean inputTypeIsText = false;
-		switch (traits.getKeyboardType()) {
+		if(traits.getKeyboardType() != null) switch (traits.getKeyboardType()) {
 			case URL:
 				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
 				inputTypeIsText = true;
@@ -191,7 +193,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 			if(traits.isSecureTextEntry()) {
 				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
 			} else {
-				switch (traits.getAutocapitalizationType()) {
+				if(traits.getAutocapitalizationType() != null) switch (traits.getAutocapitalizationType()) {
 					case NONE:
 						inputType |= InputType.TYPE_TEXT_VARIATION_FILTER;
 						break;

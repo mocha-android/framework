@@ -134,6 +134,20 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		return rect != null && ((this == rect) || (this.origin.equals(rect.origin) && this.size.equals(rect.size)));
 	}
 
+	public Rect union(Rect rect) {
+		if(rect == null) {
+			return this.copy();
+		}
+
+		float minX = Math.min(this.minX(), rect.minX());
+		float minY = Math.min(this.minY(), rect.minY());
+		float maxX = Math.max(this.maxX(), rect.maxX());
+		float maxY = Math.max(this.maxY(), rect.maxY());
+
+		return new Rect(minX, minY, maxX - minX, maxY - minY);
+	}
+
+
 	public android.graphics.Rect toSystemRect() {
 		android.graphics.Rect rect = new android.graphics.Rect();
 		rect.left = (int)this.origin.x;
