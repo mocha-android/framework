@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.R;
 import android.content.Context;
 import android.text.InputType;
 import android.view.DragEvent;
@@ -25,7 +26,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	private boolean didTryToFocus;
 
 	EditText(Context context, mocha.ui.View containerView, boolean allowMultipleLines) {
-		super(context);
+		super(context, null, R.style.Theme_Holo_Light);
 
 		this.allowMultipleLines = allowMultipleLines;
 		this.containerView = containerView;
@@ -38,6 +39,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.setOnEditorActionListener(this);
 
 		this.setBackgroundDrawable(null);
+		this.setPadding(0, 0, 0, 0);
 	}
 
 	private void showKeyboard() {

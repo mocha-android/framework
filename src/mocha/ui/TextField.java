@@ -5,14 +5,19 @@
  */
 package mocha.ui;
 
+import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.util.TypedValue;
 import android.view.Gravity;
+import mocha.foundation.NotificationCenter;
+import mocha.foundation.Range;
 import mocha.graphics.*;
 
 public class TextField extends Control implements TextInput.Traits {
 
 	public static final String DID_BEGIN_EDITING_NOTIFICATION = "TEXT_FIELD_DID_BEGIN_EDITING_NOTIFICATION";
-	public static final String END_EDITING_NOTIFICATION = "TEXT_FIELD_END_EDITING_NOTIFICATION";
+	public static final String DID_END_EDITING_NOTIFICATION = "TEXT_FIELD_DID_END_EDITING_NOTIFICATION";
 	public static final String TEXT_DID_CHANGE_NOTIFICATION = "TEXT_FIELD_TEXT_DID_CHANGE_NOTIFICATION";
 
 	public enum ViewMode {
@@ -24,10 +29,35 @@ public class TextField extends Control implements TextInput.Traits {
 
 	public interface Delegate {
 
+		public interface BeginEditing extends Delegate {
+			public boolean shouldBeginEditing(TextField textField);
+			public void didBeginEditing(TextField textField);
+		}
+
+		public interface EndEditing extends Delegate {
+			public boolean shouldEndEditing(TextField textField);
+			public void didEndEditing(TextField textField);
+		}
+
+		public interface ShouldChange {
+			public boolean shouldChangeCharacters(TextField textField, Range inRange, CharSequence replacementText);
+		}
+
+		public interface ShouldReturn {
+			public boolean shouldReturn(TextField textField);
+		}
+
+		public interface ShouldClear {
+			public boolean shouldClear(TextField textField);
+		}
+
 	}
 
 	private EditText editText;
 	private NativeView<EditText> nativeView;
+	private TextWatcher textWatcher;
+	private boolean ignoreTextChanges;
+	private boolean showingPlaceholder;
 
 	private TextInput.AutocapitalizationType autocapitalizationType;
 	private TextInput.AutocorrectionType autocorrectionType;
@@ -37,6 +67,7 @@ public class TextField extends Control implements TextInput.Traits {
 	private TextInput.Keyboard.ReturnKeyType returnKeyType;
 	private boolean enablesReturnKeyAutomatically;
 	private boolean secureTextEntry;
+	private boolean forceEndEditing;
 
 	private int textColor;
 	private Font font;
@@ -45,6 +76,11 @@ public class TextField extends Control implements TextInput.Traits {
 	private int placeholderColor;
 	private boolean clearsOnBeginEditing;
 	private Delegate delegate;
+	private Delegate.BeginEditing delegateBeginEditing;
+	private Delegate.EndEditing delegateEndEditing;
+	private Delegate.ShouldChange delegateShouldChange;
+	private Delegate.ShouldClear delegateShouldClear;
+	private Delegate.ShouldReturn delegateShouldReturn;
 	private Image background;
 	private Image disabledBackground;
 	private boolean editing;
@@ -65,11 +101,12 @@ public class TextField extends Control implements TextInput.Traits {
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
+		this.textWatcher = new TextWatcher();
 		this.editText = new EditText(Application.sharedApplication().getContext(), this, false);
+		this.editText.addTextChangedListener(this.textWatcher);
 		TextInput.setupDefaultTraits(this);
 
 		this.nativeView = new NativeView<EditText>(this.editText);
-		// this.nativeView.setBackgroundColor(Color.GREEN);
 		this.addSubview(this.nativeView);
 
 		this.setTextColor(Color.BLACK);
@@ -83,8 +120,21 @@ public class TextField extends Control implements TextInput.Traits {
 	}
 
 	public boolean becomeFirstResponder() {
+		if(this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
+			return false;
+		}
+
 		if(super.becomeFirstResponder()) {
+			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
+
+			if(this.delegateBeginEditing != null) {
+				this.delegateBeginEditing.didBeginEditing(this);
+			}
+
+			NotificationCenter.defaultCenter().post(DID_BEGIN_EDITING_NOTIFICATION, this);
+			this.forceEndEditing = false;
+
 			return true;
 		} else {
 			return false;
@@ -92,19 +142,42 @@ public class TextField extends Control implements TextInput.Traits {
 	}
 
 	public boolean resignFirstResponder() {
+		if(this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
+			return false;
+		}
+
 		if(super.resignFirstResponder()) {
 			this.editText.clearFocus();
+			this.ignoreTextChanges = true;
+
+			if(this.delegateEndEditing != null) {
+				this.delegateEndEditing.didEndEditing(this);
+			}
+
+			NotificationCenter.defaultCenter().post(DID_END_EDITING_NOTIFICATION, this);
+
 			return true;
 		} else {
 			return false;
 		}
 	}
+
+	public void willMoveToWindow(Window newWindow) {
+		super.willMoveToWindow(newWindow);
+		this.forceEndEditing = newWindow == null;
+	}
+
 	public CharSequence getText() {
-		return this.editText.getText();
+		CharSequence text = this.editText.getText();
+		return text != null ? text : "";
 	}
 
 	public void setText(CharSequence text) {
+		boolean ignoreTextChanges = this.ignoreTextChanges;
+		this.ignoreTextChanges = true;
 		this.editText.setText(text);
+		this.setNeedsDisplay();
+		this.ignoreTextChanges = ignoreTextChanges;
 	}
 
 	public int getTextColor() {
@@ -178,6 +251,36 @@ public class TextField extends Control implements TextInput.Traits {
 
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
+
+		if(this.delegate instanceof Delegate.BeginEditing) {
+			this.delegateBeginEditing = (Delegate.BeginEditing)this.delegate;
+		} else {
+			this.delegateBeginEditing = null;
+		}
+
+		if(this.delegate instanceof Delegate.EndEditing) {
+			this.delegateEndEditing = (Delegate.EndEditing)this.delegate;
+		} else {
+			this.delegateEndEditing = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldChange) {
+			this.delegateShouldChange = (Delegate.ShouldChange)this.delegate;
+		} else {
+			this.delegateShouldChange = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldClear) {
+			this.delegateShouldClear = (Delegate.ShouldClear)this.delegate;
+		} else {
+			this.delegateShouldClear = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldReturn) {
+			this.delegateShouldReturn = (Delegate.ShouldReturn)this.delegate;
+		} else {
+			this.delegateShouldReturn = null;
+		}
 	}
 
 	public Image getBackground() {
@@ -217,6 +320,13 @@ public class TextField extends Control implements TextInput.Traits {
 				}
 			} else if(this.clearButton == null) {
 				this.clearButton = new Button();
+				this.clearButton.addActionTarget(new ActionTarget() {
+					public void onControlEvent(Control control, ControlEvent controlEvent) {
+						if(delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
+							setText("");
+						}
+					}
+				}, ControlEvent.TOUCH_UP_INSIDE);
 				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button, State.NORMAL);
 				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button_pressed, State.NORMAL, State.HIGHLIGHTED);
 			}
@@ -341,7 +451,6 @@ public class TextField extends Control implements TextInput.Traits {
 		}
 	}
 
-
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
@@ -362,7 +471,9 @@ public class TextField extends Control implements TextInput.Traits {
 			this.clearButton.setFrame(this.getClearButtonRectForBounds(bounds));
 		}
 
-		this.nativeView.setFrame(this.getTextRectForBounds(bounds));
+		Rect rect = this.getTextRectForBounds(bounds);
+		rect.offset(0.0f, -this.font.getLineHeightDrawingAdjustment());
+		this.nativeView.setFrame(rect);
 	}
 
 	private boolean isViewModeVisible(ViewMode viewMode) {
@@ -393,8 +504,11 @@ public class TextField extends Control implements TextInput.Traits {
 			background.draw(context, rect);
 		}
 
+		this.showingPlaceholder = false;
+
 		if(this.placeholder != null && this.placeholder.length() > 0 && this.placeholderColor != Color.TRANSPARENT) {
 			if(this.getText().length() <= 0) {
+				this.showingPlaceholder = true;
 				context.setFillColor(this.placeholderColor);
 				TextDrawing.draw(context, this.placeholder, this.getPlaceholderRectForBounds(rect), this.font, this.textAlignment);
 			}
@@ -495,4 +609,93 @@ public class TextField extends Control implements TextInput.Traits {
 		}
 	}
 
+	private class TextWatcher implements android.text.TextWatcher {
+		private CharSequence previousText;
+
+		public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+			if(ignoreTextChanges) return;
+
+			try {
+				if(after < count) {
+					this.previousText = text.subSequence(start + after, start + count);
+				} else if(count < after) {
+					if(start + after > text.length()) {
+						this.previousText = null;
+					} else {
+						this.previousText = text.subSequence(start + count, start + after);
+					}
+				} else {
+					this.previousText = text.subSequence(start, start + count);
+				}
+			} catch (Exception e) {
+				this.previousText = null;
+				MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
+			}
+		}
+
+		public void afterTextChanged(Editable editable) { }
+
+		public void onTextChanged(CharSequence text, int start, int before, int count) {
+			if(ignoreTextChanges) return;
+
+			if(delegateShouldChange != null) {
+				CharSequence replacementText = null;
+				Range range = new Range();
+
+				try {
+					if(count > before) {
+						range.location = start + before;
+						range.length = count - before;
+						replacementText = text.subSequence(start + before, start + count);
+					} else if(count < before) {
+						range.location = before;
+						replacementText = null;
+					} else {
+						range.location = start;
+						range.length = count;
+						replacementText = text.subSequence(start, start + count);
+					}
+				} catch (Exception e) {
+					MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
+				}
+
+				if(!delegateShouldChange.shouldChangeCharacters(TextField.this, range, replacementText)) {
+					ignoreTextChanges = true;
+					Editable editable = editText.getEditableText();
+
+					try {
+						if(count > before) {
+							if(previousText == null) {
+								editable.delete(start + before, start + count);
+							} else {
+								editable.replace(start + before, start + count, this.previousText);
+							}
+						} else if(count < before) {
+							editable.insert(start + count, this.previousText);
+						} else {
+							editable.replace(start, start + count, this.previousText);
+						}
+					} catch (Exception e) {
+						MWarn(e, "Couldn't prevent change, length: %d, start: %d, count: %d", text.length(), start, count);
+					}
+
+					editText.setSelection(start + before);
+					ignoreTextChanges = false;
+					return;
+				}
+			}
+
+			if(showingPlaceholder && text != null && text.length() > 0) {
+				setNeedsDisplay();
+				setNeedsLayout();
+			} else if(!showingPlaceholder && (text == null || text.length() == 0)) {
+				setNeedsDisplay();
+				setNeedsLayout();
+			}
+
+			sendActionsForControlEvents(ControlEvent.VALUE_CHANGED);
+			NotificationCenter.defaultCenter().post(TEXT_DID_CHANGE_NOTIFICATION, TextField.this);
+		}
+
+	}
 }

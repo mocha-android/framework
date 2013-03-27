@@ -618,6 +618,10 @@ public class View extends Responder implements Accessibility {
 					}
 				}
 			}
+
+			// TODO: Fix this. This shouldn't be needed, there's a bug with ViewLayerNative
+			// related to requestLayout, it doesn't get processed in certain scenarios.
+			this.layoutIfNeeded();
 		}
 	}
 
@@ -838,11 +842,11 @@ public class View extends Responder implements Accessibility {
 
 	private void willMoveWindows(Window oldWindow, Window newWindow) {
 		if(oldWindow != newWindow) {
+			this.willMoveToWindow(newWindow);
+
 			if(newWindow == null && this.isFirstResponder()) {
 				this.resignFirstResponder();
 			}
-
-			this.willMoveToWindow(newWindow);
 
 			for(View subview : this.subviews) {
 				subview.willMoveWindows(oldWindow, newWindow);

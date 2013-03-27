@@ -87,7 +87,7 @@ public final class Font {
 		return measuredLineHeight;
 	}
 
-	float getLineHeightDrawingAdjustment() {
+	public float getLineHeightDrawingAdjustment() {
 		return lineHeightDrawingAdjustment;
 	}
 

@@ -79,10 +79,11 @@ public class Control extends View {
 	private EnumSet<State> cachedState;
 	private State[] cachedStates;
 
-	public Control() { this(Rect.zero()); }
+	public Control() { super(); }
+	public Control(Rect frame) { super(frame); }
 
-	public Control(Rect frame) {
-		super(frame);
+	protected void onCreate(Rect frame) {
+		super.onCreate(frame);
 
 		this.registeredActions = new HashMap<ActionTarget, EnumSet<ControlEvent>>();
 		this.enabled = true;
@@ -134,6 +135,8 @@ public class Control extends View {
 	}
 
 	public void sendActionsForControlEvents(ControlEvent... controlEvents) {
+		if(this.registeredActions.size() == 0) return;
+
 		for(ActionTarget actionTarget : this.registeredActions.keySet()) {
 			for(ControlEvent controlEvent : controlEvents) {
 				if(this.registeredActions.get(actionTarget).contains(controlEvent)) {

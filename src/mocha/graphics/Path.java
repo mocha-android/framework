@@ -12,8 +12,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 
 public class Path extends mocha.foundation.Object {
-	// TODO: Build out class
-
 	private final android.graphics.Path nativePath;
 	private float lineWidth;
 	private LineCap lineCapStyle;
@@ -109,22 +107,38 @@ public class Path extends mocha.foundation.Object {
 	}
 
 	public void moveToPoint(Point point) {
-		this.nativePath.moveTo(point.x, point.y);
+		this.moveTo(point.x, point.y);
+	}
+
+	public void moveTo(float x, float y) {
+		this.nativePath.moveTo(x, y);
 		this.invalidateCache();
 	}
 
 	public void addLineToPoint(Point point) {
-		this.nativePath.lineTo(point.x, point.y);
+		this.addLineTo(point.x, point.y);
+	}
+
+	public void addLineTo(float x, float y) {
+		this.nativePath.lineTo(x, y);
 		this.invalidateCache();
 	}
 
 	public void addCurveToPoint(Point endPoint, Point controlPoint1, Point controlPoint2) {
-		this.nativePath.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, endPoint.x, endPoint.y);
+		this.addCurveTo(endPoint.x, endPoint.y, controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y);
+	}
+
+	public void addCurveTo(float endX, float endY, float cp1x, float cp1y, float cp2x, float cp2y) {
+		this.nativePath.cubicTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
 		this.invalidateCache();
 	}
 
 	public void addQuadCurveToPoint(Point endPoint, Point controlPoint) {
-		this.nativePath.quadTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
+		this.addQuadCurveTo(endPoint.x, endPoint.y, controlPoint.x, controlPoint.y);
+	}
+
+	public void addQuadCurveTo(float endX, float endY, float cpx, float cpy) {
+		this.nativePath.quadTo(cpx, cpy, endX, endY);
 		this.invalidateCache();
 	}
 
