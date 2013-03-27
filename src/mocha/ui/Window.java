@@ -17,6 +17,7 @@ public final class Window extends View {
 	private Responder firstResponder;
 	private WindowLayer windowLayer;
 	protected ViewController rootViewController;
+	private List<ViewController> visibleViewControllers; // Root view controllers + visible modals
 
 	public Window(Activity activity) {
 		super(activity, Screen.mainScreen().getBounds());
@@ -25,6 +26,7 @@ public final class Window extends View {
 		this.activity.addWindow(this);
 
 		this.windowLayer = (WindowLayer)this.getLayer();
+		this.visibleViewControllers = new ArrayList<ViewController>();
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {
@@ -50,6 +52,12 @@ public final class Window extends View {
 
 			if(oldViewController != null) {
 				oldViewController.viewDidDisappear(false);
+
+				if(oldViewController.isFirstResponder()) {
+					oldViewController.resignFirstResponder();
+				}
+
+				this.removeVisibleViewController(oldViewController);
 			}
 
 			if(rootViewController != null) {
@@ -62,10 +70,20 @@ public final class Window extends View {
 				rootViewController.viewWillAppear(true);
 				this.addSubview(view);
 				rootViewController.viewDidAppear(false);
+
+				this.addVisibleViewController(rootViewController);
 			}
 
 			this.rootViewController = rootViewController;
 		}
+	}
+
+	void addVisibleViewController(ViewController viewController) {
+		this.visibleViewControllers.add(viewController);
+	}
+
+	void removeVisibleViewController(ViewController viewController) {
+		this.visibleViewControllers.remove(viewController);
 	}
 
 	void onPause() {

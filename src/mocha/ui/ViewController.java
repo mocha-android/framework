@@ -16,6 +16,20 @@ import java.util.List;
 public class ViewController extends Responder {
 	private static Method didReceiveMemoryWarningMethod;
 
+	public enum ModalTransitionStyle {
+		COVER_VERTICAL,
+		FLIP_HORIZONTAL,
+		CROSS_DISOLVE,
+		PARTIAL_CURL
+	}
+
+	public enum ModalPresentationStyle {
+		FULL_SCREEN,
+		PAGE_SHEET,
+		FORM_SHEET,
+		CURRENT_CONTEXT
+	}
+
 	private View view;
 	private ViewController parentViewController;
 	private List<ViewController> childViewControllers;
@@ -27,11 +41,21 @@ public class ViewController extends Responder {
 	private boolean willAppear;
 	private boolean didAppear;
 
+	private ModalTransitionStyle modalTransitionStyle;
+	private ModalPresentationStyle modalPresentationStyle;
+	private List<ViewController> presentedViewControllers;
+	private ViewController presentingViewController;
+
+	private boolean isBeingPresented;
+	private boolean isBeingDismissed;
 	private boolean isMovingToParentViewController;
 	private boolean isMovingFromParentViewController;
+	private Window presentingFromWindow;
 
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
+		this.modalPresentationStyle = ModalPresentationStyle.FULL_SCREEN;
+		this.modalTransitionStyle = ModalTransitionStyle.COVER_VERTICAL;
 
 		if(didReceiveMemoryWarningMethod == null) {
 			try {
@@ -499,6 +523,236 @@ public class ViewController extends Responder {
 	 */
 	public boolean shouldAutomaticallyForwardAppearanceMethods() {
 		return true;
+	}
+
+	public void presentViewController(ViewController viewController, boolean animated) {
+		this.presentViewController(viewController, animated, null);
+	}
+
+	public void presentViewController(final ViewController viewController, boolean animated, final Runnable completion) {
+		this.getRootParentViewController()._presentViewController(viewController, animated, completion);
+	}
+
+	private void _presentViewController(final ViewController viewController, boolean animated, final Runnable completion) {
+		// TODO: Handle stuff like orientation changes, transition styles and presentation styles
+
+		final Window window = this.getWindow();
+
+		if(window == null) {
+			throw new RuntimeException("You can not present a view controller from a view controller that isn't attached to a window.");
+		}
+
+		if(this.presentingFromWindow != window) {
+			this.presentingFromWindow = window;
+		}
+
+		int stackSize = this.presentedViewControllers == null ? 0 : this.presentedViewControllers.size();
+		final ViewController hideViewController = stackSize == 0 ? this : this.presentedViewControllers.get(stackSize - 1);
+
+		final Rect bounds = window.getBounds();
+		this.addPresentedViewController(viewController, window);
+
+		if(animated) {
+			Rect startFrame = bounds.copy();
+			startFrame.offset(0.0f, bounds.size.height);
+			viewController.getView().setFrame(startFrame);
+		} else {
+			viewController.getView().setFrame(bounds);
+		}
+
+		viewController.isBeingPresented = true;
+		viewController.beginAppearanceTransition(true, animated);
+		hideViewController.beginAppearanceTransition(false, animated);
+		window.addSubview(viewController.getView());
+
+
+		if(animated) {
+			View.animateWithDuration(330, new View.Animations() {
+						public void performAnimatedChanges() {
+							viewController.getView().setFrame(bounds);
+						}
+					}, new View.AnimationCompletion() {
+						public void animationCompletion(boolean finished) {
+							presentViewControllerFinish(viewController, hideViewController, completion);
+						}
+					});
+		} else {
+			this.presentViewControllerFinish(viewController, hideViewController, completion);
+		}
+	}
+
+	private void presentViewControllerFinish(ViewController presentedViewController, ViewController hideViewController, Runnable completion) {
+		presentedViewController.endAppearanceTransition();
+		hideViewController.endAppearanceTransition();
+		hideViewController.getView().removeFromSuperview();
+
+		presentedViewController.isBeingPresented = false;
+
+		if(completion != null) {
+			completion.run();
+		}
+	}
+
+	public void dismissViewController(boolean animated) {
+		this.dismissViewController(animated, null);
+	}
+
+	public void dismissViewController(boolean animated, Runnable completion) {
+		ViewController root = this.getRootParentViewController();
+
+		if(root.presentedViewControllers != null && root.presentedViewControllers.size() > 0) {
+			root.dismissPresentedViewController(root.presentedViewControllers.get(root.presentedViewControllers.size() - 1), animated, completion);
+		} else if(root.presentingViewController != null) {
+			root.presentingViewController.dismissPresentedViewController(root, animated, completion);
+		} else {
+			MWarn("There is no presented view controller to dismiss.");
+		}
+	}
+
+	private void dismissPresentedViewController(ViewController viewController, boolean animated, final Runnable completion) {
+		int index;
+		int count;
+
+		if(this.presentedViewControllers == null || (count = this.presentedViewControllers.size()) <= 0 || (index = this.presentedViewControllers.indexOf(viewController)) == -1) {
+			throw new RuntimeException(String.format("%s is not presenting %s, so it can not dismiss it.", this, viewController));
+		}
+
+		final Window window = this.getWindow(); // We should already be a root parent;
+
+		if(window == null) {
+			throw new RuntimeException("Trying to dimiss presented view controller from a presenter without a window.");
+		}
+
+		final Rect bounds = window.getBounds();
+
+		final List<ViewController> dismissViewControllers = new ArrayList<ViewController>(this.presentedViewControllers.subList(index, count));
+		final ViewController hideViewController = dismissViewControllers.get(dismissViewControllers.size() - 1);
+		final ViewController revealViewController;
+
+		if(index == 0) {
+			revealViewController = this;
+		} else {
+			revealViewController = this.presentedViewControllers.get(index - 1);
+		}
+
+		revealViewController.getView().setFrame(window.getBounds());
+		window.insertSubviewBelowSubview(revealViewController.getView(), hideViewController.getView());
+
+		hideViewController.isBeingDismissed = true;
+
+		revealViewController.beginAppearanceTransition(true, animated);
+		hideViewController.beginAppearanceTransition(false, animated);
+
+		if(animated) {
+			View.animateWithDuration(330, new View.Animations() {
+						public void performAnimatedChanges() {
+							Rect endFrame = bounds.copy();
+							endFrame.offset(0.0f, bounds.size.height);
+							hideViewController.getView().setFrame(endFrame);
+						}
+					}, new View.AnimationCompletion() {
+						public void animationCompletion(boolean finished) {
+							dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
+						}
+					});
+		} else {
+			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
+		}
+	}
+
+	private void dismissPresentedViewControllerFinish(ViewController hideViewController, ViewController revealViewController, List<ViewController> dismissViewControllers, Window window, Runnable completion) {
+		hideViewController.getView().removeFromSuperview();
+
+		hideViewController.endAppearanceTransition();
+		revealViewController.endAppearanceTransition();
+
+		for(ViewController dismissViewController : dismissViewControllers) {
+			this.removePresentedViewController(dismissViewController, window);
+		}
+
+		if(completion != null) {
+			completion.run();
+		}
+
+		hideViewController.isBeingDismissed = false;
+
+		if(revealViewController == this) {
+			this.presentingFromWindow = null;
+		}
+	}
+
+	private ViewController getRootParentViewController() {
+		if(this.parentViewController == null) {
+			return this;
+		} else {
+			return this.parentViewController.getRootParentViewController();
+		}
+	}
+
+	private Window getWindow() {
+		ViewController rootParentViewController = this.getRootParentViewController();
+		if(rootParentViewController.presentingFromWindow != null) {
+			return rootParentViewController.presentingFromWindow;
+		} else if(rootParentViewController.isViewLoaded()) {
+			return rootParentViewController.getView().getWindow();
+		} else {
+			return null;
+		}
+	}
+
+	private void addPresentedViewController(ViewController presentedViewController, Window window) {
+		if(this.presentedViewControllers == null) {
+			this.presentedViewControllers = new ArrayList<ViewController>();
+		}
+
+		this.presentedViewControllers.add(presentedViewController);
+		presentedViewController.presentingViewController = this;
+		window.addVisibleViewController(presentedViewController);
+	}
+
+	private void removePresentedViewController(ViewController presentedViewController, Window window) {
+		if(this.presentedViewControllers == null) return;
+
+		this.presentedViewControllers.remove(presentedViewController);
+		presentedViewController.presentingViewController = null;
+		window.removeVisibleViewController(presentedViewController);
+	}
+
+
+	public ViewController getPresentedViewController() {
+		ViewController viewController = this;
+
+		while(viewController != null) {
+			if(viewController.presentedViewControllers != null && viewController.presentedViewControllers.size() > 0) {
+				return viewController.presentedViewControllers.get(viewController.presentedViewControllers.size() - 1);
+			} else {
+				viewController = viewController.parentViewController;
+			}
+		}
+
+		return null;
+	}
+
+	public ViewController getPresentingViewController() {
+		if(this.presentingViewController != null) {
+			return this.presentingViewController;
+		} else {
+			ViewController viewController = this;
+
+			while(viewController.parentViewController != null) {
+				viewController = viewController.parentViewController;
+			}
+
+			return viewController.presentingViewController;
+		}
+	}
+
+	public boolean isBeingPresented() {
+		return this.isBeingPresented;
+	}
+
+	public boolean isBeingDismissed() {
+		return this.isBeingDismissed;
 	}
 
 	public boolean isMovingToParentViewController() {
