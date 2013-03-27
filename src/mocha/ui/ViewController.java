@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import mocha.foundation.NotificationCenter;
+import mocha.graphics.Rect;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -13,6 +14,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ViewController extends Responder {
+	private static Method didReceiveMemoryWarningMethod;
+
 	private View view;
 	private ViewController parentViewController;
 	private List<ViewController> childViewControllers;
@@ -24,8 +27,8 @@ public class ViewController extends Responder {
 	private boolean willAppear;
 	private boolean didAppear;
 
-
-	private static Method didReceiveMemoryWarningMethod;
+	private boolean isMovingToParentViewController;
+	private boolean isMovingFromParentViewController;
 
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
@@ -354,37 +357,38 @@ public class ViewController extends Responder {
 	 *                   properties of the views in your view hierarchy. This parameter must not be NULL.
 	 * @param completion Callback when the animation completes.
 	 *
-	 * @see View.animateWithDuration()
+	 * @see View#animateWithDuration(long, mocha.ui.View.Animations, mocha.ui.View.AnimationCompletion)
 	 */
 	public void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final long duration, final View.Animations animations, final View.AnimationCompletion completion) {
 		View.animateWithDuration(duration, new View.Animations() {
-			public void performAnimatedChanges() {
-				View.setAnimationsEnabled(false, new Runnable() {
-					public void run() {
-						fromViewController.getView().getSuperview().addSubview(toViewController.getView());
+					public void performAnimatedChanges() {
+						View.setAnimationsEnabled(false, new Runnable() {
+							public void run() {
+								fromViewController.getView().getSuperview().addSubview(toViewController.getView());
+							}
+						});
+
+						fromViewController.beginAppearanceTransition(false, duration > 0);
+						toViewController.beginAppearanceTransition(true, duration > 0);
+
+						if (animations != null) {
+							animations.performAnimatedChanges();
+						}
 					}
-				});
+				}, new View.AnimationCompletion() {
+					public void animationCompletion(boolean finished) {
+						if (finished) {
+							fromViewController.getView().removeFromSuperview();
+							fromViewController.endAppearanceTransition();
+							toViewController.endAppearanceTransition();
+						}
 
-				fromViewController.beginAppearanceTransition(false, duration > 0);
-				toViewController.beginAppearanceTransition(true, duration > 0);
-
-				if(animations != null) {
-					animations.performAnimatedChanges();
+						if (completion != null) {
+							completion.animationCompletion(finished);
+						}
+					}
 				}
-			}
-		}, new View.AnimationCompletion() {
-			public void animationCompletion(boolean finished) {
-				if(finished) {
-					fromViewController.getView().removeFromSuperview();
-					fromViewController.endAppearanceTransition();
-					toViewController.endAppearanceTransition();
-				}
-
-				if(completion != null) {
-					completion.animationCompletion(finished);
-				}
-			}
-		});
+		);
 	}
 
 	/**
@@ -446,7 +450,11 @@ public class ViewController extends Responder {
 	 * @param parentViewController The parent view controller, or null if there is no parent.
 	 */
 	public void willMoveToParentViewController(ViewController parentViewController) {
-
+		if(parentViewController == null) {
+			this.isMovingFromParentViewController = true;
+		} else {
+			this.isMovingToParentViewController = true;
+		}
 	}
 
 	/**
@@ -465,7 +473,11 @@ public class ViewController extends Responder {
 	 * @param parentViewController The parent view controller, or null if there is no parent.
 	 */
 	public void didMoveToParentViewController(ViewController parentViewController) {
-
+		if(parentViewController == null) {
+			this.isMovingFromParentViewController = false;
+		} else {
+			this.isMovingToParentViewController = false;
+		}
 	}
 
 	/**
@@ -487,6 +499,14 @@ public class ViewController extends Responder {
 	 */
 	public boolean shouldAutomaticallyForwardAppearanceMethods() {
 		return true;
+	}
+
+	public boolean isMovingToParentViewController() {
+		return this.isMovingToParentViewController;
+	}
+
+	public boolean isMovingFromParentViewController() {
+		return this.isMovingFromParentViewController;
 	}
 
 	/**
