@@ -763,6 +763,22 @@ public class ViewController extends Responder {
 		return this.isMovingFromParentViewController;
 	}
 
+	public ModalTransitionStyle getModalTransitionStyle() {
+		return modalTransitionStyle;
+	}
+
+	public void setModalTransitionStyle(ModalTransitionStyle modalTransitionStyle) {
+		this.modalTransitionStyle = modalTransitionStyle;
+	}
+
+	public ModalPresentationStyle getModalPresentationStyle() {
+		return modalPresentationStyle;
+	}
+
+	public void setModalPresentationStyle(ModalPresentationStyle modalPresentationStyle) {
+		this.modalPresentationStyle = modalPresentationStyle;
+	}
+
 	/**
 	 * Sent to the view controller when the app receives a memory warning.
 	 *
