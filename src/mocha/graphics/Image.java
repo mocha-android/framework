@@ -175,7 +175,7 @@ public class Image extends mocha.foundation.Object {
 		if(this.ninePatch != null) {
 			this.ninePatch.draw(canvas, rect.toSystemRect(context.getScale()), paint);
 		} else {
-			canvas.drawBitmap(bitmap, new android.graphics.Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), rect.toSystemRectF(context.getScale()), paint);
+			canvas.drawBitmap(this.bitmap, new android.graphics.Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), rect.toSystemRectF(context.getScale()), paint);
 		}
 	}
 
@@ -185,6 +185,13 @@ public class Image extends mocha.foundation.Object {
 
 	public void draw(Context context, Point point, Context.BlendMode blendMode, float alpha) {
 		this.draw(context, new Rect(point, this.size), blendMode, alpha);
+	}
+
+	public void drawAsPattern(Context context, Rect rect) {
+		Paint paint = new Paint(context.getPaint());
+		Shader shader = new BitmapShader(this.bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+		paint.setShader(shader);
+		context.getCanvas().drawRect(rect.toSystemRect(context.getScale()), paint);
 	}
 
 	/**
