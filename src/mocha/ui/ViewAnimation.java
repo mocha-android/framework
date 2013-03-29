@@ -5,6 +5,8 @@
  */
 package mocha.ui;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.FloatMath;
 import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
@@ -13,19 +15,13 @@ import mocha.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 class ViewAnimation extends mocha.foundation.Object {
-	private static int PROCESS_FRAME = -949484724;
-	private static long DESIRED_ANIMATION_FRAME_RATE = (long)((1.0 / 60.0) * 1000.0);
-	private static boolean PROFILE_FRAME_RATE = false;
-
-	private static ThreadLocal<AnimationHandler> animationHandler = new ThreadLocal<AnimationHandler>();
-	private static final ThreadLocal<ArrayList<ViewAnimation>> activeAnimations = new ThreadLocal<ArrayList<ViewAnimation>>() {
-		protected ArrayList<ViewAnimation> initialValue() {
-			return new ArrayList<ViewAnimation>();
-		}
-	};
+	private static final long DESIRED_ANIMATION_FRAME_RATE = 17; // 1sec / 16.667ms = 60fps, 1sec / 17 = 58.8fps
+	private static final boolean PROFILE_FRAME_RATE = false;
 
 	// We use a hash so if the same property is changed multiple times in the animation
 	// we just override the last one.
@@ -35,6 +31,7 @@ class ViewAnimation extends mocha.foundation.Object {
 	private long startTime;
 	private boolean hasStarted;
 	private boolean isCancelled;
+	private boolean hasBeenAddedToActiveAnimations;
 
 	// Debug
 	private int frameCount;
@@ -149,6 +146,9 @@ class ViewAnimation extends mocha.foundation.Object {
 	}
 
 	void start() {
+		if(hasBeenAddedToActiveAnimations) return;
+		hasBeenAddedToActiveAnimations = true;
+
 		if(this.animations == null || this.animations.size() == 0) {
 			if(didStart != null) didStart.animationDidStart(animationID, context);
 			if(didStop != null) didStop.animationDidStop(animationID, true, context);
@@ -176,16 +176,7 @@ class ViewAnimation extends mocha.foundation.Object {
 		this.duration *= timeModifier;
 		this.delay *= timeModifier;
 
-		activeAnimations.get().add(this);
-
-		AnimationHandler handler = animationHandler.get();
-
-		if(handler == null) {
-			handler = new AnimationHandler();
-			animationHandler.set(handler);
-		}
-
-		handler.sendEmptyMessage(PROCESS_FRAME);
+		ViewAnimationHandler.addAnimation(this);
 	}
 
 	private void processFrame(float time) {
@@ -203,24 +194,26 @@ class ViewAnimation extends mocha.foundation.Object {
 		for(Animation animation : this.animations.values()) {
 			// MLog("Running %s on %s", animation.type, animation.view);
 
+			final float frame = this.timingFunction.solve(time, this.duration / 1000.0f);
+
 			switch (animation.type) {
 				case FRAME:
-					animation.view.setFrame(this.interpolate(time, (Rect)animation.startValue, (Rect)animation.endValue));
+					animation.view.setFrame(this.interpolate(frame, (Rect)animation.startValue, (Rect)animation.endValue));
 					break;
 				case BOUNDS:
-					animation.view.setBounds(this.interpolate(time, (Rect) animation.startValue, (Rect) animation.endValue));
+					animation.view.setBounds(this.interpolate(frame, (Rect) animation.startValue, (Rect) animation.endValue));
 					break;
 				case ALPHA:
-					animation.view.setAlpha(this.interpolate(time, (Float) animation.startValue, (Float) animation.endValue));
+					animation.view.setAlpha(this.interpolate(frame, (Float) animation.startValue, (Float) animation.endValue));
 					break;
 				case BACKGROUND_COLOR:
 					int[] startColor = (int[])animation.startValue;
 					int[] endColor = (int[])animation.endValue;
 
-					int red = this.interpolate(time, startColor[0], endColor[0]);
-					int green = this.interpolate(time, startColor[1], endColor[1]);
-					int blue = this.interpolate(time, startColor[2], endColor[2]);
-					int alpha = this.interpolate(time, startColor[3], endColor[3]);
+					int red = this.interpolate(frame, startColor[0], endColor[0]);
+					int green = this.interpolate(frame, startColor[1], endColor[1]);
+					int blue = this.interpolate(frame, startColor[2], endColor[2]);
+					int alpha = this.interpolate(frame, startColor[3], endColor[3]);
 
 					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
 					break;
@@ -234,13 +227,13 @@ class ViewAnimation extends mocha.foundation.Object {
 					} else if(time >= 1.0f) {
 						transform = endTransform.transform;
 					} else {
-						transform = AffineTransformHelper.interpolate(this.timingFunction, time, this.duration, startTransform.decomposed, endTransform.decomposed);
+						transform = AffineTransformHelper.interpolate(this.timingFunction, frame, startTransform.decomposed, endTransform.decomposed);
 					}
 
 					animation.view.setTransform(transform);
 					break;
 				case CALLBACK_POINT:
-					animation.processFrameCallback.processFrame(this.interpolate(time, (Point)animation.startValue, (Point)animation.endValue));
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point)animation.startValue, (Point)animation.endValue));
 					break;
 			}
 		}
@@ -250,52 +243,52 @@ class ViewAnimation extends mocha.foundation.Object {
 //		}
 	}
 
-	private Rect interpolate(float time, Rect start, Rect end) {
+	private Rect interpolate(float frame, Rect start, Rect end) {
 		Rect rect = start.copy();
 
 		if(start.origin.x != end.origin.x) {
-			rect.origin.x = this.timingFunction.interpolate(time, this.duration, start.origin.x, end.origin.x);
+			rect.origin.x = this.timingFunction.interpolate(frame, start.origin.x, end.origin.x);
 		}
 
 		if(start.origin.y != end.origin.y) {
-			rect.origin.y = this.timingFunction.interpolate(time, this.duration, start.origin.y, end.origin.y);
+			rect.origin.y = this.timingFunction.interpolate(frame, start.origin.y, end.origin.y);
 		}
 
 		if(start.size.width != end.size.width) {
-			rect.size.width = this.timingFunction.interpolate(time, this.duration, start.size.width, end.size.width);
+			rect.size.width = this.timingFunction.interpolate(frame, start.size.width, end.size.width);
 		}
 
 		if(start.size.height != end.size.height) {
-			rect.size.height = this.timingFunction.interpolate(time, this.duration, start.size.height, end.size.height);
+			rect.size.height = this.timingFunction.interpolate(frame, start.size.height, end.size.height);
 		}
 
 		return rect;
 	}
 
-	private Point interpolate(float time, Point start, Point end) {
+	private Point interpolate(float frame, Point start, Point end) {
 		Point point = start.copy();
 
 		if(start.x != end.x) {
-			point.x = this.timingFunction.interpolate(time, this.duration, start.x, end.x);
+			point.x = this.timingFunction.interpolate(frame, start.x, end.x);
 		}
 
 		if(start.y != end.y) {
-			point.y = this.timingFunction.interpolate(time, this.duration, start.y, end.y);
+			point.y = this.timingFunction.interpolate(frame, start.y, end.y);
 		}
 
 		return point;
 	}
 
-	private float interpolate(float time, float start, float end) {
+	private float interpolate(float frame, float start, float end) {
 		if(start == end) {
 			return start;
 		} else {
-			return this.timingFunction.interpolate(time, this.duration, start, end);
+			return this.timingFunction.interpolate(frame, start, end);
 		}
 	}
 
-	private int interpolate(float time, int start, int end) {
-		return (int)this.interpolate(time, (float)start, (float)end);
+	private int interpolate(float frame, int start, int end) {
+		return (int)this.interpolate(frame, (float)start, (float)end);
 	}
 
 	/// New implementation
@@ -330,77 +323,156 @@ class ViewAnimation extends mocha.foundation.Object {
 	}
 
 	static void cancelAllAnimationsReferencingView(View view) {
-		AnimationHandler handler = animationHandler.get();
-		if(handler == null) return;
-
-		List<ViewAnimation> viewAnimations = new ArrayList<ViewAnimation>(activeAnimations.get());
-		for(ViewAnimation viewAnimation : viewAnimations) {
-			if(viewAnimation.isCancelled) continue;
-
-			for(Animation animation : viewAnimation.animations.values()) {
-				if(animation.view == view) {
-					viewAnimation.isCancelled = true;
-					activeAnimations.get().remove(viewAnimation);
-					viewAnimation.onAnimationCancel();
-					break;
-				}
-			}
-		}
+		ViewAnimationHandler.cancelAllAnimationsReferencingView(view);
 	}
 
-	private static class AnimationHandler extends android.os.Handler {
+	private static class ViewAnimationHandler {
+		private static Semaphore lock = new Semaphore(1);
+		private static Handler handler;
+		private static boolean scheduled;
+		private static final List<ViewAnimation> activeAnimations = new ArrayList<ViewAnimation>();
+		private static boolean isProcessing;
+		private static long lastFrameTime;
+		private static Runnable processor = new Runnable() {
+			public void run() {
+				lock.acquireUninterruptibly();
+				{
+					isProcessing = true;
+					ViewAnimationHandler.run();
+					isProcessing = false;
+				}
+				lock.release();
+			}
+		};
 
-		public void handleMessage(android.os.Message message) {
-			if(message.what == PROCESS_FRAME) {
-				long currentTime = android.os.SystemClock.uptimeMillis();
-				List<ViewAnimation> animations = new ArrayList<ViewAnimation>(activeAnimations.get());
+		static Handler getHandler() {
+			if(handler == null) {
+				handler = new Handler(Looper.getMainLooper());
+			}
 
-				for(ViewAnimation animation : animations) {
-					if(animation.isCancelled) continue;
+			return handler;
+		}
 
-					if(!animation.hasStarted) {
-						if(animation.delay > 0) {
-							if(animation.startTimeDelayed > 0 && currentTime > animation.startTimeDelayed) {
-								animation.delay = 0;
-							} else {
-								if(animation.startTimeDelayed == 0) {
-									animation.startTimeDelayed = currentTime + animation.delay;
-								}
+		static void addAnimation(final ViewAnimation animation) {
+			if(isProcessing) {
+				getHandler().postAtFrontOfQueue(new Runnable() {
+					public void run() {
+						_addAnimation(animation);
+					}
+				});
+			} else {
+				_addAnimation(animation);
+			}
+		}
 
-								continue;
-							}
+		private static void _addAnimation(ViewAnimation animation) {
+			lock.acquireUninterruptibly();
+			{
+				activeAnimations.add(animation);
+			}
+			lock.release();
+
+
+			if(!scheduled) {
+				scheduled = true;
+				getHandler().postAtFrontOfQueue(processor);
+			}
+		}
+
+		static synchronized void cancelAllAnimationsReferencingView(final View view) {
+			if(handler == null) return; // Nothings scheduled!
+
+			if(isProcessing) {
+				handler.postAtFrontOfQueue(new Runnable() {
+					public void run() {
+						_cancelAllAnimationsReferencingView(view);
+					}
+				});
+			} else {
+				_cancelAllAnimationsReferencingView(view);
+			}
+		}
+
+		static synchronized void _cancelAllAnimationsReferencingView(View view) {
+			lock.acquireUninterruptibly();
+			{
+				for(ViewAnimation viewAnimation : activeAnimations) {
+					if(viewAnimation.isCancelled) continue;
+
+					for(Animation animation : viewAnimation.animations.values()) {
+						if(animation.view == view) {
+							viewAnimation.isCancelled = true;
+							break;
 						}
-
-						animation.hasStarted = true;
-						animation.startTime = currentTime;
-						animation.onAnimationStart();
-					}
-
-
-					long elapsed = currentTime - animation.startTime;
-					float frame = animation.duration > 0 ? (float)elapsed / animation.duration : 1.0f;
-					if(frame > 1.0f) frame = 1.0f;
-					animation.processFrame(frame);
-
-					if(frame == 1.0f) {
-						activeAnimations.get().remove(animation);
-						animation.onAnimationEnd();
-					}
-				}
-
-				if(activeAnimations.get().size() > 0) {
-					long delay = Math.max(0, DESIRED_ANIMATION_FRAME_RATE - android.os.SystemClock.uptimeMillis() - currentTime);
-
-					if(delay == 0) {
-						this.sendEmptyMessage(PROCESS_FRAME);
-					} else {
-						this.sendEmptyMessageDelayed(PROCESS_FRAME, delay);
 					}
 				}
 			}
+			lock.release();
 		}
 
+		private static void run() {
+			long startTime = android.os.SystemClock.uptimeMillis();
+
+			Iterator<ViewAnimation> iterator = activeAnimations.iterator();
+			while(iterator.hasNext()) {
+				ViewAnimation animation = iterator.next();
+
+				if(animation.isCancelled) {
+					animation.onAnimationCancel();
+					iterator.remove();
+					continue;
+				}
+
+				if(!animation.hasStarted) {
+					if(animation.delay > 0) {
+						if(animation.startTimeDelayed > 0 && startTime > animation.startTimeDelayed) {
+							animation.delay = 0;
+						} else {
+							if(animation.startTimeDelayed == 0) {
+								animation.startTimeDelayed = startTime + animation.delay;
+							}
+
+							continue;
+						}
+					}
+
+					animation.hasStarted = true;
+					animation.startTime = startTime;
+					animation.onAnimationStart();
+				}
+
+
+				long elapsed = startTime - animation.startTime;
+				float frame = animation.duration > 0 ? (float)elapsed / animation.duration : 1.0f;
+				// MWarn("Processing frame %f", frame);
+				if(frame > 1.0f) frame = 1.0f;
+				animation.processFrame(frame);
+
+				if(frame == 1.0f) {
+					iterator.remove();
+					animation.onAnimationEnd();
+				}
+			}
+
+			if(activeAnimations.size() > 0) {
+				long since = lastFrameTime == 0 ? startTime : lastFrameTime;
+				long now = android.os.SystemClock.uptimeMillis();
+				long delay = (DESIRED_ANIMATION_FRAME_RATE - (now - since));
+
+				if(View.SHOW_DROPPED_ANIMATION_FRAMES && delay < 0) {
+					MWarn("Dropping frames! Last frame took %dms, should not take more than %dms. (%dms behind)", (now - since), DESIRED_ANIMATION_FRAME_RATE, Math.abs(delay));
+				}
+
+				handler.postDelayed(processor, Math.max(0, delay));
+				lastFrameTime = now;
+			} else {
+				scheduled = false;
+				lastFrameTime = 0;
+			}
+		}
 	}
+
+
 
 	static class AffineTransformHolder {
 		final AffineTransform transform;
@@ -444,18 +516,18 @@ class ViewAnimation extends mocha.foundation.Object {
 			}
 		}
 
-		public static AffineTransform interpolate(TimingFunction timingFunction, float time, long duration, AffineTransform start, AffineTransform end) {
+		public static AffineTransform interpolate(TimingFunction timingFunction, float frame, AffineTransform start, AffineTransform end) {
 			Decomposed srA = new Decomposed();
 			Decomposed srB = new Decomposed();
 
 			decompose(start, srA);
 			decompose(end, srB);
 
-			return interpolate(timingFunction, time, duration, srA, srB);
+			return interpolate(timingFunction, frame, srA, srB);
 		}
 
 		// Modified from the WebKit version for use with our timing functions.
-		public static AffineTransform interpolate(TimingFunction timingFunction, float time, long duration, Decomposed start, Decomposed end) {
+		public static AffineTransform interpolate(TimingFunction timingFunction, float frame, Decomposed start, Decomposed end) {
 			start = start.copy();
 			end = end.copy();
 
@@ -478,39 +550,39 @@ class ViewAnimation extends mocha.foundation.Object {
 			}
 
 			if(start.scaleX != end.scaleX) {
-				start.scaleX = timingFunction.interpolate(time, duration, start.scaleX, end.scaleX);
+				start.scaleX = timingFunction.interpolate(frame, start.scaleX, end.scaleX);
 			}
 
 			if(start.scaleY != end.scaleY) {
-				start.scaleY = timingFunction.interpolate(time, duration, start.scaleY, end.scaleY);
+				start.scaleY = timingFunction.interpolate(frame, start.scaleY, end.scaleY);
 			}
 
 			if(start.angle != end.angle) {
-				start.angle = timingFunction.interpolate(time, duration, start.angle, end.angle);
+				start.angle = timingFunction.interpolate(frame, start.angle, end.angle);
 			}
 
 			if(start.remainderA != end.remainderA) {
-				start.remainderA = timingFunction.interpolate(time, duration, start.remainderA, end.remainderA);
+				start.remainderA = timingFunction.interpolate(frame, start.remainderA, end.remainderA);
 			}
 
 			if(start.remainderB != end.remainderB) {
-				start.remainderB = timingFunction.interpolate(time, duration, start.remainderB, end.remainderB);
+				start.remainderB = timingFunction.interpolate(frame, start.remainderB, end.remainderB);
 			}
 
 			if(start.remainderC != end.remainderC) {
-				start.remainderC = timingFunction.interpolate(time, duration, start.remainderC, end.remainderC);
+				start.remainderC = timingFunction.interpolate(frame, start.remainderC, end.remainderC);
 			}
 
 			if(start.remainderC != end.remainderC) {
-				start.remainderC = timingFunction.interpolate(time, duration, start.remainderC, end.remainderC);
+				start.remainderC = timingFunction.interpolate(frame, start.remainderC, end.remainderC);
 			}
 
 			if(start.translateX != end.translateX) {
-				start.translateX = timingFunction.interpolate(time, duration, start.translateX, end.translateX);
+				start.translateX = timingFunction.interpolate(frame, start.translateX, end.translateX);
 			}
 
 			if(start.translateY != end.translateY) {
-				start.translateY = timingFunction.interpolate(time, duration, start.translateY, end.translateY);
+				start.translateY = timingFunction.interpolate(frame, start.translateY, end.translateY);
 			}
 
 			return recompose(start);

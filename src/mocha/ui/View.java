@@ -1,4 +1,4 @@
-/*
+/**
  *  @author Shaun
  *	@date 11/13/12
  *	@copyright 2012 enormego. All rights reserved.
@@ -18,6 +18,7 @@ public class View extends Responder implements Accessibility {
 	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
 
 	public static boolean SLOW_ANIMATIONS = false;
+	public static boolean SHOW_DROPPED_ANIMATION_FRAMES = false;
 
 	private static final int AUTORESIZING_NONE = 0;
 	private static final int AUTORESIZING_FLEXIBLE_LEFT_MARGIN = 1 << 0;
