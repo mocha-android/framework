@@ -45,7 +45,11 @@ class NavigationItemTitleView extends View {
 	 * @return rect text will be drawn into
 	 */
 	public Rect getTextRect() {
-		return this.textRect.copy();
+		if(this.textRect != null) {
+			return this.textRect.copy();
+		} else {
+			return Rect.zero();
+		}
 	}
 
 
