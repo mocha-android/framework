@@ -19,6 +19,18 @@ public final class Window extends View {
 	protected ViewController rootViewController;
 	private List<ViewController> visibleViewControllers; // Root view controllers + visible modals
 
+	public static final String KEYBOARD_WILL_SHOW_NOTIFICATION = "KEYBOARD_WILL_SHOW_NOTIFICATION";
+	public static final String KEYBOARD_DID_SHOW_NOTIFICATION = "KEYBOARD_DID_SHOW_NOTIFICATION";
+	public static final String KEYBOARD_WILL_HIDE_NOTIFICATION = "KEYBOARD_WILL_HIDE_NOTIFICATION";
+	public static final String KEYBOARD_DID_HIDE_NOTIFICATION = "KEYBOARD_DID_HIDE_NOTIFICATION";
+
+
+	public static final String KEYBOARD_FRAME_BEGIN_USER_INFO_KEY = "KEYBOARD_FRAME_BEGIN_USER_INFO_KEY"; // Rect
+	public static final String KEYBOARD_FRAME_END_USER_INFO_KEY = "KEYBOARD_FRAME_END_USER_INFO_KEY"; // Rect
+	public static final String KEYBOARD_ANIMATION_DURATION_USER_INFO_KEY = "KEYBOARD_ANIMATION_DURATION_USER_INFO_KEY"; // Long
+	public static final String KEYBOARD_ANIMATION_CURVE_USER_INFO_KEY = "KEYBOARD_ANIMATION_CURVE_USER_INFO_KEY"; // View.AnimationCurve
+
+
 	public Window(Activity activity) {
 		super(activity, Screen.mainScreen().getBounds());
 		this.getLayer().setBackgroundColor(Color.YELLOW);
