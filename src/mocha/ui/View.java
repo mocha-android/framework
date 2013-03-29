@@ -1111,6 +1111,32 @@ public class View extends Responder implements Accessibility {
 
 	// Animations
 
+	public enum AnimationOption {
+		LAYOUT_SUBVIEWS,
+		ALLOW_USER_INTERACTION,
+		/*BEGIN_FROM_CURRENT_STATE,
+		REPEAT,
+		AUTOREVERSE,
+		OVERRIDE_INHERITED_DURATION,
+		OVERRIDE_INHERITED_CURVE,
+		ALLOW_ANIMATED_CONTENT,*/
+		SHOW_HIDE_TRANSITION_VIEWS,
+
+		CURVE_EASE_IN_OUT,
+		CURVE_EASE_IN,
+		CURVE_EASE_OUT,
+		CURVE_LINEAR,
+
+		TRANSITION_NONE,
+		/*TRANSITION_FLIP_FROM_LEFT,
+		TRANSITION_FLIP_FROM_RIGHT,
+		TRANSITION_CURL_UP,
+		TRANSITION_CURL_DOWN,*/
+		TRANSITION_CROSS_DISSOLVE,
+		/*TRANSITION_FLIP_FROM_TOP,
+		TRANSITION_FLIP_FROM_BOTTOM*/
+	}
+
 	/**
 	 * Cancels any animation blocks referencing this view. This will apply to
 	 * ALL view's in an animation block and not just this view. The animating
@@ -1242,6 +1268,107 @@ public class View extends Responder implements Accessibility {
 
 	public static boolean areAnimationsEnabled() {
 		return areAnimationsEnabled;
+	}
+
+	public static void transition(final View fromView, final View toView, long duration, final AnimationCompletion completion, AnimationOption... options) {
+		final EnumSet<AnimationOption> _options;
+
+		if(options == null || options.length == 0) {
+			_options = EnumSet.noneOf(AnimationOption.class);
+		} else if(options.length == 1) {
+			_options = EnumSet.of(options[0]);
+		} else {
+			_options = EnumSet.of(options[0], options);
+		}
+
+		View superview = fromView.getSuperview();
+		final boolean showHide = _options.contains(AnimationOption.SHOW_HIDE_TRANSITION_VIEWS);
+		final float toAlpha = toView.getAlpha();
+		final float fromAlpha = fromView.getAlpha();
+
+		boolean restore = areAnimationsEnabled();
+		setAnimationsEnabled(false);
+		toView.setAlpha(0.0f);
+
+		if(showHide) {
+			toView.setHidden(false);
+		} else {
+			superview.insertSubviewBelowSubview(toView, fromView);
+		}
+
+		if(duration <= 0) {
+			toView.setAlpha(toAlpha);
+
+			if(showHide) {
+				fromView.setHidden(true);
+			} else {
+				fromView.removeFromSuperview();
+			}
+
+			setAnimationsEnabled(restore);
+
+			if(completion != null) {
+				performAfterDelay(0, new Runnable() {
+					public void run() {
+						completion.animationCompletion(true);
+					}
+				});
+			}
+		} else {
+			setAnimationsEnabled(restore);
+
+			final boolean fromInteractionEnabled = fromView.isUserInteractionEnabled();
+			final boolean toInteractionEnabled = toView.isUserInteractionEnabled();
+
+			if(!_options.contains(AnimationOption.ALLOW_USER_INTERACTION)) {
+				fromView.setUserInteractionEnabled(false);
+				toView.setUserInteractionEnabled(false);
+			}
+
+			animateWithDuration(duration, new Animations() {
+				public void performAnimatedChanges() {
+					applyCurveOptions(_options);
+
+					toView.setAlpha(toAlpha);
+					fromView.setAlpha(0.0f);
+
+					if(_options.contains(AnimationOption.LAYOUT_SUBVIEWS)) {
+						toView.layoutIfNeeded();
+						fromView.layoutIfNeeded();
+					}
+				}
+			}, new AnimationCompletion() {
+				public void animationCompletion(boolean finished) {
+					if(showHide) {
+						fromView.setHidden(true);
+					} else {
+						fromView.removeFromSuperview();
+					}
+
+					fromView.setAlpha(fromAlpha);
+
+					fromView.setUserInteractionEnabled(fromInteractionEnabled);
+					toView.setUserInteractionEnabled(toInteractionEnabled);
+
+					if(completion != null) {
+						completion.animationCompletion(finished);
+					}
+				}
+			});
+		}
+
+	}
+
+	private static void applyCurveOptions(EnumSet<AnimationOption> options) {
+		if(options.contains(AnimationOption.CURVE_EASE_IN)) {
+			View.setAnimationCurve(AnimationCurve.EASE_IN);
+		} else if(options.contains(AnimationOption.CURVE_EASE_OUT)) {
+			View.setAnimationCurve(AnimationCurve.EASE_OUT);
+		} else if(options.contains(AnimationOption.CURVE_LINEAR)) {
+			View.setAnimationCurve(AnimationCurve.LINEAR);
+		} else {
+			View.setAnimationCurve(AnimationCurve.EASE_IN_OUT);
+		}
 	}
 
 }
