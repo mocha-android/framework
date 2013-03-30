@@ -11,6 +11,8 @@ import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class TableView extends ScrollView {
@@ -179,7 +181,8 @@ public class TableView extends ScrollView {
 
 	private int numberOfSections;
 	private List<SectionInfo> sectionsInfo;
-	private HashMap<Object,List<TableViewCell>> cellsQueuedForReuse;
+	private Map<Object,List<TableViewCell>> cellsQueuedForReuse;
+	private Map<Object,Class<? extends TableViewCell>> registeredClasses;
 	private List<TableViewSubview> headersQueuedForReuse;
 	private List<TableViewSubview> footersQueuedForReuse;
 	private List<TableViewSubview> visibleHeaders;
@@ -219,6 +222,7 @@ public class TableView extends ScrollView {
 		this.setAllowsSelection(true);
 		this.sectionsInfo = new ArrayList<SectionInfo>();
 		this.cellsQueuedForReuse = new HashMap<Object, List<TableViewCell>>();
+		this.registeredClasses = new HashMap<Object, Class<? extends TableViewCell>>();
 		this.headersQueuedForReuse = new ArrayList<TableViewSubview>();
 		this.footersQueuedForReuse = new ArrayList<TableViewSubview>();
 		this.visibleHeaders = new ArrayList<TableViewSubview>();
@@ -1417,12 +1421,51 @@ public class TableView extends ScrollView {
 		return cell;
 	}
 
+	public void registerClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
+		registeredClasses.put(reuseIdentifier, cellClass);
+	}
+
 	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier) {
 		TableViewCell cell = this.dequeueView(this.cellsQueuedForReuse.get(reuseIdentifier));
 
 		if (cell != null) {
 			cell.prepareForReuse();
 		}
+
+		return cell;
+	}
+
+	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier, IndexPath indexPath) {
+		TableViewCell cell = this.dequeueReusableCellWithIdentifier(indexPath);
+
+		if(cell == null) {
+			Class<? extends TableViewCell> cellClass = this.registeredClasses.get(reuseIdentifier);
+
+			if(cellClass == null) {
+				return null;
+			} else {
+				Constructor<? extends TableViewCell> constructor;
+
+				try {
+					constructor = cellClass.getConstructor(TableViewCell.Style.class, Object.class);
+				} catch (NoSuchMethodException e) {
+					MWarn(e, "Could not find construct in registered cell class %s for reuseIdentifier %s", cellClass, reuseIdentifier);
+					return null;
+				}
+
+				try {
+					cell = constructor.newInstance(TableViewCell.Style.DEFAULT, reuseIdentifier);
+				} catch (InstantiationException e) {
+					throw new RuntimeException(e);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+
+		cell.setFrame(getRectForRowAtIndexPath(indexPath));
 
 		return cell;
 	}
