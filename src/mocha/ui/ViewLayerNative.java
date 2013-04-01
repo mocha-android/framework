@@ -300,7 +300,10 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		}
 
 		this.setNeedsDisplay();
-		this.getSuperlayer().setNeedsDisplay();
+
+		if(this.getSuperlayer() != null) {
+			this.getSuperlayer().setNeedsDisplay();
+		}
 	}
 
 	public int getShadowColor() {

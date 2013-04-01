@@ -291,6 +291,10 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 				this.notifyDependentsOfRecognition();
 			}
 
+			if(this.state.recognized) {
+				this.cancelTouches();
+			}
+
 			for(GestureHandler gestureHandler : this.registeredGestureHandlers) {
 				gestureHandler.handleGesture(GestureRecognizer.this);
 			}
@@ -307,13 +311,6 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		// Notify failure dependents if we've failed/cancelled
 		if(this.state == State.FAILED || this.state == State.CANCELLED) {
 			this.notifyDependentsOfFailure();
-		}
-
-		// Remove ourself from all touches if we're finished
-		if(this.state.finished) {
-			for(Touch touch : this.lastEvent.allTouches()) {
-				touch.removeGestureRecognizer(this);
-			}
 		}
 
 		if(needsReset) {
@@ -411,6 +408,14 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	}
 
 	protected void reset() {
+		if(this.lastEvent != null) {
+			// Remove from last touches
+
+			for(Touch touch : this.lastEvent.allTouches()) {
+				touch.removeGestureRecognizer(this);
+			}
+		}
+
 		this.state = State.POSSIBLE;
 		this.trackingTouches.clear();
 		this.ignoredTouches.clear();
@@ -478,6 +483,10 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 			}
 
 			this.notifyDependentsOfRecognition();
+
+			if(this.state.recognized) {
+				this.cancelTouches();
+			}
 		}
 	}
 
@@ -555,6 +564,24 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 
 		this.passedPreventionTests = true;
 		return true;
+	}
+
+	private void cancelTouches() {
+		if(!this.cancelsTouchesInView) return;
+
+		for(Touch touch : this.trackingTouches) {
+			List<Touch> touches = new ArrayList<Touch>();
+			touches.add(touch);
+
+			View view = touch.getView();
+			if(view.isMultipleTouchEnabled() || view.trackingSingleTouch == touch) {
+				view.touchesCancelled(touches, this.lastEvent);
+
+				if(view.trackingSingleTouch == touch) {
+					view.trackingSingleTouch = null;
+				}
+			}
+		}
 	}
 
 	public String toString() {

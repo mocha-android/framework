@@ -188,11 +188,22 @@ public final class Window extends View {
 	private void sendTouches(List<Touch> touches, Touch.Phase phase, Event event, View view) {
 		if(view == null) return;
 
-		List<GestureRecognizer> gestureRecognizers = view.getGestureRecognizers();
+		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
+		if(touches.size() == 1) {
+			gestureRecognizers.addAll(touches.get(0).getGestureRecognizers());
+		} else if(touches.size() > 1) {
+			for(Touch touch : touches) {
+				gestureRecognizers.addAll(touch.getGestureRecognizers());
+			}
+		}
 
-		if(gestureRecognizers != null && gestureRecognizers.size() > 0) {
-			for (GestureRecognizer gestureRecognizer : view.getGestureRecognizers()) {
-				if(!gestureRecognizer.getCancelsTouchesInView()) continue;
+		if(gestureRecognizers.size() > 0) {
+			for (GestureRecognizer gestureRecognizer : gestureRecognizers) {
+				if(!gestureRecognizer.getCancelsTouchesInView()) {
+					continue;
+				}
+
+				boolean removedTouches = false;
 
 				switch (gestureRecognizer.getState()) {
 					case BEGAN:
@@ -200,11 +211,14 @@ public final class Window extends View {
 					case ENDED:
 					case RECOGNIZED:
 						touches.removeAll(gestureRecognizer.getTrackingTouches());
+						removedTouches = true;
 						break;
 
 					default:
 						// don't ignore touches
 				}
+
+				if(removedTouches && touches.size() == 0) break;
 			}
 		}
 
