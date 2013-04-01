@@ -7,23 +7,41 @@ package mocha.ui;
 
 import mocha.foundation.IndexPath;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 abstract public class TableViewController extends ViewController implements TableView.DataSource, TableView.Delegate {
 	private final TableView.Style style;
 	private boolean clearsSelectionOnViewWillAppear;
+	private final Class<? extends TableView> tableViewClass;
 
 	public TableViewController() {
 		this(TableView.Style.PLAIN);
 	}
 
 	public TableViewController(TableView.Style style) {
+		this(style, null);
+	}
+
+	public TableViewController(TableView.Style style, Class<? extends TableView> tableViewClass) {
 		this.style = style == null ? TableView.Style.PLAIN : style;
 		this.clearsSelectionOnViewWillAppear = true;
+		this.tableViewClass = tableViewClass;
 	}
 
 	protected void loadView() {
-		TableView tableView = new TableView(style);
+		TableView tableView;
+
+		if(tableViewClass != null) {
+			try {
+				tableView = tableViewClass.getConstructor(TableView.Style.class).newInstance(this.style);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			tableView = new TableView(style);
+		}
+
 		tableView.setDelegate(this);
 		tableView.setDataSource(this);
 		super.setView(tableView);

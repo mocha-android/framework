@@ -255,7 +255,7 @@ public class NotificationCenter extends Object {
 
 		if(methodTakesNotificationParameter) {
 			Class parameter = action.getParameterTypes()[0];
-			passedParameterCheck = !(parameter != Notification.class && !parameter.isAssignableFrom(Notification.class));
+			passedParameterCheck = !(parameter != Notification.class && !Notification.class.isAssignableFrom(parameter));
 		} else {
 			passedParameterCheck = action.getParameterTypes().length == 0;
 		}

@@ -388,7 +388,7 @@ public class Control extends View {
 			if(this.methodTakesControlEventParameter) {
 				Class parameter = action.getParameterTypes()[0];
 				//noinspection unchecked
-				passedParameterCheck = !(parameter != ControlEvent.class && !parameter.isAssignableFrom(ControlEvent.class));
+				passedParameterCheck = !(parameter != ControlEvent.class && !ControlEvent.class.isAssignableFrom(parameter));
 			} else {
 				passedParameterCheck = action.getParameterTypes().length == 0;
 			}

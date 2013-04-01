@@ -47,6 +47,8 @@ public class NavigationBar extends View {
 	private BarMetricsStorage<Image> backgroundImages;
 	private Image shadowImage;
 
+	private NavigationItemDelegate navigationItemDelegate = new NavigationItemDelegate();
+
 	private static mocha.ui.Appearance.Storage<NavigationBar, Appearance> appearanceStorage;
 
 	public static <E extends NavigationBar> Appearance appearance(Class<E> cls) {
@@ -118,12 +120,20 @@ public class NavigationBar extends View {
 	void setItemsWithoutUpdatingView(List<NavigationItem> items) {
 		this.items.clear();
 		this.items.addAll(items);
+
+		for(NavigationItem item : items) {
+			item.setDelegate(this.navigationItemDelegate);
+		}
 	}
 
 	public void setItems(List<NavigationItem> items, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		if(!this.items.equals(items)) {
 			this.items.clear();
 			this.items.addAll(items);
+
+			for(NavigationItem item : items) {
+				item.setDelegate(this.navigationItemDelegate);
+			}
 
 			this.updateItemsWithTransition(Transition.PUSH, animated, additionalTransitions, transitionCompleteCallback);
 		}
@@ -138,6 +148,7 @@ public class NavigationBar extends View {
 
 		if(shouldPush) {
 			this.items.add(navigationItem);
+			navigationItem.setDelegate(this.navigationItemDelegate);
 
 			this.updateItemsWithTransition(Transition.PUSH, animated, additionalTransitions, transitionCompleteCallback);
 
@@ -163,6 +174,7 @@ public class NavigationBar extends View {
 		for(NavigationItem item : items) {
 			if(shouldRemove) {
 				if(item != topItem) {
+					item.setDelegate(null);
 					this.items.remove(item);
 				}
 			} else if(item == navigationItem) {
@@ -179,6 +191,7 @@ public class NavigationBar extends View {
 		if(previousItem == null || (this.delegate != null && !this.delegate.shouldPopItem(this, previousItem))) {
 			return null;
 		} else {
+			previousItem.setDelegate(null);
 			this.items.remove(previousItem);
 			this.updateItemsWithTransition(Transition.POP, animated, additionalTransitions, transitionCompleteCallback);
 
@@ -191,6 +204,10 @@ public class NavigationBar extends View {
 	}
 
 	void clearNavigationItems() {
+		for(NavigationItem item : this.items) {
+			item.setDelegate(null);
+		}
+
 		this.items.clear();
 
 		if(this.leftView != null) {
@@ -527,6 +544,24 @@ public class NavigationBar extends View {
 			this.setBarButtonSize(button);
 
 			return button;
+		}
+	}
+
+	class NavigationItemDelegate implements NavigationItem.Delegate {
+		public void titleChanged(NavigationItem navigationItem) {
+			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+		}
+
+		public void titleViewChanged(NavigationItem navigationItem) {
+			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+		}
+
+		public void leftBarButtonItemChanged(NavigationItem navigationItem, boolean animated) {
+			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+		}
+
+		public void rightBarButtonItemChanged(NavigationItem navigationItem, boolean animated) {
+			updateItemsWithTransition(Transition.RELOAD, false, null, null);
 		}
 	}
 

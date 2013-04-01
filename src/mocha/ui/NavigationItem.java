@@ -32,6 +32,14 @@ public class NavigationItem extends mocha.foundation.Object {
 	private List<BarButtonItem> leftBarButtonItems;
 	private List<BarButtonItem> rightBarButtonItems;
 	private View titleView;
+	private Delegate delegate;
+
+	interface Delegate {
+		void titleChanged(NavigationItem navigationItem);
+		void titleViewChanged(NavigationItem navigationItem);
+		void leftBarButtonItemChanged(NavigationItem navigationItem, boolean animated);
+		void rightBarButtonItemChanged(NavigationItem navigationItem, boolean animated);
+	}
 
 	public NavigationItem() {
 		this.leftBarButtonItems = new ArrayList<BarButtonItem>();
@@ -74,6 +82,11 @@ public class NavigationItem extends mocha.foundation.Object {
 	 */
 	public void setTitle(String title) {
 		this.title = title;
+
+
+		if(this.delegate != null) {
+			this.delegate.titleViewChanged(this);
+		}
 	}
 
 	/**
@@ -180,6 +193,10 @@ public class NavigationItem extends mocha.foundation.Object {
 	public void setLeftBarButtonItems(List<BarButtonItem> leftBarButtonItems, boolean animated) {
 		this.leftBarButtonItems.clear();
 		this.leftBarButtonItems.addAll(leftBarButtonItems);
+
+		if(this.delegate != null) {
+			this.delegate.leftBarButtonItemChanged(this, animated);
+		}
 	}
 
 	public BarButtonItem getLeftBarButtonItem() {
@@ -193,6 +210,10 @@ public class NavigationItem extends mocha.foundation.Object {
 	public void setLeftBarButtonItem(BarButtonItem leftBarButtonItem) {
 		this.leftBarButtonItems.clear();
 		this.leftBarButtonItems.add(leftBarButtonItem);
+
+		if(this.delegate != null) {
+			this.delegate.leftBarButtonItemChanged(this, false);
+		}
 	}
 
 	public void setLeftBarButtonItem(BarButtonItem leftBarButtonItem, boolean animated) {
@@ -217,6 +238,10 @@ public class NavigationItem extends mocha.foundation.Object {
 	public void setRightBarButtonItems(List<BarButtonItem> rightBarButtonItems, boolean animated) {
 		this.rightBarButtonItems.clear();
 		this.rightBarButtonItems.addAll(rightBarButtonItems);
+
+		if(this.delegate != null) {
+			this.delegate.rightBarButtonItemChanged(this, animated);
+		}
 	}
 
 	public BarButtonItem getRightBarButtonItem() {
@@ -230,6 +255,10 @@ public class NavigationItem extends mocha.foundation.Object {
 	public void setRightBarButtonItem(BarButtonItem rightBarButtonItem) {
 		this.rightBarButtonItems.clear();
 		this.rightBarButtonItems.add(rightBarButtonItem);
+
+		if(this.delegate != null) {
+			this.delegate.rightBarButtonItemChanged(this, false);
+		}
 	}
 
 	public void setRightBarButtonItem(BarButtonItem rightBarButtonItem, boolean animated) {
@@ -249,5 +278,17 @@ public class NavigationItem extends mocha.foundation.Object {
 
 	public void setTitleView(View titleView) {
 		this.titleView = titleView;
+
+		if(this.delegate != null) {
+			this.delegate.titleViewChanged(this);
+		}
+	}
+
+	Delegate getDelegate() {
+		return delegate;
+	}
+
+	void setDelegate(Delegate delegate) {
+		this.delegate = delegate;
 	}
 }

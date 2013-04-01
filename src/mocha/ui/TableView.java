@@ -105,6 +105,15 @@ public class TableView extends ScrollView {
 
 	}
 
+	public enum ScrollPosition {
+		NONE,
+		TOP,
+		MIDDLE,
+		BOTTOM
+	}
+
+
+
 	private static class SectionInfo {
 		int numberOfRows;
 		Object header;
@@ -1422,7 +1431,8 @@ public class TableView extends ScrollView {
 	}
 
 	public void registerClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
-		registeredClasses.put(reuseIdentifier, cellClass);
+		MWarn("REGISTERING %s as %s", cellClass, reuseIdentifier);
+		this.registeredClasses.put(reuseIdentifier, cellClass);
 	}
 
 	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier) {
@@ -1455,17 +1465,13 @@ public class TableView extends ScrollView {
 
 				try {
 					cell = constructor.newInstance(TableViewCell.Style.DEFAULT, reuseIdentifier);
-				} catch (InstantiationException e) {
-					throw new RuntimeException(e);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				} catch (InvocationTargetException e) {
+				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 			}
 		}
 
-		cell.setFrame(getRectForRowAtIndexPath(indexPath));
+		// cell.setFrame(getRectForRowAtIndexPath(indexPath));
 
 		return cell;
 	}
