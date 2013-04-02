@@ -8,6 +8,7 @@ package mocha.graphics;
 import android.graphics.*;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import mocha.ui.*;
 
 import java.util.ArrayList;
 
@@ -104,6 +105,10 @@ public final class Context extends mocha.foundation.Object {
 
 	Paint getPaint() {
 		return paint;
+	}
+
+	public void setFillColor(float red, float green, float blue, float alpha) {
+		this.setFillColor(mocha.ui.Color.rgba(red, green, blue, alpha));
 	}
 
 	public void setFillColor(int color) {
