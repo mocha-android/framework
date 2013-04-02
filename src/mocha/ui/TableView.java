@@ -12,7 +12,6 @@ import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class TableView extends ScrollView {
@@ -123,6 +122,10 @@ public class TableView extends ScrollView {
 		float footerHeight;
 		float[] rowHeights;
 		float cumulativeRowHeight;
+
+		float getMaxY() {
+			return y + headerHeight + footerHeight + cumulativeRowHeight;
+		}
 	}
 
 	static class TableViewCellIndexPathComparator implements Comparator<TableViewCell> {
@@ -319,6 +322,27 @@ public class TableView extends ScrollView {
 						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
 						this.visibleSubviews.contains(subview), subview._isQueued, layer.getY());
 			}
+		}
+
+		MLog("============================");
+	}
+
+	private void debugSectionInfo() {
+		MLog("============================");
+		MLog("Section Info Debug");
+		MLog("----------------------------");
+		int s = 0;
+		for(SectionInfo sectionInfo : this.sectionsInfo) {
+			MLog("| Section: %-2s | Rows: %-2s | Offset: %-5s | header: %-5s", s, sectionInfo.numberOfRows, sectionInfo.y, sectionInfo.headerHeight);
+			float y = sectionInfo.y + sectionInfo.headerHeight;
+			int r = 0;
+			for(float rowHeight : sectionInfo.rowHeights) {
+				MLog("| Row: %-2s, %-2s | Offset: %-5s | Height: %-5s", s, r, y, rowHeight);
+				y += rowHeight;
+				r++;
+			}
+
+			s++;
 		}
 
 		MLog("============================");
@@ -522,12 +546,12 @@ public class TableView extends ScrollView {
 		return (this.isSectionValid(section) && row >= 0 && row < this.sectionsInfo.get(section).numberOfRows);
 	}
 
-	public TableViewCell cellForRowAtIndexPath(IndexPath indexPath) {
+	public TableViewCell getCellForRowAtIndexPath(IndexPath indexPath) {
 		if (indexPath != null && this.isIndexPathValid(indexPath)) {
 			List<TableViewCell> cells = this.getVisibleCells();
 
 			for(TableViewCell cell : cells) {
-				if (indexPath.equals(this.indexPathForCell(cell))) {
+				if (indexPath.equals(this.getIndexPathForCell(cell))) {
 					return cell;
 				}
 			}
@@ -538,28 +562,26 @@ public class TableView extends ScrollView {
 		return null;
 	}
 
-	public IndexPath indexPathForCell(TableViewCell cell) {
+	public IndexPath getIndexPathForCell(TableViewCell cell) {
 		return cell._dataSourceInfo.indexPath;
 	}
 
-	public int sectionAtPoint(Point point) {
-		int sectionAtPoint = -1;
-		int numberOfSections = this.sectionsInfo.size();
+	private int getSectionAtPoint(Point point) {
+		int section = 0;
 
-		for(int section = 0; section < numberOfSections; section++) {
-			if (this.sectionsInfo.get(section).y > point.y) {
-				sectionAtPoint = section;
+		for(SectionInfo sectionInfo : this.sectionsInfo) {
+			if(point.y < sectionInfo.getMaxY()) {
 				break;
+			} else {
+				section++;
 			}
 		}
 
-		sectionAtPoint = Math.max(0, sectionAtPoint - 1);
-
-		return (sectionAtPoint >= this.numberOfSections) ? -1 : sectionAtPoint;
+		return (section >= this.numberOfSections) ? this.numberOfSections - 1 : section;
 	}
 
-	public IndexPath indexPathForRowAtPoint(Point point) {
-		int section = this.sectionAtPoint(point);
+	public IndexPath getIndexPathForRowAtPoint(Point point) {
+		int section = this.getSectionAtPoint(point);
 
 		if (section == -1) {
 			return null;
@@ -578,14 +600,14 @@ public class TableView extends ScrollView {
 
 		int row;
 		if (this.usesCustomRowHeights) {
-			int numberOfRows = sectionInfo.numberOfRows;
-
+			row = 0;
 			float current = 0;
-			for (row = 1; row < numberOfRows; row++) {
-				current += sectionInfo.rowHeights[row];
-				if (offsetY < current) {
-					row--;
+			for(float rowHeight : sectionInfo.rowHeights) {
+				current += rowHeight;
+				if(offsetY < current) {
 					break;
+				} else {
+					row++;
 				}
 			}
 		} else {
@@ -795,7 +817,7 @@ public class TableView extends ScrollView {
 			}
 		}
 
-		int section = this.sectionAtPoint(this.getContentOffset());
+		int section = this.getSectionAtPoint(this.getContentOffset());
 
 		if (minY >= 0 && minY <= this.maxPoint.y) {
 			this.scanSubviewsForQueuing(minY, maxY, section);
@@ -1264,7 +1286,7 @@ public class TableView extends ScrollView {
 		List<IndexPath> indexPaths = new ArrayList<IndexPath>();
 
 		for(TableViewCell cell : visibleCells) {
-			indexPaths.add(this.indexPathForCell(cell));
+			indexPaths.add(this.getIndexPathForCell(cell));
 		}
 
 		return indexPaths;
@@ -1431,7 +1453,6 @@ public class TableView extends ScrollView {
 	}
 
 	public void registerClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
-		MWarn("REGISTERING %s as %s", cellClass, reuseIdentifier);
 		this.registeredClasses.put(reuseIdentifier, cellClass);
 	}
 
@@ -1555,7 +1576,7 @@ public class TableView extends ScrollView {
 			View.setAnimationDuration(TableViewCell.ANIMATED_HIGHLIGHT_DURATION);
 		}
 
-		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
+		TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 		this.selectedRowsIndexPaths.remove(indexPath);
 
 		if (cell != null) {
@@ -1574,7 +1595,7 @@ public class TableView extends ScrollView {
 			throw new RuntimeException("Tried to select row with invalid index path: " + indexPath);
 		}
 
-		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
+		TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 
 		if(animated) {
 			View.beginAnimations(null, null);
@@ -1610,7 +1631,7 @@ public class TableView extends ScrollView {
 	}
 
 	void disclosureButtonWasSelectedAtIndexPath(IndexPath indexPath) {
-		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
+		TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 
 		if (cell.getAccessoryType() == TableViewCell.AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
 			if(this.delegateAccessorySelection != null) {
@@ -1624,7 +1645,7 @@ public class TableView extends ScrollView {
 		this.resetAllEditingCells();
 
 		if (isEditing) {
-			TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
+			TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 			if(this.delegateEditing != null) {
 				CharSequence title = this.delegateEditing.getTitleForDeleteConfirmationButtonForRowAtIndexPath(this, indexPath);
 				if(title != null) {
@@ -1640,7 +1661,7 @@ public class TableView extends ScrollView {
 
 	private void resetAllEditingCells() {
 		for(IndexPath indexPath : this.cellsBeingEditedPaths) {
-			this.cellForRowAtIndexPath(indexPath).setEditing(false);
+			this.getCellForRowAtIndexPath(indexPath).setEditing(false);
 		}
 
 		this.cellsBeingEditedPaths.clear();
@@ -1648,7 +1669,7 @@ public class TableView extends ScrollView {
 
 	private void deleteButtonWasSelectedAtIndexPath(IndexPath indexPath) {
 		this.resetAllEditingCells();
-		TableViewCell cell = this.cellForRowAtIndexPath(indexPath);
+		TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 
 		if (cell.isSelected()) {
 			this.deselectRowAtIndexPath(indexPath, false);
@@ -1675,8 +1696,8 @@ public class TableView extends ScrollView {
 
 			this.cellTouchCallback = performAfterDelay(100, new Runnable() {
 				public void run() {
-					IndexPath indexPath = indexPathForRowAtPoint(touch.locationInView(TableView.this));
-					touchedCell = cellForRowAtIndexPath(indexPath);
+					IndexPath indexPath = getIndexPathForRowAtPoint(touch.locationInView(TableView.this));
+					touchedCell = getCellForRowAtIndexPath(indexPath);
 
 					if (touchedCell != null) {
 						if (delegateHighlighting != null) {
@@ -1725,13 +1746,12 @@ public class TableView extends ScrollView {
 		}
 
 		if(this.touchedCell != null) {
-			this.selectCellDueToTouchEvent(this.touchedCell, this.indexPathForCell(this.touchedCell), false);
+			this.selectCellDueToTouchEvent(this.touchedCell, this.getIndexPathForCell(this.touchedCell), false);
 			this.touchedCell = null;
 		} else if(!this.touchesMoved) {
 			Touch touch = touches.get(0);
-
-			IndexPath indexPath = indexPathForRowAtPoint(touch.locationInView(TableView.this));
-			TableViewCell cell = cellForRowAtIndexPath(indexPath);
+			IndexPath indexPath = this.getIndexPathForRowAtPoint(touch.locationInView(TableView.this));
+			TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
 
 			if (cell != null) {
 				this.selectCellDueToTouchEvent(cell, indexPath, false);
@@ -1774,7 +1794,7 @@ public class TableView extends ScrollView {
 				if(newIndexPath == null) {
 					return;
 				} else {
-					selectingCell = this.cellForRowAtIndexPath(newIndexPath);
+					selectingCell = this.getCellForRowAtIndexPath(newIndexPath);
 
 					if(selectingCell != null) {
 						selectingCell.setHighlighted(true, animated);
