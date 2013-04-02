@@ -7,11 +7,12 @@ package mocha.graphics;
 
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import mocha.foundation.Copying;
 
 import java.util.Collections;
 import java.util.EnumSet;
 
-public class Path extends mocha.foundation.Object {
+public class Path extends mocha.foundation.Object implements Copying<Path> {
 	private final android.graphics.Path nativePath;
 	private float lineWidth;
 	private LineCap lineCapStyle;
@@ -331,5 +332,11 @@ public class Path extends mocha.foundation.Object {
 		this.cachedBounds = null;
 		this.cachedScaledPath = null;
 		this.cachedScaledPathFactor = 0.0f;
+	}
+
+	public Path copy() {
+		Path path = new Path();
+		path.appendPath(this);
+		return path;
 	}
 }

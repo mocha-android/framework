@@ -642,6 +642,8 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public Point convertPointToView(Point point, View view) {
+		if(view == null) return point;
+
 		Point fromPoint = this.convertPointToWindow(Point.zero());
 		Point toPoint = view.convertPointToWindow(Point.zero());
 
