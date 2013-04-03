@@ -15,6 +15,8 @@ public class NavigationBar extends View {
 	private static final EdgeInsets BUTTON_EDGE_INSETS = new EdgeInsets(7.0f, 5.0f, 0.0f, 5.0f);
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
+	private static final float MAX_TITLE_HEIGHT_DEFAULT = 30.0f;
+	private static final float MAX_TITLE_HEIGHT_LANDSCAPE_PHONE = 24.0f;
 	static final long ANIMATION_DURATION = 330;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
@@ -271,6 +273,7 @@ public class NavigationBar extends View {
 		final View previousRightView = this.rightView;
 		final View previousCenterView = this.centerView;
 		final boolean previousLeftIsBackButton = this.leftIsBackButton;
+		final Rect bounds = this.getBounds();
 
 		NavigationItem topItem = this.getTopItem();
 
@@ -297,24 +300,21 @@ public class NavigationBar extends View {
 			if (this.rightView != null) {
 				this.rightView.setAutoresizing(Autoresizing.FLEXIBLE_LEFT_MARGIN);
 				Rect frame = this.rightView.getFrame();
-				frame.origin.x = this.getBounds().size.width - frame.size.width - BUTTON_EDGE_INSETS.right;
+				frame.origin.x = bounds.size.width - frame.size.width - BUTTON_EDGE_INSETS.right;
 				frame.origin.y = BUTTON_EDGE_INSETS.top;
 				this.rightView.setFrame(frame);
 			}
 
-			Rect titleFrame = new Rect();
-			titleFrame.size = this.getBounds().size.copy();
-			titleFrame.size.width -= BUTTON_EDGE_INSETS.left + BUTTON_EDGE_INSETS.right;
+			float titleMinX = BUTTON_EDGE_INSETS.left;
+			float titleMaxX = bounds.size.width - BUTTON_EDGE_INSETS.right;
+
 
 			if(this.leftView != null) {
-				titleFrame.origin.x = this.leftView.getFrame().maxX() + BUTTON_EDGE_INSETS.left;
-				titleFrame.size.width -= this.leftView.getFrame().size.width + BUTTON_EDGE_INSETS.left;
-			} else {
-				titleFrame.origin.x = BUTTON_EDGE_INSETS.left;
+				titleMinX += this.leftView.getFrame().size.width + BUTTON_EDGE_INSETS.left;
 			}
 
 			if(this.rightView != null) {
-				titleFrame.size.width -= this.rightView.getFrame().size.width + BUTTON_EDGE_INSETS.right;
+				titleMaxX -= this.rightView.getFrame().size.width + BUTTON_EDGE_INSETS.right;
 			}
 
 			this.centerView = topItem.getTitleView();
@@ -326,12 +326,44 @@ public class NavigationBar extends View {
 				this.centerView = new NavigationItemTitleView(topItem, this.titleTextAttributes, adjustment);
 			}
 
-			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
+			Rect titleFrame = new Rect();
+			titleFrame.size.width = titleMaxX - titleMinX;
+			titleFrame.size.height = bounds.size.height > 30.0f ? MAX_TITLE_HEIGHT_DEFAULT : MAX_TITLE_HEIGHT_LANDSCAPE_PHONE;
+
+			titleFrame.size = this.centerView.sizeThatFits(titleFrame.size);
+			titleFrame.origin.y = floorf((bounds.size.height - titleFrame.size.height) / 2.0f);
+			titleFrame.origin.x = floorf((bounds.size.width - titleFrame.size.width) / 2.0f);
+
+			if(titleFrame.origin.x < titleMinX) {
+				titleFrame.origin.x = titleMinX;
+			}
+
+			if(titleFrame.maxX() > titleMaxX) {
+				float maxDiff = titleFrame.maxX() - titleMaxX;
+
+				if(titleFrame.origin.x > titleMinX) {
+					float minDiff = titleFrame.origin.x - titleMinX;
+
+					if(minDiff >= maxDiff) {
+						titleFrame.origin.x -= maxDiff;
+						maxDiff = 0;
+					} else {
+						titleFrame.origin.y -= maxDiff - minDiff;
+						maxDiff -= minDiff;
+					}
+				}
+
+				if(maxDiff > 0) {
+					titleFrame.size.width -= maxDiff;
+				}
+			}
+
+			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_MARGINS);
 			this.centerView.setFrame(titleFrame);
 			this.centerView.setAlpha(0.0f);
 
 			if(this.centerView instanceof NavigationItemTitleView) {
-				((NavigationItemTitleView)this.centerView).setDestinationFrame(titleFrame, this.getBounds());
+				((NavigationItemTitleView)this.centerView).setDestinationFrame(titleFrame, bounds);
 			}
 		} else {
 			this.leftView = null;

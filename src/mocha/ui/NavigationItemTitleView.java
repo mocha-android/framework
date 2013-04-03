@@ -41,6 +41,17 @@ class NavigationItemTitleView extends View {
 		}
 	}
 
+	public Size sizeThatFits(Size size) {
+		String title = this.navigationItem.getTitle();
+
+		if(title != null && title.length() > 0) {
+			Size textSize = TextDrawing.getTextSize(title, this.font, size);
+			return new Size(Math.min(size.width, textSize.width), Math.min(size.height, textSize.height));
+		} else {
+			return Size.zero();
+		}
+	}
+
 	/**
 	 * @return rect text will be drawn into
 	 */
@@ -51,7 +62,6 @@ class NavigationItemTitleView extends View {
 			return Rect.zero();
 		}
 	}
-
 
 	/**
 	 * Set the destination frame when it's actually on the navigation
