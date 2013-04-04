@@ -5,9 +5,10 @@
  */
 package mocha.graphics;
 
-import android.graphics.Matrix;
-import android.graphics.RectF;
+import android.graphics.*;
+import android.util.FloatMath;
 import mocha.foundation.Copying;
+import mocha.ui.Color;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -282,47 +283,79 @@ public class Path extends mocha.foundation.Object implements Copying<Path> {
 	}
 
 	public void fill(Context context) {
-		context.save();
-		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getPaint());
-		context.restore();
+		boolean antiAlias = context.getPaint().isAntiAlias();
+		context.getPaint().setAntiAlias(true);
+
+		final float scale = context.getScale();
+		final android.graphics.Path path = this.getScaledNativePath(scale);
+
+		if(context.getClipPath() != null && context.getClipPath() != this) {
+			final Rect bounds = this.getBounds();
+
+			context.drawClippedToPath(bounds, new Context.DrawClippedToPath() {
+				public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint) {
+					android.graphics.Path path1 = new android.graphics.Path();
+					path1.addPath(path);
+					path1.offset(-bounds.origin.x * scale, -bounds.origin.y * scale);
+					canvas.drawPath(path1, paint);
+				}
+			});
+		} else {
+			context.getCanvas().drawPath(path, context.getPaint());
+		}
+
+		context.getPaint().setAntiAlias(antiAlias);
 	}
 
 	public void stroke(Context context) {
+		boolean antiAlias = context.getPaint().isAntiAlias();
+
 		context.save();
 		this.setupStrokePropertiesInContext(context);
+		context.getPaint().setAntiAlias(true);
 		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getStrokePaint());
+		context.getPaint().setAntiAlias(antiAlias);
 		context.restore();
 	}
 
 	// These methods do not affect the blend mode or alpha of the current graphics context
 	public void fill(Context context, Context.BlendMode blendMode, float alpha) {
+		boolean antiAlias = context.getPaint().isAntiAlias();
+
 		context.save();
 		context.setBlendMode(blendMode);
 		context.setAlpha(alpha);
+		context.getPaint().setAntiAlias(true);
 		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getPaint());
-
+		context.getPaint().setAntiAlias(antiAlias);
 		context.restore();
 	}
 
 	public void stroke(Context context, Context.BlendMode blendMode, float alpha) {
+		boolean antiAlias = context.getPaint().isAntiAlias();
+
 		context.save();
 		context.setBlendMode(blendMode);
 		context.setAlpha(alpha);
 		this.setupStrokePropertiesInContext(context);
+		context.getStrokePaint().setAntiAlias(true);
 		context.getCanvas().drawPath(this.getScaledNativePath(context.getScale()), context.getStrokePaint());
+		context.getStrokePaint().setAntiAlias(antiAlias);
 		context.restore();
 	}
 
 	public void addClip(Context context) {
-		context.getCanvas().clipPath(this.getScaledNativePath(context.getScale()));
+		context.setClipPath(this);
 	}
 
-	private android.graphics.Path getScaledNativePath(float scale) {
+	android.graphics.Path getScaledNativePath(float scale) {
 		if(this.cachedScaledPath == null || this.cachedScaledPathFactor != scale) {
 			Matrix matrix = new Matrix();
 			matrix.setScale(scale, scale);
-			this.cachedScaledPath = new android.graphics.Path(this.nativePath);
-			this.cachedScaledPath.transform(matrix);
+
+			this.cachedScaledPath = new android.graphics.Path();
+			this.cachedScaledPath.addPath(this.nativePath, matrix);
+			this.cachedScaledPathFactor = scale;
 		}
 
 		return this.cachedScaledPath;

@@ -238,7 +238,7 @@ public class Button extends Control {
 		this.imageView.setImage(this.getImage(states));
 		this.backgroundImageView.setImage(this.getBackgroundImage(states));
 
-		this.setNeedsLayout();
+		this.layoutSubviews();
 	}
 
 	public Rect getBackgroundRectForBounds(Rect bounds) {

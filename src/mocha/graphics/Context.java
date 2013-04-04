@@ -8,7 +8,9 @@ package mocha.graphics;
 import android.graphics.*;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import android.util.FloatMath;
 import mocha.ui.*;
+import mocha.ui.Color;
 
 import java.util.ArrayList;
 
@@ -17,16 +19,26 @@ public final class Context extends mocha.foundation.Object {
 	private final ArrayList<Paint> paintStates;
 	private final ArrayList<Paint> strokePaintStates;
 	private final ArrayList<TextPaint> textPaintStates;
+	private final ArrayList<Path> clipPaths;
 	private Canvas canvas;
 	private Paint paint;
 	private Paint strokePaint;
 	private TextPaint textPaint;
 	private Bitmap bitmap;
+	private Path clipPath;
 
 	public enum BlendMode {
 		NORMAL, MULTIPLY, SCREEN, OVERLAY, DARKEN, LIGHTEN,
 		CLEAR, SOURCE_IN, SOURCE_OUT, SOURCE_ATOP, DESTINATION_OVER, DESTINATION_IN,
 		DESTINATION_OUT, DESTINATION_ATOP, XOR
+	}
+
+	public interface DrawClipped {
+		public void drawClipped(Context context);
+	}
+
+	interface DrawClippedToPath {
+		public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint);
 	}
 
 	private Context(float scale) {
@@ -37,10 +49,19 @@ public final class Context extends mocha.foundation.Object {
 		this.paintStates = new ArrayList<Paint>();
 		this.strokePaintStates = new ArrayList<Paint>();
 		this.textPaintStates = new ArrayList<TextPaint>();
+		this.clipPaths = new ArrayList<Path>();
 
 		this.strokePaint.setStyle(Paint.Style.STROKE);
 		this.strokePaint.setStrokeJoin(Paint.Join.ROUND);
 		this.strokePaint.setStrokeCap(Paint.Cap.ROUND);
+	}
+
+	private Context(Context context, Canvas canvas) {
+		this(canvas, context.scale);
+
+		this.paint = new Paint(context.paint);
+		this.strokePaint = new Paint(context.strokePaint);
+		this.textPaint = new TextPaint(context.textPaint);
 	}
 
 	public Context(Canvas canvas, float scale) {
@@ -69,13 +90,17 @@ public final class Context extends mocha.foundation.Object {
 	}
 
 	public Rect getClipBoundingBox() {
-		android.graphics.Rect clipBounds = this.canvas.getClipBounds();
-		Rect bounds = new Rect();
-		bounds.origin.x = (float)clipBounds.left / this.scale;
-		bounds.origin.y = (float)clipBounds.top / this.scale;
-		bounds.size.width = (float)clipBounds.width() / this.scale;
-		bounds.size.height = (float)clipBounds.height() / this.scale;
-		return bounds;
+		if(this.clipPath != null) {
+			return this.clipPath.getBounds();
+		} else {
+			android.graphics.Rect clipBounds = this.canvas.getClipBounds();
+			Rect bounds = new Rect();
+			bounds.origin.x = (float)clipBounds.left / this.scale;
+			bounds.origin.y = (float)clipBounds.top / this.scale;
+			bounds.size.width = (float)clipBounds.width() / this.scale;
+			bounds.size.height = (float)clipBounds.height() / this.scale;
+			return bounds;
+		}
 	}
 
 	public Image getImage() {
@@ -253,18 +278,93 @@ public final class Context extends mocha.foundation.Object {
 		this.strokePaint.clearShadowLayer();
 	}
 
+	public void drawClippedToPath(Path path, DrawClipped drawClipped) {
+		Rect bounds = this.getClipBoundingBox();
+
+		// Create source bitmap/canvas
+		Bitmap bitmap1 = Bitmap.createBitmap((int)FloatMath.ceil(bounds.width()), (int)FloatMath.ceil(bounds.height()), Bitmap.Config.ARGB_8888);
+		bitmap1.setDensity(this.canvas.getDensity());
+
+		Canvas canvas = new Canvas(bitmap1);
+		canvas.drawARGB(0, 0, 0, 0);
+
+		// Setup paint
+		Paint paint1 = new Paint(Paint.ANTI_ALIAS_FLAG);
+		paint1.setColor(Color.BLACK);
+		paint1.setXfermode(null);
+
+		// Draw mask
+		android.graphics.Path nativepath = new android.graphics.Path(path.getScaledNativePath(this.scale));
+		canvas.drawPath(nativepath, paint1);
+
+		// Perform draw operation
+		paint1.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+		drawClipped.drawClipped(new Context(this, canvas));
+
+		// Draw bitmap
+		paint1 = new Paint(this.paint);
+		paint1.setAlpha(255);
+		paint1.clearShadowLayer();
+		this.canvas.drawBitmap(bitmap1, bounds.origin.x * scale, bounds.origin.y * scale, paint1);
+	}
+
+	void drawClippedToPath(Rect rect, DrawClippedToPath drawClippedToPath) {
+		android.graphics.RectF rect1 = rect.toSystemRectF(scale);
+
+		// Create source bitmap/canvas
+		Bitmap bitmap1 = Bitmap.createBitmap((int)FloatMath.ceil(rect1.width()), (int)FloatMath.ceil(rect1.height()), Bitmap.Config.ARGB_8888);
+		bitmap1.setDensity(this.canvas.getDensity());
+
+		Canvas canvas = new Canvas(bitmap1);
+		canvas.drawARGB(0, 0, 0, 0);
+
+		// Setup paint
+		Paint paint1 = new Paint(this.paint);
+		paint1.setAntiAlias(true);
+		paint1.setColor(Color.BLACK);
+		paint1.setAlpha(255);
+		paint1.setXfermode(null);
+
+		// Draw mask
+		android.graphics.Path path = new android.graphics.Path(this.clipPath.getScaledNativePath(this.scale));
+		path.offset(-rect1.left, -rect1.top);
+		canvas.drawPath(path, paint1);
+
+		// Perform draw operation
+		rect1.offsetTo(0, 0);
+		paint1.setColor(this.paint.getColor());
+		paint1.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+		drawClippedToPath.drawClippedToPath(canvas, rect1, paint1);
+
+		// Draw bitmap
+		paint1 = new Paint(this.paint);
+		paint1.clearShadowLayer();
+		this.canvas.drawBitmap(bitmap1, rect.origin.x * scale, rect.origin.y * scale, null);
+	}
+
 	public void fillRect(Rect rect, int color) {
-		Paint paint = new Paint(this.paint);
-		paint.setColor(color);
-		this.fillRect(rect, paint);
+		Paint paint1 = this.paint;
+		this.paint = new Paint(this.paint);
+		this.paint.setColor(color);
+		this.fillRect(rect);
+		this.paint = paint1;
 	}
 
 	public void fillRect(Rect rect) {
-		this.fillRect(rect, this.paint);
-	}
-
-	private void fillRect(Rect rect, Paint paint) {
-		canvas.drawRect(rect.toSystemRect(scale), paint);
+		if(this.clipPath != null) {
+			Rect bounds = this.clipPath.getBounds();
+			/*if(rect.contains(bounds)) {
+				this.clipPath.fill(this);
+			} else {*/
+				this.drawClippedToPath(rect, new DrawClippedToPath() {
+				public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint) {
+					canvas.drawRect(rect, paint);
+				}
+			});
+			//}
+		} else {
+			this.canvas.drawRect(rect.toSystemRect(scale), this.paint);
+		}
 	}
 
 	public void strokeRect(Rect rect) {
@@ -281,13 +381,24 @@ public final class Context extends mocha.foundation.Object {
 	}
 
 	public void clipToRect(Rect rect) {
+		this.clipPath = null;
 		this.canvas.clipRect(rect.toSystemRect(this.scale));
 	}
 
 	public void fillEllipseInRect(Rect rect) {
 		boolean isAntiAlias = this.paint.isAntiAlias();
 		if(!isAntiAlias) this.paint.setAntiAlias(true);
-		this.canvas.drawOval(rect.toSystemRectF(this.scale), this.paint);
+
+		if(this.clipPath != null) {
+			this.drawClippedToPath(rect, new DrawClippedToPath() {
+				public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint) {
+					canvas.drawOval(rect, paint);
+				}
+			});
+		} else {
+			this.canvas.drawOval(rect.toSystemRectF(this.scale), this.paint);
+		}
+
 		if(!isAntiAlias) this.paint.setAntiAlias(false);
 	}
 
@@ -302,24 +413,50 @@ public final class Context extends mocha.foundation.Object {
 	public void drawLinearGradient(Gradient gradient, Point startPoint, Point endPoint, Gradient.DrawingOptions... options) {
 		if(gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
 
-		this.save();
 		LinearGradient linearGradient = new LinearGradient(startPoint.x * this.scale, startPoint.y * this.scale, endPoint.x * this.scale, endPoint.y * this.scale, gradient.colors, gradient.locations, Shader.TileMode.CLAMP);
+		Paint paint1 = this.paint;
+		this.paint = new Paint(paint1);
 		this.paint.setColor(gradient.colors[0]);
 		this.paint.setShader(linearGradient);
-		this.canvas.drawPaint(this.paint);
-		this.restore();
+
+		if(this.clipPath != null) {
+			this.clipPath.fill(this);
+		} else {
+			this.canvas.drawPaint(this.paint);
+		}
+
+		this.paint = paint1;
 	}
 
 	// TODO: Add support for Gradient.DrawingOptions
 	public void drawRadialGradient(Gradient gradient, Point radiusCenter, float radius, Gradient.DrawingOptions... options) {
 		if(gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
 
-		this.save();
 		RadialGradient radialGradient = new RadialGradient(radiusCenter.x * this.scale, radiusCenter.y * this.scale, radius, gradient.colors, gradient.locations, Shader.TileMode.CLAMP);
+		Paint paint1 = this.paint;
+		this.paint = new Paint(paint1);
 		this.paint.setColor(gradient.colors[0]);
 		this.paint.setShader(radialGradient);
-		this.canvas.drawPaint(this.paint);
-		this.restore();
+
+		if(this.clipPath != null) {
+			this.clipPath.fill(this);
+		} else {
+			this.canvas.drawPaint(this.paint);
+		}
+
+		this.paint = paint1;
+	}
+
+	public void setClipPath(Path path) {
+		if(path == null) {
+			this.clipPath = null;
+		} else {
+			this.clipPath = path.copy();
+		}
+	}
+
+	Path getClipPath() {
+		return this.clipPath;
 	}
 
 	public void draw(android.view.View view) {
@@ -332,6 +469,7 @@ public final class Context extends mocha.foundation.Object {
 		this.paintStates.add(0, this.paint);
 		this.textPaintStates.add(0, this.textPaint);
 		this.strokePaintStates.add(0, this.strokePaint);
+		this.clipPaths.add(0, this.clipPath);
 
 		this.paint = new Paint(this.paint);
 		this.textPaint = new TextPaint(this.textPaint);
@@ -344,6 +482,7 @@ public final class Context extends mocha.foundation.Object {
 		this.paint = this.paintStates.remove(0);
 		this.textPaint = this.textPaintStates.remove(0);
 		this.strokePaint = this.strokePaintStates.remove(0);
+		this.clipPath = this.clipPaths.remove(0);
 	}
 
 }
