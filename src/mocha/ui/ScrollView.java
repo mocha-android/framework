@@ -293,14 +293,14 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public void setContentOffset(Point contentOffset) {
-		this.setContentOffset(contentOffset, false, false);
+		this.setContentOffset(contentOffset, null, 0, false);
 	}
 
 	public void setContentOffset(Point contentOffset, boolean animated) {
-		this.setContentOffset(contentOffset, animated, false);
+		this.setContentOffset(contentOffset, animated ? AnimationCurve.LINEAR : null, DEFAULT_TRANSITION_DURATION, false);
 	}
 
-	void setContentOffset(Point contentOffset, boolean animated, boolean internal) {
+	void setContentOffset(Point contentOffset, AnimationCurve animationCurve, long animationDuration, boolean internal) {
 		if (contentOffset == null || contentOffset.equals(this.contentOffset)) {
 			return;
 		}
@@ -310,10 +310,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.scrollViewAnimation = null;
 		}
 
-		if(animated) {
+		if(animationCurve != null) {
 			View.beginAnimations(null, null);
-			View.setAnimationDuration(this.pagingEnabled ? PAGING_TRANSITION_DURATION : DEFAULT_TRANSITION_DURATION);
-			View.setAnimationCurve(AnimationCurve.EASE_IN);
+			View.setAnimationDuration(animationDuration);
+			View.setAnimationCurve(animationCurve);
 			View.setAnimationDidStartCallback(new AnimationDidStart() {
 				public void animationDidStart(String animationID, Object context) {
 					inSimpleAnimation = true;
@@ -364,7 +364,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
-		if (!animated) {
+		if (animationCurve == null) {
 			if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
 				this.updateHorizontalScrollIndicator();
 			}
@@ -405,7 +405,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		if (commit) {
-			this.setContentOffset(contentOffset, animated);
+			if(pagingEnabled && animated) {
+				this.setContentOffset(contentOffset, AnimationCurve.EASE_OUT, PAGING_TRANSITION_DURATION, false);
+			} else {
+				this.setContentOffset(contentOffset, animated);
+			}
 		}
 	}
 

@@ -239,6 +239,10 @@ public class ViewController extends Responder {
 
 	public void setTitle(String title) {
 		this.title = title;
+
+		if(this.navigationItem != null) {
+			this.navigationItem.setTitle(title);
+		}
 	}
 
 	public NavigationItem getNavigationItem() {

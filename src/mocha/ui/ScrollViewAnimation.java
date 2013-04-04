@@ -82,11 +82,11 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 		this.maxDecelerationPoint = this.maxPoint.copy();
 
 		if (this.pagingEnabled) {
-			Size a = target.getPageSize();
-			this.minDecelerationPoint.x = Math.max(0, View.floorf(target.contentOffset.x / a.width) * a.width);
-			this.minDecelerationPoint.y = Math.max(0, View.floorf(target.contentOffset.y / a.height) * a.height);
-			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, View.ceilf(target.contentOffset.x / a.width) * a.width);
-			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, View.ceilf(target.contentOffset.y / a.height) * a.height);
+			Size pageSize = target.getPageSize();
+			this.minDecelerationPoint.x = Math.max(0, View.floorf(target.contentOffset.x / pageSize.width) * pageSize.width);
+			this.minDecelerationPoint.y = Math.max(0, View.floorf(target.contentOffset.y / pageSize.height) * pageSize.height);
+			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, View.ceilf(target.contentOffset.x / pageSize.width) * pageSize.width);
+			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, View.ceilf(target.contentOffset.y / pageSize.height) * pageSize.height);
 		}
 
 		float minimumVelocity = this.pagingEnabled ? MIN_VELOCITY_FOR_DECELERATION_WITH_PAGING : MIN_VELOCITY_FOR_DECELERATION;
@@ -223,7 +223,7 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 		this.animatedContentOffset = offset;
 
 		if (target.contentOffset.x != View.roundf(offset.x) || target.contentOffset.y != View.roundf(offset.y)) {
-			target.setContentOffset(offset, false, true);
+			target.setContentOffset(offset, null, 0, true);
 		}
 
 		float absVelocityX = Math.abs(this.decelerationVelocity.x);
