@@ -111,8 +111,6 @@ public class TableView extends ScrollView {
 		BOTTOM
 	}
 
-
-
 	private static class SectionInfo {
 		int numberOfRows;
 		Object header;
@@ -629,8 +627,21 @@ public class TableView extends ScrollView {
 				subview.removeFromSuperview();
 
 				if(subview instanceof TableViewCell) {
+					TableViewCell cell = (TableViewCell)subview;
+
+					if(cell._reuseIdentifier != null) {
+						List<TableViewCell> cells = this.cellsQueuedForReuse.get(cell._reuseIdentifier);
+
+						if(cells == null) {
+							cells = new ArrayList<TableViewCell>();
+							this.cellsQueuedForReuse.put(cell._reuseIdentifier, cells);
+						}
+
+						cells.add(cell);
+					}
+
 					if(this.delegateRowDisplay != null) {
-						this.delegateRowDisplay.didEndDisplayingCell(this, (TableViewCell)subview, ((TableViewCell) subview)._dataSourceInfo.indexPath);
+						this.delegateRowDisplay.didEndDisplayingCell(this, cell, cell._dataSourceInfo.indexPath);
 					}
 				}
 			}
@@ -639,7 +650,6 @@ public class TableView extends ScrollView {
 		this.visibleSubviews.clear();
 		this.visibleHeaders.clear();
 		this.headersQueuedForReuse.clear();
-		this.cellsQueuedForReuse.clear();
 		this.footersQueuedForReuse.clear();
 		this.viewsToRemove.clear();
 
@@ -776,6 +786,15 @@ public class TableView extends ScrollView {
 		Size contentSize = this.getContentSize();
 		contentSize.height += delta;
 		this.setContentSize(contentSize);
+	}
+
+	public void beginUpdates() {
+		// TODO
+	}
+
+	public void endUpdates() {
+		// TODO
+		this.reloadData();
 	}
 
 	public void layoutSubviews() {
@@ -959,11 +978,32 @@ public class TableView extends ScrollView {
 	}
 
 	private void addSubviewsAtBottom(float maxY, int section) {
-		TableViewSubview visibleSubview = (this.visibleSubviews.size() > 0) ? this.visibleSubviews.get(this.visibleSubviews.size() - 1) : null;
 		float offsetY;
+
+		int size = this.visibleSubviews.size();
+
+		if(size == 0) {
+			IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
+
+			if(indexPath != null) {
+				TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
+
+				Rect frame = this.getRectForRowAtIndexPath(indexPath);
+
+				if(frame != null) {
+					visibleSubview.setFrame(frame);
+					this.visibleSubviews.add(visibleSubview);
+					this.tableViewCells.add((TableViewCell)visibleSubview);
+					size = 1;
+				}
+			}
+		}
+
+		TableViewSubview visibleSubview = (size > 0) ? this.visibleSubviews.get(size - 1) : null;
 
 		if (visibleSubview == null) {
 			visibleSubview = new TableViewFooter();
+
 			if (section == 0) {
 				offsetY = this.tableHeaderHeight;
 				visibleSubview._dataSourceInfo = this.getInfoForFooter(-1);
@@ -1467,7 +1507,7 @@ public class TableView extends ScrollView {
 	}
 
 	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier, IndexPath indexPath) {
-		TableViewCell cell = this.dequeueReusableCellWithIdentifier(indexPath);
+		TableViewCell cell = this.dequeueReusableCellWithIdentifier(reuseIdentifier);
 
 		if(cell == null) {
 			Class<? extends TableViewCell> cellClass = this.registeredClasses.get(reuseIdentifier);
@@ -1682,6 +1722,61 @@ public class TableView extends ScrollView {
 
 	private void updateIndex() {
 
+	}
+
+	private void scrollRectToVisible(Rect rect, ScrollPosition scrollPosition, boolean animated) {
+		Rect bounds = this.getBounds();
+
+		if (rect != null && rect.size.height > 0) {
+			// adjust the rect based on the desired scroll position setting
+			switch (scrollPosition) {
+				case TOP: {
+					rect.size.height = bounds.size.height;
+					break;
+				}
+
+				case MIDDLE: {
+					rect.origin.y -= (bounds.size.height / 2.0f) - rect.size.height;
+					rect.size.height = bounds.size.height;
+					break;
+				}
+
+				case BOTTOM: {
+					rect.origin.y -= bounds.size.height - rect.size.height;
+					rect.size.height = bounds.size.height;
+					break;
+				}
+
+				case NONE: {
+					break;
+				}
+			}
+
+			if(rect.origin.y < 0.0f) {
+				rect.origin.y = 0.0f;
+			}
+
+			if(rect.maxY() > bounds.maxY()) {
+				rect.origin.y -= rect.maxY() - bounds.maxY();
+			}
+
+			this.scrollRectToVisible(rect, animated);
+		}
+	}
+
+	public void scrollToRowAtIndexPath(IndexPath indexPath, ScrollPosition scrollPosition, boolean animated) {
+		Rect rect;
+
+		if (indexPath.row == 0 && indexPath.section == 0) {
+			Rect bounds = this.getBounds();
+			rect = new Rect(0.0f, 0.0f, bounds.size.width, bounds.size.height);
+		} else if (indexPath.row > 0) {
+			rect = this.getRectForRowAtIndexPath(indexPath);
+		} else {
+			rect = this.getRectForSection(indexPath.section);
+		}
+
+		// this.scrollRectToVisible(rect, scrollPosition, animated);
 	}
 
 	public void touchesBegan(List<Touch> touches, Event event) {
