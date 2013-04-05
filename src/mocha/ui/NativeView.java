@@ -5,6 +5,8 @@
  */
 package mocha.ui;
 
+import android.view.MotionEvent;
+
 import java.util.List;
 
 public class NativeView <V extends android.view.View> extends View {
@@ -23,6 +25,13 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 
 		this.setUserInteractionEnabled(true);
+	}
+
+	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
+		super.setUserInteractionEnabled(userInteractionEnabled);
+		this.nativeView.setEnabled(userInteractionEnabled);
+		this.nativeView.setClickable(userInteractionEnabled);
+		this.nativeView.setLongClickable(userInteractionEnabled);
 	}
 
 	public void setNativeView(V nativeView) {

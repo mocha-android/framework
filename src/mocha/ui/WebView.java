@@ -92,6 +92,11 @@ public class WebView extends View {
 		});
 	}
 
+	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
+		super.setUserInteractionEnabled(userInteractionEnabled);
+		this.nativeView.setUserInteractionEnabled(userInteractionEnabled);
+	}
+
 	public Delegate getDelegate() {
 		return delegate;
 	}
@@ -180,6 +185,10 @@ public class WebView extends View {
 	public void setScalesPageToFit(boolean scalesPageToFit) {
 		this.scalesPageToFit = scalesPageToFit;
 		this.webView.setInitialScale(scalesPageToFit ? 100 : 0);
+	}
+
+	public float getContentHeight() {
+		return this.webView.getContentHeight();
 	}
 
 	/**
