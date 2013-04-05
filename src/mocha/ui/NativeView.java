@@ -29,9 +29,12 @@ public class NativeView <V extends android.view.View> extends View {
 
 	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
 		super.setUserInteractionEnabled(userInteractionEnabled);
-		this.nativeView.setEnabled(userInteractionEnabled);
-		this.nativeView.setClickable(userInteractionEnabled);
-		this.nativeView.setLongClickable(userInteractionEnabled);
+
+		if(this.nativeView != null) {
+			this.nativeView.setEnabled(userInteractionEnabled);
+			this.nativeView.setClickable(userInteractionEnabled);
+			this.nativeView.setLongClickable(userInteractionEnabled);
+		}
 	}
 
 	public void setNativeView(V nativeView) {
