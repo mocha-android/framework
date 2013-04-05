@@ -32,6 +32,7 @@ public class Bundle extends mocha.foundation.Object {
 				sb.append(line);
 			}
 
+			reader.close();
 			is.close();
 
 			return sb.toString();

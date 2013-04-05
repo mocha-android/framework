@@ -14,6 +14,7 @@ import java.util.concurrent.Semaphore;
 public class Object {
 	private static ThreadLocal<Handler> handler = new ThreadLocal<Handler>();
 	private static Handler mainHandler;
+	private static String LOG_TAG = "Mocha";
 
 	public String toString() {
 		return String.format("<%s 0x%s>", this.getClass().getCanonicalName(), this.hashCode());
@@ -150,19 +151,19 @@ public class Object {
 	}
 
 	public static void MLog(String message) {
-		Log.d("Mocha", message);
+		Log.d(LOG_TAG, message);
 	}
 
 	public static void MWarn(String message) {
-		Log.w("Mocha", message);
+		Log.w(LOG_TAG, message);
 	}
 
 	public static void MLog(Throwable throwable, String message) {
-		Log.d("Mocha", message, throwable);
+		Log.d(LOG_TAG, message, throwable);
 	}
 
 	public static void MWarn(Throwable throwable, String message) {
-		Log.w("Mocha", message, throwable);
+		Log.w(LOG_TAG, message, throwable);
 	}
 
 	public static void MLog(String format, java.lang.Object... args) {

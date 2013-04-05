@@ -56,7 +56,7 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 	}
 
 	class WindowView extends android.view.View {
-		private final boolean showFPS = false;
+		private final static boolean showFPS = false;
 
 		//  The number of frames
 		int frameCount = 0;

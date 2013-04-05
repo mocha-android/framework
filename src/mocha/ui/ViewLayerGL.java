@@ -29,7 +29,7 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 	private Rect bounds;
 	private boolean hidden;
 	private float alpha;
-	private final ArrayList<ViewLayerGL> sublayers;
+	private final List<ViewLayerGL> sublayers;
 	private List<ViewLayer> sublayersGeneric;
 	private ViewLayerGL superlayer;
 	private int backgroundColor;

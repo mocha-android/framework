@@ -473,12 +473,12 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private void createScrollIndicators() {
-		this.horizontalScrollIndicator = new ScrollIndicator(ScrollIndicator.Type.HORIZONTAL);
+		this.horizontalScrollIndicator = new ScrollIndicator();
 		this.horizontalScrollIndicator.setIndicatorStyle(this.indicatorStyle);
 		this.addSubview(this.horizontalScrollIndicator);
 
 
-		this.verticalScrollIndicator = new ScrollIndicator(ScrollIndicator.Type.VERTICAL);
+		this.verticalScrollIndicator = new ScrollIndicator();
 		this.verticalScrollIndicator.setIndicatorStyle(this.indicatorStyle);
 		this.addSubview(this.verticalScrollIndicator);
 	}

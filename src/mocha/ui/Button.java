@@ -9,6 +9,7 @@ import mocha.graphics.*;
 
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Button extends Control {
 
@@ -22,7 +23,7 @@ public class Button extends Control {
 	private EdgeInsets contentEdgeInsets;
 	private EdgeInsets titleEdgeInsets;
 	private EdgeInsets imageEdgeInsets;
-	private HashMap<EnumSet<State>, HashMap<ContentType, Object>> content;
+	private Map<EnumSet<State>, HashMap<ContentType, Object>> content;
 
 	private enum ContentType {
 		TITLE, TITLE_COLOR, TITLE_SHADOW_COLOR, BACKGROUND_IMAGE, IMAGE

@@ -10,18 +10,12 @@ import mocha.graphics.Rect;
 
 class ScrollIndicator extends ImageView {
 
-	enum Type {
-		HORIZONTAL, VERTICAL
-	}
-
 	private boolean visible;
 	private ScrollView.IndicatorStyle indicatorStyle;
-	private Type type;
 	private float thickness;
 
-	public ScrollIndicator(Type type) {
+	public ScrollIndicator() {
 		this.setUserInteractionEnabled(false);
-		this.type = type;
 	}
 
 	public void setVisible(boolean visible) {

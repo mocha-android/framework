@@ -32,7 +32,6 @@ abstract public class TableViewSubview extends View {
 
 		Type type;
 		int section;
-		Size size = new Size();
 
 		// Only applies to cells
 		IndexPath indexPath;

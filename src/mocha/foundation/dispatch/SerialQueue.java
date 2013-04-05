@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class SerialQueue extends mocha.foundation.Object implements Queue {
@@ -19,7 +20,7 @@ public class SerialQueue extends mocha.foundation.Object implements Queue {
 	private SerialQueue targetQueue;
 	private Semaphore lock = new Semaphore(1);
 	private boolean global;
-	private static HashMap<Priority,SerialQueue> globalQueues = new HashMap<Priority, SerialQueue>();
+	private static Map<Priority,SerialQueue> globalQueues = new HashMap<Priority, SerialQueue>();
 
 	/**
 	 * Get a global queue based on the priority you request

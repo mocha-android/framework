@@ -9,6 +9,7 @@ import mocha.graphics.Point;
 import mocha.graphics.Size;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class ScrollViewAnimation extends mocha.foundation.Object {
 	private static float DECELERATION_FRICTION_FACTOR = 0.998f;
@@ -23,8 +24,8 @@ class ScrollViewAnimation extends mocha.foundation.Object {
 	private static int PROCESS_FRAME = -249848493;
 
 	private static ThreadLocal<AnimationHandler> animationHandler = new ThreadLocal<AnimationHandler>();
-	private static final ThreadLocal<ArrayList<ScrollViewAnimation>> activeAnimations = new ThreadLocal<ArrayList<ScrollViewAnimation>>() {
-		protected ArrayList<ScrollViewAnimation> initialValue() {
+	private static final ThreadLocal<List<ScrollViewAnimation>> activeAnimations = new ThreadLocal<List<ScrollViewAnimation>>() {
+		protected List<ScrollViewAnimation> initialValue() {
 			return new ArrayList<ScrollViewAnimation>();
 		}
 	};

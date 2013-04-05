@@ -29,7 +29,7 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 	private Rect bounds;
 	private boolean hidden;
 	private float alpha;
-	private final ArrayList<ViewLayerCanvas> sublayers;
+	private final List<ViewLayerCanvas> sublayers;
 	private List<ViewLayer> sublayersGeneric;
 	private ViewLayerCanvas superlayer;
 	private int backgroundColor;

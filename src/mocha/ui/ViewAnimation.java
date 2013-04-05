@@ -13,10 +13,7 @@ import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 class ViewAnimation extends mocha.foundation.Object {
@@ -25,7 +22,7 @@ class ViewAnimation extends mocha.foundation.Object {
 
 	// We use a hash so if the same property is changed multiple times in the animation
 	// we just override the last one.
-	private HashMap<String,Animation> animations;
+	private Map<String,Animation> animations;
 	private TimingFunction timingFunction;
 	private long startTimeDelayed;
 	private long startTime;

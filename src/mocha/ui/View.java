@@ -156,14 +156,14 @@ public class View extends Responder implements Accessibility {
 	private View superview;
 	private int backgroundColor;
 	private int autoresizingMask;
-	private ArrayList<View> subviews;
+	private List<View> subviews;
 	private boolean autoresizesSubviews;
 	private int tag;
 	private boolean needsLayout;
 	private boolean userInteractionEnabled;
 	Rect frame;
 	private Rect bounds;
-	private ArrayList<GestureRecognizer> gestureRecognizers;
+	private List<GestureRecognizer> gestureRecognizers;
 	private boolean clipsToBounds;
 	public final float scale;
 	private boolean onCreatedCalled;
@@ -633,12 +633,12 @@ public class View extends Responder implements Accessibility {
 		Point convertedPoint = point.copy();
 
 		while(view != null) {
-			point.x += view.getFrame().origin.x - view.getBounds().origin.x;
-			point.y += view.getFrame().origin.y - view.getBounds().origin.y;
+			convertedPoint.x += view.getFrame().origin.x - view.getBounds().origin.x;
+			convertedPoint.y += view.getFrame().origin.y - view.getBounds().origin.y;
 			view = view.superview;
 		}
 
-		return point;
+		return convertedPoint;
 	}
 
 	public Point convertPointToView(Point point, View view) {
@@ -1154,7 +1154,7 @@ public class View extends Responder implements Accessibility {
 		ViewAnimation.cancelAllAnimationsReferencingView(this);
 	}
 
-	private static ArrayList<ViewAnimation> viewAnimationStack = new ArrayList<ViewAnimation>();
+	private static List<ViewAnimation> viewAnimationStack = new ArrayList<ViewAnimation>();
 	static ViewAnimation currentViewAnimation;
 	static boolean areAnimationsEnabled = true;
 

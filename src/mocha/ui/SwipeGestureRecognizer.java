@@ -12,6 +12,7 @@ import mocha.graphics.Point;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SwipeGestureRecognizer extends GestureRecognizer {
 	private EnumSet<Direction> directions;
@@ -89,7 +90,7 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 		return this.directions.iterator().next();
 	}
 
-	public HashSet<Direction> getDirections() {
+	public Set<Direction> getDirections() {
 		return new HashSet<Direction>(this.directions);
 	}
 

@@ -8,6 +8,7 @@ package mocha.ui;
 import mocha.graphics.Point;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class Touch extends mocha.foundation.Object {
 	Point location;
@@ -20,7 +21,7 @@ public final class Touch extends mocha.foundation.Object {
 	private Point delta;
 	private float rotation;
 	private float magnification;
-	private ArrayList<GestureRecognizer> gestureRecognizers;
+	private List<GestureRecognizer> gestureRecognizers;
 
 	public enum Phase {
 		BEGAN,
@@ -83,7 +84,7 @@ public final class Touch extends mocha.foundation.Object {
 		return phase;
 	}
 
-	public ArrayList<GestureRecognizer>getGestureRecognizers() {
+	public List<GestureRecognizer>getGestureRecognizers() {
 		return new ArrayList<GestureRecognizer>(this.gestureRecognizers);
 	}
 
@@ -179,8 +180,8 @@ public final class Touch extends mocha.foundation.Object {
 		return this.gesture;
 	}
 
-	private static ArrayList<GestureRecognizer> gestureRecognizersForView(View view) {
-		ArrayList<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
+	private static List<GestureRecognizer> gestureRecognizersForView(View view) {
+		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
 
 		while(view != null) {
 			gestureRecognizers.addAll(view.getGestureRecognizers());

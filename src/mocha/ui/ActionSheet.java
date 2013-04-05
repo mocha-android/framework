@@ -25,14 +25,14 @@ public class ActionSheet extends mocha.foundation.Object {
 		 * @param actionSheet Action sheet
 		 * @param buttonIndex Button index that clicked (guaranteed not to be cancel button index)
 		 */
-		public void onClickedButtonAtIndex(ActionSheet actionSheet, int buttonIndex);
+		void onClickedButtonAtIndex(ActionSheet actionSheet, int buttonIndex);
 
 		/**
 		 * Called when the dialog was cancelled
 		 *
 		 * @param actionSheet Action sheet
 		 */
-		public void onCancel(ActionSheet actionSheet);
+		void onCancel(ActionSheet actionSheet);
 
 
 		public interface Presentation extends Listener {
@@ -41,14 +41,14 @@ public class ActionSheet extends mocha.foundation.Object {
 			 *
 			 * @param actionSheet Action sheet
 			 */
-			public void willPresentActionSheet(ActionSheet actionSheet);
+			void willPresentActionSheet(ActionSheet actionSheet);
 
 			/**
 			 * Calls after the action sheet appears on screen
 			 *
 			 * @param actionSheet Action sheet
 			 */
-			public void didPresentActionSheet(ActionSheet actionSheet);
+			void didPresentActionSheet(ActionSheet actionSheet);
 
 			/**
 			 * Called before the action sheet dismisses from screen, after Listener#onClickedButtonAtIndex is called.
@@ -56,7 +56,7 @@ public class ActionSheet extends mocha.foundation.Object {
 			 * @param actionSheet Action sheet
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
-			public void willDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
+			void willDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 
 			/**
 			 * Called after the action sheet is removed from the screen.
@@ -64,7 +64,7 @@ public class ActionSheet extends mocha.foundation.Object {
 			 * @param actionSheet Action sheet
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
-			public void didDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
+			void didDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 		}
 	}
 
@@ -80,7 +80,7 @@ public class ActionSheet extends mocha.foundation.Object {
 	private AlertDialog alertDialog;
 	private Style style;
 	private int dismissedWithButtonIndex;
-	private final int cancelButtonIndex = -1;
+	private final static int CANCEL_BUTTON_INDEX = -1;
 
 	/**
 	 * Create an action sheet
@@ -161,7 +161,7 @@ public class ActionSheet extends mocha.foundation.Object {
 	 * @return Button title index
 	 */
 	public CharSequence getButtonTitle(int index) {
-		if(index == this.cancelButtonIndex) {
+		if(index == this.CANCEL_BUTTON_INDEX) {
 			return this.cancelButtonTitle;
 		} else {
 			return this.otherButtonTitles.get(index);
@@ -201,7 +201,7 @@ public class ActionSheet extends mocha.foundation.Object {
 	 * @return Cancel button index
 	 */
 	public int getCancelButtonIndex() {
-		return this.cancelButtonIndex;
+		return this.CANCEL_BUTTON_INDEX;
 	}
 
 	/**
@@ -254,7 +254,7 @@ public class ActionSheet extends mocha.foundation.Object {
 			builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
 				public void onCancel(DialogInterface dialogInterface) {
 					if(listener != null) {
-						_dismissWithClickedButtonIndex(cancelButtonIndex);
+						_dismissWithClickedButtonIndex(CANCEL_BUTTON_INDEX);
 					}
 				}
 			});
@@ -299,7 +299,7 @@ public class ActionSheet extends mocha.foundation.Object {
 
 	private void _dismissWithClickedButtonIndex(int buttonIndex) {
 		if(this.listener != null) {
-			if(buttonIndex == this.cancelButtonIndex) {
+			if(buttonIndex == CANCEL_BUTTON_INDEX) {
 				this.listener.onCancel(this);
 			} else {
 				this.listener.onClickedButtonAtIndex(this, buttonIndex);

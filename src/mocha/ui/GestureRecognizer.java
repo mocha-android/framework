@@ -26,10 +26,10 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 		// Only used for discrete gestures like Tap and Swipe
 		RECOGNIZED	(true,			true,		true,		true);
 
-		private boolean recognized;
-		private boolean needsReset;
-		private boolean notifyHandlers;
-		private boolean finished;
+		boolean recognized;
+		boolean needsReset;
+		boolean notifyHandlers;
+		boolean finished;
 
 		State(boolean recognized, boolean needsReset, boolean notifyHandlers, boolean finished) {
 			this.recognized = recognized;
@@ -104,7 +104,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 	private boolean enabled;
 	private State state;
 	private View view;
-	private ArrayList<GestureHandler> registeredGestureHandlers;
+	private List<GestureHandler> registeredGestureHandlers;
 	private List<Touch> trackingTouches;
 	private List<Touch> ignoredTouches;
 	private Event lastEvent;

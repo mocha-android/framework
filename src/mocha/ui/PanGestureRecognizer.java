@@ -136,10 +136,7 @@ public class PanGestureRecognizer extends GestureRecognizer {
 	private void purgeTrackingDataPointsWithTime(long timestamp) {
 		while (this.trackingDataPoints.size() > 0) {
 			if (timestamp - this.trackingDataPoints.get(0).time <= MAX_TIME_FOR_TRACKING_DATA_POINTS) {
-				// MLog("FOUND ONE! %d remaining", this.trackingDataPoints.size());
 				break;
-			} else {
-				// MLog("(%d - %d) = %d > %d", timestamp, this.trackingDataPoints.get(0).time, timestamp - this.trackingDataPoints.get(0).time, MAX_TIME_FOR_TRACKING_DATA_POINTS);
 			}
 
 			this.trackingDataPoints.remove(0);

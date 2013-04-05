@@ -105,7 +105,7 @@ public final class WindowLayerGL extends ViewLayerGL implements WindowLayer {
 		}
 
 		class WindowSurfaceRenderer implements Renderer {
-			private final boolean showFPS = false;
+			private final static boolean showFPS = false;
 
 			//  The number of frames
 			int frameCount = 0;

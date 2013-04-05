@@ -10,9 +10,10 @@ import android.view.WindowManager;
 import mocha.foundation.NotificationCenter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Activity extends android.app.Activity {
-	private ArrayList<Window> windows;
+	private List<Window> windows;
 	private Application application;
 	private boolean setup;
 	private boolean hasPreviouslyLaunched;

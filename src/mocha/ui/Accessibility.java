@@ -85,35 +85,35 @@ public interface Accessibility {
 		CAUSES_PAGE_TURN
 	}
 
-	public boolean isAccessibilityElement();
-	public void setIsAccessibilityElement(boolean isAccessibilityElement);
+	boolean isAccessibilityElement();
+	void setIsAccessibilityElement(boolean isAccessibilityElement);
 
-	public String getAccessibilityLabel();
-	public void setAccessibilityLabel(String accessibilityLabel);
+	String getAccessibilityLabel();
+	void setAccessibilityLabel(String accessibilityLabel);
 
 
-	public String getAccessibilityHint();
-	public void setAccessibilityHint(String accessibilityHint);
+	String getAccessibilityHint();
+	void setAccessibilityHint(String accessibilityHint);
 
-	public String getAccessibilityValue();
-	public void setAccessibilityValue(String accessibilityValue);
+	String getAccessibilityValue();
+	void setAccessibilityValue(String accessibilityValue);
 
-	public Trait[] getAccessibilityTraits();
-	public void setAccessibilityTraits(Trait... accessibilityTraits);
+	Trait[] getAccessibilityTraits();
+	void setAccessibilityTraits(Trait... accessibilityTraits);
 
-	public Rect getAccessibilityFrame();
-	public void setAccessibilityFrame(Rect accessibilityFrame);
+	Rect getAccessibilityFrame();
+	void setAccessibilityFrame(Rect accessibilityFrame);
 
-	public Point getAccessibilityActivationPoint();
-	public void setAccessibilityActivationPoint(Point accessibilityActivationPoint);
+	Point getAccessibilityActivationPoint();
+	void setAccessibilityActivationPoint(Point accessibilityActivationPoint);
 
-	public boolean getAccessibilityElementsHidden();
-	public void setAccessibilityElementsHidden(boolean accessibilityElementsHidden);
+	boolean getAccessibilityElementsHidden();
+	void setAccessibilityElementsHidden(boolean accessibilityElementsHidden);
 
-	public boolean getAccessibilityViewIsModal();
-	public void setAccessibilityViewIsModal(boolean accessibilityViewIsModal);
+	boolean getAccessibilityViewIsModal();
+	void setAccessibilityViewIsModal(boolean accessibilityViewIsModal);
 
-	public boolean shouldGroupAccessibilityChildren();
-	public void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren);
+	boolean shouldGroupAccessibilityChildren();
+	void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren);
 
 }

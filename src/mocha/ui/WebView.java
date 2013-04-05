@@ -69,22 +69,24 @@ public class WebView extends View {
 		this.setScalesPageToFit(false);
 
 		this.webView.setWebChromeClient(new WebChromeClient() {
+			private static final String LOG_TAG = "MochaWebView";
+
 			public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
 				String message = consoleMessage.message() + " -- From line " + consoleMessage.lineNumber() + " of " + consoleMessage.sourceId();
 
 				switch (consoleMessage.messageLevel()) {
 					case DEBUG:
 					case TIP:
-						Log.d("MochaWebView", message);
+						Log.d(LOG_TAG, message);
 						break;
 					case ERROR:
-						Log.e("MochaWebView", message);
+						Log.e(LOG_TAG, message);
 						break;
 					case LOG:
-						Log.i("MochaWebView", message);
+						Log.i(LOG_TAG, message);
 						break;
 					case WARNING:
-						Log.w("MochaWebView", message);
+						Log.w(LOG_TAG, message);
 						break;
 				}
 				return true;

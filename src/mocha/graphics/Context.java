@@ -13,13 +13,14 @@ import mocha.ui.*;
 import mocha.ui.Color;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class Context extends mocha.foundation.Object {
 	private final float scale;
-	private final ArrayList<Paint> paintStates;
-	private final ArrayList<Paint> strokePaintStates;
-	private final ArrayList<TextPaint> textPaintStates;
-	private final ArrayList<Path> clipPaths;
+	private final List<Paint> paintStates;
+	private final List<Paint> strokePaintStates;
+	private final List<TextPaint> textPaintStates;
+	private final List<Path> clipPaths;
 	private Canvas canvas;
 	private Paint paint;
 	private Paint strokePaint;

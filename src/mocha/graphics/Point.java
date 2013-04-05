@@ -5,6 +5,8 @@
  */
 package mocha.graphics;
 
+import android.util.FloatMath;
+
 public final class Point implements mocha.foundation.Copying <Point> {
 	public float x;
 	public float y;
@@ -39,7 +41,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 
 		float deltaX = point.x - this.x;
 		float deltaY = point.y - this.y;
-		return (float)Math.sqrt((double)((deltaY * deltaY) + (deltaY * deltaY)));
+		return FloatMath.sqrt(((deltaX * deltaX) + (deltaY * deltaY)));
 	}
 
 	public Point delta(Point point) {
@@ -67,7 +69,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public String toString() {
-		return String.format("[%s,%s]", ((Float)this.x), ((Float)this.y));
+		return String.format("[%s,%s]", this.x, this.y);
 	}
 
 	public Point copy() {

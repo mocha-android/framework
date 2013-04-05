@@ -46,7 +46,7 @@ abstract public class Appearance<C> extends mocha.foundation.Object {
 
 	public static class Storage<C, A extends Appearance<C>> extends mocha.foundation.Object {
 
-		private HashMap<Class, A> appearances;
+		private Map<Class, A> appearances;
 		private Class<A> appearanceClass;
 		private Class<C> rootClass;
 

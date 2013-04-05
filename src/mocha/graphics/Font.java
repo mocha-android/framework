@@ -11,6 +11,7 @@ import android.text.TextPaint;
 import mocha.ui.Screen;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public final class Font {
 	private final Typeface typeface;
@@ -22,7 +23,7 @@ public final class Font {
 	private final float leading;
 	private final float lineHeightDrawingAdjustment;
 
-	private HashMap<Float,TextPaint> cachedPaints;
+	private Map<Float,TextPaint> cachedPaints;
 
 	public Font(Typeface typeface, float pointSize) {
 		this.typeface = typeface;

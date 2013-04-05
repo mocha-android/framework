@@ -13,13 +13,15 @@ import mocha.graphics.TextDrawing;
 abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 	private static TableViewCellLayoutManager DEFAULT = new Default();
 	private static TableViewCellLayoutManager SUBTITLE = new Subtitle();
+	private static TableViewCellLayoutManager VALUE_1 = new Value1();
 	private static TableViewCellLayoutManager CUSTOM = new Custom();
 
 	public static TableViewCellLayoutManager getLayoutManagerForTableViewCellStyle(TableViewCell.Style style) {
 		switch (style) {
 			case DEFAULT:
 				return DEFAULT;
-			case VALUE_1: // TODO
+			case VALUE_1:
+				return VALUE_1;
 			case VALUE_2: // TODO
 			case SUBTITLE:
 				return SUBTITLE;
@@ -344,6 +346,10 @@ abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
 			float originY = (float)Math.round(((contentRect.size.height - combinedSize.height) / 2.0) + (combinedSize.height - originalSize.height));
 			return new Rect(originX, originY, width, originalSize.height);
 		}
+	}
+
+	static class Value1 extends Default {
+
 	}
 
 	static class Custom extends Default {

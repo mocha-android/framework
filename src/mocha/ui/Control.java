@@ -73,7 +73,7 @@ public class Control extends View {
 	private boolean touchInside;
 	private HorizontalAlignment contentHorizontalAlignment;
 	private VerticalAlignment contentVerticalAlignment;
-	private HashMap<ActionTarget,EnumSet<ControlEvent>> registeredActions;
+	private Map<ActionTarget,EnumSet<ControlEvent>> registeredActions;
 	private EnumSet<State> cachedState;
 	private State[] cachedStates;
 
