@@ -7,8 +7,12 @@ package mocha.ui;
 
 import android.graphics.Bitmap;
 import android.net.http.SslError;
-import android.os.Message;
+import android.util.Log;
+import android.webkit.ConsoleMessage;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
+import android.widget.Toast;
+import android.webkit.JavascriptInterface;
 import mocha.graphics.Rect;
 
 import java.util.Map;
@@ -51,8 +55,8 @@ public class WebView extends View {
 		this.setClipsToBounds(true);
 
 		this.webView = new android.webkit.WebView(Application.sharedApplication().getContext());
-		this.webView.setWebViewClient(new WebViewClient());
 		this.webView.getSettings().setJavaScriptEnabled(true);
+		this.webView.setWebViewClient(new WebViewClient());
 
 		this.nativeView = new NativeView<android.webkit.WebView>(this.webView);
 		this.nativeView.setFrame(this.getBounds());
@@ -63,6 +67,29 @@ public class WebView extends View {
 		this.evaluateJavascriptInterface.register();
 
 		this.setScalesPageToFit(false);
+
+		this.webView.setWebChromeClient(new WebChromeClient() {
+			public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+				String message = consoleMessage.message() + " -- From line " + consoleMessage.lineNumber() + " of " + consoleMessage.sourceId();
+
+				switch (consoleMessage.messageLevel()) {
+					case DEBUG:
+					case TIP:
+						Log.d("MochaWebView", message);
+						break;
+					case ERROR:
+						Log.e("MochaWebView", message);
+						break;
+					case LOG:
+						Log.i("MochaWebView", message);
+						break;
+					case WARNING:
+						Log.w("MochaWebView", message);
+						break;
+				}
+				return true;
+			}
+		});
 	}
 
 	public Delegate getDelegate() {
@@ -156,29 +183,30 @@ public class WebView extends View {
 	}
 
 	/**
-	 * Ported from NIWebView
+	 * Based on NIWebView
 	 * https://github.com/lolboxen/AndroidNIWebView/blob/master/NIWebView.java
-	 * @author Trent Ahrens
 	 */
 	private class EvaluateJavascriptInterface {
 		private CountDownLatch compileLatch;
 		private CountDownLatch finishLatch;
 		private String returnValue;
+		private String command;
+		private static final String JS_CODE = "javascript:try { " +
+				"__mochaWebViewJSInterface.setReturnValue(eval(__mochaWebViewJSInterface.getCommand()));" +
+				"} catch(err) { __mochaWebViewJSInterface.setReturnValue(''); }";
 
 		public void register() {
 			webView.addJavascriptInterface(this, "__mochaWebViewJSInterface");
 		}
 
 		public String getStringByEvaluatingJavaScriptFromString(String javascript) {
-			String escapedJavascript = javascript.replaceAll("\\\\", "\\\\\\\\").replaceAll("\\\"", "\\\\\"");
-			String finalCode = "javascript:try { " +
-							"__mochaWebViewJSInterface.didCompile();" +
-							"__mochaWebViewJSInterface.setReturnValue(eval(\"" + escapedJavascript + "\"));" +
-							"} catch(err) {" +
-							"__mochaWebViewJSInterface.setReturnValue('');" +
-							"}";
+			this.command = javascript;
+
+			this.compileLatch = new CountDownLatch(1);
+			this.finishLatch = new CountDownLatch(1);
+
 			ignorePageLoadChanges = true;
-			webView.loadUrl(finalCode);
+			webView.loadUrl(JS_CODE);
 			String returnValue = this.getReturnValue();
 			ignorePageLoadChanges = false;
 			return returnValue;
@@ -186,9 +214,6 @@ public class WebView extends View {
 
 		private String getReturnValue() {
 			this.returnValue = "";
-
-			this.compileLatch = new CountDownLatch(1);
-			this.finishLatch = new CountDownLatch(1);
 
 			try {
 				if (!this.compileLatch.await(5, TimeUnit.SECONDS)) {
@@ -208,15 +233,18 @@ public class WebView extends View {
 			}
 		}
 
-		@SuppressWarnings("unused")
+		@JavascriptInterface
+		public String getCommand() {
+			String command = this.command;
+			this.compileLatch.countDown();
+			this.command = null;
+			return command;
+		}
+
+		@JavascriptInterface
 		public void setReturnValue(String returnValue) {
 			this.returnValue = returnValue;
 			this.finishLatch.countDown();
-		}
-
-		@SuppressWarnings("unused")
-		public void didCompile() {
-			this.compileLatch.countDown();
 		}
 	}
 
@@ -233,7 +261,6 @@ public class WebView extends View {
 					android.webkit.WebView.HitTestResult hitTestResult = view.getHitTestResult();
 					if(hitTestResult != null) {
 						switch (hitTestResult.getType()) {
-							case android.webkit.WebView.HitTestResult.ANCHOR_TYPE:
 							case android.webkit.WebView.HitTestResult.PHONE_TYPE:
 							case android.webkit.WebView.HitTestResult.GEO_TYPE:
 							case android.webkit.WebView.HitTestResult.EMAIL_TYPE:
@@ -245,7 +272,6 @@ public class WebView extends View {
 								navigationType = NavigationType.FORM_SUBMITTED;
 								break;
 							case android.webkit.WebView.HitTestResult.IMAGE_TYPE:
-							case android.webkit.WebView.HitTestResult.IMAGE_ANCHOR_TYPE:
 							case android.webkit.WebView.HitTestResult.UNKNOWN_TYPE:
 							default:
 								navigationType = NavigationType.OTHER;
@@ -269,11 +295,6 @@ public class WebView extends View {
 		public void onPageFinished(android.webkit.WebView view, String url) {
 			super.onPageFinished(view, url);
 			this.loadDidEnd(false);
-		}
-
-		public void onTooManyRedirects(android.webkit.WebView view, Message cancelMsg, Message continueMsg) {
-			super.onTooManyRedirects(view, cancelMsg, continueMsg);
-			this.loadDidEnd(true);
 		}
 
 		public void onReceivedError(android.webkit.WebView view, int errorCode, String description, String failingUrl) {
