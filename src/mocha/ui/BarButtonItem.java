@@ -24,7 +24,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 	}
 
 	public interface Action {
-		public void action(BarButtonItem barButtonItem);
+		public void action(BarButtonItem barButtonItem, Event event);
 	}
 
 	private Style style;

@@ -556,7 +556,7 @@ public class NavigationBar extends View {
 
 		BarButton button = BarButton.backButton(navigationItem);
 		button.addActionTarget(new Control.ActionTarget() {
-			public void onControlEvent(Control control, Control.ControlEvent controlEvent) {
+			public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
 				NavigationBar.this.popNavigationItemAnimated(true);
 			}
 		}, Control.ControlEvent.TOUCH_UP_INSIDE);

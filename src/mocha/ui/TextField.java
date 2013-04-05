@@ -6,8 +6,6 @@
 package mocha.ui;
 
 import android.text.Editable;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
 import android.util.TypedValue;
 import android.view.Gravity;
 import mocha.foundation.NotificationCenter;
@@ -321,7 +319,7 @@ public class TextField extends Control implements TextInput.Traits {
 			} else if(this.clearButton == null) {
 				this.clearButton = new Button();
 				this.clearButton.addActionTarget(new ActionTarget() {
-					public void onControlEvent(Control control, ControlEvent controlEvent) {
+					public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
 						if(delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
 							setText("");
 						}

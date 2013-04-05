@@ -5,8 +5,6 @@
  */
 package mocha.ui;
 
-import android.app.Application;
-import mocha.foundation.Notification;
 import mocha.graphics.Rect;
 
 import java.lang.ref.WeakReference;
@@ -65,7 +63,7 @@ public class Control extends View {
 	}
 
 	public interface ActionTarget {
-		public void onControlEvent(Control control, ControlEvent controlEvent);
+		public void onControlEvent(Control control, ControlEvent controlEvent, Event event);
 	}
 
 	private boolean enabled;
@@ -135,12 +133,16 @@ public class Control extends View {
 	}
 
 	public void sendActionsForControlEvents(ControlEvent... controlEvents) {
+		this.sendActionsForControlEvents(null, controlEvents);
+	}
+
+	private void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
 		if(this.registeredActions.size() == 0) return;
 
 		for(ActionTarget actionTarget : this.registeredActions.keySet()) {
 			for(ControlEvent controlEvent : controlEvents) {
 				if(this.registeredActions.get(actionTarget).contains(controlEvent)) {
-					actionTarget.onControlEvent(this, controlEvent);
+					actionTarget.onControlEvent(this, controlEvent, event);
 				}
 			}
 		}
@@ -178,7 +180,7 @@ public class Control extends View {
 				controlEvents = new ControlEvent[] { ControlEvent.TOUCH_DOWN };
 			}
 
-			this.sendActionsForControlEvents(controlEvents);
+			this.sendActionsForControlEvents(event, controlEvents);
 		}
 	}
 
@@ -206,7 +208,7 @@ public class Control extends View {
 					controlEvents = new ControlEvent[] { dragEvent };
 				}
 
-				this.sendActionsForControlEvents(controlEvents);
+				this.sendActionsForControlEvents(event, controlEvents);
 			}
 		}
 	}
@@ -221,7 +223,7 @@ public class Control extends View {
 
 		if(this.tracking) {
 			this.endTracking(touch, event);
-			this.sendActionsForControlEvents(this.touchInside ? ControlEvent.TOUCH_UP_INSIDE : ControlEvent.TOUCH_UP_OUTSIDE);
+			this.sendActionsForControlEvents(event, this.touchInside ? ControlEvent.TOUCH_UP_INSIDE : ControlEvent.TOUCH_UP_OUTSIDE);
 		}
 
 		this.tracking = false;
@@ -235,7 +237,7 @@ public class Control extends View {
 
 		if(this.tracking) {
 			this.cancelTracking(event);
-			this.sendActionsForControlEvents(ControlEvent.TOUCH_CANCEL);
+			this.sendActionsForControlEvents(event, ControlEvent.TOUCH_CANCEL);
 		}
 
 		this.tracking = false;
@@ -401,7 +403,7 @@ public class Control extends View {
 			this.action = action;
 		}
 
-		public void onControlEvent(Control control, ControlEvent controlEvent) {
+		public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
 			Object target = this.target.get();
 			if(target == null) return;
 

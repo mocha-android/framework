@@ -27,11 +27,11 @@ class BarButton extends Button {
 		} else {
 			BarButton button = new BarButton(barButtonItem, false);
 			button.addActionTarget(new Control.ActionTarget() {
-				public void onControlEvent(Control control, Control.ControlEvent controlEvent) {
+				public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
 					BarButtonItem.Action action = barButtonItem.getAction();
 
 					if(action != null) {
-						action.action(barButtonItem);
+						action.action(barButtonItem, event);
 					}
 				}
 			}, Control.ControlEvent.TOUCH_UP_INSIDE);
