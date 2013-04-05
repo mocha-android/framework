@@ -514,7 +514,11 @@ public class TableView extends ScrollView {
 		}
 	}
 
-	public int numberOfRowsInSection(int section) {
+	public int getNumberOfSections() {
+		return this.sectionsInfo != null ? this.sectionsInfo.size() : 0;
+	}
+
+	public int getNumberOfRowsInSection(int section) {
 		if (this.sectionsInfo.size() <= section) {
 			if(this.dataSource != null) {
 				return this.dataSource.getNumberOfRowsInSection(this, section);
@@ -693,7 +697,7 @@ public class TableView extends ScrollView {
 
 		for (int section = 0; section < this.numberOfSections; section++) {
 			SectionInfo sectionInfo = new SectionInfo();
-			sectionInfo.numberOfRows = this.numberOfRowsInSection(section);
+			sectionInfo.numberOfRows = this.getNumberOfRowsInSection(section);
 			sectionInfo.y = tableHeight;
 
 			float headerHeight = 0.0f;
