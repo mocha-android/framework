@@ -141,6 +141,9 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
+		if(text == null || text.length() == 0) return Size.zero();
+		if(constrainedToSize.width < 0.0f) return Size.zero();
+
 		constrainedToSize = new Size(constrainWidth(constrainedToSize.width * screenScale), constrainedToSize.height);
 
 		Size size = getLayoutSize(getLayout(text, constrainedToSize.width, heightSupportsMultipleLines(constrainedToSize.height, font), textPaint, TextAlignment.LEFT, lineBreakMode), font, screenScale);
@@ -168,8 +171,10 @@ public class TextDrawing extends mocha.foundation.Object {
 
 		if(text instanceof TextDrawingText) {
 			if(((TextDrawingText) text).getLayout() != null) {
-				((TextDrawingText) text).getPaint().set(textPaint);
-				return ((TextDrawingText) text).getLayout();
+				if(((TextDrawingText) text).getLayout().getAlignment() == textAlignment.getLayoutAlignemnt()) {
+					((TextDrawingText) text).getPaint().set(textPaint);
+					return ((TextDrawingText) text).getLayout();
+				}
 			}
 
 			textDrawingText = (TextDrawingText) text;
