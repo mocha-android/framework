@@ -319,16 +319,16 @@ public class NavigationBar extends View {
 
 			this.centerView = topItem.getTitleView();
 
+			Rect titleFrame = new Rect();
+			titleFrame.size.width = titleMaxX - titleMinX;
+			titleFrame.size.height = bounds.size.height > 30.0f ? MAX_TITLE_HEIGHT_DEFAULT : MAX_TITLE_HEIGHT_LANDSCAPE_PHONE;
+
 			if (this.centerView == null) {
 				Float adjustment = this.titleVerticalPositionAdjustment.get(BarMetrics.DEFAULT);
 				if(adjustment == null) adjustment = 0.0f;
 
-				this.centerView = new NavigationItemTitleView(topItem, this.titleTextAttributes, adjustment);
+				this.centerView = new NavigationItemTitleView(titleFrame, topItem, this.titleTextAttributes, adjustment);
 			}
-
-			Rect titleFrame = new Rect();
-			titleFrame.size.width = titleMaxX - titleMinX;
-			titleFrame.size.height = bounds.size.height > 30.0f ? MAX_TITLE_HEIGHT_DEFAULT : MAX_TITLE_HEIGHT_LANDSCAPE_PHONE;
 
 			titleFrame.size = this.centerView.sizeThatFits(titleFrame.size);
 			titleFrame.origin.y = floorf((bounds.size.height - titleFrame.size.height) / 2.0f);

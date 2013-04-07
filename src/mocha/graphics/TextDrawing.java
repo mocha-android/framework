@@ -5,8 +5,8 @@
  */
 package mocha.graphics;
 
-import android.text.TextPaint;
-import android.text.TextUtils;
+import android.graphics.Canvas;
+import android.text.*;
 import android.util.FloatMath;
 import mocha.ui.Screen;
 
@@ -20,68 +20,40 @@ public class TextDrawing extends mocha.foundation.Object {
 		return draw(context, text, rect, font, textAlignment, LineBreakMode.WORD_WRAPPING);
 	}
 
-	// TODO: Implement real line break mode instead of just char wrapping, fix truncation issues.
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
+		if(rect.size.width < 0.0f || rect.size.height < 0.0f) {
+			return Size.zero();
+		}
+
+		if(textAlignment == null) {
+			textAlignment = TextAlignment.LEFT;
+		}
+
+		if(lineBreakMode == null) {
+			lineBreakMode = LineBreakMode.TRUNCATING_TAIL;
+		}
+
 		float scale = context.getScale();
-		float lineHeight = font.getLineHeight() * scale;
-		float maxWidth = constrainWidth(rect.size.width * scale);
-		float maxHeight = rect.size.height * scale;
-		float lineHeightAdjustment = FloatMath.floor((font.getLineHeightDrawingAdjustment()) * scale);
 
 		TextPaint textPaint = context.getTextPaint();
 		textPaint.setTypeface(font.getTypeface());
 		textPaint.setTextSize(font.getPointSize() * scale);
 
-		int index = 0;
-		int length = text.length();
-		float[] measuredWidth = new float[] { 0.0f };
-		Size size = new Size();
+		float maxWidth = constrainWidth(rect.size.width * scale);
 
-		float y = (rect.origin.y * scale) + (lineHeight / 2.0f) + lineHeightAdjustment;
-		float originX = rect.origin.x * scale;
+		Layout layout = getLayout(text, maxWidth, heightSupportsMultipleLines(rect.size.height, font), textPaint, textAlignment, lineBreakMode);
+		rect = getAdjustedRect(rect, layout, textAlignment, font, scale);
 
-		while(index < length) {
-			int measured = textPaint.breakText(text, index, length, true, maxWidth, measuredWidth);
+		Canvas canvas = context.getCanvas();
+		canvas.save(Canvas.MATRIX_SAVE_FLAG);
+		canvas.translate(rect.origin.x * scale, rect.origin.y * scale);
+		layout.draw(context.getCanvas());
+		canvas.restore();
 
-			size.width = Math.max(measuredWidth[0], size.width);
-			size.height += lineHeight;
+		float width = (float)layout.getWidth();
+		float height = (float)layout.getHeight();
 
-			boolean lastLine = size.height + lineHeight > maxHeight;
-
-			CharSequence textToDraw;
-
-			if(lastLine) {
-				// textToDraw = TextUtils.ellipsize(TextUtils.substring(text, index, text.length()), textPaint, maxWidth, lineBreakMode.truncateAt());
-				textToDraw = TextUtils.substring(text, index, index + measured);
-			} else  {
-				textToDraw = TextUtils.substring(text, index, index + measured);
-			}
-
-			index += measured;
-			float x;
-
-			if(textAlignment == TextAlignment.CENTER || textAlignment == TextAlignment.RIGHT) {
-				float textWidth = textPaint.measureText(textToDraw, 0, textToDraw.length());
-
-				if(textAlignment == TextAlignment.RIGHT) {
-					x = originX + (maxWidth - textWidth);
-				} else {
-					x = originX + ((maxWidth - textWidth) / 2);
-				}
-			} else {
-				x = originX;
-			}
-
-			context.getCanvas().drawText(textToDraw, 0, textToDraw.length(), x, y, textPaint);
-
-			y += lineHeight;
-
-			if(measured == 0 || lastLine) {
-				break;
-			}
-		}
-
-		return new Size(FloatMath.ceil(size.width / scale), FloatMath.ceil(size.height / scale));
+		return new Size(width / scale, height / scale);
 	}
 
 	/**
@@ -110,42 +82,26 @@ public class TextDrawing extends mocha.foundation.Object {
 	 * @return Size of the drawing rounded up to the nearest point.
 	 */
 	public static Size draw(Context context, CharSequence text, Point point, Font font, float maxWidth, LineBreakMode lineBreakMode) {
+		if(maxWidth < 0.0f) {
+			maxWidth = constrainWidth(Float.MAX_VALUE);
+		}
+
 		float scale = context.getScale();
 
 		TextPaint textPaint = context.getTextPaint();
 		textPaint.setTypeface(font.getTypeface());
 		textPaint.setTextSize(font.getPointSize() * scale);
 
-		if(maxWidth > 0.0f) {
-			text = fitToWidth(context, text, maxWidth, lineBreakMode, textPaint);
-		}
-
+		Layout layout = getLayout(text, maxWidth, false, textPaint, TextAlignment.LEFT, lineBreakMode);
 		float textWidth = textPaint.measureText(text, 0, text.length());
 
-		float x = point.x * scale;
-		float lineHeightAdjustment = (font.getLineHeightDrawingAdjustment() * scale);
-		float lineHeight = font.getLineHeight() * scale;
-		float y = (point.y * scale) + (lineHeight / 2.0f) + lineHeightAdjustment;
-
-		context.getCanvas().drawText(text, 0, text.length(), x, y, textPaint);
+		Canvas canvas = context.getCanvas();
+		canvas.save(Canvas.MATRIX_SAVE_FLAG);
+		canvas.translate(point.x * scale, point.y * scale);
+		layout.draw(canvas);
+		canvas.restore();
 
 		return new Size(FloatMath.ceil(textWidth / scale), FloatMath.ceil(font.getLineHeight()));
-	}
-
-	private static CharSequence fitToWidth(Context context, CharSequence text, float width, LineBreakMode lineBreakMode, TextPaint paint) {
-		if(lineBreakMode == null) lineBreakMode = LineBreakMode.WORD_WRAPPING;
-
-		text = TextUtils.ellipsize(text, paint, width * context.getScale(), lineBreakMode.truncateAt());
-
-		if(text == null) {
-			return null;
-		} else {
-			if(text instanceof String) {
-				return ((String)text).replaceAll("( |\\.|\\|_|\\-)+…$", "…");
-			} else {
-				return text;
-			}
-		}
 	}
 
 	public static float getTextWidth(CharSequence text, Font font) {
@@ -159,6 +115,10 @@ public class TextDrawing extends mocha.foundation.Object {
 	public static float getTextWidth(CharSequence text, Font font, float width, float screenScale) {
 		width = constrainWidth(width * screenScale);
 		float[] measuredWidth = new float[] { 0.0f };
+
+		if(text instanceof TextDrawingText) {
+			text = ((TextDrawingText) text).getText();
+		}
 
 		font.paintForScreenScale(screenScale).breakText(text, 0, text.length(), true, width, measuredWidth);
 		return measuredWidth[0] / screenScale;
@@ -180,37 +140,99 @@ public class TextDrawing extends mocha.foundation.Object {
 		return getTextSize(text, font, font.paintForScreenScale(screenScale), constrainedToSize, lineBreakMode, screenScale);
 	}
 
-	// TODO: Implement line break mode
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
-		constrainedToSize.width = constrainWidth(constrainedToSize.width * screenScale);
+		constrainedToSize = new Size(constrainWidth(constrainedToSize.width * screenScale), constrainedToSize.height);
 
-		int index = 0;
-		int length = text.length();
-		float[] measuredWidth = new float[] { 0.0f };
-		Size size = new Size();
-		float lineHeight = font.getLineHeight() * screenScale;
-		float maxHeight = constrainedToSize.height * screenScale;
+		Size size = getLayoutSize(getLayout(text, constrainedToSize.width, heightSupportsMultipleLines(constrainedToSize.height, font), textPaint, TextAlignment.LEFT, lineBreakMode), font, screenScale);
+		size.height = Math.max(size.height, font.getLineHeight());
+		size.height = Math.min(size.height, constrainedToSize.height);
+		return size;
+	}
 
-		while(index < length) {
-			int measured = textPaint.breakText(text, index, length, true, constrainedToSize.width, measuredWidth);
-			index += measured;
-
-			size.width = Math.max(measuredWidth[0], size.width);
-			size.height += lineHeight;
-
-			if(measured == 0 || (size.height + lineHeight > maxHeight)) {
-				break;
-			}
-		}
-
-		return new Size(FloatMath.ceil(size.width / screenScale), FloatMath.ceil(size.height / screenScale));
+	private static boolean heightSupportsMultipleLines(float height, Font font) {
+		return height == 0.0f || height >= font.getLineHeight() * 1.5f;
 	}
 
 	private static float constrainWidth(float width) {
 		// There seems to be a race condition in breakText when MAX_VALUE is passed and the text is too small.
 		// Using a large value like 10000 seems to fix the issue, and shouldn't cause any problems since
 		// we really shouldn't be rendering to a width that large anyway.
-		return Math.min(width, 10000);
+		return Math.min(width, 10000.0f);
+	}
+
+	private static Layout getLayout(CharSequence text, float maxWidth, boolean useMultipleLines, TextPaint textPaint, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
+		Layout layout;
+		int outerWidth = (int)FloatMath.floor(maxWidth);
+
+		TextDrawingText textDrawingText = null;
+
+		if(text instanceof TextDrawingText) {
+			if(((TextDrawingText) text).getLayout() != null) {
+				((TextDrawingText) text).getPaint().set(textPaint);
+				return ((TextDrawingText) text).getLayout();
+			}
+
+			textDrawingText = (TextDrawingText) text;
+			text = textDrawingText.getText();
+			textPaint = new TextPaint(textPaint);
+		}
+
+		BoringLayout.Metrics metrics;
+		boolean isBoring = (metrics = BoringLayout.isBoring(text, textPaint)) != null;
+
+		if(isBoring && (!useMultipleLines || (float)metrics.width <= maxWidth)) {
+			layout = new BoringLayout(text, textPaint, outerWidth, Layout.Alignment.ALIGN_NORMAL, 0, 0, metrics, false, lineBreakMode.truncateAt(), outerWidth);
+		} else {
+			layout = new StaticLayout(text, 0, text.length(), textPaint, outerWidth, textAlignment.getLayoutAlignemnt(), 1.0f, 0.0f, false);
+		}
+
+		if(textDrawingText != null) {
+			textDrawingText.setLayout(layout, textPaint);
+		}
+
+		return layout;
+	}
+
+	private static Size getLayoutSize(Layout layout, Font font, float scale) {
+		CharSequence text = layout.getText();
+
+		if(layout instanceof BoringLayout) {
+			float width = layout.getPaint().measureText(text, 0, text.length());
+			return new Size(FloatMath.ceil(width / scale), (float)layout.getHeight() / scale);
+		} else if(layout instanceof StaticLayout) {
+			float width = Float.MIN_VALUE;
+			int lines = layout.getLineCount();
+			float w[] = new float[1];
+
+			for(int line = 0; line < lines; line++) {
+				layout.getPaint().breakText(text, layout.getLineStart(line), layout.getLineEnd(line), true, 10000.0f, w);
+				if(w[0] > width) {
+					width = w[0];
+				}
+			}
+
+			return new Size(FloatMath.ceil(width / scale), font.getLineHeight() * (float)lines);
+		} else {
+			return Size.zero();
+		}
+	}
+
+	private static Rect getAdjustedRect(Rect rect, Layout layout, TextAlignment textAlignment, Font font, float scale) {
+		if(textAlignment != TextAlignment.LEFT && layout instanceof BoringLayout) {
+			rect = rect.copy();
+
+			float textWidth = getLayoutSize(layout, font, scale).width;
+
+			if(textAlignment == TextAlignment.CENTER) {
+				rect.origin.x += FloatMath.floor((rect.size.width - textWidth) / 2.0f);
+			} else if(textAlignment == TextAlignment.RIGHT) {
+				rect.origin.x += rect.size.width - textWidth;
+			}
+
+			rect.size.width = textWidth;
+		}
+
+		return rect;
 	}
 
 }

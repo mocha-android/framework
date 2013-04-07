@@ -11,7 +11,7 @@ import mocha.graphics.*;
 public class Label extends View implements Highlightable {
 
 
-	private CharSequence text;
+	private TextDrawingText text;
 	private Font font;
 	private int textColor;
 	private int highlightedTextColor;
@@ -45,14 +45,18 @@ public class Label extends View implements Highlightable {
 	}
 
 	public CharSequence getText() {
-		return text == null ? "" : text;
+		return this.text == null || this.text.getText() == null ? "" : this.text.getText();
 	}
 
 	public void setText(CharSequence text) {
-		if(this.text != text) {
-			this.text = text;
-			this.textNeedsMeasuring = true;
-			this.setNeedsDisplay();
+		if((this.text == null && text != null) || (this.text != null && this.text.getText() != text)) {
+			if(text == null) {
+				this.text = null;
+			} else {
+				this.text = new TextDrawingText(text);
+			}
+
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -63,8 +67,7 @@ public class Label extends View implements Highlightable {
 	public void setFont(Font font) {
 		if(this.font != font) {
 			this.font = font;
-			this.textNeedsMeasuring = true;
-			this.setNeedsDisplay();
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -75,6 +78,7 @@ public class Label extends View implements Highlightable {
 	public void setTextColor(int textColor) {
 		if(this.textColor != textColor) {
 			this.textColor = textColor;
+			if(this.text != null) this.text.invalidate();
 			this.setNeedsDisplay();
 		}
 	}
@@ -85,6 +89,7 @@ public class Label extends View implements Highlightable {
 
 	public void setHighlightedTextColor(int highlightedTextColor) {
 		this.highlightedTextColor = highlightedTextColor;
+		if(this.text != null) this.text.invalidate();
 		this.setNeedsDisplay();
 	}
 
@@ -105,7 +110,7 @@ public class Label extends View implements Highlightable {
 
 	public void setShadowOffset(Size shadowOffset) {
 		if(shadowOffset == null || !shadowOffset.equals(this.shadowOffset)) {
-			this.shadowOffset = shadowOffset;
+			this.shadowOffset = shadowOffset == null ? null : shadowOffset.copy();
 			this.setNeedsDisplay();
 		}
 	}
@@ -121,7 +126,7 @@ public class Label extends View implements Highlightable {
 	public void setTextAlignment(TextAlignment textAlignment) {
 		if(this.textAlignment != textAlignment) {
 			this.textAlignment = textAlignment;
-			this.setNeedsDisplay();
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -132,8 +137,7 @@ public class Label extends View implements Highlightable {
 	public void setLineBreakMode(LineBreakMode lineBreakMode) {
 		if(this.lineBreakMode != lineBreakMode) {
 			this.lineBreakMode = lineBreakMode;
-			this.textNeedsMeasuring = true;
-			this.setNeedsDisplay();
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -155,8 +159,7 @@ public class Label extends View implements Highlightable {
 	public void setNumberOfLines(int numberOfLines) {
 		if(this.numberOfLines != numberOfLines) {
 			this.numberOfLines = numberOfLines;
-			this.textNeedsMeasuring = true;
-			this.setNeedsDisplay();
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -167,16 +170,16 @@ public class Label extends View implements Highlightable {
 	public void setHighlighted(boolean highlighted) {
 		if(this.highlighted != highlighted) {
 			this.highlighted = highlighted;
+			if(this.text != null) this.text.invalidate();
 			this.setNeedsDisplay();
 		}
 	}
 
 	public void setFrame(Rect frame) {
-		Rect oldFrame = this.getFrame();
 		super.setFrame(frame);
 
-		if(!this.getFrame().size.equals(oldFrame.size)) {
-			this.setNeedsDisplay();
+		if(this.lastSize == null || !this.getFrame().size.equals(this.lastSize)) {
+			this.setTextNeedsMeasuring();
 		}
 	}
 
@@ -194,11 +197,40 @@ public class Label extends View implements Highlightable {
 		return new Rect(bounds.origin.x, bounds.origin.y, 0.0f, 0.0f);
 	}
 
+	public Size sizeThatFits(Size size) {
+		if(this.text == null) {
+			return Size.zero();
+		}
+
+		if(size.width != this.getFrame().size.width) {
+			this.text.invalidate();
+		}
+
+		// This seems odd, but generally if sizeThatFits is called, it's followed up
+		// with a call to setFrame(), and this allows us to use the cached layout we
+		// just created vs creating a new one.
+		this.lastSize = Size.min(TextDrawing.getTextSize(this.text, this.font, size, this.lineBreakMode), size);
+		this.setNeedsDisplay();
+
+		return this.lastSize.copy();
+	}
+
+	private void setTextNeedsMeasuring() {
+		if(this.text != null) {
+			this.text.invalidate();
+		}
+
+		this.textNeedsMeasuring = true;
+		this.setNeedsDisplay();
+	}
+
 	public void drawTextInRect(mocha.graphics.Context context, Rect rect) {
+		if(this.text == null) return;
+
 		context.save();
 		context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
 		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
-		TextDrawing.draw(context, text, rect, this.font, this.textAlignment, this.lineBreakMode);
+		TextDrawing.draw(context, this.text, rect, this.font, this.textAlignment, this.lineBreakMode);
 		context.restore();
 	}
 
@@ -216,7 +248,7 @@ public class Label extends View implements Highlightable {
 			}
 
 			this.textSize = TextDrawing.getTextSize(this.text, this.font, maxSize, this.lineBreakMode);
-			lastSize = bounds.size.copy();
+			this.lastSize = bounds.size.copy();
 			this.textNeedsMeasuring = false;
 		}
 
@@ -227,4 +259,5 @@ public class Label extends View implements Highlightable {
 
 		this.drawTextInRect(context, drawRect);
 	}
+
 }

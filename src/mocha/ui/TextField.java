@@ -469,9 +469,7 @@ public class TextField extends Control implements TextInput.Traits {
 			this.clearButton.setFrame(this.getClearButtonRectForBounds(bounds));
 		}
 
-		Rect rect = this.getTextRectForBounds(bounds);
-		rect.offset(0.0f, -this.font.getLineHeightDrawingAdjustment());
-		this.nativeView.setFrame(rect);
+		this.nativeView.setFrame(this.getTextRectForBounds(bounds));
 	}
 
 	private boolean isViewModeVisible(ViewMode viewMode) {

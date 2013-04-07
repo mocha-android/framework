@@ -43,4 +43,8 @@ public final class Size implements mocha.foundation.Copying <Size> {
 		return new Size(this.width, this.height);
 	}
 
+	public static Size min(Size a, Size b) {
+		return new Size(Math.min(a.width, b.width), Math.min(a.height, b.height));
+	}
+
 }

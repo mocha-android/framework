@@ -8,6 +8,7 @@ package mocha.graphics;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
+import android.util.FloatMath;
 import mocha.ui.Screen;
 
 import java.util.HashMap;
@@ -16,12 +17,10 @@ import java.util.Map;
 public final class Font {
 	private final Typeface typeface;
 	private final float pointSize;
-	private final float measuredLineHeight;
 	private final float lineHeight;
 	private final float ascender;
 	private final float descender;
 	private final float leading;
-	private final float lineHeightDrawingAdjustment;
 
 	private Map<Float,TextPaint> cachedPaints;
 
@@ -39,13 +38,7 @@ public final class Font {
 		this.descender = -(fontMetrics.descent / screenScale);
 		this.leading = fontMetrics.leading / screenScale;
 
-		this.lineHeight = (float)(Math.ceil(this.ascender) - Math.ceil(this.descender) + Math.ceil(this.leading));
-
-		android.graphics.Rect textBounds = new android.graphics.Rect();
-		textPaint.getTextBounds("Py", 0, 2, textBounds);
-		this.measuredLineHeight = (float)textBounds.height() / screenScale;
-
-		this.lineHeightDrawingAdjustment = this.lineHeight - this.measuredLineHeight;
+		this.lineHeight = FloatMath.ceil(this.ascender - this.descender + this.leading);
 	}
 
 	public static Font getSystemFontWithSize(float pointSize) {
@@ -84,19 +77,11 @@ public final class Font {
 		return new Font(this.typeface, pointSize);
 	}
 
-	float getMeasuredLineHeight() {
-		return measuredLineHeight;
-	}
-
-	public float getLineHeightDrawingAdjustment() {
-		return lineHeightDrawingAdjustment;
-	}
-
 	TextPaint paintForScreenScale(float screenScale) {
 		TextPaint paint = this.cachedPaints.get(screenScale);
 
 		if(paint == null) {
-			paint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG);
+			paint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			this.cachedPaints.put(screenScale, paint);
 		} else {
 			paint.reset();

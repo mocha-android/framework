@@ -136,7 +136,10 @@ public class Image extends mocha.foundation.Object {
 	}
 
 	public void recycle() {
-		this.bitmap.recycle();
+		if(this.bitmap != null) {
+			this.bitmap.recycle();
+			this.bitmap = null;
+		}
 	}
 
 	public Size getSize() {
