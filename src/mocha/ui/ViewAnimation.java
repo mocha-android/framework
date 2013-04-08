@@ -23,7 +23,6 @@ class ViewAnimation extends mocha.foundation.Object {
 	// We use a hash so if the same property is changed multiple times in the animation
 	// we just override the last one.
 	private Map<String,Animation> animations;
-	private TimingFunction timingFunction;
 	private long startTimeDelayed;
 	private long startTime;
 	private boolean hasStarted;
@@ -39,6 +38,7 @@ class ViewAnimation extends mocha.foundation.Object {
 	long duration = 200;
 	long delay = 0;
 	View.AnimationCurve animationCurve = View.AnimationCurve.EASE_IN_OUT;
+	TimingFunction timingFunction;
 	View.AnimationDidStart didStart;
 	View.AnimationDidStop didStop;
 	String animationID;
@@ -152,20 +152,22 @@ class ViewAnimation extends mocha.foundation.Object {
 			return;
 		}
 
-		switch (animationCurve) {
-			case EASE_IN:
-				this.timingFunction = TimingFunction.EASE_IN;
-				break;
-			case EASE_OUT:
-				this.timingFunction = TimingFunction.EASE_OUT;
-				break;
-			case LINEAR:
-				this.timingFunction = TimingFunction.LINEAR;
-				break;
-			case EASE_IN_OUT:
-			default:
-				this.timingFunction = TimingFunction.EASE_IN_OUT;
-				break;
+		if(this.timingFunction == null) {
+			switch (animationCurve) {
+				case EASE_IN:
+					this.timingFunction = TimingFunction.EASE_IN;
+					break;
+				case EASE_OUT:
+					this.timingFunction = TimingFunction.EASE_OUT;
+					break;
+				case LINEAR:
+					this.timingFunction = TimingFunction.LINEAR;
+					break;
+				case EASE_IN_OUT:
+				default:
+					this.timingFunction = TimingFunction.EASE_IN_OUT;
+					break;
+			}
 		}
 
 		long timeModifier = View.SLOW_ANIMATIONS ? 10 : 1;

@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import mocha.animation.TimingFunction;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -297,10 +298,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public void setContentOffset(Point contentOffset, boolean animated) {
-		this.setContentOffset(contentOffset, animated ? AnimationCurve.LINEAR : null, DEFAULT_TRANSITION_DURATION, false);
+		this.setContentOffset(contentOffset, animated ? TimingFunction.LINEAR : null, DEFAULT_TRANSITION_DURATION, false);
 	}
 
-	void setContentOffset(Point contentOffset, AnimationCurve animationCurve, long animationDuration, boolean internal) {
+	void setContentOffset(Point contentOffset, TimingFunction timingFunction, long animationDuration, boolean internal) {
 		if (contentOffset == null || contentOffset.equals(this.contentOffset)) {
 			return;
 		}
@@ -310,10 +311,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.scrollViewAnimation = null;
 		}
 
-		if(animationCurve != null) {
+		if(timingFunction != null) {
 			View.beginAnimations(null, null);
 			View.setAnimationDuration(animationDuration);
-			View.setAnimationCurve(animationCurve);
+			View.setTimingFunction(timingFunction);
 			View.setAnimationDidStartCallback(new AnimationDidStart() {
 				public void animationDidStart(String animationID, Object context) {
 					inSimpleAnimation = true;
@@ -364,7 +365,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
-		if (animationCurve == null) {
+		if (timingFunction == null) {
 			if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
 				this.updateHorizontalScrollIndicator();
 			}
@@ -406,9 +407,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 		if (commit) {
 			if(pagingEnabled && animated) {
-				this.setContentOffset(contentOffset, AnimationCurve.EASE_OUT, PAGING_TRANSITION_DURATION, false);
+				this.setContentOffset(contentOffset, TimingFunction.EASE_OUT, PAGING_TRANSITION_DURATION, false);
 			} else {
-				this.setContentOffset(contentOffset, animated);
+				this.setContentOffset(contentOffset, new TimingFunction.CubicBezierCurveTimingFunction(0.390f, 0.575f, 0.565f, 1.000f), 400, false);
 			}
 		}
 	}

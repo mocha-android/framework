@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import android.util.FloatMath;
+import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -1241,6 +1242,12 @@ public class View extends Responder implements Accessibility {
 	public static void setAnimationCurve(AnimationCurve animationCurve) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.animationCurve = animationCurve;
+		}
+	}
+
+	static void setTimingFunction(TimingFunction timingFunction) {
+		if(currentViewAnimation != null) {
+			currentViewAnimation.timingFunction = timingFunction;
 		}
 	}
 
