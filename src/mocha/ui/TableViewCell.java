@@ -100,6 +100,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private Map<View,OriginalViewState> originalViewStates;
 	private Runnable highlightStateCallback;
 	private Runnable restoreBackgroundCallback;
+	private TableView.Style tableStyle;
 
 	private View contentView;
 	private View backgroundView;
@@ -138,11 +139,15 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.getContentView();
 	}
 
+	void setTableStyle(TableView.Style tableStyle) {
+		this.tableStyle = tableStyle;
+	}
+
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
 		if(this.backgroundView != null || this.selectedBackgroundView != null) {
-			Rect frame = this.layoutManager.getBackgroundViewRectForCell(this);
+			Rect frame = this.layoutManager.getBackgroundViewRectForCell(this, this.tableStyle);
 
 			if(this.backgroundView != null) {
 				this.backgroundView.setFrame(frame);
@@ -153,32 +158,32 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 			}
 		}
 
-		this.contentView.setFrame(this.layoutManager.getContentViewRectForCell(this));
+		this.contentView.setFrame(this.layoutManager.getContentViewRectForCell(this, this.tableStyle));
 
 		if(this.cellStyle != Style.CUSTOM) {
 			if(this.textLabel != null) {
-				this.textLabel.setFrame(this.layoutManager.getTextLabelRectForCell(this));
+				this.textLabel.setFrame(this.layoutManager.getTextLabelRectForCell(this, this.tableStyle));
 			}
 
 			if(this.detailTextLabel != null) {
-				this.detailTextLabel.setFrame(this.layoutManager.getDetailTextLabelRectForCell(this));
+				this.detailTextLabel.setFrame(this.layoutManager.getDetailTextLabelRectForCell(this, this.tableStyle));
 			}
 
 			this.setupAccessoryView();
 
 			if(this.actualAccessoryView != null) {
-				this.actualAccessoryView.setFrame(this.layoutManager.getAccessoryViewRectForCell(this));
+				this.actualAccessoryView.setFrame(this.layoutManager.getAccessoryViewRectForCell(this, this.tableStyle));
 			}
 
 			if(this.imageView != null) {
-				this.imageView.setFrame(this.layoutManager.getImageViewRectForCell(this));
+				this.imageView.setFrame(this.layoutManager.getImageViewRectForCell(this, this.tableStyle));
 			}
 		}
 
 		this.setupSeparatorView();
 
 		if(this.separatorView != null) {
-			this.separatorView.setFrame(this.layoutManager.getSeparatorViewRectForCell(this));
+			this.separatorView.setFrame(this.layoutManager.getSeparatorViewRectForCell(this, this.tableStyle));
 		}
 	}
 
@@ -192,12 +197,12 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 			Button button = new Button();
 			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator, Control.State.NORMAL);
 			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator_pressed, Control.State.NORMAL, Control.State.HIGHLIGHTED);
-			button.setBackgroundColor(this.getBackgroundColor());
+			button.setBackgroundColor(Color.TRANSPARENT);
 			this.actualAccessoryView = button;
 		} else {
 			ImageView imageView = new ImageView();
 			imageView.setContentMode(ContentMode.CENTER);
-			imageView.setBackgroundColor(this.getBackgroundColor());
+			imageView.setBackgroundColor(Color.TRANSPARENT);
 
 			if(accessoryType == AccessoryType.DISCLOSURE_INDICATOR) {
 				imageView.setImage(R.drawable.mocha_table_view_cell_accessory_disclosure_indicator);
@@ -386,7 +391,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		if(this.highlighted) {
 			if(this.selectedBackgroundView == null) {
 				this.selectedBackgroundView = new ImageView(R.drawable.mocha_table_view_cell_selection);
-				this.selectedBackgroundView.setFrame(this.layoutManager.getBackgroundViewRectForCell(this));
+				this.selectedBackgroundView.setFrame(this.layoutManager.getBackgroundViewRectForCell(this, this.tableStyle));
 
 				if(animated) {
 					this.selectedBackgroundView.setAlpha(0.0f);
@@ -512,7 +517,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		if (this.contentView == null) {
 			this.contentView = new View();
 			this.contentView.setBackgroundColor(this.getBackgroundColor());
-			this.contentView.setFrame(this.layoutManager.getContentViewRectForCell(this));
+			this.contentView.setFrame(this.layoutManager.getContentViewRectForCell(this, this.tableStyle));
 			this.addSubview(this.contentView);
 		}
 

@@ -1389,6 +1389,7 @@ public class TableView extends ScrollView {
 			if (header == null) {
 				header = this.tableStyle == Style.GROUPED ? new TableViewHeader.Grouped() : new TableViewHeader.Plain();
 				header.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
+				header.setBackgroundColor(Color.TRANSPARENT);
 				header.createdByTableView = true;
 			}
 		}
@@ -1399,7 +1400,9 @@ public class TableView extends ScrollView {
 		header.setFrame(frame);
 
 		if(header instanceof TableViewHeader) {
-			((TableViewHeader) header).setText((String)sectionInfo.header);
+			String text = (String)sectionInfo.header;
+			((TableViewHeader) header).setText(text);
+			((TableViewHeader) header).setHidden(text == null || text.length() == 0);
 		}
 
 		header._isQueued = false;
@@ -1472,10 +1475,17 @@ public class TableView extends ScrollView {
 		cell._firstRowInSection = indexPath.row == 0;
 		cell._lastRowInSection = (indexPath.row == this.sectionsInfo.get(indexPath.section).numberOfRows - 1);
 		cell._dataSourceInfo = info;
+		cell.setTableStyle(this.getTableStyle());
 
 		cell.setSelected(this.isRowAtIndexPathSelected(indexPath));
-		cell.setSeparatorStyle(this.separatorStyle);
-		cell.setSeparatorColor(this.separatorColor);
+
+		if(cell._lastRowInSection && this.tableStyle == Style.GROUPED) {
+			cell.setSeparatorStyle(TableViewCell.SeparatorStyle.NONE);
+			cell.setSeparatorColor(Color.TRANSPARENT);
+		} else {
+			cell.setSeparatorStyle(this.separatorStyle);
+			cell.setSeparatorColor(this.separatorColor);
+		}
 
 		Rect frame = cell.getFrame();
 		frame.size.width = this.getBounds().size.width;
