@@ -46,7 +46,7 @@ public final class Context extends mocha.foundation.Object {
 		this.scale = scale;
 		this.paint = new Paint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.DITHER_FLAG);
 		this.strokePaint = new Paint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.DITHER_FLAG);
-		this.textPaint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+		this.textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 		this.paintStates = new ArrayList<Paint>();
 		this.strokePaintStates = new ArrayList<Paint>();
 		this.textPaintStates = new ArrayList<TextPaint>();
@@ -72,7 +72,6 @@ public final class Context extends mocha.foundation.Object {
 		if(!canvas.isHardwareAccelerated()) {
 			this.paint.setAntiAlias(true);
 			this.strokePaint.setAntiAlias(true);
-			this.textPaint.setAntiAlias(true);
 		}
 	}
 

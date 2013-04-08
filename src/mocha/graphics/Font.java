@@ -81,7 +81,7 @@ public final class Font {
 		TextPaint paint = this.cachedPaints.get(screenScale);
 
 		if(paint == null) {
-			paint = new TextPaint(/*Paint.ANTI_ALIAS_FLAG |*/ Paint.SUBPIXEL_TEXT_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+			paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 			this.cachedPaints.put(screenScale, paint);
 		} else {
 			paint.reset();

@@ -56,6 +56,7 @@ public class TextField extends Control implements TextInput.Traits {
 	private TextWatcher textWatcher;
 	private boolean ignoreTextChanges;
 	private boolean showingPlaceholder;
+	private boolean wasEmpty;
 
 	private TextInput.AutocapitalizationType autocapitalizationType;
 	private TextInput.AutocorrectionType autocorrectionType;
@@ -327,6 +328,7 @@ public class TextField extends Control implements TextInput.Traits {
 				}, ControlEvent.TOUCH_UP_INSIDE);
 				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button, State.NORMAL);
 				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button_pressed, State.NORMAL, State.HIGHLIGHTED);
+				this.addSubview(this.clearButton);
 			}
 
 			this.setNeedsLayout();
@@ -372,6 +374,9 @@ public class TextField extends Control implements TextInput.Traits {
 	protected Rect getTextRectForBounds(Rect bounds) {
 		Rect rect = bounds.copy();
 
+		rect.origin.y += floorf((rect.size.height - this.font.getLineHeight()) / 2.0f);
+		rect.size.height = this.font.getLineHeight();
+
 		if(this.leftView != null && !this.leftView.isHidden()) {
 			Rect leftViewRect = this.getLeftViewRectForBounds(bounds);
 			rect.origin.x = leftViewRect.maxX();
@@ -395,7 +400,7 @@ public class TextField extends Control implements TextInput.Traits {
 		}
 
 		if(maxX > 0.0f) {
-			rect.size.width -= maxX - bounds.origin.x;
+			rect.size.width = maxX - rect.origin.x;
 		}
 
 		return rect;
@@ -412,8 +417,9 @@ public class TextField extends Control implements TextInput.Traits {
 	protected Rect getClearButtonRectForBounds(Rect bounds) {
 		if(this.clearButton != null && !this.clearButton.isHidden()) {
 			Rect rect = this.clearButton.getFrame();
-			rect.origin.x = bounds.size.width - rect.size.width;
-			rect.origin.y = floorf((bounds.size.height - rect.size.height) / 2.0f);
+			rect.size = this.clearButton.getCurrentImage().getSize();
+			rect.origin.x = bounds.origin.x + bounds.size.width - rect.size.width - 6.0f;
+			rect.origin.y = bounds.origin.y + floorf((bounds.size.height - rect.size.height) / 2.0f);
 			return rect;
 		} else {
 			return Rect.zero();
@@ -465,11 +471,13 @@ public class TextField extends Control implements TextInput.Traits {
 		}
 
 		if(this.clearButton != null) {
-			this.clearButton.setHidden(!this.isViewModeVisible(this.clearButtonMode));
+			this.clearButton.setHidden(!this.isViewModeVisible(this.clearButtonMode) || this.getText().length() == 0);
 			this.clearButton.setFrame(this.getClearButtonRectForBounds(bounds));
 		}
 
-		this.nativeView.setFrame(this.getTextRectForBounds(bounds));
+		if(this.nativeView != null) {
+			this.nativeView.setFrame(this.getEditingRectForBounds(bounds));
+		}
 	}
 
 	private boolean isViewModeVisible(ViewMode viewMode) {
@@ -681,12 +689,12 @@ public class TextField extends Control implements TextInput.Traits {
 				}
 			}
 
-			if(showingPlaceholder && text != null && text.length() > 0) {
+			boolean isEmpty = text == null || text.length() == 0;
+
+			if(wasEmpty != isEmpty) {
 				setNeedsDisplay();
-				setNeedsLayout();
-			} else if(!showingPlaceholder && (text == null || text.length() == 0)) {
-				setNeedsDisplay();
-				setNeedsLayout();
+				layoutSubviews();
+				wasEmpty = isEmpty;
 			}
 
 			sendActionsForControlEvents(ControlEvent.VALUE_CHANGED);
