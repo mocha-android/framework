@@ -199,20 +199,18 @@ public class TextDrawing extends mocha.foundation.Object {
 	}
 
 	private static Size getLayoutSize(Layout layout, Font font, float scale) {
-		CharSequence text = layout.getText();
-
 		if(layout instanceof BoringLayout) {
-			float width = layout.getPaint().measureText(text, 0, text.length());
-			return new Size(FloatMath.ceil(width / scale), (float)layout.getHeight() / scale);
+			float width = layout.getLineWidth(0);
+			return new Size(FloatMath.ceil(width / scale) , (float)layout.getHeight() / scale);
 		} else if(layout instanceof StaticLayout) {
 			float width = Float.MIN_VALUE;
 			int lines = layout.getLineCount();
-			float w[] = new float[1];
 
 			for(int line = 0; line < lines; line++) {
-				layout.getPaint().breakText(text, layout.getLineStart(line), layout.getLineEnd(line), true, 10000.0f, w);
-				if(w[0] > width) {
-					width = w[0];
+				float w = layout.getLineWidth(line);
+
+				if(w > width) {
+					width = w;
 				}
 			}
 
