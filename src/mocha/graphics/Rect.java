@@ -189,7 +189,7 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public String toString() {
-		return String.format("(%s %s; %s %s)", (Float)this.origin.x, (Float)this.origin.y, (Float)this.size.width, (Float)this.size.height);
+		return String.format("{%s, %s}", this.origin, this.size);
 	}
 
 	public Rect copy() {

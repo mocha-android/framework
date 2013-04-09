@@ -136,7 +136,7 @@ public class Control extends View {
 		this.sendActionsForControlEvents(null, controlEvents);
 	}
 
-	private void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
+	void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
 		if(this.registeredActions.size() == 0) return;
 
 		for(ActionTarget actionTarget : this.registeredActions.keySet()) {

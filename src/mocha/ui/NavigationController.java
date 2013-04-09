@@ -390,6 +390,10 @@ public class NavigationController extends ViewController {
 			return;
 		}
 
+		if(this.isBeingPresented() || this.isMovingToParentViewController() || this.getParentViewController() == null || this.getView().getSuperview() == null) {
+			animated = false;
+		}
+
 		Rect bounds = this.getView().getBounds();
 
 		final Rect navigationFrame;

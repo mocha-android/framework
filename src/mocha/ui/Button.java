@@ -191,6 +191,7 @@ public class Button extends Control {
 
 	public void setContentEdgeInsets(EdgeInsets contentEdgeInsets) {
 		this.contentEdgeInsets = contentEdgeInsets == null ? EdgeInsets.zero() : contentEdgeInsets;
+		this.setNeedsLayout();
 	}
 
 	public EdgeInsets getTitleEdgeInsets() {
@@ -199,6 +200,7 @@ public class Button extends Control {
 
 	public void setTitleEdgeInsets(EdgeInsets titleEdgeInsets) {
 		this.titleEdgeInsets = titleEdgeInsets == null ? EdgeInsets.zero() : titleEdgeInsets;
+		this.setNeedsLayout();
 	}
 
 	public EdgeInsets getImageEdgeInsets() {
@@ -207,6 +209,7 @@ public class Button extends Control {
 
 	public void setImageEdgeInsets(EdgeInsets imageEdgeInsets) {
 		this.imageEdgeInsets = imageEdgeInsets == null ? EdgeInsets.zero() : imageEdgeInsets;
+		this.setNeedsLayout();
 	}
 
 	public CharSequence getCurrentTitle() {
@@ -233,7 +236,7 @@ public class Button extends Control {
 		State[] states = this.getStates();
 
 		this.titleLabel.setText(this.getTitleForState(states));
-		this.titleLabel.setTextColor(this.getTitleColor());
+		this.titleLabel.setTextColor(this.getTitleColor(states));
 		this.titleLabel.setShadowColor(this.getTitleShadowColor(states));
 
 		this.imageView.setImage(this.getImage(states));
@@ -243,16 +246,20 @@ public class Button extends Control {
 	}
 
 	public Rect getBackgroundRectForBounds(Rect bounds) {
-		return bounds;
+		return bounds.copy();
 	}
 
 	public Rect getContentRectForBounds(Rect bounds) {
-		return this.contentEdgeInsets == null ? bounds : this.contentEdgeInsets.inset(bounds);
+		return this.contentEdgeInsets == null ? bounds.copy() : this.contentEdgeInsets.inset(bounds);
 	}
 
 	public Rect getTitleRectForContentRect(Rect contentRect) {
 		CharSequence title = this.getCurrentTitle();
 		if(title == null || title.length() == 0) return Rect.zero();
+
+		if(this.titleEdgeInsets != null) {
+			contentRect = this.titleEdgeInsets.inset(contentRect);
+		}
 
 		Font font = this.titleLabel.getFont();
 
@@ -295,7 +302,7 @@ public class Button extends Control {
 				break;
 		}
 
-		return this.titleEdgeInsets == null ? rect : this.titleEdgeInsets.inset(rect);
+		return rect;
 	}
 
 	public Rect getImageRectForContentRect(Rect contentRect) {

@@ -31,7 +31,7 @@ public final class Size implements mocha.foundation.Copying <Size> {
 	}
 
 	public String toString() {
-		return String.format("[%sx%s]", ((Float)this.width), ((Float)this.height));
+		return String.format("{%s, %s}", ((Float)this.width), ((Float)this.height));
 	}
 
 	public void set(Size size) {

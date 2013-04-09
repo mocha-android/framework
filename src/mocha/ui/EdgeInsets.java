@@ -44,6 +44,10 @@ public final class EdgeInsets implements mocha.foundation.Copying <EdgeInsets> {
 		return rect1;
 	}
 
+	public String toString() {
+		return String.format("{%s, %s, %s, %s}", this.top, this.left, this.bottom, this.right);
+	}
+
 	public EdgeInsets copy() {
 		return new EdgeInsets(top, left, bottom, right);
 	}

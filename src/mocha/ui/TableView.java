@@ -211,6 +211,7 @@ public class TableView extends ScrollView {
 	private float tableFooterHeight;
 	private boolean tableHeaderAttached;
 	private boolean tableFooterAttached;
+	private boolean hasLoadedData;
 
 	private List<TableViewSubview> tableViewHeaders;
 	private List<TableViewCell> tableViewCells;
@@ -505,7 +506,9 @@ public class TableView extends ScrollView {
 			this.updateIndex();
 
 			if (this.tableStyle == Style.GROUPED) {
-				this.reloadData();
+				if(this.hasLoadedData) {
+					this.reloadData();
+				}
 			} else {
 				this.setContentSize(new Size(newSize.width, this.getContentSize().height));
 			}
@@ -620,6 +623,7 @@ public class TableView extends ScrollView {
 	}
 
 	public void reloadData() {
+		this.hasLoadedData = true;
 		this.updateSectionsInfo();
 
 		boolean areAnimationsEnabled = View.areAnimationsEnabled();

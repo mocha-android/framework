@@ -540,6 +540,8 @@ public class ViewController extends Responder {
 	private void _presentViewController(final ViewController viewController, boolean animated, final Runnable completion) {
 		// TODO: Handle stuff like orientation changes, transition styles and presentation styles
 
+		Application.sharedApplication().beginIgnoringInteractionEvents();
+
 		final Window window = this.getWindow();
 
 		if(window == null) {
@@ -578,10 +580,12 @@ public class ViewController extends Responder {
 					}, new View.AnimationCompletion() {
 						public void animationCompletion(boolean finished) {
 							presentViewControllerFinish(viewController, hideViewController, completion);
+							Application.sharedApplication().endIgnoringInteractionEvents();
 						}
 					});
 		} else {
 			this.presentViewControllerFinish(viewController, hideViewController, completion);
+			Application.sharedApplication().endIgnoringInteractionEvents();
 		}
 	}
 
@@ -627,6 +631,8 @@ public class ViewController extends Responder {
 			throw new RuntimeException("Trying to dimiss presented view controller from a presenter without a window.");
 		}
 
+		Application.sharedApplication().beginIgnoringInteractionEvents();
+
 		final Rect bounds = window.getBounds();
 
 		final List<ViewController> dismissViewControllers = new ArrayList<ViewController>(this.presentedViewControllers.subList(index, count));
@@ -657,10 +663,12 @@ public class ViewController extends Responder {
 					}, new View.AnimationCompletion() {
 						public void animationCompletion(boolean finished) {
 							dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
+							Application.sharedApplication().endIgnoringInteractionEvents();
 						}
 					});
 		} else {
 			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
+			Application.sharedApplication().endIgnoringInteractionEvents();
 		}
 	}
 

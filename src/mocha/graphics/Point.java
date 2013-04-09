@@ -69,7 +69,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public String toString() {
-		return String.format("[%s,%s]", this.x, this.y);
+		return String.format("{%s, %s}", this.x, this.y);
 	}
 
 	public Point copy() {
