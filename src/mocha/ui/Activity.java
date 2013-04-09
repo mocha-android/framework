@@ -97,4 +97,20 @@ public class Activity extends android.app.Activity {
 		NotificationCenter.defaultCenter().post(Application.DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, this.application);
 	}
 
+	protected void onDestroy() {
+		NotificationCenter.defaultCenter().post(Application.WILL_TERMINATE_NOTIFICATION, this.application);
+
+		if(Application.sharedApplication() == this.application) {
+			Application.setSharedApplication(null);
+			this.application = null;
+		}
+
+		super.onDestroy();
+
+		// Yes, this goes against Android everything stands for. However, Mocha is not Activity based, we use a
+		// single activity to run the entire app, so in our case, when the single Activity (app) is destroyed,
+		// we want the actual process to be killed as well and not reused the next time the app opens.
+		android.os.Process.killProcess(android.os.Process.myPid());
+	}
+
 }
