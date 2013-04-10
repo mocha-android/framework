@@ -50,10 +50,7 @@ public class TextDrawing extends mocha.foundation.Object {
 		layout.draw(context.getCanvas());
 		canvas.restore();
 
-		float width = (float)layout.getWidth();
-		float height = (float)layout.getHeight();
-
-		return new Size(width / scale, height / scale);
+		return getLayoutSize(layout, font, scale);
 	}
 
 	/**
