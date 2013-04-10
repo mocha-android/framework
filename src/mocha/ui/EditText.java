@@ -16,7 +16,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
-class EditText extends android.widget.EditText implements View.OnFocusChangeListener, View.OnClickListener, TextView.OnEditorActionListener {
+class EditText extends android.widget.EditText implements View.OnFocusChangeListener, View.OnClickListener {
 
 	private boolean allowMultipleLines;
 	private mocha.ui.View containerView;
@@ -36,7 +36,6 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 		this.setOnFocusChangeListener(this);
 		this.setOnClickListener(this);
-		this.setOnEditorActionListener(this);
 
 		this.setBackgroundDrawable(null);
 		this.setPadding(0, 0, 0, 0);
@@ -100,10 +99,6 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 	public void onClick(View view) {
 
-	}
-
-	public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-		return false;
 	}
 
 	public void onEditorAction(int actionCode) {

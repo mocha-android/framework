@@ -101,7 +101,12 @@ public class TextField extends Control implements TextInput.Traits {
 		super.onCreate(frame);
 
 		this.textWatcher = new TextWatcher();
-		this.editText = new EditText(Application.sharedApplication().getContext(), this, false);
+		this.editText = new EditText(Application.sharedApplication().getContext(), this, false) {
+			public void onEditorAction(int actionCode) {
+				returnKeyPressed();
+			}
+		};
+
 		this.editText.addTextChangedListener(this.textWatcher);
 		TextInput.setupDefaultTraits(this);
 
@@ -126,6 +131,12 @@ public class TextField extends Control implements TextInput.Traits {
 		if(super.becomeFirstResponder()) {
 			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
+
+			if(this.clearsOnBeginEditing) {
+				if(this.getText().length() > 0 && (this.delegateShouldClear == null || this.delegateShouldClear.shouldClear(this))) {
+					this.setText("");
+				}
+			}
 
 			if(this.delegateBeginEditing != null) {
 				this.delegateBeginEditing.didBeginEditing(this);
@@ -164,6 +175,13 @@ public class TextField extends Control implements TextInput.Traits {
 	public void willMoveToWindow(Window newWindow) {
 		super.willMoveToWindow(newWindow);
 		this.forceEndEditing = newWindow == null;
+	}
+
+	private void returnKeyPressed() {
+		// TODO: Implementation real functionality here
+		if(this.delegateShouldReturn != null) {
+			this.delegateShouldReturn.shouldReturn(this);
+		}
 	}
 
 	public CharSequence getText() {
@@ -321,7 +339,7 @@ public class TextField extends Control implements TextInput.Traits {
 				this.clearButton = new Button();
 				this.clearButton.addActionTarget(new ActionTarget() {
 					public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
-						if(delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
+						if (delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
 							setText("");
 						}
 					}
@@ -461,22 +479,33 @@ public class TextField extends Control implements TextInput.Traits {
 		Rect bounds = this.getBounds();
 
 		if(this.leftView != null) {
-			this.leftView.setHidden(!this.isViewModeVisible(this.leftViewMode));
-			this.leftView.setFrame(this.getLeftViewRectForBounds(bounds));
+			this.layoutAccessoryView(this.leftView, this.getLeftViewRectForBounds(bounds), this.leftViewMode);
 		}
 
 		if(this.rightView != null) {
-			this.rightView.setHidden(!this.isViewModeVisible(this.rightViewMode));
-			this.rightView.setFrame(this.getRightViewRectForBounds(bounds));
+			this.layoutAccessoryView(this.rightView, this.getRightViewRectForBounds(bounds), this.rightViewMode);
 		}
 
 		if(this.clearButton != null) {
-			this.clearButton.setHidden(!this.isViewModeVisible(this.clearButtonMode) || this.getText().length() == 0);
-			this.clearButton.setFrame(this.getClearButtonRectForBounds(bounds));
+			this.layoutAccessoryView(this.clearButton, this.getClearButtonRectForBounds(bounds), this.clearButtonMode);
 		}
 
 		if(this.nativeView != null) {
 			this.nativeView.setFrame(this.getEditingRectForBounds(bounds));
+		}
+	}
+
+	private void layoutAccessoryView(View view, Rect rect, ViewMode viewMode) {
+		boolean shouldBeVisible = this.isViewModeVisible(viewMode);
+
+		if(shouldBeVisible == view.isHidden()) {
+			boolean restore = View.areAnimationsEnabled();
+			View.setAnimationsEnabled(false);
+			view.setHidden(!shouldBeVisible);
+			view.setFrame(rect);
+			View.setAnimationsEnabled(restore);
+		} else {
+			view.setFrame(rect);
 		}
 	}
 

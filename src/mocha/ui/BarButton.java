@@ -185,6 +185,10 @@ class BarButton extends Button {
 			size1.height = Math.min(30.0f, size1.height);
 		}
 
+		if(this.barButtonItem.getWidth() > 0.0f) {
+			size1.width = Math.min(size.width, this.barButtonItem.getWidth());
+		}
+
 		return size1;
 	}
 }

@@ -254,8 +254,6 @@ public class SegmentedControl extends Control {
 			this.segments.get(this.lastSelectedSegment).button.setSelected(false);
 		}
 
-		this.sendActionsForControlEvents(event, ControlEvent.VALUE_CHANGED);
-
 		if(this.momentary) {
 			performAfterDelay(100, new Runnable() {
 				public void run() {
@@ -267,6 +265,8 @@ public class SegmentedControl extends Control {
 		}
 
 		this.lastSelectedSegment = segment;
+
+		this.sendActionsForControlEvents(event, ControlEvent.VALUE_CHANGED);
 	}
 
 	/* Default tintColor is nil. Only used if style is BAR

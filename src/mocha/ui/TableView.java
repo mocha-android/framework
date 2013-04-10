@@ -505,13 +505,13 @@ public class TableView extends ScrollView {
 		if(!newSize.equals(oldSize)) {
 			this.updateIndex();
 
-			if (this.tableStyle == Style.GROUPED) {
+			/*if (this.tableStyle == Style.GROUPED) {
 				if(this.hasLoadedData) {
 					this.reloadData();
 				}
-			} else {
+			} else {*/
 				this.setContentSize(new Size(newSize.width, this.getContentSize().height));
-			}
+			//}
 
 			this.layoutSubviews();
 		}

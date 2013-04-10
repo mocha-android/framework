@@ -390,7 +390,7 @@ public class NavigationController extends ViewController {
 			return;
 		}
 
-		if(this.isBeingPresented() || this.isMovingToParentViewController() || this.getParentViewController() == null || this.getView().getSuperview() == null) {
+		if(this.isBeingPresented() || this.isMovingToParentViewController() || (this.getParentViewController() == null && this.getPresentingViewController() == null) || this.getView().getSuperview() == null) {
 			animated = false;
 		}
 

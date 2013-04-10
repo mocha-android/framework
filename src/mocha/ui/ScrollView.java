@@ -572,7 +572,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}, new AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
 				if(finished) {
-					hideScrollIndicators(true);
+					performAfterDelay(0, new Runnable() {
+						public void run() {
+							hideScrollIndicators(true);
+						}
+					});
 				}
 			}
 		});

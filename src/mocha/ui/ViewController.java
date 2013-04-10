@@ -540,8 +540,6 @@ public class ViewController extends Responder {
 	private void _presentViewController(final ViewController viewController, boolean animated, final Runnable completion) {
 		// TODO: Handle stuff like orientation changes, transition styles and presentation styles
 
-		Application.sharedApplication().beginIgnoringInteractionEvents();
-
 		final Window window = this.getWindow();
 
 		if(window == null) {
@@ -551,6 +549,8 @@ public class ViewController extends Responder {
 		if(this.presentingFromWindow != window) {
 			this.presentingFromWindow = window;
 		}
+
+		window.setUserInteractionEnabled(false);
 
 		int stackSize = this.presentedViewControllers == null ? 0 : this.presentedViewControllers.size();
 		final ViewController hideViewController = stackSize == 0 ? this : this.presentedViewControllers.get(stackSize - 1);
@@ -580,12 +580,12 @@ public class ViewController extends Responder {
 					}, new View.AnimationCompletion() {
 						public void animationCompletion(boolean finished) {
 							presentViewControllerFinish(viewController, hideViewController, completion);
-							Application.sharedApplication().endIgnoringInteractionEvents();
+							window.setUserInteractionEnabled(true);
 						}
 					});
 		} else {
 			this.presentViewControllerFinish(viewController, hideViewController, completion);
-			Application.sharedApplication().endIgnoringInteractionEvents();
+			window.setUserInteractionEnabled(true);
 		}
 	}
 
@@ -631,7 +631,7 @@ public class ViewController extends Responder {
 			throw new RuntimeException("Trying to dimiss presented view controller from a presenter without a window.");
 		}
 
-		Application.sharedApplication().beginIgnoringInteractionEvents();
+		window.setUserInteractionEnabled(false);
 
 		final Rect bounds = window.getBounds();
 
@@ -663,12 +663,12 @@ public class ViewController extends Responder {
 					}, new View.AnimationCompletion() {
 						public void animationCompletion(boolean finished) {
 							dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-							Application.sharedApplication().endIgnoringInteractionEvents();
+							window.setUserInteractionEnabled(true);
 						}
 					});
 		} else {
 			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-			Application.sharedApplication().endIgnoringInteractionEvents();
+			window.setUserInteractionEnabled(true);
 		}
 	}
 

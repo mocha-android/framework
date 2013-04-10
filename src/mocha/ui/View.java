@@ -254,7 +254,7 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public Rect getFrame() {
-		return new Rect(this.frame);
+		return this.frame.copy();
 	}
 
 	public void setFrame(Rect frame) {
@@ -924,7 +924,7 @@ public class View extends Responder implements Accessibility {
 			}
 
 			this.layoutSubviews();
-			this.needsLayout = false;
+			this.needsLayout = false; // Just in case a subclass doesn't call super
 
 			if(this._viewController != null) {
 				this._viewController.viewDidLayoutSubviews();
@@ -1156,8 +1156,17 @@ public class View extends Responder implements Accessibility {
 	}
 
 	private static List<ViewAnimation> viewAnimationStack = new ArrayList<ViewAnimation>();
-	static ViewAnimation currentViewAnimation;
+	static ViewAnimation currentViewAnimation = null;
 	static boolean areAnimationsEnabled = true;
+
+	/**
+	 * Check whether or not your're in an animation tranaction
+	 *
+	 * @return If true, setting animatable properties will cause them to animate the change
+	 */
+	public static boolean inAnimationTransaction() {
+		return currentViewAnimation != null && areAnimationsEnabled;
+	}
 
 	public static void animateWithDuration(long duration, Animations animations) {
 		animateWithDuration(duration, animations, null);

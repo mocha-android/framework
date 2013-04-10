@@ -59,6 +59,9 @@ class ViewAnimation extends mocha.foundation.Object {
 		Object startValue;
 		Object endValue;
 		private ProcessFrameCallback processFrameCallback;
+		boolean shouldUseHardwareLayer;
+		boolean shouldRestoreToOriginalLayerType;
+		int originalLayerType;
 	}
 
 	/**
@@ -82,7 +85,6 @@ class ViewAnimation extends mocha.foundation.Object {
 			animation = new Animation();
 			animation.view = view;
 			animation.type = type;
-			this.animations.put(key, animation);
 
 			switch (type) {
 				case FRAME:
@@ -93,6 +95,7 @@ class ViewAnimation extends mocha.foundation.Object {
 					break;
 				case ALPHA:
 					animation.startValue = view.getAlpha();
+					animation.shouldUseHardwareLayer = true;
 					break;
 				case BACKGROUND_COLOR:
 					animation.startValue = Color.components(view.getBackgroundColor());
@@ -109,6 +112,10 @@ class ViewAnimation extends mocha.foundation.Object {
 			animation.endValue = new AffineTransformHolder((AffineTransform)endValue);
 		} else {
 			animation.endValue = endValue;
+		}
+
+		if(!animation.startValue.equals(animation.endValue)) {
+			this.animations.put(key, animation);
 		}
 	}
 
@@ -194,6 +201,10 @@ class ViewAnimation extends mocha.foundation.Object {
 			// MLog("Running %s on %s", animation.type, animation.view);
 
 			final float frame = this.timingFunction.solve(time, this.duration / 1000.0f);
+
+			if(animation.view.isHidden() && frame != 0.0f && frame !=  1.0f) {
+				continue;
+			}
 
 			switch (animation.type) {
 				case FRAME:
@@ -297,6 +308,22 @@ class ViewAnimation extends mocha.foundation.Object {
 			didStart.animationDidStart(animationID, context);
 		}
 
+		for(Animation animation : this.animations.values()) {
+			if(animation.shouldUseHardwareLayer) {
+				ViewLayer layer = animation.view.getLayer();
+
+				if(layer instanceof ViewLayerNative) {
+					int type = ((ViewLayerNative) layer).getLayerType();
+
+					if(type != android.view.View.LAYER_TYPE_HARDWARE) {
+						animation.originalLayerType = type;
+						animation.shouldRestoreToOriginalLayerType = true;
+						((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
+					}
+				}
+			}
+		}
+
 		frameCount = 0;
 	}
 
@@ -310,14 +337,30 @@ class ViewAnimation extends mocha.foundation.Object {
 			mocha.foundation.Object.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
 		}
 
+		this.restoreLayerTypes();
+
 		if (didStop != null) {
 			didStop.animationDidStop(animationID, true, context);
 		}
 	}
 
 	private void onAnimationCancel() {
+		this.restoreLayerTypes();
+
 		if (didStop != null) {
 			didStop.animationDidStop(animationID, false, context);
+		}
+	}
+
+	private void restoreLayerTypes() {
+		for(Animation animation : this.animations.values()) {
+			if(animation.shouldRestoreToOriginalLayerType) {
+				ViewLayer layer = animation.view.getLayer();
+
+				if(layer instanceof ViewLayerNative) {
+					((ViewLayerNative) layer).setLayerType(animation.originalLayerType, null);
+				}
+			}
 		}
 	}
 
