@@ -349,8 +349,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
 				this.adjustContentSize(false);
-				this.contentOffset.x = clampf(this.contentOffset.x, 0, this.maxPoint.x);
-				this.contentOffset.y = clampf(this.contentOffset.y, 0, this.maxPoint.y);
+//				this.contentOffset.x = clampf(this.contentOffset.x, 0, this.maxPoint.x);
+//				this.contentOffset.y = clampf(this.contentOffset.y, 0, this.maxPoint.y);
 			}
 
 			if(View.isInAnimationContext()) {
