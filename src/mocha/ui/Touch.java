@@ -191,4 +191,8 @@ public final class Touch extends mocha.foundation.Object {
 		return gestureRecognizers;
 	}
 
+	protected String toStringExtra() {
+		return String.format("timestamp = %d; tapCount = %d; phase = %s; view = %s", this.timestamp, this.tapCount, this.phase, this.view);
+	}
+
 }

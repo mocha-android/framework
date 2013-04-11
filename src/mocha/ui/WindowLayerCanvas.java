@@ -95,7 +95,7 @@ public class WindowLayerCanvas extends ViewLayerCanvas implements WindowLayer {
 				lastEvent = Event.touchEvent(window);
 			}
 
-			lastEvent.updateMotionEvent(motionEvent, window);
+			lastEvent.updateMotionEvent(motionEvent, window, this);
 			window.sendEvent(lastEvent);
 
 			return true;

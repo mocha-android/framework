@@ -68,7 +68,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {
-		Touch touch = event.touchesForGestureRecognizer(this).get(0);
+		Touch touch = event.getTouchesForGestureRecognizer(this).get(0);
 
 		if (!this.waiting && this.getState() == State.POSSIBLE && touch.getTapCount() >= this.numberOfTapsRequired) {
 			this.beginLocation = touch.location;
@@ -82,7 +82,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 			if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 				this.setState(State.CHANGED);
 			} else if(waiting) {
-				float distance = event.touchesForGestureRecognizer(this).get(0).location.distanceBetween(this.beginLocation);
+				float distance = event.getTouchesForGestureRecognizer(this).get(0).location.distanceBetween(this.beginLocation);
 				if (distance > this.allowableMovement) {
 					this.cancelWaiting();
 				} else {

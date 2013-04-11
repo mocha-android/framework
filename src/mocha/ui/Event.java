@@ -103,8 +103,9 @@ public final class Event extends mocha.foundation.Object {
 	 *
 	 * @param motionEvent system motion event
 	 * @param window window the event will be sent to
+	 * @param touchedView the view that was touched to cause this event
 	 */
-	void updateMotionEvent(MotionEvent motionEvent, Window window) {
+	void updateMotionEvent(MotionEvent motionEvent, Window window, android.view.View touchedView) {
 		this.type = Type.TOUCHES;
 		this.timestamp = motionEvent.getEventTime();
 		this.motionEvent = motionEvent;
@@ -124,7 +125,7 @@ public final class Event extends mocha.foundation.Object {
 				Touch.Phase phase = touch.getPhase();
 
 				if(phase == Touch.Phase.BEGAN || phase == Touch.Phase.MOVED || phase == Touch.Phase.STATIONARY) {
-					Point point = new Point(motionEvent.getX(pointerIndex) / window.scale, motionEvent.getY(pointerIndex) / window.scale);
+					Point point = this.getTouchLocation(motionEvent, pointerIndex, window, touchedView);
 
 					if(!point.equals(touch.location)) {
 						touch.updatePhase(Touch.Phase.MOVED, point, this.timestamp);
@@ -147,7 +148,7 @@ public final class Event extends mocha.foundation.Object {
 
 			// Get touch/point
 			Touch touch = this.getTouchForPointerIndex(motionEvent, actionIndex);
-			Point point = new Point(motionEvent.getX(actionIndex) / window.scale, motionEvent.getY(actionIndex) / window.scale);
+			Point point = this.getTouchLocation(motionEvent, actionIndex, window, touchedView);
 			this.currentTouches.add(touch);
 
 			Touch.Phase phase = null;
@@ -209,6 +210,36 @@ public final class Event extends mocha.foundation.Object {
 		}
 
 		return touch;
+	}
+
+	/**
+	 * Get's the location of the touch relative to the window
+	 *
+	 * @param motionEvent system motion event
+	 * @param pointerIndex pointer index
+	 * @param window window the event will be sent to
+	 * @param touchedView the view that was touched to cause this event
+	 * @return Touch location
+	 */
+
+	private Point getTouchLocation(MotionEvent motionEvent, int pointerIndex, Window window, android.view.View touchedView) {
+		float x = motionEvent.getX(pointerIndex);
+		float y = motionEvent.getY(pointerIndex);
+
+		if(window.getLayer() != touchedView) {
+			if(window.getLayer() instanceof ViewLayerNative) {
+				int[] windowLocation = new int[2];
+				((ViewLayerNative)window.getLayer()).getLocationOnScreen(windowLocation);
+
+				int[] viewLocation = new int[2];
+				touchedView.getLocationOnScreen(viewLocation);
+
+				x += viewLocation[0] - windowLocation[0];
+				y += viewLocation[1] - windowLocation[1];
+			}
+		}
+
+		return new Point(x / window.scale, y / window.scale);
 	}
 
 	/**
@@ -283,7 +314,7 @@ public final class Event extends mocha.foundation.Object {
 	 * @param view view to get touches in
 	 * @return touches for specified view
 	 */
-	public List<Touch>touchesForView(View view) {
+	public List<Touch> getTouchesForView(View view) {
 		List<Touch> touches = new ArrayList<Touch>();
 
 		for(Touch touch : this.allTouches) {
@@ -301,7 +332,7 @@ public final class Event extends mocha.foundation.Object {
 	 * @param window view to get touches in
 	 * @return touches for specified window
 	 */
-	public List<Touch>touchesForWindow(Window window) {
+	public List<Touch> getTouchesForWindow(Window window) {
 		List<Touch> touches = new ArrayList<Touch>();
 
 		for(Touch touch : this.allTouches) {
@@ -319,7 +350,7 @@ public final class Event extends mocha.foundation.Object {
 	 * @param gestureRecognizer gesture recognizer to get touches for
 	 * @return touches for specified gesture recognizer
 	 */
-	public List<Touch>touchesForGestureRecognizer(GestureRecognizer gestureRecognizer) {
+	public List<Touch> getTouchesForGestureRecognizer(GestureRecognizer gestureRecognizer) {
 		List<Touch> touches = new ArrayList<Touch>();
 
 		for(Touch touch : this.allTouches) {

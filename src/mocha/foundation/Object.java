@@ -17,7 +17,23 @@ public class Object {
 	private static String LOG_TAG = "Mocha";
 
 	public String toString() {
-		return String.format("<%s 0x%s>", this.getClass().getCanonicalName(), this.hashCode());
+		String extra = this.toStringExtra();
+
+		int hash = System.identityHashCode(this);
+
+		if(extra != null && extra.length() > 0) {
+			return String.format("<%s@%s; %s>", this.getClass().getCanonicalName(), hash, this.toStringExtra());
+		} else {
+			return String.format("<%s@%s>", this.getClass().getCanonicalName(), hash);
+		}
+	}
+
+	/**
+	 * Extra data to be automaticallyed appended in toString()
+	 * @return Extra data
+	 */
+	protected String toStringExtra() {
+		return null;
 	}
 
 	private static Handler getMainHandler() {

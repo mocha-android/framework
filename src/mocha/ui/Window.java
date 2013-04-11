@@ -5,10 +5,10 @@
  */
 package mocha.ui;
 
+import android.view.MotionEvent;
 import mocha.graphics.Rect;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -16,6 +16,7 @@ public final class Window extends View {
 	private Activity activity;
 	private Responder firstResponder;
 	private WindowLayer windowLayer;
+	private Event lastEvent;
 	protected ViewController rootViewController;
 	private List<ViewController> visibleViewControllers; // Root view controllers + visible modals
 
@@ -135,9 +136,60 @@ public final class Window extends View {
 		this.makeKeyWindow();
 	}
 
+	Event getLastEvent() {
+		return lastEvent;
+	}
+
+	void setLastEvent(Event lastEvent) {
+		this.lastEvent = lastEvent;
+	}
+
+	boolean canDeliverToNativeView(NativeView nativeView, MotionEvent motionEvent, android.view.View touchedView) {
+		if(this.lastEvent == null) {
+			this.lastEvent = Event.touchEvent(this);
+		}
+
+		this.lastEvent.updateMotionEvent(motionEvent, this, touchedView);
+
+		boolean bubble = true;
+
+		if(nativeView.trackingTouches) {
+			MWarn("ALREADY TRACKING!");
+			bubble = false;
+		} else {
+			if(nativeView.isUserInteractionEnabled()) {
+				for(Touch touch : this.lastEvent.allTouches()) {
+					if(touch.getView() == nativeView) {
+						bubble = false;
+						nativeView.trackingTouches = true;
+						break;
+					} else {
+						MWarn("%s != %s", touch.getView(), nativeView);
+					}
+				}
+			}
+		}
+
+		int mask = motionEvent.getActionMasked();
+
+		if(nativeView.trackingTouches && (mask == MotionEvent.ACTION_POINTER_UP || mask == MotionEvent.ACTION_UP)) {
+			nativeView.trackingTouches = false;
+		}
+
+		MWarn("native %s | tracking: %s | %s", bubble, nativeView.trackingTouches, this.lastEvent.allTouches());
+
+		if(bubble) {
+			this.sendEvent(this.lastEvent);
+			return false;
+		} else {
+			this.lastEvent.cleanTouches();
+			return true;
+		}
+	}
+
 	public void sendEvent(Event event) {
 		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
-		
+		// MWarn("processing event: %s %s", event.getType(), event.allTouches());
 		if(event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
 			List<Touch> touches = event.getCurrentTouches();
@@ -147,7 +199,7 @@ public final class Window extends View {
 			}
 
 			for(GestureRecognizer gestureRecognizer : gestureRecognizers) {
-				gestureRecognizer.recognizeTouches(event.touchesForGestureRecognizer(gestureRecognizer), event);
+				gestureRecognizer.recognizeTouches(event.getTouchesForGestureRecognizer(gestureRecognizer), event);
 			}
 
 			int numberOfTouches = touches.size();

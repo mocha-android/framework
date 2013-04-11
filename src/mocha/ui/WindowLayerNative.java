@@ -13,7 +13,6 @@ import mocha.graphics.Rect;
 
 public final class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 	private View hitView;
-	private Event lastEvent;
 
 	public WindowLayerNative(Context context) {
 		super(context);
@@ -39,12 +38,15 @@ public final class WindowLayerNative extends ViewLayerNative implements WindowLa
 	public boolean onTouchEvent(MotionEvent motionEvent) {
 		Window window = getWindow();
 
-		if(lastEvent == null) {
-			lastEvent = Event.touchEvent(window);
+		Event event = window.getLastEvent();
+
+		if(event == null) {
+			event = Event.touchEvent(window);
+			window.setLastEvent(event);
 		}
 
-		lastEvent.updateMotionEvent(motionEvent, window);
-		window.sendEvent(lastEvent);
+		event.updateMotionEvent(motionEvent, window, this);
+		window.sendEvent(event);
 
 		return true;
 	}

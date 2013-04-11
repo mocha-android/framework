@@ -12,18 +12,14 @@ import java.util.List;
 public class NativeView <V extends android.view.View> extends View {
 
 	private V nativeView;
+	boolean trackingTouches;
 
 	public NativeView(V nativeView) {
-		this.nativeView = nativeView;
-
 		if(!(this.getLayer() instanceof ViewLayerNative)) {
 			throw new RuntimeException("NativeView currently only works when using ViewLayerNative.");
 		}
 
-		if(this.nativeView != null) {
-			this.getNativeLayer().addView(this.nativeView);
-		}
-
+		this.setNativeView(nativeView);
 		this.setUserInteractionEnabled(true);
 	}
 
@@ -43,7 +39,20 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 
 		this.nativeView = nativeView;
-		this.getNativeLayer().addView(this.nativeView);
+
+		if(this.nativeView != null) {
+			this.nativeView.setOnTouchListener(new android.view.View.OnTouchListener() {
+				public boolean onTouch(android.view.View view, MotionEvent motionEvent) {
+					if(getWindow().canDeliverToNativeView(NativeView.this, motionEvent, view)) {
+						view.onTouchEvent(motionEvent);
+					}
+
+					return true;
+				}
+			});
+
+			this.getNativeLayer().addView(this.nativeView);
+		}
 	}
 
 	public V getNativeView() {
@@ -68,34 +77,27 @@ public class NativeView <V extends android.view.View> extends View {
 	}
 
 	public void touchesBegan(List<Touch> touches, Event event) {
-		super.touchesBegan(touches, event);
-
-		if(this.nativeView != null) {
-			this.nativeView.onTouchEvent(event.getMotionEvent());
+		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent())) {
+			super.touchesBegan(touches, event);
 		}
 	}
 
 	public void touchesMoved(List<Touch> touches, Event event) {
-		super.touchesMoved(touches, event);
-
-		if(this.nativeView != null) {
-			this.nativeView.onTouchEvent(event.getMotionEvent());
+		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
+			super.touchesMoved(touches, event);
 		}
 	}
 
 	public void touchesEnded(List<Touch> touches, Event event) {
-		super.touchesEnded(touches, event);
 
-		if(this.nativeView != null) {
-			this.nativeView.onTouchEvent(event.getMotionEvent());
+		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
+			super.touchesEnded(touches, event);
 		}
 	}
 
 	public void touchesCancelled(List<Touch> touches, Event event) {
-		super.touchesCancelled(touches, event);
-
-		if(this.nativeView != null) {
-			this.nativeView.onTouchEvent(event.getMotionEvent());
+		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
+			super.touchesEnded(touches, event);
 		}
 	}
 

@@ -538,7 +538,7 @@ abstract public class GestureRecognizer extends mocha.foundation.Object {
 			return true;
 		}
 
-		List<Touch> touches = event.touchesForGestureRecognizer(this);
+		List<Touch> touches = event.getTouchesForGestureRecognizer(this);
 		touches.removeAll(this.ignoredTouches);
 
 		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();

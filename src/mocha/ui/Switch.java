@@ -57,4 +57,5 @@ public class Switch extends Control {
 		super.setEnabled(enabled);
 		this.nativeView.getNativeView().setEnabled(enabled);
 	}
+
 }
