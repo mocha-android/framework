@@ -154,7 +154,6 @@ public final class Window extends View {
 		boolean bubble = true;
 
 		if(nativeView.trackingTouches) {
-			MWarn("ALREADY TRACKING!");
 			bubble = false;
 		} else {
 			if(nativeView.isUserInteractionEnabled()) {
@@ -163,8 +162,6 @@ public final class Window extends View {
 						bubble = false;
 						nativeView.trackingTouches = true;
 						break;
-					} else {
-						MWarn("%s != %s", touch.getView(), nativeView);
 					}
 				}
 			}
@@ -175,8 +172,6 @@ public final class Window extends View {
 		if(nativeView.trackingTouches && (mask == MotionEvent.ACTION_POINTER_UP || mask == MotionEvent.ACTION_UP)) {
 			nativeView.trackingTouches = false;
 		}
-
-		MWarn("native %s | tracking: %s | %s", bubble, nativeView.trackingTouches, this.lastEvent.allTouches());
 
 		if(bubble) {
 			this.sendEvent(this.lastEvent);
@@ -189,7 +184,7 @@ public final class Window extends View {
 
 	public void sendEvent(Event event) {
 		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
-		// MWarn("processing event: %s %s", event.getType(), event.allTouches());
+
 		if(event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
 			List<Touch> touches = event.getCurrentTouches();

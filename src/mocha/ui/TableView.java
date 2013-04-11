@@ -603,6 +603,10 @@ public class TableView extends ScrollView {
 			return null;
 		}
 
+		if(this.tableStyle == Style.GROUPED) {
+			offsetY -= sectionInfo.headerHeight;
+		}
+
 		int row;
 		if (this.usesCustomRowHeights) {
 			row = 0;
