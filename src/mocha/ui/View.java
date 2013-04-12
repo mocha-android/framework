@@ -937,8 +937,8 @@ public class View extends Responder implements Accessibility {
 		this.needsLayout = false;
 	}
 
-	public String toString() {
-		return String.format("<%s: 0x%d; frame = %s; hidden = %b%s>", this.getClass().toString(), this.hashCode(), this.getFrame().toString(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""));
+	protected String toStringExtra() {
+		return String.format("frame = %s; hidden = %b%s", this.getFrame().toString(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""));
 	}
 
 	// Rendering

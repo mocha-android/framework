@@ -5,6 +5,8 @@
  */
 package mocha.graphics;
 
+import android.util.FloatMath;
+
 public final class Rect implements mocha.foundation.Copying <Rect> {
 	public Point origin;
 	public Size size;
@@ -159,15 +161,20 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 
 	public android.graphics.Rect toSystemRect(float scale) {
 		android.graphics.Rect rect = new android.graphics.Rect();
-		rect.left = (int)(this.origin.x * scale);
-		rect.right = (int)(this.maxX() * scale);
-		rect.top = (int)(this.origin.y * scale);
-		rect.bottom = (int)(this.maxY() * scale);
+		rect.left = (int)FloatMath.floor(this.origin.x * scale);
+		rect.right = (int)FloatMath.floor(this.maxX() * scale);
+		rect.top = (int)FloatMath.floor(this.origin.y * scale);
+		rect.bottom = (int)FloatMath.floor(this.maxY() * scale);
 		return rect;
 	}
 
 	public Rect getScaledRect(float scale) {
-		return new Rect(this.origin.x * scale, this.origin.y * scale, this.size.width * scale, this.size.height * scale);
+		Rect rect = this.copy();
+		rect.origin.x = FloatMath.floor(rect.origin.x * scale);
+		rect.origin.y = FloatMath.floor(rect.origin.y * scale);
+		rect.size.width = FloatMath.floor(rect.size.width * scale);
+		rect.size.height = FloatMath.floor(rect.size.height * scale);
+		return rect;
 	}
 
 	public android.graphics.RectF toSystemRectF() {

@@ -659,6 +659,7 @@ public class TableView extends ScrollView {
 			}
 		}
 
+		this.tableViewCells.clear();
 		this.visibleSubviews.clear();
 		this.visibleHeaders.clear();
 		this.headersQueuedForReuse.clear();
