@@ -66,7 +66,7 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 			return "";
 		} else {
 			CharSequence text = this.getTextView().getText();
-			return text == null ? "" : null;
+			return text == null ? "" : text;
 		}
 	}
 
