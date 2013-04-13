@@ -341,6 +341,10 @@ public class TextField extends Control implements TextInput.Traits {
 					public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
 						if (delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
 							setText("");
+
+							if(!isFirstResponder()) {
+								becomeFirstResponder();
+							}
 						}
 					}
 				}, ControlEvent.TOUCH_UP_INSIDE);
