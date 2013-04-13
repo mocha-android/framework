@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// TODO: Properly transition nav bar in/out when setNavigationBarHidden() is called during a push/pop
-
 public class NavigationController extends ViewController {
 	private NavigationBar navigationBar;
 	private View containerView;
@@ -20,6 +18,8 @@ public class NavigationController extends ViewController {
 	private boolean navigationBarHidden;
 	public static final long HIDE_SHOW_BAR_DURATION = 330;
 	private NavigationBar.Delegate navigationBarDelegate;
+	private boolean transition;
+	private boolean showHideNavigationBarDuringTransition;
 
 	public NavigationController(ViewController rootViewController) {
 		this();
@@ -278,39 +278,99 @@ public class NavigationController extends ViewController {
 				if(completion != null) completion.run();
 			} else {
 				// At this point, we're guaranteed to have a from and to view controller.
-				Rect frame = bounds.copy();
-				frame.origin.x = bounds.size.width * (push ? 1.0f : -1.0f);
-				toViewController.getView().setFrame(frame);
+				final Rect fromToFrame = bounds.copy();
+				final Rect toFrame = bounds.copy();
 
-				Runnable transition = new Runnable() {
+				fromToFrame.origin.x = bounds.size.width * (push ? 1.0f : -1.0f);
+				toViewController.getView().setFrame(fromToFrame);
+
+				final Rect viewBounds = this.getView().getBounds();
+
+				this.transition = true;
+
+				View.setAnimationsEnabled(false, new Runnable() {
+					public void run() {
+						fromViewController.getView().getSuperview().addSubview(toViewController.getView());
+					}
+				});
+
+				fromViewController.beginAppearanceTransition(false, true);
+				toViewController.beginAppearanceTransition(true, true);
+
+				final Runnable transition = new Runnable() {
 					public void run() {
 						Application.sharedApplication().beginIgnoringInteractionEvents();
 
-						View.setAnimationsEnabled(false, new Runnable() {
-							public void run() {
-								fromViewController.getView().getSuperview().addSubview(toViewController.getView());
+						Rect fromFrame = bounds.copy();
+						fromFrame.origin.x = bounds.size.width * (push ? -1.0f : 1.0f);
+
+						if(showHideNavigationBarDuringTransition) {
+							boolean restore = View.areAnimationsEnabled();
+							View.setAnimationsEnabled(false);
+
+							Rect containerFrame = viewBounds.copy();
+							Rect fromFromFrame = viewBounds.copy();
+							Rect fromNavigationFrame = navigationBar.getFrame();
+							Rect toNavigationFrame = navigationBar.getFrame();
+							toNavigationFrame.origin.y = 0.0f;
+							fromNavigationFrame.origin.y = 0.0f;
+
+							float navigationBarHeight = fromNavigationFrame.size.height;
+
+							if(!navigationBarHidden) {
+								containerFrame.origin.y += navigationBarHeight;
+								containerFrame.size.height -= navigationBarHeight;
+
+								toFrame.size.height -= navigationBarHeight;
+
+								fromFromFrame.origin.y -= navigationBarHeight;
+								fromFrame.origin.y -= navigationBarHeight;
+
+								fromNavigationFrame.origin.x = viewBounds.size.width * (push ? 1.0f : -1.0f);
+								toNavigationFrame.origin.x = 0.0f;
+							} else {
+								fromFromFrame.origin.y += navigationBarHeight;
+								fromFromFrame.size.height -= navigationBarHeight;
+
+								fromFrame.origin.y += navigationBarHeight;
+
+								toNavigationFrame.origin.x = viewBounds.size.width * (push ? -1.0f : 1.0f);
+								fromNavigationFrame.origin.x = 0.0f;
 							}
-						});
 
-						fromViewController.beginAppearanceTransition(false, true);
-						toViewController.beginAppearanceTransition(true, true);
+							toFrame.origin.y = 0.0f;
+							toFrame.size.height = containerFrame.size.height;
 
-						Rect frame = bounds.copy();
-						frame.origin.x = bounds.size.width * (push ? -1.0f : 1.0f);
-						fromViewController.getView().setFrame(frame);
+							fromToFrame.origin.y = 0.0f;
+							fromToFrame.size.height = containerFrame.size.height;
 
-						toViewController.getView().setFrame(bounds);
+							navigationBar.setFrame(fromNavigationFrame);
+							containerView.setFrame(containerFrame);
+							fromViewController.getView().setFrame(fromFromFrame);
+							toViewController.getView().setFrame(fromToFrame);
+
+							View.setAnimationsEnabled(restore);
+
+							navigationBar.setFrame(toNavigationFrame);
+						}
+
+						fromViewController.getView().setFrame(fromFrame);
+						toViewController.getView().setFrame(toFrame);
 					}
 				};
 
-				Runnable complete = new Runnable() {
+				final Runnable complete = new Runnable() {
 					public void run() {
-						toViewController.getView().setFrame(bounds);
+						MWarn("COMPLETE!");
+						toViewController.getView().setFrame(toFrame);
 						if(completion != null) completion.run();
 
 						fromViewController.getView().removeFromSuperview();
 						fromViewController.endAppearanceTransition();
 						toViewController.endAppearanceTransition();
+
+						NavigationController.this.transition = false;
+						showHideNavigationBarDuringTransition = false;
 
 						Application.sharedApplication().endIgnoringInteractionEvents();
 					}
@@ -319,13 +379,35 @@ public class NavigationController extends ViewController {
 
 				this.navigationBar.setDelegate(null);
 
-				if(push) {
-					this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), true, transition, complete);
-				} else {
-					this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), true, transition, complete);
-				}
+				if(showHideNavigationBarDuringTransition) {
+					if(push) {
+						this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), false);
+						navigationBar.setDelegate(this.navigationBarDelegate);
+					}
 
-				this.navigationBar.setDelegate(this.navigationBarDelegate);
+					View.animateWithDuration(HIDE_SHOW_BAR_DURATION, new View.Animations() {
+						public void performAnimatedChanges() {
+							transition.run();
+						}
+					}, new View.AnimationCompletion() {
+						public void animationCompletion(boolean finished) {
+							if(!push) {
+								navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), false, null, null);
+								navigationBar.setDelegate(navigationBarDelegate);
+							}
+
+							complete.run();
+						}
+					});
+				} else {
+					if(push) {
+						this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), true, transition, complete);
+					} else {
+						this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), true, transition, complete);
+					}
+
+					this.navigationBar.setDelegate(this.navigationBarDelegate);
+				}
 			}
 		}
 	}
@@ -424,6 +506,11 @@ public class NavigationController extends ViewController {
 			}
 		} else {
 			this.navigationBar.setHidden(false);
+
+			if(this.transition) {
+				this.showHideNavigationBarDuringTransition = true;
+				return;
+			}
 
 			View.animateWithDuration(HIDE_SHOW_BAR_DURATION, new View.Animations() {
 				public void performAnimatedChanges() {

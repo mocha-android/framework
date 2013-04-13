@@ -149,6 +149,12 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
+	public void set(Rect rect) {
+		this.origin.x = rect.origin.x;
+		this.origin.y = rect.origin.y;
+		this.size.width = rect.size.width;
+		this.size.height = rect.size.height;
+	}
 
 	public android.graphics.Rect toSystemRect() {
 		android.graphics.Rect rect = new android.graphics.Rect();
