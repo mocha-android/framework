@@ -5,16 +5,48 @@
  */
 package mocha.ui;
 
+import android.text.Editable;
+import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
+import mocha.foundation.NotificationCenter;
+import mocha.foundation.Range;
 import mocha.graphics.*;
 
-public class TextView extends View implements TextInput.Traits {//ScrollView implements ScrollView.Listener {
+public class TextView extends View implements TextInput.Traits {
 
-	private android.widget.TextView textView;
-	private NativeView<android.widget.TextView> nativeView;
-	
-	// Traits
+	public interface Delegate {
+		public void didChange(TextView textView);
+
+		public interface BeginEditing extends Delegate {
+			public boolean shouldBeginEditing(TextView textView);
+			public void didBeginEditing(TextView textView);
+		}
+
+		public interface EndEditing extends Delegate {
+			public boolean shouldEndEditing(TextView textView);
+			public void didEndEditing(TextView textView);
+		}
+
+		public interface ShouldChange {
+			public boolean shouldChangeCharacters(TextView textView, Range inRange, CharSequence replacementText);
+		}
+
+		public interface ShouldReturn {
+			public boolean shouldReturn(TextView textView);
+		}
+
+		public interface ShouldClear {
+			public boolean shouldClear(TextView textView);
+		}
+
+	}
+
+	private EditText editText;
+	private NativeView<EditText> nativeView;
+	private TextWatcher textWatcher;
+	private boolean ignoreTextChanges;
+
 	private TextInput.AutocapitalizationType autocapitalizationType;
 	private TextInput.AutocorrectionType autocorrectionType;
 	private TextInput.SpellCheckingType spellCheckingType;
@@ -23,153 +55,48 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 	private TextInput.Keyboard.ReturnKeyType returnKeyType;
 	private boolean enablesReturnKeyAutomatically;
 	private boolean secureTextEntry;
-	
+	private boolean forceEndEditing;
 
-	public TextView() { super(); }
-	public TextView(Rect frame) { super(frame); }
-
+	private int textColor;
 	private Font font;
 	private TextAlignment textAlignment;
+	private Delegate delegate;
+	private Delegate.BeginEditing delegateBeginEditing;
+	private Delegate.EndEditing delegateEndEditing;
+	private Delegate.ShouldChange delegateShouldChange;
+	private Delegate.ShouldClear delegateShouldClear;
+	private Delegate.ShouldReturn delegateShouldReturn;
 	private boolean editable;
+	private EdgeInsets contentInset;
+
+	public TextView() { }
+	public TextView(Rect frame) { super(frame); }
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		this.nativeView = new NativeView<android.widget.TextView>(null);
+		this.editable = true;
+
+		this.textWatcher = new TextWatcher();
+		this.editText = new EditText(Application.sharedApplication().getContext(), this, true) {
+			public void onEditorAction(int actionCode) {
+				returnKeyPressed();
+			}
+		};
+
+		this.editText.addTextChangedListener(this.textWatcher);
+		TextInput.setupDefaultTraits(this);
+
+		this.nativeView = new NativeView<EditText>(this.editText);
 		this.nativeView.setFrame(this.getBounds());
 		this.nativeView.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
-		this.nativeView.setUserInteractionEnabled(false);
-		// this.setAlwaysBounceVertical(true);
-		// this.setBounces(true);
-		this.setClipsToBounds(true);
-		// this.setListener(this);
 		this.addSubview(this.nativeView);
 
-		this.font = Font.getSystemFontWithSize(17.0f);
-		this.textAlignment = TextAlignment.LEFT;
+		this.setContentInset(new EdgeInsets(4.0f, 8.0f, 4.0f, 8.0f));
 
-		TextInput.setupDefaultTraits(this);
-	}
-
-	public void setFrame(Rect frame) {
-		super.setFrame(frame);
-		this.updateContentHeight();
-	}
-
-	public void setBackgroundColor(int backgroundColor) {
-		super.setBackgroundColor(backgroundColor);
-		this.nativeView.setBackgroundColor(backgroundColor);
-	}
-
-	public CharSequence getText() {
-		if(this.textView == null) {
-			return "";
-		} else {
-			CharSequence text = this.getTextView().getText();
-			return text == null ? "" : text;
-		}
-	}
-
-	public void setText(CharSequence text) {
-		this.getTextView().setText(text);
-		this.updateContentHeight();
-	}
-
-	public Font getFont() {
-		return font;
-	}
-
-	public void setFont(Font font) {
-		this.font = font;
-		this.getTextView().setTypeface(font.getTypeface());
-		this.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_PX, font.getPointSize() * this.scale);
-		this.updateContentHeight();
-	}
-
-	public int getTextColor() {
-		return this.getTextView().getCurrentTextColor();
-	}
-
-	public void setTextColor(int textColor) {
-		this.getTextView().setTextColor(textColor);
-	}
-
-	public TextAlignment getTextAlignment() {
-		return textAlignment;
-	}
-
-	public void setTextAlignment(TextAlignment textAlignment) {
-		this.textAlignment = textAlignment;
-
-		switch (textAlignment) {
-			case CENTER:
-				this.getTextView().setGravity(Gravity.CENTER_HORIZONTAL);
-				break;
-			case RIGHT:
-				this.getTextView().setGravity(Gravity.RIGHT);
-				break;
-			case LEFT:
-			default:
-				this.getTextView().setGravity(Gravity.LEFT);
-				break;
-		}
-	}
-
-	public boolean isEditable() {
-		return editable;
-	}
-
-	public void setEditable(boolean editable) {
-		if(this.editable != editable) {
-			this.editable = editable;
-
-			if(!this.editable && this.textView != null && this.isFirstResponder()) {
-				this.resignFirstResponder();
-			}
-
-			if(this.textView != null) {
-				android.widget.TextView oldTextView = this.textView;
-				this.textView = null;
-
-				android.widget.TextView newTextView = this.getTextView();
-				newTextView.setText(oldTextView.getText());
-				newTextView.setTextColor(oldTextView.getCurrentTextColor());
-				newTextView.setTypeface(this.font.getTypeface());
-				newTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.font.getPointSize() * this.scale);
-				newTextView.setEnabled(oldTextView.isEnabled());
-				newTextView.setGravity(oldTextView.getGravity());
-			}
-		}
-	}
-
-	private android.widget.TextView getTextView() {
-		if(this.textView == null) {
-			if(this.nativeView != null) {
-				this.nativeView.removeFromSuperview();
-				this.nativeView = null;
-
-			}
-
-			if(this.editable) {
-				this.textView = new EditText(Application.sharedApplication().getContext(), this, true);
-				this.setupTextInputTraits();
-			} else {
-				this.textView = new android.widget.TextView(Application.sharedApplication().getContext());
-			}
-
-			this.textView.setTypeface(this.font.getTypeface());
-			this.textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.font.getPointSize() * this.scale);
-			this.textView.setBackgroundColor(Color.TRANSPARENT);
-			this.textView.setPadding(0, 0, 0, 0);
-
-			this.nativeView = new NativeView<android.widget.TextView>(this.textView);
-			this.nativeView.setFrame(this.getBounds());
-			this.nativeView.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
-			this.addSubview(this.nativeView);
-			this.updateContentHeight();
-		}
-
-		return this.textView;
+		this.setTextColor(Color.BLACK);
+		this.setFont(Font.getSystemFontWithSize(12.0f));
+		this.setTextAlignment(TextAlignment.LEFT);
 	}
 
 	public boolean canBecomeFirstResponder() {
@@ -177,10 +104,19 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 	}
 
 	public boolean becomeFirstResponder() {
+		if(this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
+			return false;
+		}
+
 		if(super.becomeFirstResponder()) {
-			if(this.textView instanceof EditText && this.editable) {
-				((EditText)this.textView)._requestFocus();
+			this.ignoreTextChanges = false;
+			this.editText._requestFocus();
+
+			if(this.delegateBeginEditing != null) {
+				this.delegateBeginEditing.didBeginEditing(this);
 			}
+
+			this.forceEndEditing = false;
 
 			return true;
 		} else {
@@ -189,9 +125,16 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 	}
 
 	public boolean resignFirstResponder() {
+		if(this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
+			return false;
+		}
+
 		if(super.resignFirstResponder()) {
-			if(this.textView instanceof EditText && this.textView.isFocused()) {
-				((EditText)this.textView)._clearFocus();
+			this.editText.clearFocus();
+			this.ignoreTextChanges = true;
+
+			if(this.delegateEndEditing != null) {
+				this.delegateEndEditing.didEndEditing(this);
 			}
 
 			return true;
@@ -200,100 +143,316 @@ public class TextView extends View implements TextInput.Traits {//ScrollView imp
 		}
 	}
 
-	public void didScroll(ScrollView scrollView) {
-		if(this.textView != null) {
-			Point contentOffset = scrollView.getContentOffset();
-			this.textView.scrollTo((int)(contentOffset.x * scale), (int)(contentOffset.y * scale));
-			this.nativeView.setNeedsDisplay();
+	public void willMoveToWindow(Window newWindow) {
+		super.willMoveToWindow(newWindow);
+		this.forceEndEditing = newWindow == null;
+	}
+
+	private void returnKeyPressed() {
+		// TODO: Implementation real functionality here
+		if(this.delegateShouldReturn != null) {
+			this.delegateShouldReturn.shouldReturn(this);
 		}
 	}
 
-	private void updateContentHeight() {
-		// android.widget.TextView textView = this.getTextView();
-		// this.setContentSize(new Size(textView.getMeasuredWidth() / scale, textView.getMeasuredHeight() / scale));
+	public CharSequence getText() {
+		CharSequence text = this.editText.getText();
+		return text != null ? text : "";
 	}
 
+	public void setText(CharSequence text) {
+		boolean ignoreTextChanges = this.ignoreTextChanges;
+		this.ignoreTextChanges = true;
+		this.editText.setText(text);
+		this.setNeedsDisplay();
+		this.ignoreTextChanges = ignoreTextChanges;
+	}
+
+	public int getTextColor() {
+		return this.textColor;
+	}
+
+	public void setTextColor(int textColor) {
+		this.textColor = textColor;
+		this.editText.setTextColor(textColor);
+	}
+
+	public Font getFont() {
+		return this.font;
+	}
+
+	public void setFont(Font font) {
+		this.font = font;
+		this.editText.setTypeface(font.getTypeface());
+		this.editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, font.getPointSize() * this.scale);
+	}
+
+	public TextAlignment getTextAlignment() {
+		return this.textAlignment;
+	}
+
+	public void setTextAlignment(TextAlignment textAlignment) {
+		this.textAlignment = textAlignment;
+
+		switch (this.textAlignment) {
+			case LEFT:
+				this.editText.setGravity(Gravity.LEFT);
+				break;
+			case CENTER:
+				this.editText.setGravity(Gravity.CENTER_HORIZONTAL);
+				break;
+			case RIGHT:
+				this.editText.setGravity(Gravity.RIGHT);
+				break;
+		}
+	}
+
+	public Delegate getDelegate() {
+		return this.delegate;
+	}
+
+	public void setDelegate(Delegate delegate) {
+		this.delegate = delegate;
+
+		if(this.delegate instanceof Delegate.BeginEditing) {
+			this.delegateBeginEditing = (Delegate.BeginEditing)this.delegate;
+		} else {
+			this.delegateBeginEditing = null;
+		}
+
+		if(this.delegate instanceof Delegate.EndEditing) {
+			this.delegateEndEditing = (Delegate.EndEditing)this.delegate;
+		} else {
+			this.delegateEndEditing = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldChange) {
+			this.delegateShouldChange = (Delegate.ShouldChange)this.delegate;
+		} else {
+			this.delegateShouldChange = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldClear) {
+			this.delegateShouldClear = (Delegate.ShouldClear)this.delegate;
+		} else {
+			this.delegateShouldClear = null;
+		}
+
+		if(this.delegate instanceof Delegate.ShouldReturn) {
+			this.delegateShouldReturn = (Delegate.ShouldReturn)this.delegate;
+		} else {
+			this.delegateShouldReturn = null;
+		}
+	}
+
+	public boolean isEditing() {
+		return this.editText.isInEditMode();
+	}
+
+	public boolean isEditable() {
+		return editable;
+	}
+
+	public EdgeInsets getContentInset() {
+		return contentInset.copy();
+	}
+
+	public void setContentInset(EdgeInsets contentInset) {
+		if(contentInset == null) {
+			contentInset = EdgeInsets.zero();
+		} else {
+			contentInset = contentInset.copy();
+		}
+
+		this.contentInset = contentInset;
+
+		int top = (int)floorf(contentInset.top * this.scale);
+		int left = (int)floorf(contentInset.left * this.scale);
+		int bottom = (int)floorf(contentInset.bottom * this.scale);
+		int right = (int)floorf(contentInset.right * this.scale);
+
+		this.nativeView.getNativeView().setPadding(left, top, right, bottom);
+	}
+
+	public void setEditable(boolean editable) {
+		this.editable = editable;
+		this.editText.setInputType(InputType.TYPE_NULL);
+	}
+
+	// - TextInput.Traits
+
 	public TextInput.AutocapitalizationType getAutocapitalizationType() {
-		return autocapitalizationType;
+		return this.autocapitalizationType;
 	}
 
 	public void setAutocapitalizationType(TextInput.AutocapitalizationType autocapitalizationType) {
-		this.autocapitalizationType = autocapitalizationType;
-		this.setupTextInputTraits();
+		if(this.autocapitalizationType != autocapitalizationType) {
+			this.autocapitalizationType = autocapitalizationType;
+			this.editText.setupEditTextWithTraits(this);
+		}
 	}
 
 	public TextInput.AutocorrectionType getAutocorrectionType() {
-		return autocorrectionType;
+		return this.autocorrectionType;
 	}
 
 	public void setAutocorrectionType(TextInput.AutocorrectionType autocorrectionType) {
-		this.autocorrectionType = autocorrectionType;
-		this.setupTextInputTraits();
+		if(this.autocorrectionType != autocorrectionType) {
+			this.autocorrectionType = autocorrectionType;
+			this.editText.setupEditTextWithTraits(this);
+		}
 	}
 
 	public TextInput.SpellCheckingType getSpellCheckingType() {
-		return spellCheckingType;
+		return this.spellCheckingType;
 	}
 
 	public void setSpellCheckingType(TextInput.SpellCheckingType spellCheckingType) {
-		this.spellCheckingType = spellCheckingType;
-		this.setupTextInputTraits();
+		if(this.spellCheckingType != spellCheckingType) {
+			this.spellCheckingType = spellCheckingType;
+			this.editText.setupEditTextWithTraits(this);
+		}
 	}
 
 	public TextInput.Keyboard.Type getKeyboardType() {
-		return keyboardType;
+		return this.keyboardType;
 	}
 
 	public void setKeyboardType(TextInput.Keyboard.Type keyboardType) {
-		if(keyboardType != null) {
-			this.keyboardType = keyboardType;
-		} else {
-			this.keyboardType = TextInput.Keyboard.Type.DEFAULT;
+		if(keyboardType == null) {
+			keyboardType = TextInput.Keyboard.Type.DEFAULT;
 		}
 
-		this.setupTextInputTraits();
+		if(this.keyboardType != keyboardType) {
+			this.keyboardType = keyboardType;
+			this.editText.setupEditTextWithTraits(this);
+		}
 	}
 
 	public TextInput.Keyboard.Appearance getKeyboardAppearance() {
-		return keyboardAppearance;
+		return this.keyboardAppearance;
 	}
 
 	public void setKeyboardAppearance(TextInput.Keyboard.Appearance keyboardAppearance) {
-		this.keyboardAppearance = keyboardAppearance;
-		this.setupTextInputTraits();
-	}
-
-	public TextInput.Keyboard.ReturnKeyType getReturnKeyType() {
-		return returnKeyType;
-	}
-
-	public void setReturnKeyType(TextInput.Keyboard.ReturnKeyType returnKeyType) {
-		this.returnKeyType = returnKeyType;
-		this.setupTextInputTraits();
-	}
-
-	public boolean enablesReturnKeyAutomatically() {
-		return enablesReturnKeyAutomatically;
-	}
-
-	public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically) {
-		this.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically;
-		this.setupTextInputTraits();
-	}
-
-	public boolean isSecureTextEntry() {
-		return secureTextEntry;
-	}
-
-	public void setSecureTextEntry(boolean secureTextEntry) {
-		this.secureTextEntry = secureTextEntry;
-		this.setupTextInputTraits();
-	}
-
-	private void setupTextInputTraits() {
-		if(this.textView != null && this.textView instanceof EditText) {
-			((EditText) this.textView).setupEditTextWithTraits(this);
+		if(this.keyboardAppearance != keyboardAppearance) {
+			this.keyboardAppearance = keyboardAppearance;
+			this.editText.setupEditTextWithTraits(this);
 		}
 	}
 
+	public TextInput.Keyboard.ReturnKeyType getReturnKeyType() {
+		return this.returnKeyType;
+	}
+
+	public void setReturnKeyType(TextInput.Keyboard.ReturnKeyType returnKeyType) {
+		if(this.returnKeyType != returnKeyType) {
+			this.returnKeyType = returnKeyType;
+			this.editText.setupEditTextWithTraits(this);
+		}
+	}
+
+	public boolean enablesReturnKeyAutomatically() {
+		return this.enablesReturnKeyAutomatically;
+	}
+
+	public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically) {
+		if(this.enablesReturnKeyAutomatically != enablesReturnKeyAutomatically) {
+			this.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically;
+			this.editText.setupEditTextWithTraits(this);
+		}
+	}
+
+	public boolean isSecureTextEntry() {
+		return this.secureTextEntry;
+	}
+
+	public void setSecureTextEntry(boolean secureTextEntry) {
+		if(this.secureTextEntry != secureTextEntry) {
+			this.secureTextEntry = secureTextEntry;
+			this.editText.setupEditTextWithTraits(this);
+		}
+	}
+
+	private class TextWatcher implements android.text.TextWatcher {
+		private CharSequence previousText;
+
+		public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+			if(ignoreTextChanges) return;
+
+			try {
+				if(after < count) {
+					this.previousText = text.subSequence(start + after, start + count);
+				} else if(count < after) {
+					if(start + after > text.length()) {
+						this.previousText = null;
+					} else {
+						this.previousText = text.subSequence(start + count, start + after);
+					}
+				} else {
+					this.previousText = text.subSequence(start, start + count);
+				}
+			} catch (Exception e) {
+				this.previousText = null;
+				MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
+			}
+		}
+
+		public void afterTextChanged(Editable editable) { }
+
+		public void onTextChanged(CharSequence text, int start, int before, int count) {
+			if(ignoreTextChanges) return;
+
+			if(delegateShouldChange != null) {
+				CharSequence replacementText = null;
+				Range range = new Range();
+
+				try {
+					if(count > before) {
+						range.location = start + before;
+						range.length = count - before;
+						replacementText = text.subSequence(start + before, start + count);
+					} else if(count < before) {
+						range.location = before;
+						replacementText = null;
+					} else {
+						range.location = start;
+						range.length = count;
+						replacementText = text.subSequence(start, start + count);
+					}
+				} catch (Exception e) {
+					MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
+				}
+
+				if(!delegateShouldChange.shouldChangeCharacters(TextView.this, range, replacementText)) {
+					ignoreTextChanges = true;
+					Editable editable = editText.getEditableText();
+
+					try {
+						if(count > before) {
+							if(previousText == null) {
+								editable.delete(start + before, start + count);
+							} else {
+								editable.replace(start + before, start + count, this.previousText);
+							}
+						} else if(count < before) {
+							editable.insert(start + count, this.previousText);
+						} else {
+							editable.replace(start, start + count, this.previousText);
+						}
+					} catch (Exception e) {
+						MWarn(e, "Couldn't prevent change, length: %d, start: %d, count: %d", text.length(), start, count);
+					}
+
+					editText.setSelection(start + before);
+					ignoreTextChanges = false;
+					return;
+				}
+			}
+
+			if(delegate != null) {
+				delegate.didChange(TextView.this);
+			}
+		}
+
+	}
 }

@@ -162,28 +162,33 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 		int inputType = 0;
 		boolean inputTypeIsText = false;
-		if(traits.getKeyboardType() != null) switch (traits.getKeyboardType()) {
-			case URL:
-				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
-				inputTypeIsText = true;
-				break;
-			case NUMBER_PAD:
-				inputType = InputType.TYPE_CLASS_NUMBER;
-				break;
-			case PHONE_PAD:
-				inputType = InputType.TYPE_CLASS_PHONE;
-				break;
-			case EMAIL_ADDRESS:
-				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
-				inputTypeIsText = true;
-				break;
-			case DECIMAL_PAD:
-				inputType = InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL;
-				break;
-			case DEFAULT:
-				inputType = InputType.TYPE_CLASS_TEXT;
-				inputTypeIsText = true;
-				break;
+
+		if(!(traits instanceof mocha.ui.TextView) || ((mocha.ui.TextView) traits).isEditable()) {
+			if(traits.getKeyboardType() != null) switch (traits.getKeyboardType()) {
+				case URL:
+					inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
+					inputTypeIsText = true;
+					break;
+				case NUMBER_PAD:
+					inputType = InputType.TYPE_CLASS_NUMBER;
+					break;
+				case PHONE_PAD:
+					inputType = InputType.TYPE_CLASS_PHONE;
+					break;
+				case EMAIL_ADDRESS:
+					inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
+					inputTypeIsText = true;
+					break;
+				case DECIMAL_PAD:
+					inputType = InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL;
+					break;
+				case DEFAULT:
+					inputType = InputType.TYPE_CLASS_TEXT;
+					inputTypeIsText = true;
+					break;
+			}
+		} else {
+			inputType = InputType.TYPE_NULL;
 		}
 
 		if(inputTypeIsText) {
