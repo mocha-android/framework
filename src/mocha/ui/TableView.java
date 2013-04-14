@@ -842,6 +842,8 @@ public class TableView extends ScrollView {
 					this.tableFooterView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
 					this.insertSubview(this.tableFooterView, 0);
 					this.tableFooterAttached = true;
+				} else if(this.tableFooterView.getFrame().origin.y < offset) {
+					this.tableFooterView.setFrame(new Rect(0.0f, offset, this.getFrame().size.width, this.tableFooterHeight));
 				}
 			} else if(this.tableFooterAttached) {
 				this.tableFooterView.removeFromSuperview();
