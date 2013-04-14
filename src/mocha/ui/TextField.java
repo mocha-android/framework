@@ -37,15 +37,15 @@ public class TextField extends Control implements TextInput.Traits {
 			public void didEndEditing(TextField textField);
 		}
 
-		public interface ShouldChange {
+		public interface ShouldChange extends Delegate {
 			public boolean shouldChangeCharacters(TextField textField, Range inRange, CharSequence replacementText);
 		}
 
-		public interface ShouldReturn {
+		public interface ShouldReturn extends Delegate {
 			public boolean shouldReturn(TextField textField);
 		}
 
-		public interface ShouldClear {
+		public interface ShouldClear extends Delegate {
 			public boolean shouldClear(TextField textField);
 		}
 

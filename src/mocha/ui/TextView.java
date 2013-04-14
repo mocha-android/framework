@@ -28,11 +28,11 @@ public class TextView extends View implements TextInput.Traits {
 			public void didEndEditing(TextView textView);
 		}
 
-		public interface ShouldChange {
+		public interface ShouldChange extends Delegate {
 			public boolean shouldChangeCharacters(TextView textView, Range inRange, CharSequence replacementText);
 		}
 
-		public interface ShouldReturn {
+		public interface ShouldReturn extends Delegate {
 			public boolean shouldReturn(TextView textView);
 		}
 
