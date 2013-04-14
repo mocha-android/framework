@@ -36,10 +36,6 @@ public class TextView extends View implements TextInput.Traits {
 			public boolean shouldReturn(TextView textView);
 		}
 
-		public interface ShouldClear {
-			public boolean shouldClear(TextView textView);
-		}
-
 	}
 
 	private EditText editText;
@@ -64,7 +60,6 @@ public class TextView extends View implements TextInput.Traits {
 	private Delegate.BeginEditing delegateBeginEditing;
 	private Delegate.EndEditing delegateEndEditing;
 	private Delegate.ShouldChange delegateShouldChange;
-	private Delegate.ShouldClear delegateShouldClear;
 	private Delegate.ShouldReturn delegateShouldReturn;
 	private boolean editable;
 	private EdgeInsets contentInset;
@@ -230,12 +225,6 @@ public class TextView extends View implements TextInput.Traits {
 			this.delegateShouldChange = (Delegate.ShouldChange)this.delegate;
 		} else {
 			this.delegateShouldChange = null;
-		}
-
-		if(this.delegate instanceof Delegate.ShouldClear) {
-			this.delegateShouldClear = (Delegate.ShouldClear)this.delegate;
-		} else {
-			this.delegateShouldClear = null;
 		}
 
 		if(this.delegate instanceof Delegate.ShouldReturn) {
