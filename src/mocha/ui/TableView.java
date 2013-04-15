@@ -666,6 +666,22 @@ public class TableView extends ScrollView {
 		this.footersQueuedForReuse.clear();
 		this.viewsToRemove.clear();
 
+		Size contentSize = this.getContentSize();
+		Point contentOffset = this.getContentOffset();
+		Rect bounds = this.getBounds();
+
+		if(contentOffset.y + bounds.size.height > contentSize.height) {
+			float offsetY;
+
+			if(contentSize.height < bounds.size.height) {
+				offsetY = 0.0f;
+			} else {
+				offsetY = contentSize.height - bounds.size.height;
+			}
+
+			this.setContentOffset(new Point(0.0f, offsetY));
+		}
+
 		this.layoutSubviews();
 		View.setAnimationsEnabled(areAnimationsEnabled);
 	}
@@ -1001,6 +1017,18 @@ public class TableView extends ScrollView {
 			IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
 
 			if(indexPath != null) {
+				if(this.getTableStyle() == Style.PLAIN) {
+					SectionInfo info = this.sectionsInfo.get(indexPath.section);
+
+					if(info.headerHeight > 0.0f) {
+						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));
+						this.addSubview(header);
+						this.visibleHeaders.add(header);
+						this.visibleSubviews.add(header);
+						size++;
+					}
+				}
+
 				TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
 
 				Rect frame = this.getRectForRowAtIndexPath(indexPath);
