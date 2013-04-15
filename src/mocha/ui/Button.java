@@ -53,6 +53,8 @@ public class Button extends Control {
 		this.titleLabel.setTextAlignment(TextAlignment.CENTER);
 		this.titleLabel.setBackgroundColor(Color.TRANSPARENT);
 		this.addSubview(this.titleLabel);
+
+		this.adjustsImageWhenDisabled = true;
 	}
 
 	public void setTitle(CharSequence title, State... states) {
@@ -241,6 +243,14 @@ public class Button extends Control {
 
 		this.imageView.setImage(this.getImage(states));
 		this.backgroundImageView.setImage(this.getBackgroundImage(states));
+
+		if(this.adjustsImageWhenDisabled) {
+			if(this.getState().contains(State.DISABLED)) {
+				this.imageView.setAlpha(0.35f);
+			} else {
+				this.imageView.setAlpha(1.0f);
+			}
+		}
 
 		this.layoutSubviews();
 	}

@@ -246,11 +246,11 @@ public class SegmentedControl extends Control {
 
 	private void segmentSelected(final Segment.Button button, Event event) {
 		final int segment = button.getTag() - TAG;
-		if(this.lastSelectedSegment == segment) return;
+		if(this.selectedSegment == segment) return;
 
 		button.setSelected(true);
 
-		if(this.lastSelectedSegment != NO_SEGMENT) {
+		if(this.selectedSegment != NO_SEGMENT) {
 			this.segments.get(this.lastSelectedSegment).button.setSelected(false);
 		}
 
@@ -265,7 +265,6 @@ public class SegmentedControl extends Control {
 		}
 
 		this.lastSelectedSegment = segment;
-
 		this.sendActionsForControlEvents(event, ControlEvent.VALUE_CHANGED);
 	}
 

@@ -15,6 +15,15 @@ public class Object {
 	private static ThreadLocal<Handler> handler = new ThreadLocal<Handler>();
 	private static Handler mainHandler;
 	private static String LOG_TAG = "Mocha";
+	private static boolean loggingEnabled = true;
+
+	public static boolean isLoggingEnabled() {
+		return loggingEnabled;
+	}
+
+	public static void setLoggingEnabled(boolean loggingEnabled) {
+		Object.loggingEnabled = loggingEnabled;
+	}
 
 	public String toString() {
 		String extra = this.toStringExtra();
@@ -167,34 +176,50 @@ public class Object {
 	}
 
 	public static void MLog(String message) {
+		if(!loggingEnabled) return;
+
 		Log.d(LOG_TAG, message);
 	}
 
 	public static void MWarn(String message) {
+		if(!loggingEnabled) return;
+
 		Log.w(LOG_TAG, message);
 	}
 
 	public static void MLog(Throwable throwable, String message) {
+		if(!loggingEnabled) return;
+
 		Log.d(LOG_TAG, message, throwable);
 	}
 
 	public static void MWarn(Throwable throwable, String message) {
+		if(!loggingEnabled) return;
+
 		Log.w(LOG_TAG, message, throwable);
 	}
 
 	public static void MLog(String format, java.lang.Object... args) {
+		if(!loggingEnabled) return;
+
 		MLog(String.format(format, args));
 	}
 
 	public static void MWarn(String format, java.lang.Object... args) {
+		if(!loggingEnabled) return;
+
 		MWarn(String.format(format, args));
 	}
 
 	public static void MLog(Throwable throwable, String format, java.lang.Object... args) {
+		if(!loggingEnabled) return;
+
 		MLog(throwable, String.format(format, args));
 	}
 
 	public static void MWarn(Throwable throwable, String format, java.lang.Object... args) {
+		if(!loggingEnabled) return;
+
 		MWarn(throwable, String.format(format, args));
 	}
 
@@ -219,6 +244,8 @@ public class Object {
 	}
 
 	public static void MLogStackTrace(String format, java.lang.Object... args) {
+		if(!loggingEnabled) return;
+
 		String message = String.format(format, args);
 
 		StringBuilder stringBuilder = new StringBuilder();
