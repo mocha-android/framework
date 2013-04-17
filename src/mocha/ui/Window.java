@@ -101,10 +101,30 @@ public final class Window extends View {
 
 	void onPause() {
 		this.windowLayer.onWindowPause();
+
+		if(this.rootViewController != null) {
+			this.rootViewController.beginAppearanceTransition(false, false);
+			this.rootViewController.endAppearanceTransition();
+		}
+
+		for(ViewController viewController : this.visibleViewControllers) {
+			viewController.beginAppearanceTransition(false, false);
+			viewController.endAppearanceTransition();
+		}
 	}
 
 	void onResume() {
 		this.windowLayer.onWindowResume();
+
+		if(this.rootViewController != null) {
+			this.rootViewController.beginAppearanceTransition(true, false);
+			this.rootViewController.endAppearanceTransition();
+		}
+
+		for(ViewController viewController : this.visibleViewControllers) {
+			viewController.beginAppearanceTransition(true, false);
+			viewController.endAppearanceTransition();
+		}
 	}
 
 	public void setFrame(Rect frame) {
