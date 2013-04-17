@@ -47,6 +47,10 @@ public class Application extends mocha.foundation.Object {
 		this.bundle = new Bundle(this);
 	}
 
+	Activity getActivity() {
+		return activity;
+	}
+
 	public Delegate getDelegate() {
 		return delegate;
 	}

@@ -360,7 +360,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	}
 
 	public void setNeedsLayout() {
-		this.requestLayout();
+		this.forceLayout();
 	}
 
 	public void setNeedsDisplay() {

@@ -12,6 +12,7 @@ import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class View extends Responder implements Accessibility {
@@ -202,7 +203,7 @@ public class View extends Responder implements Accessibility {
 		this.scale = Screen.mainScreen().getScale();
 
 		try {
-			this.layer = getLayerClass().getConstructor(android.content.Context.class).newInstance(context);
+			this.layer = this.createLayer(context);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -1029,6 +1030,10 @@ public class View extends Responder implements Accessibility {
 
 	public Class<? extends ViewLayer> getLayerClass() {
 		return VIEW_LAYER_CLASS;
+	}
+
+	ViewLayer createLayer(android.content.Context context) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+		return getLayerClass().getConstructor(android.content.Context.class).newInstance(context);
 	}
 
 	// Accessibility

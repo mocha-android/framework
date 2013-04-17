@@ -30,10 +30,25 @@ public class Object {
 
 		int hash = System.identityHashCode(this);
 
+		Class cls = this.getClass();
+		String className = cls.getCanonicalName();
+
+		if(className == null || className.length() == 0) {
+			className = cls.getSimpleName();
+		}
+
+		if(className == null || className.length() == 0) {
+			className = cls.getName();
+		}
+
+		if(className == null || className.length() == 0) {
+			className = cls.toString();
+		}
+
 		if(extra != null && extra.length() > 0) {
-			return String.format("<%s@%s; %s>", this.getClass().getCanonicalName(), hash, this.toStringExtra());
+			return String.format("<%s@%s; %s>", className, hash, this.toStringExtra());
 		} else {
-			return String.format("<%s@%s>", this.getClass().getCanonicalName(), hash);
+			return String.format("<%s@%s>", className, hash);
 		}
 	}
 
