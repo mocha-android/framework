@@ -28,15 +28,24 @@ public class Screen extends mocha.foundation.Object {
 	private mocha.graphics.Rect bounds;
 	private DisplayMetrics displayMetrics;
 
+	@SuppressWarnings("SuspiciousNameCombination")
 	private Screen(Activity activity) {
 		this.displayMetrics = activity.getResources().getDisplayMetrics();
 
 		android.graphics.Point size = new android.graphics.Point();
 		activity.getWindowManager().getDefaultDisplay().getSize(size);
 
+		float x = FloatMath.floor((size.x / getScale()) + 0.5f);
+		float y = FloatMath.floor((size.y / getScale()) + 0.5f);
 		this.bounds = new mocha.graphics.Rect();
-		this.bounds.size.width = FloatMath.floor((size.x / getScale()) + 0.5f);
-		this.bounds.size.height = FloatMath.floor((size.y / getScale()) + 0.5f);
+
+		if(size.y > size.x) {
+			this.bounds.size.width = x;
+			this.bounds.size.height = y;
+		} else {
+			this.bounds.size.width = y;
+			this.bounds.size.height = x;
+		}
 	}
 
 	public float getScale() {

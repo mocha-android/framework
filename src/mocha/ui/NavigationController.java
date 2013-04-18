@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import mocha.graphics.Rect;
+import mocha.graphics.Size;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,17 +22,7 @@ public class NavigationController extends ViewController {
 	private boolean transition;
 	private boolean showHideNavigationBarDuringTransition;
 
-	public NavigationController(ViewController rootViewController) {
-		this();
-
-		if(rootViewController != null) {
-			this.addChildViewController(rootViewController);
-			this.viewControllers.add(rootViewController);
-			rootViewController.didMoveToParentViewController(this);
-		}
-	}
-
-	public NavigationController() {
+	public NavigationController(Class<? extends NavigationBar> navigationBarClass) {
 		this.viewControllers = new ArrayList<ViewController>();
 		this.navigationBarDelegate = new NavigationBar.Delegate() {
 			public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item) {
@@ -52,8 +43,35 @@ public class NavigationController extends ViewController {
 			}
 		};
 
-		this.navigationBar = new NavigationBar();
+		if(navigationBarClass != null) {
+			try {
+				this.navigationBar = navigationBarClass.newInstance();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			this.navigationBar = new NavigationBar();
+		}
+
 		this.navigationBar.setDelegate(this.navigationBarDelegate);
+	}
+
+	public NavigationController() {
+		this((Class<? extends NavigationBar>)null);
+	}
+
+	public NavigationController(ViewController rootViewController) {
+		this(rootViewController, null);
+	}
+
+	public NavigationController(ViewController rootViewController, Class<? extends NavigationBar> navigationBarClass) {
+		this(navigationBarClass);
+
+		if(rootViewController != null) {
+			this.addChildViewController(rootViewController);
+			this.viewControllers.add(rootViewController);
+			rootViewController.didMoveToParentViewController(this);
+		}
 	}
 
 	protected void loadView() {
@@ -64,7 +82,7 @@ public class NavigationController extends ViewController {
 
 		Rect bounds = view.getBounds();
 
-		float navBarHeight = 44.0f;
+		float navBarHeight = this.navigationBar.sizeThatFits(bounds.size).height;
 
 		if(this.navigationBarHidden) {
 			this.navigationBar.setFrame(new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight));

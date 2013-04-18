@@ -34,6 +34,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 	private Action action;
 	private boolean isSystemItem;
 	private SystemItem systemItem;
+	private String accessibilityLabel;
 	private BarMetricsStorage<Float> backgroundVerticalPositionAdjustments;
 	private BarMetricsStorage<Offset> titlePositionAdjustments;
 	private BarMetricsStorage<Map<EnumSet<Control.State>, Image>> backgroundImages;
@@ -308,10 +309,11 @@ public class BarButtonItem extends BarItem implements Accessibility {
 	}
 
 	public String getAccessibilityLabel() {
-		return null;
+		return this.accessibilityLabel;
 	}
 
 	public void setAccessibilityLabel(String accessibilityLabel) {
+		this.accessibilityLabel = accessibilityLabel;
 	}
 
 	public String getAccessibilityHint() {

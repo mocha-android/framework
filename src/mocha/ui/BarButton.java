@@ -10,10 +10,16 @@ import mocha.graphics.*;
 class BarButton extends Button {
 	private float backgroundImageVerticalAdjustment = 0.0f;
 	private BarButtonItem barButtonItem;
+	private boolean bordered;
 
 	static BarButton backButton(NavigationItem navigationItem) {
 		if(navigationItem.getBackBarButtonItem() != null) {
-			return new BarButton(navigationItem.getBackBarButtonItem(), true);
+			BarButtonItem backBarButtonItem = navigationItem.getBackBarButtonItem();
+			if((backBarButtonItem.getTitle() == null || backBarButtonItem.getTitle().length() == 0) && (backBarButtonItem.getImage() != null)) {
+				return new BarButton(backBarButtonItem, backBarButtonItem.getStyle() == BarButtonItem.Style.BORDERED);
+			} else {
+				return new BarButton(backBarButtonItem, true);
+			}
 		} else {
 			return new BarButton(new BarButtonItem(navigationItem.getTitle(), BarButtonItem.Style.BORDERED, null), true);
 		}
@@ -86,18 +92,27 @@ class BarButton extends Button {
 			this.setTitleShadowColor(highlightedAttributes.shadowColor, highlightedStates);
 		}
 
-		this.setTitle(item.getTitle(), State.NORMAL);
+		if(item.getTitle() != null && item.getTitle().length() > 0) {
+			this.setTitle(item.getTitle(), State.NORMAL);
+		} else if(item.getImage() != null) {
+			this.setImage(item.getImage(), State.NORMAL);
+
+			EdgeInsets imageInset = item.getImageInsets();
+
+			if(imageInset != null) {
+				this.setImageEdgeInsets(imageInset);
+			}
+		}
 
 		if(item.getStyle() != BarButtonItem.Style.PLAIN) {
 			this.setContentEdgeInsets(new EdgeInsets(0.0f, back ? 15.0f : 7.0f, 0.0f, 7.0f));
+			this.bordered = true;
 
 			EdgeInsets capInsets;
 			Image backgroundImage;
 			Image highlightedBackgroundImage;
 
 			if(!back) {
-				this.setImage(item.getImage(), State.NORMAL);
-
 				backgroundImage = item.getBackgroundImage(BarMetrics.DEFAULT, State.NORMAL);
 				capInsets = new EdgeInsets(0.0f, 5.0f, 0.0f, 5.0f);
 
@@ -110,8 +125,6 @@ class BarButton extends Button {
 				}
 
 				this.setContentEdgeInsets(new EdgeInsets(0.0f, 9.0f, 0.0f, 9.0f));
-				this.setImageEdgeInsets(new EdgeInsets(0.0f, 0.0f, 0.0f, 0.0f));
-
 			} else {
 				backgroundImage = item.getBackButtonBackgroundImage(BarMetrics.DEFAULT, State.NORMAL);
 				capInsets = new EdgeInsets(6.0f, 14.0f, 6.0f, 6.0f);
@@ -125,8 +138,6 @@ class BarButton extends Button {
 				}
 
 				this.setContentEdgeInsets(new EdgeInsets(0.0f, 14.0f, 0.0f, 9.0f));
-				this.setImageEdgeInsets(new EdgeInsets(0.0f, 0.0f, 0.0f, 0.0f));
-
 			}
 
 			if(backgroundImage.getCapInsets() == null) {
@@ -165,6 +176,10 @@ class BarButton extends Button {
 		this.setTitleEdgeInsets(titleEdgeInsets);
 	}
 
+	public boolean isBordered() {
+		return bordered;
+	}
+
 	public Rect getTitleRectForContentRect(Rect contentRect) {
 		Rect rect = super.getTitleRectForContentRect(contentRect);
 		rect.origin.x -= 1.0f;
@@ -182,7 +197,7 @@ class BarButton extends Button {
 		Size size1 = super.sizeThatFits(size);
 
 		if(this.barButtonItem.getStyle() != BarButtonItem.Style.PLAIN) {
-			size1.height = Math.min(30.0f, size1.height);
+			size1.height = Math.min(size.height, size1.height);
 		}
 
 		if(this.barButtonItem.getWidth() > 0.0f) {

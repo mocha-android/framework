@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationBar extends View {
-	private static final EdgeInsets BUTTON_EDGE_INSETS = new EdgeInsets(7.0f, 5.0f, 0.0f, 5.0f);
+	private static final EdgeInsets DEFAULT_ITEM_EDGE_INSETS = new EdgeInsets(7.0f, 5.0f, 7.0f, 5.0f);
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_TITLE_HEIGHT_DEFAULT = 30.0f;
@@ -28,6 +28,10 @@ public class NavigationBar extends View {
 		public void didPopItem(NavigationBar navigationBar, NavigationItem item);
 	}
 
+	public enum TitleAlignment {
+		LEFT, CENTER, RIGHT
+	}
+
 	private enum Transition {
 		PUSH, POP, RELOAD
 	}
@@ -37,6 +41,8 @@ public class NavigationBar extends View {
 	private List<NavigationItem> items;
 	private Delegate delegate;
 	private boolean needsReload;
+	private EdgeInsets itemEdgeInsets;
+	private TitleAlignment titleAlignment;
 
 	private View leftView;
 	private View centerView;
@@ -48,6 +54,7 @@ public class NavigationBar extends View {
 	private BarMetricsStorage<Float> titleVerticalPositionAdjustment;
 	private BarMetricsStorage<Image> backgroundImages;
 	private Image shadowImage;
+	private ImageView shadowImageView;
 
 	private NavigationItemDelegate navigationItemDelegate = new NavigationItemDelegate();
 
@@ -66,20 +73,27 @@ public class NavigationBar extends View {
 	}
 
 	public NavigationBar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
+	public NavigationBar(Rect frame) { super(frame); }
 
-	public NavigationBar(Rect frame) {
-		super(frame);
+	protected void onCreate(Rect frame) {
+		super.onCreate(frame);
 
 		this.setTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
 		this.backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_background);
 		this.items = new ArrayList<NavigationItem>();
+		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
 
 		this.titleVerticalPositionAdjustment = new BarMetricsStorage<Float>();
 		this.backgroundImages = new BarMetricsStorage<Image>();
+		this.titleAlignment = TitleAlignment.CENTER;
 
 		if(appearanceStorage != null) {
 			appearanceStorage.apply(this);
 		}
+	}
+
+	public Size sizeThatFits(Size size) {
+		return new Size(size.width, Math.min(size.height, 44.0f));
 	}
 
 	public BarStyle getBarStyle() {
@@ -97,6 +111,34 @@ public class NavigationBar extends View {
 	public void setTintColor(int tintColor) {
 		this.tintColor = tintColor;
 		this.setBackgroundColor(tintColor);
+	}
+
+	public EdgeInsets getItemEdgeInsets() {
+		if(this.itemEdgeInsets == DEFAULT_ITEM_EDGE_INSETS) {
+			return null;
+		} else {
+			return this.itemEdgeInsets.copy();
+		}
+	}
+
+	public void setItemEdgeInsets(EdgeInsets itemEdgeInsets) {
+		if(itemEdgeInsets == null) {
+			this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
+		} else {
+			this.itemEdgeInsets = itemEdgeInsets;
+		}
+	}
+
+	public TitleAlignment getTitleAlignment() {
+		return this.titleAlignment;
+	}
+
+	public void setTitleAlignment(TitleAlignment titleAlignment) {
+		if(titleAlignment == null) {
+			this.titleAlignment = TitleAlignment.CENTER;
+		} else {
+			this.titleAlignment = titleAlignment;
+		}
 	}
 
 	public NavigationItem getTopItem() {
@@ -290,8 +332,8 @@ public class NavigationBar extends View {
 
 			if (this.leftView != null) {
 				Rect frame = this.leftView.getFrame();
-				frame.origin.x = BUTTON_EDGE_INSETS.left;
-				frame.origin.y = BUTTON_EDGE_INSETS.top;
+				frame.origin.x = this.itemEdgeInsets.left;
+				frame.origin.y = this.itemEdgeInsets.top;
 				this.leftView.setFrame(frame);
 			}
 
@@ -300,21 +342,21 @@ public class NavigationBar extends View {
 			if (this.rightView != null) {
 				this.rightView.setAutoresizing(Autoresizing.FLEXIBLE_LEFT_MARGIN);
 				Rect frame = this.rightView.getFrame();
-				frame.origin.x = bounds.size.width - frame.size.width - BUTTON_EDGE_INSETS.right;
-				frame.origin.y = BUTTON_EDGE_INSETS.top;
+				frame.origin.x = bounds.size.width - frame.size.width - this.itemEdgeInsets.right;
+				frame.origin.y = this.itemEdgeInsets.top;
 				this.rightView.setFrame(frame);
 			}
 
-			float titleMinX = BUTTON_EDGE_INSETS.left;
-			float titleMaxX = bounds.size.width - BUTTON_EDGE_INSETS.right;
+			float titleMinX = this.itemEdgeInsets.left;
+			float titleMaxX = bounds.size.width - this.itemEdgeInsets.right;
 
 
 			if(this.leftView != null) {
-				titleMinX += this.leftView.getFrame().size.width + BUTTON_EDGE_INSETS.left;
+				titleMinX += this.leftView.getFrame().size.width + this.itemEdgeInsets.right;
 			}
 
 			if(this.rightView != null) {
-				titleMaxX -= this.rightView.getFrame().size.width + BUTTON_EDGE_INSETS.right;
+				titleMaxX -= this.rightView.getFrame().size.width + this.itemEdgeInsets.left;
 			}
 
 			this.centerView = topItem.getTitleView();
@@ -358,11 +400,24 @@ public class NavigationBar extends View {
 				}
 			}
 
+			switch (this.titleAlignment) {
+				case LEFT:
+					titleFrame.origin.x = titleMinX;
+					break;
+				case CENTER:
+					// Already centered
+					break;
+				case RIGHT:
+					titleFrame.origin.x = titleMaxX - titleFrame.size.width;
+					break;
+			}
+
 			this.centerView.setAutoresizing(Autoresizing.FLEXIBLE_MARGINS);
 			this.centerView.setFrame(titleFrame);
 			this.centerView.setAlpha(0.0f);
 
 			if(this.centerView instanceof NavigationItemTitleView) {
+				((NavigationItemTitleView)this.centerView).setTitleAlignment(this.titleAlignment);
 				((NavigationItemTitleView)this.centerView).setDestinationFrame(titleFrame, bounds);
 			}
 		} else {
@@ -485,7 +540,7 @@ public class NavigationBar extends View {
 		}
 
 		if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
-			frame.origin.x = -frame.size.width - BUTTON_EDGE_INSETS.left;
+			frame.origin.x = -frame.size.width - this.itemEdgeInsets.left;
 		} else {
 			frame.origin.x = floorf((this.getBounds().size.width - frame.size.width) / 2.0f);
 		}
@@ -532,6 +587,24 @@ public class NavigationBar extends View {
 			this.needsReload = false;
 			this.updateItemsWithTransition(Transition.RELOAD, false, null, null);
 		}
+
+		Size size;
+		if(this.shadowImage != null && (size = this.getShadowImage().getSize()).width > 0 && size.height > 0) {
+			if(this.shadowImageView == null) {
+				this.shadowImageView = new ImageView();
+				this.addSubview(this.shadowImageView);
+			}
+
+			if(this.shadowImageView.getImage() != this.shadowImage) {
+				this.shadowImageView.setImage(this.shadowImage);
+			}
+
+			Rect bounds = this.getBounds();
+			this.shadowImageView.setFrame(new Rect(0.0f, bounds.size.height, bounds.size.width, size.height));
+		} else if(this.shadowImageView != null) {
+			this.shadowImageView.removeFromSuperview();
+			this.shadowImageView = null;
+		}
 	}
 
 	public void draw(Context context, Rect rect) {
@@ -544,10 +617,15 @@ public class NavigationBar extends View {
 		image.draw(context, rect);
 	}
 
-	private void setBarButtonSize(View view) {
+	private void setBarButtonSize(View view, boolean bordered) {
+		Rect bounds = this.getBounds();
 		Rect frame = view.getFrame();
-		frame.size = view.sizeThatFits(this.getBounds().size);
-		frame.size.width = Math.max(frame.size.width, MIN_BUTTON_WIDTH);
+		frame.size = view.sizeThatFits(new Size(bounds.size.width, bounds.size.height - this.itemEdgeInsets.top - this.itemEdgeInsets.bottom));
+
+		if(bordered) {
+			frame.size.width = Math.max(frame.size.width, MIN_BUTTON_WIDTH);
+		}
+
 		view.setFrame(frame);
 	}
 
@@ -561,7 +639,7 @@ public class NavigationBar extends View {
 			}
 		}, Control.ControlEvent.TOUCH_UP_INSIDE);
 
-		this.setBarButtonSize(button);
+		this.setBarButtonSize(button, button.isBordered());
 
 		return button;
 	}
@@ -573,7 +651,7 @@ public class NavigationBar extends View {
 			return barButtonItem.getCustomView();
 		} else {
 			BarButton button = BarButton.button(barButtonItem);
-			this.setBarButtonSize(button);
+			this.setBarButtonSize(button, button.isBordered());
 
 			return button;
 		}
@@ -602,6 +680,7 @@ public class NavigationBar extends View {
 		private Method setBackgroundImage;
 		private Method setTitleVerticalPositionAdjustment;
 		private Method setTitleTextAttributes;
+		private Method setTitleAlignment;
 
 		public Appearance() {
 			try {
@@ -609,6 +688,7 @@ public class NavigationBar extends View {
 				this.setBackgroundImage = NavigationBar.class.getMethod("setBackgroundImage", Image.class, BarMetrics.class);
 				this.setTitleTextAttributes = NavigationBar.class.getMethod("setTitleTextAttributes", TextAttributes.class);
 				this.setTitleVerticalPositionAdjustment = NavigationBar.class.getMethod("setTitleVerticalPositionAdjustment", Float.TYPE, BarMetrics.class);
+				this.setTitleAlignment = NavigationBar.class.getMethod("setTitleAlignment", TitleAlignment.class);
 			} catch (NoSuchMethodException ignored) { }
 		}
 
@@ -624,10 +704,14 @@ public class NavigationBar extends View {
 			this.store(this.setTitleVerticalPositionAdjustment, adjustment, barMetrics);
 		}
 
-
 		public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
 			this.store(this.setTitleTextAttributes, titleTextAttributes);
 		}
+
+		public void setTitleAlignment(TitleAlignment titleAlignment) {
+			this.store(this.setTitleAlignment, titleAlignment);
+		}
+
 	}
 
 }

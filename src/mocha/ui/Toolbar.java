@@ -36,12 +36,14 @@ public class Toolbar extends View {
 	private boolean translucent;
 	private BarMetricsStorage<Map<Position,Image>> backgroundImages;
 	private Map<Position,Image> shadowImages;
+	private ImageView shadowImageView;
 	private Position position;
 
 	public Toolbar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
+	public Toolbar(Rect frame) { super(frame); }
 
-	public Toolbar(Rect frame) {
-		super(frame);
+	protected void onCreate(Rect frame) {
+		super.onCreate(frame);
 
 		this.barStyle = BarStyle.DEFAULT;
 		this.tintColor = Color.TRANSPARENT;
@@ -53,6 +55,10 @@ public class Toolbar extends View {
 		if(appearanceStorage != null) {
 			appearanceStorage.apply(this);
 		}
+	}
+
+	public Size sizeThatFits(Size size) {
+		return new Size(size.width, Math.min(size.height, 44.0f));
 	}
 
 	public void setFrame(Rect frame) {
@@ -230,6 +236,37 @@ public class Toolbar extends View {
 	public void layoutSubviews() {
 		super.layoutSubviews();
 		this.layoutItems();
+
+		Size size;
+
+		Image shadowImage = this.getShadowImageForToolbarPosition(this.position);
+
+		if(shadowImage == null && this.position != Position.ANY) {
+			shadowImage = this.getShadowImageForToolbarPosition(Position.ANY);
+		}
+
+		if(shadowImage != null && (size = shadowImage.getSize()).width > 0 && size.height > 0) {
+			if(this.shadowImageView == null) {
+				this.shadowImageView = new ImageView();
+				this.addSubview(this.shadowImageView);
+			}
+
+			if(this.shadowImageView.getImage() != shadowImage) {
+				this.shadowImageView.setImage(shadowImage);
+			}
+
+			Rect bounds = this.getBounds();
+
+			if(this.position == Position.TOP) {
+				this.shadowImageView.setFrame(new Rect(0.0f, bounds.size.height, bounds.size.width, size.height));
+			} else {
+				this.shadowImageView.setFrame(new Rect(0.0f, -size.height, bounds.size.width, size.height));
+			}
+		} else if(this.shadowImageView != null) {
+			this.shadowImageView.removeFromSuperview();
+			this.shadowImageView = null;
+		}
+
 	}
 
 	private void layoutItems() {

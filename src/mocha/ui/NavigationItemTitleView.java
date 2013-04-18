@@ -12,6 +12,7 @@ class NavigationItemTitleView extends View {
 	private Rect destinationFrame;
 	private float verticalPositionAdjustment;
 	private Label label;
+	private NavigationBar.TitleAlignment titleAlignment;
 
 	NavigationItemTitleView(Rect frame, NavigationItem navigationItem, TextAttributes textAttributes, float verticalPositionAdjustment) {
 		super(frame);
@@ -54,6 +55,10 @@ class NavigationItemTitleView extends View {
 		}
 
 		this.addSubview(this.label);
+	}
+
+	public void setTitleAlignment(NavigationBar.TitleAlignment titleAlignment) {
+		this.titleAlignment = titleAlignment;
 	}
 
 	public void setFrame(Rect frame) {
@@ -99,9 +104,20 @@ class NavigationItemTitleView extends View {
 		Size size = this.label.sizeThatFits(bounds.size);
 
 		Point offset = new Point();
-		offset.x = floorf((parentBounds.size.width - size.width) / 2.0f);
 		offset.y = floorf((this.destinationFrame.size.height - size.height) / 2.0f) + this.verticalPositionAdjustment;
-		offset.x -= this.destinationFrame.origin.x;
+
+		switch (this.titleAlignment) {
+			case LEFT:
+				offset.x = 0.0f;
+				break;
+			case CENTER:
+				offset.x = floorf((parentBounds.size.width - size.width) / 2.0f);
+				offset.x -= this.destinationFrame.origin.x;
+				break;
+			case RIGHT:
+				offset.x = bounds.size.width - size.width;
+				break;
+		}
 
 		if(offset.x < 0.0f) offset.x = 0.0f;
 

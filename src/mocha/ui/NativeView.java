@@ -214,5 +214,5 @@ public class NativeView <V extends android.view.View> extends View {
 	private ViewLayerNative getNativeLayer() {
 		return (ViewLayerNative)this.getLayer();
 	}
-	
+
 }
