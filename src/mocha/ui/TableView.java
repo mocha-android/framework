@@ -335,7 +335,20 @@ public class TableView extends ScrollView {
 			MLog("| Section: %-2s | Rows: %-2s | Offset: %-5s | header: %-5s", s, sectionInfo.numberOfRows, sectionInfo.y, sectionInfo.headerHeight);
 			float y = sectionInfo.y + sectionInfo.headerHeight;
 			int r = 0;
-			for(float rowHeight : sectionInfo.rowHeights) {
+
+			float[] rowHeights;
+
+			if(!this.usesCustomRowHeights) {
+				rowHeights = new float[sectionInfo.numberOfRows];
+
+				for(int i = 0; i < sectionInfo.numberOfRows; i++) {
+					rowHeights[i] = this.rowHeight;
+				}
+			} else {
+				rowHeights = sectionInfo.rowHeights;
+			}
+
+			for(float rowHeight : rowHeights) {
 				MLog("| Row: %-2s, %-2s | Offset: %-5s | Height: %-5s", s, r, y, rowHeight);
 				y += rowHeight;
 				r++;
@@ -607,20 +620,17 @@ public class TableView extends ScrollView {
 			offsetY -= sectionInfo.headerHeight;
 		}
 
-		int row;
-		if (this.usesCustomRowHeights) {
-			row = 0;
-			float current = 0;
-			for(float rowHeight : sectionInfo.rowHeights) {
-				current += rowHeight;
-				if(offsetY < current) {
-					break;
-				} else {
-					row++;
-				}
+		int row = 0;
+		float current = 0;
+		for(int i = 0; i < sectionInfo.numberOfRows; i++) {
+			float rowHeight = this.usesCustomRowHeights ? sectionInfo.rowHeights[i] : this.rowHeight;
+			current += this.rowHeight;
+
+			if(offsetY < current) {
+				break;
+			} else {
+				row++;
 			}
-		} else {
-			row = (int)Math.floor((offsetY - sectionInfo.headerHeight) / this.getRowHeight());
 		}
 
 		return new IndexPath(section, row);
