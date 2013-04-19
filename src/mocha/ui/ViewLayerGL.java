@@ -367,6 +367,10 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		}
 	}
 
+	public void renderInContext(mocha.graphics.Context context) {
+		throw new UnsupportedOperationException();
+	}
+
 	//
 
 	void draw(GL10 gl) {

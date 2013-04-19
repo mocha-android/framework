@@ -206,4 +206,8 @@ class BarButton extends Button {
 
 		return size1;
 	}
+
+	public boolean pointInside(Point point, Event event) {
+		return this.getTransform().apply(this.getBounds().inset(-10.0f, -10.0f)).contains(point);
+	}
 }

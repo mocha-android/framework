@@ -117,6 +117,14 @@ public class TextField extends Control implements TextInput.Traits {
 		this.setFont(Font.getSystemFontWithSize(12.0f));
 		this.setTextAlignment(TextAlignment.LEFT);
 		this.setPlaceholderColor(Color.white(0.7f, 1.0f));
+
+		this.addActionTarget(new ActionTarget() {
+			public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
+				if(!isFirstResponder()) {
+					becomeFirstResponder();
+				}
+			}
+		}, ControlEvent.TOUCH_UP_INSIDE);
 	}
 
 	public boolean canBecomeFirstResponder() {

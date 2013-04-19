@@ -183,6 +183,15 @@ public class NavigationBar extends View {
 		}
 	}
 
+	void replaceNavigationItem(NavigationItem oldItem, NavigationItem newItem) {
+		if(this.items.contains(oldItem)) {
+			int index = this.items.indexOf(oldItem);
+			this.items.set(index, newItem);
+			this.needsReload = true;
+			this.layoutSubviews();
+		}
+	}
+
 	public void pushNavigationItem(NavigationItem navigationItem, boolean animated) {
 		this.pushNavigationItem(navigationItem, animated, null, null);
 	}

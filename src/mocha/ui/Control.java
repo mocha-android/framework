@@ -76,6 +76,8 @@ public class Control extends View {
 	private Map<ActionTarget,EnumSet<ControlEvent>> registeredActions;
 	private EnumSet<State> cachedState;
 	private State[] cachedStates;
+	private boolean shouldPerformHapticFeedbackOnTouchUpInside;
+	private boolean shouldPlayClickSoundOnTouchUpInside;
 
 	public Control() { super(); }
 	public Control(Rect frame) { super(frame); }
@@ -87,6 +89,25 @@ public class Control extends View {
 		this.enabled = true;
 		this.contentHorizontalAlignment = HorizontalAlignment.CENTER;
 		this.contentVerticalAlignment = VerticalAlignment.CENTER;
+
+		this.shouldPerformHapticFeedbackOnTouchUpInside = false;
+		this.shouldPlayClickSoundOnTouchUpInside = true;
+	}
+
+	public boolean getShouldPerformHapticFeedbackOnTouchUpInside() {
+		return shouldPerformHapticFeedbackOnTouchUpInside;
+	}
+
+	public void setShouldPerformHapticFeedbackOnTouchUpInside(boolean shouldPerformHapticFeedbackOnTouchUpInside) {
+		this.shouldPerformHapticFeedbackOnTouchUpInside = shouldPerformHapticFeedbackOnTouchUpInside;
+	}
+
+	public boolean getShouldPlayClickSoundOnTouchUpInside() {
+		return shouldPlayClickSoundOnTouchUpInside;
+	}
+
+	public void setShouldPlayClickSoundOnTouchUpInside(boolean shouldPlayClickSoundOnTouchUpInside) {
+		this.shouldPlayClickSoundOnTouchUpInside = shouldPlayClickSoundOnTouchUpInside;
 	}
 
 	public void addTargetAction(Object target, String actionMethodName, ControlEvent... controlEvents) {
@@ -139,11 +160,27 @@ public class Control extends View {
 	void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
 		if(this.registeredActions.size() == 0) return;
 
+		boolean sentTouchUpInsideAction = false;
+
 		for(ActionTarget actionTarget : this.registeredActions.keySet()) {
 			for(ControlEvent controlEvent : controlEvents) {
 				if(this.registeredActions.get(actionTarget).contains(controlEvent)) {
 					actionTarget.onControlEvent(this, controlEvent, event);
+
+					if(controlEvent == ControlEvent.TOUCH_UP_INSIDE) {
+						sentTouchUpInsideAction = true;
+					}
 				}
+			}
+		}
+
+		if(sentTouchUpInsideAction) {
+			if(this.shouldPerformHapticFeedbackOnTouchUpInside) {
+				this.performHapticFeedback();
+			}
+
+			if(this.shouldPlayClickSoundOnTouchUpInside) {
+				this.playClickSound();
 			}
 		}
 	}

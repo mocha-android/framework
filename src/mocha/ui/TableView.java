@@ -1961,6 +1961,10 @@ public class TableView extends ScrollView {
 		this.markCellAsSelected(selectingCell, true, animated);
 
 		if(this.delegateSelection != null) {
+			if(selectingCell.shouldPlayClickSoundOnSelection()) {
+				selectingCell.playClickSound();
+			}
+
 			this.delegateSelection.didSelectRowAtIndexPath(this, indexPath);
 		}
 	}

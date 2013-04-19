@@ -56,6 +56,10 @@ public class Screen extends mocha.foundation.Object {
 		return this.displayMetrics.densityDpi;
 	}
 
+	public DisplayMetrics getDisplayMetrics() {
+		return displayMetrics;
+	}
+
 	public mocha.graphics.Rect getBounds() {
 		return new mocha.graphics.Rect(this.bounds);
 	}

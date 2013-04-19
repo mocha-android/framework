@@ -295,6 +295,9 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 		}
 	}
 
+	public void renderInContext(mocha.graphics.Context context) {
+		this.draw(context.getCanvas());
+	}
 
 	void draw(Canvas canvas) {
 		if(this.hidden) return;

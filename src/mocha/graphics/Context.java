@@ -89,6 +89,15 @@ public final class Context extends mocha.foundation.Object {
 		this.canvas = new Canvas(this.bitmap);
 	}
 
+	public Context(Screen screen, Size size) {
+		this(screen.getScale());
+
+		int width = (int)((size.width * scale) + 0.5f);
+		int height = (int)((size.height * scale) + 0.5f);
+		this.bitmap = Bitmap.createBitmap(screen.getDisplayMetrics(), width, height, Bitmap.Config.ARGB_8888);
+		this.canvas = new Canvas(this.bitmap);
+	}
+
 	public Rect getClipBoundingBox() {
 		if(this.clipPath != null) {
 			return this.clipPath.getBounds();
@@ -112,7 +121,8 @@ public final class Context extends mocha.foundation.Object {
 		}
 	}
 
-	Canvas getCanvas() {
+	/** @hide */
+	public Canvas getCanvas() {
 		return this.canvas;
 	}
 
@@ -130,6 +140,26 @@ public final class Context extends mocha.foundation.Object {
 
 	Paint getPaint() {
 		return paint;
+	}
+
+	public void scale(float x, float y) {
+		this.canvas.scale(x * this.scale, y * this.scale);
+	}
+
+	public void translate(float x, float y) {
+		this.canvas.translate(x * this.scale, y * this.scale);
+	}
+
+	public void rotate(float radians) {
+		this.rotate(radians, AffineTransform.AngleUnit.RADIANS);
+	}
+
+	public void rotate(float angle, AffineTransform.AngleUnit unit) {
+		if(unit == AffineTransform.AngleUnit.DEGREES) {
+			this.canvas.rotate(angle);
+		} else {
+			this.canvas.rotate((float)Math.toDegrees(angle));
+		}
 	}
 
 	public void setFillColor(float red, float green, float blue, float alpha) {

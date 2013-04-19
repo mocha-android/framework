@@ -34,6 +34,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private float shadowRadius;
 	private Path shadowPath;
 	public final float scale;
+	private int backgroundColor;
 
 	public ViewLayerNative(Context context) {
 		super(context);
@@ -47,6 +48,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		this.shadowOpacity = 0.0f;
 		this.shadowOffset = new Size(0.0f, -3.0f);
 		this.shadowRadius = 3.0f;
+		this.setBackgroundColor(Color.TRANSPARENT);
 	}
 
 	private static boolean pushIgnoreLayout() {
@@ -99,6 +101,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	public void setBackgroundColor(int backgroundColor) {
 		super.setBackgroundColor(backgroundColor);
+		this.backgroundColor = backgroundColor;
 
 		if(this.supportsDrawing) {
 			// this.setDrawingCacheBackgroundColor(backgroundColor);
@@ -150,9 +153,19 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	private void layoutRelativeToBounds(Rect bounds) {
 		boolean ignoreLayout = pushIgnoreLayout();
-		this.layout(0, 0, ceil(this.frame.size.width), ceil(this.frame.size.height));
-		this.setX((this.frame.origin.x - bounds.origin.x));
-		this.setY((this.frame.origin.y - bounds.origin.y));
+
+		int x = ceil((this.frame.origin.x - bounds.origin.x));
+		int y = ceil((this.frame.origin.y - bounds.origin.y));
+		int width = ceil(this.frame.size.width);
+		int height = ceil(this.frame.size.height);
+
+		// this.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+
+		this.layout(0, 0, width, height);
+
+		this.setX(x);
+		this.setY(y);
+
 		popIgnoreLayout(ignoreLayout);
 	}
 
@@ -182,10 +195,6 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		} else if(setNeedsLayout) {
 			this.view.setNeedsLayout();
 		}
-	}
-
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		this.setMeasuredDimension(ceil(frame.size.width), ceil(this.frame.size.height));
 	}
 
 	protected void onLayout(boolean changed, int i, int i1, int i2, int i3) {
@@ -279,30 +288,71 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 		if(this.transform.isIdentity()) {
 			this.matrix = null;
-		} else {
-			float[] values = new float[] {
-					this.transform.getA(), this.transform.getB(),
-					this.transform.getC(), this.transform.getD(),
 
-					this.transform.getTx() * this.scale,
-					this.transform.getTy() * this.scale
-			};
-
-			if(this.matrix == null) {
-				this.matrix = new Matrix();
+			if(this.getScaleX() != 1.0f) {
+				this.setScaleX(1.0f);
 			}
 
-			this.matrix.setValues(new float[]{
-					values[0], values[2], values[4],
-					values[1], values[3], values[5],
-					0.0f, 0.0f, 1.0f
-			});
-		}
+			if(this.getScaleY() != 1.0f) {
+				this.setScaleY(1.0f);
+			}
 
-		this.setNeedsDisplay();
+			if(this.getTranslationX() != 0.0f) {
+				this.setTranslationX(0.0f);
+			}
 
-		if(this.getSuperlayer() != null) {
-			this.getSuperlayer().setNeedsDisplay();
+			if(this.getTranslationY() != 0.0f) {
+				this.setTranslationY(0.0f);
+			}
+		} else {
+			float a = this.transform.getA();
+			float b = this.transform.getB();
+			float c = this.transform.getC();
+			float d = this.transform.getD();
+
+			float tx = this.transform.getTx();
+			float ty = this.transform.getTy();
+
+			// Check for a simple scale animation
+			if(b == 0.0f && c == 0.0f) {
+				if(this.matrix != null) {
+					this.matrix = null;
+					this.setNeedsDisplay();
+				}
+
+				this.setScaleX(a);
+				this.setScaleY(d);
+
+				this.setTranslationX(tx);
+				this.setTranslationY(ty);
+			}
+
+			// Use a full matrix transform, which is still buggy.
+			else {
+				float[] values = new float[] {
+						this.transform.getA(), this.transform.getB(),
+						this.transform.getC(), this.transform.getD(),
+
+						this.transform.getTx() * this.scale,
+						this.transform.getTy() * this.scale
+				};
+
+				if(this.matrix == null) {
+					this.matrix = new Matrix();
+				}
+
+				this.matrix.setValues(new float[]{
+						values[0], values[2], values[4],
+						values[1], values[3], values[5],
+						0.0f, 0.0f, 1.0f
+				});
+			}
+
+			this.setNeedsDisplay();
+
+			if(this.getSuperlayer() != null) {
+				this.getSuperlayer().setNeedsDisplay();
+			}
 		}
 	}
 
@@ -369,6 +419,44 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	public void setNeedsDisplay(Rect dirtyRect) {
 		this.invalidate(dirtyRect.toSystemRect(this.scale));
+	}
+
+	public void renderInContext(mocha.graphics.Context context) {
+		Rect bounds = this.view.getBounds();
+		Rect rect = new Rect(0.0f, 0.0f, bounds.size.width, bounds.size.height);
+
+		if(this.backgroundColor != Color.TRANSPARENT) {
+			context.setFillColor(this.backgroundColor);
+			context.fillRect(rect);
+		}
+
+		if(this.supportsDrawing) {
+			context.clipToRect(rect);
+			this.getView().draw(context, rect);
+		}
+
+		int count = this.getChildCount();
+		for(int i = 0; i < count; i++) {
+			android.view.View child = this.getChildAt(i);
+			if(child.getVisibility() != VISIBLE || child.getAlpha() < 0.01f) continue;
+
+			if(child instanceof ViewLayerNative) {
+				Rect frame = ((ViewLayerNative) child).view.getFrame();
+
+				if(!this.clipsToBounds || bounds.intersects(frame)) {
+					context.save();
+					context.translate(frame.origin.x - bounds.origin.x, frame.origin.y - bounds.origin.y);
+					((ViewLayerNative) child).renderInContext(context);
+					context.restore();
+				}
+			} else {
+				this.renderSystemView(context, child);
+			}
+		}
+	}
+
+	private void renderSystemView(mocha.graphics.Context context, android.view.View systemView) {
+		systemView.draw(context.getCanvas());
 	}
 
 	public void addSublayer(ViewLayer layer) {

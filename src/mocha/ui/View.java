@@ -6,6 +6,8 @@
 package mocha.ui;
 
 import android.util.FloatMath;
+import android.view.HapticFeedbackConstants;
+import android.view.SoundEffectConstants;
 import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
@@ -698,6 +700,18 @@ public class View extends Responder implements Accessibility {
 
 	public boolean pointInside(Point point, Event event) {
 		return this.getTransform().apply(this.getBounds()).contains(point);
+	}
+
+	public void playClickSound() {
+		if(this.getLayer() instanceof ViewLayerNative) {
+			((ViewLayerNative)this.getLayer()).playSoundEffect(SoundEffectConstants.CLICK);
+		}
+	}
+
+	public void performHapticFeedback() {
+		if(this.getLayer() instanceof ViewLayerNative) {
+			((ViewLayerNative)this.getLayer()).performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+		}
 	}
 
 	// Hierarchy

@@ -5,10 +5,7 @@
  */
 package mocha.ui;
 
-import mocha.graphics.AffineTransform;
-import mocha.graphics.Path;
-import mocha.graphics.Rect;
-import mocha.graphics.Size;
+import mocha.graphics.*;
 
 import java.util.List;
 
@@ -71,6 +68,8 @@ public interface ViewLayer {
 
 	public Path getShadowPath();
 	public void setShadowPath(Path shadowPath);
+
+	public void renderInContext(Context context);
 
 	public class InvalidSubLayerClassException extends RuntimeException {
 		public InvalidSubLayerClassException(ViewLayer parent, ViewLayer child) {

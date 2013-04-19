@@ -101,6 +101,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private Runnable highlightStateCallback;
 	private Runnable restoreBackgroundCallback;
 	private TableView.Style tableStyle;
+	private boolean playClickSoundOnSelection;
 
 	private View contentView;
 	private View backgroundView;
@@ -134,6 +135,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this._reuseIdentifier = reuseIdentifier != null ? reuseIdentifier : this.getClass().getName();
 		this.originalViewStates = new HashMap<View, OriginalViewState>();
 		this.layoutManager = TableViewCellLayoutManager.getLayoutManagerForTableViewCellStyle(this.cellStyle);
+		this.playClickSoundOnSelection = true;
 
 		this.setBackgroundColor(Color.WHITE);
 		this.getContentView();
@@ -652,6 +654,14 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public boolean isEditing() {
 		return this.editing;
+	}
+
+	public boolean shouldPlayClickSoundOnSelection() {
+		return playClickSoundOnSelection;
+	}
+
+	public void setPlayClickSoundOnSelection(boolean playClickSoundOnSelection) {
+		this.playClickSoundOnSelection = playClickSoundOnSelection;
 	}
 
 	public void prepareForReuse() {
