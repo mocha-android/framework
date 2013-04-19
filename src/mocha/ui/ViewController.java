@@ -449,6 +449,10 @@ public class ViewController extends Responder {
 		this.appearanceTransitionIsAppearing = isAppearing ? 1 : -1;
 		this.appearanceTransitionAnimated = animated ? 1 : -1;
 
+		if(!this.isViewLoaded()) {
+			this.getView();
+		}
+
 		if(isAppearing) {
 			this.viewWillAppear(animated);
 		} else {
