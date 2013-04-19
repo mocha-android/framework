@@ -261,13 +261,15 @@ public class ViewController extends Responder {
 	}
 
 	public void setNavigationItem(NavigationItem navigationItem) {
-		NavigationController navigationController = this.getNavigationController();
+		if(this.navigationItem != navigationItem) {
+			NavigationController navigationController = this.getNavigationController();
 
-		if(navigationController != null && this.navigationItem != null) {
-			navigationController.getNavigationBar().replaceNavigationItem(this.navigationItem, navigationItem);
+			if(navigationController != null && this.navigationItem != null) {
+				navigationController.getNavigationBar().replaceNavigationItem(this.navigationItem, navigationItem);
+			}
+
+			this.navigationItem = navigationItem;
 		}
-
-		this.navigationItem = navigationItem;
 	}
 
 	protected List<ViewController> getChildViewControllers() {

@@ -582,6 +582,10 @@ public class SegmentedControl extends Control {
 			this.rightState = rightState;
 		}
 
+		public int hashCode() {
+			return leftState.hashCode() + rightState.hashCode();
+		}
+
 		public boolean equals(Object o) {
 			if(!(o instanceof LeftRightState)) {
 				return false;

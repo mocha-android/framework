@@ -160,27 +160,29 @@ public class Control extends View {
 	void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
 		if(this.registeredActions.size() == 0) return;
 
-		boolean sentTouchUpInsideAction = false;
+		boolean hasSentTouchUpInsideAction = false;
 
 		for(ActionTarget actionTarget : this.registeredActions.keySet()) {
 			for(ControlEvent controlEvent : controlEvents) {
 				if(this.registeredActions.get(actionTarget).contains(controlEvent)) {
-					actionTarget.onControlEvent(this, controlEvent, event);
 
-					if(controlEvent == ControlEvent.TOUCH_UP_INSIDE) {
-						sentTouchUpInsideAction = true;
+					if(controlEvent == ControlEvent.TOUCH_UP_INSIDE && !hasSentTouchUpInsideAction) {
+						// We have to fire this stuff before the action, because if the action
+						// removes us from the window, they won't fire.
+
+						if(this.shouldPerformHapticFeedbackOnTouchUpInside) {
+							this.performHapticFeedback();
+						}
+
+						if(this.shouldPlayClickSoundOnTouchUpInside) {
+							this.playClickSound();
+						}
+
+						hasSentTouchUpInsideAction = true;
 					}
+
+					actionTarget.onControlEvent(this, controlEvent, event);
 				}
-			}
-		}
-
-		if(sentTouchUpInsideAction) {
-			if(this.shouldPerformHapticFeedbackOnTouchUpInside) {
-				this.performHapticFeedback();
-			}
-
-			if(this.shouldPlayClickSoundOnTouchUpInside) {
-				this.playClickSound();
 			}
 		}
 	}
