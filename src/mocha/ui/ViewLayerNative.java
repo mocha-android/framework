@@ -35,6 +35,8 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private Path shadowPath;
 	public final float scale;
 	private int backgroundColor;
+	private float tx;
+	private float ty;
 
 	public ViewLayerNative(Context context) {
 		super(context);
@@ -154,8 +156,6 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private void layoutRelativeToBounds(Rect bounds) {
 		boolean ignoreLayout = pushIgnoreLayout();
 
-		int x = ceil((this.frame.origin.x - bounds.origin.x));
-		int y = ceil((this.frame.origin.y - bounds.origin.y));
 		int width = ceil(this.frame.size.width);
 		int height = ceil(this.frame.size.height);
 
@@ -163,10 +163,24 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 		this.layout(0, 0, width, height);
 
-		this.setX(x);
-		this.setY(y);
+		this.updateOrigin(bounds);
 
 		popIgnoreLayout(ignoreLayout);
+	}
+
+	private void updateOrigin() {
+		ViewLayerNative layer = (ViewLayerNative)this.getSuperlayer();
+
+		if(layer != null) {
+			this.updateOrigin(layer.getBounds());
+		}
+	}
+
+	private void updateOrigin(Rect relativeToBounds) {
+		int x = ceil((this.frame.origin.x - relativeToBounds.origin.x));
+		int y = ceil((this.frame.origin.y - relativeToBounds.origin.y));
+		this.setX(x + this.tx);
+		this.setY(y + this.ty);
 	}
 
 	public Rect getBounds() {
@@ -297,21 +311,15 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 				this.setScaleY(1.0f);
 			}
 
-			if(this.getTranslationX() != 0.0f) {
-				this.setTranslationX(0.0f);
-			}
-
-			if(this.getTranslationY() != 0.0f) {
-				this.setTranslationY(0.0f);
-			}
+			this.resetTranslation();
 		} else {
 			float a = this.transform.getA();
 			float b = this.transform.getB();
 			float c = this.transform.getC();
 			float d = this.transform.getD();
 
-			float tx = this.transform.getTx();
-			float ty = this.transform.getTy();
+			float tx = this.transform.getTx() * this.scale;
+			float ty = this.transform.getTy() * this.scale;
 
 			// Check for a simple scale animation
 			if(b == 0.0f && c == 0.0f) {
@@ -323,18 +331,22 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 				this.setScaleX(a);
 				this.setScaleY(d);
 
-				this.setTranslationX(tx);
-				this.setTranslationY(ty);
+				if(tx != this.tx || ty != this.ty) {
+					this.tx = tx;
+					this.ty = ty;
+
+					this.updateOrigin();
+				}
 			}
 
 			// Use a full matrix transform, which is still buggy.
 			else {
 				float[] values = new float[] {
-						this.transform.getA(), this.transform.getB(),
-						this.transform.getC(), this.transform.getD(),
+						a, b,
+						c, d,
 
-						this.transform.getTx() * this.scale,
-						this.transform.getTy() * this.scale
+						tx,
+						ty
 				};
 
 				if(this.matrix == null) {
@@ -348,11 +360,21 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 				});
 			}
 
+			this.resetTranslation();
 			this.setNeedsDisplay();
 
 			if(this.getSuperlayer() != null) {
 				this.getSuperlayer().setNeedsDisplay();
 			}
+		}
+	}
+
+	private void resetTranslation() {
+		if(this.tx != 0.0f || this.ty != 0.0f) {
+			this.tx = 0.0f;
+			this.ty = 0.0f;
+
+			this.updateOrigin();
 		}
 	}
 
