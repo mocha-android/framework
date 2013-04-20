@@ -203,6 +203,14 @@ public class TextField extends Control implements TextInput.Traits {
 		this.editText.setText(text);
 		this.setNeedsDisplay();
 		this.ignoreTextChanges = ignoreTextChanges;
+
+		boolean isEmpty = text == null || text.length() == 0;
+		
+		if(wasEmpty != isEmpty) {
+			setNeedsDisplay();
+			layoutSubviews();
+			wasEmpty = isEmpty;
+		}
 	}
 
 	public int getTextColor() {
