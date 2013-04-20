@@ -309,14 +309,15 @@ public class TableView extends ScrollView {
 		MLog("============================");
 		MLog("Subview Debug (Bounds: %s):", this.getBounds());
 		MLog("----------------------------");
-		String format = "| %-30s | %-7s | %-7s | %-25s | %-10s | %-10s | %-11s | %-6s | %-5s |";
+		String format = "| %-35s | %-7s | %-7s | %-35s | %-10s | %-10s | %-11s | %-6s | %-5s |";
 		MLog(format, "Native Frame", "Section", "Type", "Frame", "In Headers", "In Cells", "In Subviews", "Queued", "Y");
 		for(View view : this.getSubviews()) {
 			if(view instanceof TableViewSubview) {
 				TableViewSubview subview = (TableViewSubview)view;
 				ViewLayerNative layer = (ViewLayerNative)subview.getLayer();
 
-				MLog(format, layer.getFrame(), subview._dataSourceInfo.section,
+				MLog(format, layer.getFrame(),
+						(subview instanceof TableViewCell ? subview._dataSourceInfo.indexPath.section + "x" + subview._dataSourceInfo.indexPath.row : subview._dataSourceInfo.section),
 						subview._dataSourceInfo.type, subview.getFrame(), this.visibleHeaders.contains(subview),
 						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
 						this.visibleSubviews.contains(subview), subview._isQueued, layer.getY());
@@ -623,8 +624,7 @@ public class TableView extends ScrollView {
 		int row = 0;
 		float current = 0;
 		for(int i = 0; i < sectionInfo.numberOfRows; i++) {
-			float rowHeight = this.usesCustomRowHeights ? sectionInfo.rowHeights[i] : this.rowHeight;
-			current += this.rowHeight;
+			current += this.usesCustomRowHeights ? sectionInfo.rowHeights[i] : this.rowHeight;
 
 			if(offsetY < current) {
 				break;
@@ -997,7 +997,7 @@ public class TableView extends ScrollView {
 				this.visibleHeaders.add(0, visibleSubview);
 				changedHeaders = true;
 			} else if(visibleSubview instanceof TableViewCell) {
-				this.tableViewCells.add((TableViewCell)visibleSubview);
+				this.tableViewCells.add((TableViewCell) visibleSubview);
 			}
 		}
 
@@ -1031,7 +1031,7 @@ public class TableView extends ScrollView {
 					SectionInfo info = this.sectionsInfo.get(indexPath.section);
 
 					if(info.headerHeight > 0.0f) {
-						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));
+						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));=
 						this.addSubview(header);
 						this.visibleHeaders.add(header);
 						this.visibleSubviews.add(header);
@@ -1046,8 +1046,8 @@ public class TableView extends ScrollView {
 				if(frame != null) {
 					visibleSubview.setFrame(frame);
 					this.visibleSubviews.add(visibleSubview);
-					this.tableViewCells.add((TableViewCell)visibleSubview);
-					size = 1;
+					this.tableViewCells.add((TableViewCell) visibleSubview);
+					size++;
 				}
 			}
 		}
@@ -1090,7 +1090,7 @@ public class TableView extends ScrollView {
 				this.visibleHeaders.add(visibleSubview);
 				changedHeaders = true;
 			} else if(visibleSubview instanceof TableViewCell) {
-				this.tableViewCells.add((TableViewCell)visibleSubview);
+				this.tableViewCells.add((TableViewCell) visibleSubview);
 			}
 		}
 

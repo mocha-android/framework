@@ -167,6 +167,14 @@ public class BarButtonItem extends BarItem implements Accessibility {
 		this.action = action;
 	}
 
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+
+		if(getView() instanceof Control) {
+			((Control) getView()).setEnabled(enabled);
+		}
+	}
+
 	public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics, Control.State... state) {
 		Map<EnumSet<Control.State>, Image> backgroundImages = this.backgroundImages.get(barMetrics);
 
