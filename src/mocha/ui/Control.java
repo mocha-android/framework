@@ -59,7 +59,17 @@ public class Control extends View {
 		DISABLED,
 		SELECTED, // flag usable by app (see below)
 		APPLICATION, // additional flags available for application use
-		RESERVED // flags reserved for internal framework use
+		RESERVED; // flags reserved for internal framework
+
+		public static EnumSet<State> toSet(State[] states) {
+			if(states != null && states.length == 1) {
+				return EnumSet.of(states[0]);
+			} else if(states != null && states.length > 0) {
+				return EnumSet.of(states[0], states);
+			} else {
+				return EnumSet.noneOf(State.class);
+			}
+		}
 	}
 
 	public interface ActionTarget {
@@ -386,14 +396,13 @@ public class Control extends View {
 		this.contentVerticalAlignment = contentVerticalAlignment;
 	}
 
+	/**
+	 * @deprecated {@link State#toSet(mocha.ui.Control.State[])}
+	 * @param states States to convert to a set
+	 * @return State set
+	 */
 	static EnumSet<State> getStateSet(State... states) {
-		if(states != null && states.length == 1) {
-			return EnumSet.of(states[0]);
-		} else if(states != null && states.length > 0) {
-			return EnumSet.of(states[0], states);
-		} else {
-			return EnumSet.noneOf(State.class);
-		}
+		return State.toSet(states);
 	}
 
 	static class RuntimeTargetAction implements ActionTarget {

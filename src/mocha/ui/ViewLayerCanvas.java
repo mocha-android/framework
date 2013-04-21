@@ -8,6 +8,7 @@ package mocha.ui;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.view.ViewGroup;
 import mocha.foundation.Benchmark;
 import mocha.graphics.*;
 
@@ -422,5 +423,9 @@ public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLaye
 
 	public void setShadowPath(Path shadowPath) {
 		this.shadowPath = shadowPath;
+	}
+
+	public ViewGroup getViewGroup() {
+		return null;
 	}
 }

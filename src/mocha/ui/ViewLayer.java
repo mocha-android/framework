@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.view.ViewGroup;
 import mocha.graphics.*;
 
 import java.util.List;
@@ -70,6 +71,8 @@ public interface ViewLayer {
 	public void setShadowPath(Path shadowPath);
 
 	public void renderInContext(Context context);
+
+	public ViewGroup getViewGroup(); // May return null
 
 	public class InvalidSubLayerClassException extends RuntimeException {
 		public InvalidSubLayerClassException(ViewLayer parent, ViewLayer child) {

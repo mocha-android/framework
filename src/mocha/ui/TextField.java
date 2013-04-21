@@ -12,6 +12,10 @@ import mocha.foundation.NotificationCenter;
 import mocha.foundation.Range;
 import mocha.graphics.*;
 
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+
 public class TextField extends Control implements TextInput.Traits {
 
 	public static final String DID_BEGIN_EDITING_NOTIFICATION = "TEXT_FIELD_DID_BEGIN_EDITING_NOTIFICATION";
@@ -22,6 +26,7 @@ public class TextField extends Control implements TextInput.Traits {
 		NEVER,
 		WHILE_EDITING,
 		UNLESS_EDITING,
+		NOT_EMPTY,
 		ALWAYS
 	}
 
@@ -82,6 +87,7 @@ public class TextField extends Control implements TextInput.Traits {
 	private Delegate.ShouldReturn delegateShouldReturn;
 	private Image background;
 	private Image disabledBackground;
+	private Map<EnumSet<State>, Image> clearButtonImages;
 	private boolean editing;
 
 	private ViewMode clearButtonMode;
@@ -117,6 +123,8 @@ public class TextField extends Control implements TextInput.Traits {
 		this.setFont(Font.getSystemFontWithSize(12.0f));
 		this.setTextAlignment(TextAlignment.LEFT);
 		this.setPlaceholderColor(Color.white(0.7f, 1.0f));
+
+		this.clearButtonImages = new HashMap<EnumSet<State>, Image>();
 
 		this.addActionTarget(new ActionTarget() {
 			public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
@@ -334,6 +342,41 @@ public class TextField extends Control implements TextInput.Traits {
 		this.setNeedsDisplay();
 	}
 
+	public void setClearButtonImage(Image image, State... state) {
+		EnumSet<State> states = State.toSet(state);
+
+		if(image == null) {
+			this.clearButtonImages.remove(states);
+		} else {
+			this.clearButtonImages.put(states, image);
+		}
+
+		this.updateClearButtonImages();
+	}
+
+	public Image getClearButtonImage(State... state) {
+		return this.clearButtonImages.get(State.toSet(state));
+	}
+
+	private void updateClearButtonImages() {
+		if(this.clearButton != null) {
+			Image image = this.getClearButtonImage(State.NORMAL);
+
+			if(image != null) {
+				this.clearButton.setImage(image, State.NORMAL);
+
+				image = this.getClearButtonImage(State.NORMAL, State.HIGHLIGHTED);
+
+				if(image != null) {
+					this.clearButton.setImage(image, State.NORMAL, State.HIGHLIGHTED);
+				}
+			} else {
+				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button, State.NORMAL);
+				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button_pressed, State.NORMAL, State.HIGHLIGHTED);
+			}
+		}
+	}
+
 	public boolean isEditing() {
 		return this.editText.isInEditMode();
 	}
@@ -364,8 +407,8 @@ public class TextField extends Control implements TextInput.Traits {
 						}
 					}
 				}, ControlEvent.TOUCH_UP_INSIDE);
-				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button, State.NORMAL);
-				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button_pressed, State.NORMAL, State.HIGHLIGHTED);
+
+				this.updateClearButtonImages();
 				this.addSubview(this.clearButton);
 			}
 
@@ -453,7 +496,7 @@ public class TextField extends Control implements TextInput.Traits {
 	}
 
 	protected Rect getClearButtonRectForBounds(Rect bounds) {
-		if(this.clearButton != null && !this.clearButton.isHidden()) {
+		if(this.clearButton != null && this.isViewModeVisible(this.clearButtonMode)) {
 			Rect rect = this.clearButton.getFrame();
 			rect.size = this.clearButton.getCurrentImage().getSize();
 			rect.origin.x = bounds.origin.x + bounds.size.width - rect.size.width - 6.0f;
@@ -465,7 +508,7 @@ public class TextField extends Control implements TextInput.Traits {
 	}
 
 	protected Rect getLeftViewRectForBounds(Rect bounds) {
-		if(this.leftView != null && !this.leftView.isHidden()) {
+		if(this.leftView != null && this.isViewModeVisible(this.leftViewMode)) {
 			Rect rect = this.leftView.getFrame();
 			rect.origin.x = 0.0f;
 			rect.origin.y = floorf((bounds.size.height - rect.size.height) / 2.0f);
@@ -476,7 +519,7 @@ public class TextField extends Control implements TextInput.Traits {
 	}
 
 	protected Rect getRightViewRectForBounds(Rect bounds) {
-		if(this.rightView != null && !this.rightView.isHidden()) {
+		if(this.rightView != null && this.isViewModeVisible(this.rightViewMode)) {
 			Rect rect = this.rightView.getFrame();
 
 			Rect clearRect = this.getClearButtonRectForBounds(bounds);
@@ -518,6 +561,10 @@ public class TextField extends Control implements TextInput.Traits {
 	private void layoutAccessoryView(View view, Rect rect, ViewMode viewMode) {
 		boolean shouldBeVisible = this.isViewModeVisible(viewMode);
 
+		if(shouldBeVisible && view == this.clearButton) {
+			shouldBeVisible = this.getText().length() > 0;
+		}
+
 		if(shouldBeVisible == view.isHidden()) {
 			boolean restore = View.areAnimationsEnabled();
 			View.setAnimationsEnabled(false);
@@ -537,6 +584,8 @@ public class TextField extends Control implements TextInput.Traits {
 				return this.editing;
 			case UNLESS_EDITING:
 				return !this.editing;
+			case NOT_EMPTY:
+				return this.getText().length() > 0;
 			case ALWAYS:
 				return true;
 		}

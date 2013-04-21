@@ -159,7 +159,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		int width = ceil(this.frame.size.width);
 		int height = ceil(this.frame.size.height);
 
-		// this.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+		this.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
 
 		this.layout(0, 0, width, height);
 
@@ -572,4 +572,9 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 			((ViewGroup)this.getParent()).removeView(this);
 		}
 	}
+
+	public ViewGroup getViewGroup() {
+		return this;
+	}
+
 }

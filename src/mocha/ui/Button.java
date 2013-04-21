@@ -383,7 +383,7 @@ public class Button extends Control {
 
 		if(imageSize.width < size.width) {
 			if(title != null && title.length() > 0) {
-				float titleWidth = ceilf(TextDrawing.getTextWidth(title, this.titleLabel.getFont(), size.width - imageSize.width));
+				float titleWidth = ceilf(this.titleLabel.sizeThatFits(new Size(size.width - imageSize.width, size.height)).width);
 				sizeThatFits.width = imageSize.width + titleWidth;
 			}
 		}

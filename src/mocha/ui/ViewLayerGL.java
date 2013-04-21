@@ -8,6 +8,7 @@ package mocha.ui;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.opengl.GLUtils;
+import android.view.ViewGroup;
 import mocha.foundation.Benchmark;
 import mocha.graphics.*;
 
@@ -591,5 +592,9 @@ public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
 		public int getId() {
 			return id;
 		}
+	}
+
+	public ViewGroup getViewGroup() {
+		return null;
 	}
 }

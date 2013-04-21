@@ -111,7 +111,7 @@ public class TableView extends ScrollView {
 		BOTTOM
 	}
 
-	private static class SectionInfo {
+	static class SectionInfo {
 		int numberOfRows;
 		Object header;
 		Object footer;
@@ -172,6 +172,7 @@ public class TableView extends ScrollView {
 	private boolean editing;
 	private float rowHeight;
 	private boolean allowsSelection;
+	private boolean reloadingData;
 
 	private DataSource dataSource;
 	private DataSource.Editing dataSourceEditing;
@@ -705,6 +706,12 @@ public class TableView extends ScrollView {
 			return;
 		}
 
+		if(this.reloadingData) {
+			MWarn("WARNING: Nested call to TableView.reloadData() detected.  This is unsupported.");
+		}
+
+		this.reloadingData = true;
+
 		boolean isCustomStyle = (this.tableStyle == Style.CUSTOM);
 		boolean isGroupedStyle = (this.tableStyle == Style.GROUPED);
 		boolean isPlainStyle = (this.tableStyle == Style.PLAIN);
@@ -814,6 +821,7 @@ public class TableView extends ScrollView {
 		tableHeight += this.tableFooterHeight;
 
 		this.setContentSize(new Size(this.getBounds().size.width, tableHeight));
+		this.reloadingData = false;
 	}
 
 	private void updateTableHeaderHeight(float oldHeight, float newHeight) {
@@ -1031,7 +1039,7 @@ public class TableView extends ScrollView {
 					SectionInfo info = this.sectionsInfo.get(indexPath.section);
 
 					if(info.headerHeight > 0.0f) {
-						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));=
+						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));
 						this.addSubview(header);
 						this.visibleHeaders.add(header);
 						this.visibleSubviews.add(header);

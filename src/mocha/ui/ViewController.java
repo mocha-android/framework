@@ -800,6 +800,9 @@ public class ViewController extends Responder {
 				viewController.getView().setFrame(bounds);
 			}
 
+			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
+
+
 			viewController.isBeingPresented = true;
 			viewController.beginAppearanceTransition(true, animated);
 			hideViewController.beginAppearanceTransition(false, animated);
@@ -910,6 +913,7 @@ public class ViewController extends Responder {
 			window.setUserInteractionEnabled(false);
 
 			toView.setFrame(bounds);
+			toView.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
 
 			fromViewController.beginAppearanceTransition(false, presenting);
 			toViewController.beginAppearanceTransition(true, !presenting);
