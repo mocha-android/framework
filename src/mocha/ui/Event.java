@@ -7,6 +7,7 @@ package mocha.ui;
 
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import mocha.graphics.Point;
 
 import java.util.*;
@@ -227,9 +228,11 @@ public final class Event extends mocha.foundation.Object {
 		float y = motionEvent.getY(pointerIndex);
 
 		if(window.getLayer() != touchedView) {
-			if(window.getLayer() instanceof ViewLayerNative) {
+			ViewGroup viewGroup = window.getLayer().getViewGroup();
+
+			if(viewGroup != null) {
 				int[] windowLocation = new int[2];
-				((ViewLayerNative)window.getLayer()).getLocationOnScreen(windowLocation);
+				viewGroup.getLocationOnScreen(windowLocation);
 
 				int[] viewLocation = new int[2];
 				touchedView.getLocationOnScreen(viewLocation);

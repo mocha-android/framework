@@ -7,6 +7,10 @@ package mocha.ui;
 
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.widget.AbsoluteLayout;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+
 import java.util.List;
 
 public class NativeView <V extends android.view.View> extends View {
@@ -15,7 +19,7 @@ public class NativeView <V extends android.view.View> extends View {
 	boolean trackingTouches;
 
 	public NativeView(V nativeView) {
-		if(!ViewLayerNative.class.isAssignableFrom(VIEW_LAYER_CLASS)) {
+		if(this.getLayer().getViewGroup() == null) {
 			throw new RuntimeException("NativeView currently only works when using ViewLayerNative.");
 		}
 
@@ -35,7 +39,7 @@ public class NativeView <V extends android.view.View> extends View {
 
 	public void setNativeView(V nativeView) {
 		if(this.nativeView != null) {
-			this.getNativeLayer().removeView(this.nativeView);
+			this.getLayer().getViewGroup().removeView(this.nativeView);
 		}
 
 		this.nativeView = nativeView;
@@ -51,7 +55,7 @@ public class NativeView <V extends android.view.View> extends View {
 				}
 			});
 
-			this.getNativeLayer().addView(this.nativeView);
+			this.getLayer().getViewGroup().addView(this.nativeView);
 		}
 	}
 
@@ -83,15 +87,19 @@ public class NativeView <V extends android.view.View> extends View {
 		int width = frame.width();
 		int height = frame.height();
 
-		this.nativeView.setMinimumWidth(width);
-		this.nativeView.setMinimumHeight(height);
-		this.nativeView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
-		this.nativeView.measure(
-				android.view.View.MeasureSpec.makeMeasureSpec(width, android.view.View.MeasureSpec.EXACTLY),
-				android.view.View.MeasureSpec.makeMeasureSpec(height, android.view.View.MeasureSpec.EXACTLY)
-		);
-		this.nativeView.forceLayout();
-		this.nativeView.layout(0, 0, width, height);
+		if(this.getLayer().getViewGroup() instanceof ViewLayerNative) {
+			this.nativeView.setMinimumWidth(width);
+			this.nativeView.setMinimumHeight(height);
+			this.nativeView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
+			this.nativeView.measure(
+					android.view.View.MeasureSpec.makeMeasureSpec(width, android.view.View.MeasureSpec.EXACTLY),
+					android.view.View.MeasureSpec.makeMeasureSpec(height, android.view.View.MeasureSpec.EXACTLY)
+			);
+			this.nativeView.forceLayout();
+			this.nativeView.layout(0, 0, width, height);
+		} else {
+			this.nativeView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+		}
 	}
 
 	public void touchesBegan(List<Touch> touches, Event event) {
@@ -117,10 +125,6 @@ public class NativeView <V extends android.view.View> extends View {
 		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
 			super.touchesEnded(touches, event);
 		}
-	}
-
-	private ViewLayerNative getNativeLayer() {
-		return (ViewLayerNative)this.getLayer();
 	}
 
 }

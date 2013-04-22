@@ -8,6 +8,7 @@ package mocha.ui;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.FloatMath;
+import android.view.ViewGroup;
 import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
@@ -46,7 +47,7 @@ class ViewAnimation extends mocha.foundation.Object {
 
 
 	enum Type {
-		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, TRANSFORM, CALLBACK_POINT
+		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, TRANSFORM, CALLBACK_POINT, CALLBACK_EDGE_INSETS
 	}
 
 	interface ProcessFrameCallback {
@@ -245,6 +246,9 @@ class ViewAnimation extends mocha.foundation.Object {
 				case CALLBACK_POINT:
 					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point)animation.startValue, (Point)animation.endValue));
 					break;
+				case CALLBACK_EDGE_INSETS:
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets)animation.startValue, (EdgeInsets)animation.endValue));
+					break;
 			}
 		}
 
@@ -289,6 +293,28 @@ class ViewAnimation extends mocha.foundation.Object {
 		return point;
 	}
 
+	private EdgeInsets interpolate(float frame, EdgeInsets start, EdgeInsets end) {
+		EdgeInsets insets = start.copy();
+
+		if(start.top != end.top) {
+			insets.top = this.timingFunction.interpolate(frame, start.top, end.top);
+		}
+
+		if(start.left != end.left) {
+			insets.left = this.timingFunction.interpolate(frame, start.left, end.left);
+		}
+
+		if(start.bottom != end.bottom) {
+			insets.bottom = this.timingFunction.interpolate(frame, start.bottom, end.bottom);
+		}
+
+		if(start.right != end.right) {
+			insets.right = this.timingFunction.interpolate(frame, start.right, end.right);
+		}
+
+		return insets;
+	}
+
 	private float interpolate(float frame, float start, float end) {
 		if(start == end) {
 			return start;
@@ -310,15 +336,15 @@ class ViewAnimation extends mocha.foundation.Object {
 
 		for(Animation animation : this.animations.values()) {
 			if(animation.shouldUseHardwareLayer) {
-				ViewLayer layer = animation.view.getLayer();
+				ViewGroup viewGroup = animation.view.getLayer().getViewGroup();
 
-				if(layer instanceof ViewLayerNative) {
-					int type = ((ViewLayerNative) layer).getLayerType();
+				if(viewGroup != null) {
+					int type = viewGroup.getLayerType();
 
 					if(type != android.view.View.LAYER_TYPE_HARDWARE) {
 						animation.originalLayerType = type;
 						animation.shouldRestoreToOriginalLayerType = true;
-						((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
+						viewGroup.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
 					}
 				}
 			}
@@ -355,10 +381,10 @@ class ViewAnimation extends mocha.foundation.Object {
 	private void restoreLayerTypes() {
 		for(Animation animation : this.animations.values()) {
 			if(animation.shouldRestoreToOriginalLayerType) {
-				ViewLayer layer = animation.view.getLayer();
+				ViewGroup viewGroup = animation.view.getLayer().getViewGroup();
 
-				if(layer instanceof ViewLayerNative) {
-					((ViewLayerNative) layer).setLayerType(animation.originalLayerType, null);
+				if(viewGroup != null) {
+					viewGroup.setLayerType(animation.originalLayerType, null);
 				}
 			}
 		}

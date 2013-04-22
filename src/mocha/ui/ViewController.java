@@ -153,6 +153,7 @@ public class ViewController extends Responder {
 	public void viewWillAppear(boolean animated) {
 		this.willAppear = true;
 		this.notifyChildrenAppearanceTransitionBegin(true, animated);
+		this.getView().setNeedsLayout();
 	}
 
 	/**

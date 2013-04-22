@@ -8,6 +8,7 @@ package mocha.ui;
 import android.util.FloatMath;
 import android.view.HapticFeedbackConstants;
 import android.view.SoundEffectConstants;
+import android.view.ViewGroup;
 import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
@@ -18,8 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class View extends Responder implements Accessibility {
-	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
-	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative2.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative2.class;
 
 	public static boolean SLOW_ANIMATIONS = false;
 	public static boolean SHOW_DROPPED_ANIMATION_FRAMES = false;
@@ -462,7 +463,7 @@ public class View extends Responder implements Accessibility {
 	}
 
 	/**
-	 * Change the backing layer type, if we're using ViewLayerNative.
+	 * Change the backing layer type, if we're using a view group backed layer type.
 	 * Changing this shouldn't be necessary unless you're using something like
 	 * blending modes in your view's draw() method that isn't supported by
 	 * hardware layers yet.
@@ -470,13 +471,13 @@ public class View extends Responder implements Accessibility {
 	 * @param hardwareAccelerationEnabled Whether or not hardware acceleration is enabled
 	 */
 	public void setHardwareAccelerationEnabled(boolean hardwareAccelerationEnabled) {
-		ViewLayer layer = this.getLayer();
+		ViewGroup viewGroup = this.getLayer().getViewGroup();
 
-		if(layer instanceof ViewLayerNative) {
+		if(viewGroup != null) {
 			if(hardwareAccelerationEnabled) {
-				((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_NONE, null);
+				viewGroup.setLayerType(android.view.View.LAYER_TYPE_NONE, null);
 			} else {
-				((ViewLayerNative) layer).setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
+				viewGroup.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
 			}
 		}
 	}
@@ -485,8 +486,8 @@ public class View extends Responder implements Accessibility {
 	 * @return Whether or not the view is hardware accelerated
 	 */
 	public boolean isHardwareAccelerationEnabled() {
-		ViewLayer layer = this.getLayer();
-		return layer instanceof ViewLayerNative && ((ViewLayerNative) layer).isHardwareAccelerated();
+		ViewGroup viewGroup = this.getLayer().getViewGroup();
+		return viewGroup != null && viewGroup.isHardwareAccelerated();
 	}
 
 	// Layout
@@ -703,14 +704,14 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public void playClickSound() {
-		if(this.getLayer() instanceof ViewLayerNative) {
-			((ViewLayerNative)this.getLayer()).playSoundEffect(SoundEffectConstants.CLICK);
+		if(this.getLayer().getViewGroup() != null) {
+			this.getLayer().getViewGroup().playSoundEffect(SoundEffectConstants.CLICK);
 		}
 	}
 
 	public void performHapticFeedback() {
-		if(this.getLayer() instanceof ViewLayerNative) {
-			((ViewLayerNative)this.getLayer()).performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+		if(this.getLayer().getViewGroup() != null) {
+			this.getLayer().getViewGroup().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
 		}
 	}
 

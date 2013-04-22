@@ -55,12 +55,14 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private boolean bounces;
 	private boolean alwaysBounceHorizontal;
 	private boolean alwaysBounceVertical;
+	private boolean hasLaidOut;
 	Listener listener;
 	Listener.Dragging listenerDragging;
 	Listener.Decelerating listenerDecelerating;
 	Listener.Animations listenerAnimations;
 	ScrollViewPanGestureRecognizer panGestureRecognizer;
 	Point maxPoint;
+	Point minPoint;
 	boolean canScrollVertically;
 	boolean canScrollHorizontally;
 	private ScrollIndicator horizontalScrollIndicator;
@@ -74,9 +76,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		this.contentOffset = new Point();
+		this.contentOffset = Point.zero();
 		this.contentSize = Size.zero();
-		this.adjustedContentSize = new Size();
+		this.adjustedContentSize = Size.zero();
 		this.dragging = false;
 		this.decelerating = false;
 		this.indicatorStyle = IndicatorStyle.DEFAULT;
@@ -84,7 +86,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.showsVerticalScrollIndicator = true;
 		this.scrollIndicatorInsets = EdgeInsets.zero();
 		this.pagingEnabled = false;
-		this.pageSize = new Size();
+		this.pageSize = Size.zero();
 		this.bounces = true;
 		this.alwaysBounceHorizontal = false;
 		this.alwaysBounceVertical = false;
@@ -96,6 +98,12 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.setClipsToBounds(true);
 		this.createScrollIndicators();
 		this.updateAlwaysBounce();
+		this.minPoint = Point.zero();
+	}
+
+	public void layoutSubviews() {
+		super.layoutSubviews();
+		this.hasLaidOut = true;
 	}
 
 	public void setBounces(boolean bounces) {
@@ -203,7 +211,55 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public void setContentInset(EdgeInsets contentInset) {
-		this.contentInset = contentInset;
+		if(contentInset == null) {
+			contentInset = EdgeInsets.zero();
+		} else {
+			contentInset = contentInset.copy();
+		}
+
+		if(!this.contentInset.equals(contentInset)) {
+			if(View.isInAnimationContext()) {
+				currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_EDGE_INSETS, this.contentInset, contentInset, new ViewAnimation.ProcessFrameCallback() {
+					public void processFrame(Object value) {
+						setContentInset((EdgeInsets)value);
+					}
+				});
+
+				return;
+			}
+
+			EdgeInsets previousContentInset = this.contentInset;
+			this.contentInset = contentInset;
+			this.minPoint = new Point(-contentInset.left, -contentInset.top);
+
+			Size size = this.getBounds().size;
+
+			this.adjustedContentSize.width -= previousContentInset.right;
+			this.adjustedContentSize.width += this.contentInset.right;
+
+			this.adjustedContentSize.height -= previousContentInset.bottom;
+			this.adjustedContentSize.height += this.contentInset.bottom;
+			this.maxPoint = new Point(this.adjustedContentSize.width - size.width, this.adjustedContentSize.height - size.height);
+
+			if(!this.hasLaidOut) {
+				this.setContentOffset(this.minPoint);
+			} else {
+				Point contentOffset = this.contentOffset.copy();
+
+				if(this.contentInset.left < previousContentInset.left) {
+					contentOffset.x += previousContentInset.left - this.contentInset.left;
+				}
+
+				if(this.contentInset.top < previousContentInset.top) {
+					contentOffset.y += previousContentInset.top - this.contentInset.top;
+				}
+
+				if(!contentOffset.equals(this.contentOffset)) {
+					this.setContentOffset(contentOffset);
+				}
+			}
+
+		}
 	}
 
 	public Size getPageSize() {
@@ -349,8 +405,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
 				this.adjustContentSize(false);
-//				this.contentOffset.x = clampf(this.contentOffset.x, 0, this.maxPoint.x);
-//				this.contentOffset.y = clampf(this.contentOffset.y, 0, this.maxPoint.y);
 			}
 
 			if(View.isInAnimationContext()) {
@@ -395,8 +449,18 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			commit = true;
 		} else {
 			if (this.bounces) {
-				contentOffset.x = clampf(this.contentOffset.x, 0, this.maxPoint.x);
-				contentOffset.y = clampf(this.contentOffset.y, 0, this.maxPoint.y);
+				contentOffset.x = clampf(this.contentOffset.x, this.minPoint.x, this.maxPoint.x);
+				contentOffset.y = clampf(this.contentOffset.y, this.minPoint.y, this.maxPoint.y);
+
+				Rect frame = this.getFrame();
+
+				if(this.contentOffset.x > this.minPoint.x && (this.contentSize.width + this.contentInset.right) < frame.size.width) {
+					contentOffset.x = this.minPoint.x;
+				}
+
+				if(this.contentOffset.y > this.minPoint.y && (this.contentSize.height + this.contentInset.bottom) < frame.size.height) {
+					contentOffset.y = this.minPoint.y;
+				}
 			}
 
 			contentOffset.x = roundf(contentOffset.x);
@@ -428,27 +492,27 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.updateAlwaysBounce();
 	}
 
-	private void adjustContentSize(boolean a) {
-		Point b = null;
+	private void adjustContentSize(boolean adjustOffset) {
+		Point adjustedOffset = null;
 
-		if (a) {
-			b = new Point();
+		if (adjustOffset) {
+			adjustedOffset = new Point();
 
 			if (this.adjustedContentSize.width != 0) {
-				b.x = this.contentOffset.x / this.adjustedContentSize.width;
+				adjustedOffset.x = this.contentOffset.x / this.adjustedContentSize.width;
 			}
 			if (this.adjustedContentSize.height != 0) {
-				b.y = this.contentOffset.y / this.adjustedContentSize.height;
+				adjustedOffset.y = this.contentOffset.y / this.adjustedContentSize.height;
 			}
 		}
 
 		Size size = this.getBounds().size;
-		this.adjustedContentSize.width = Math.max(size.width, this.contentSize.width);
-		this.adjustedContentSize.height = Math.max(size.height, this.contentSize.height);
+		this.adjustedContentSize.width = Math.max(size.width, this.contentSize.width + this.contentInset.right);
+		this.adjustedContentSize.height = Math.max(size.height, this.contentSize.height + this.contentInset.bottom);
 		this.maxPoint = new Point(this.adjustedContentSize.width - size.width, this.adjustedContentSize.height - size.height);
 
-		if (a) {
-			this.contentOffset = new Point(Math.min(b.x * this.adjustedContentSize.width, this.maxPoint.x), Math.min(b.y * this.adjustedContentSize.height, this.maxPoint.y));
+		if (adjustOffset) {
+			this.contentOffset = new Point(Math.min(adjustedOffset.x * this.adjustedContentSize.width, this.maxPoint.x), Math.min(adjustedOffset.y * this.adjustedContentSize.height, this.maxPoint.y));
 		}
 
 		this.canScrollHorizontally = (size.width < this.adjustedContentSize.width);
@@ -663,11 +727,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		float y = canScrollVertically ? (this.startContentOffset.y - translation.y) : this.contentOffset.y;
 
 		if (this.bounces) {
-			x -= ((x > this.maxPoint.x) ? (x - this.maxPoint.x) : ((x < 0) ? x : 0)) / 2;
-			y -= ((y > this.maxPoint.y) ? (y - this.maxPoint.y) : ((y < 0) ? y : 0)) / 2;
+			x -= ((x > this.maxPoint.x) ? (x - this.maxPoint.x) : ((x < this.minPoint.x) ? x : this.minPoint.x)) / 2;
+			y -= ((y > this.maxPoint.y) ? (y - this.maxPoint.y) : ((y < this.minPoint.y) ? y : this.minPoint.y)) / 2;
 		} else {
-			x = clampf(x, 0, this.maxPoint.x);
-			y = clampf(y, 0, this.maxPoint.y);
+			x = clampf(x, this.minPoint.x, this.maxPoint.x);
+			y = clampf(y, this.minPoint.y, this.maxPoint.y);
 		}
 
 		this.setContentOffset(new Point(x, y));
@@ -675,8 +739,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	private void panningDidEnd(PanGestureRecognizer gestureRecognizer) {
 		if(!this.dragging) return;
-
-		MLog("%s", MGetCurrentMethodName());
 
 		this.dragging = false;
 
@@ -698,8 +760,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private void panningDidCancel(PanGestureRecognizer gestureRecognizer) {
-		MLog("%s", MGetCurrentMethodName());
-
 		if (!this.dragging) {
 			return;
 		}

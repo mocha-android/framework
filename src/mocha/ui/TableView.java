@@ -6,6 +6,7 @@
 
 package mocha.ui;
 
+import android.view.ViewGroup;
 import mocha.foundation.IndexPath;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -315,13 +316,13 @@ public class TableView extends ScrollView {
 		for(View view : this.getSubviews()) {
 			if(view instanceof TableViewSubview) {
 				TableViewSubview subview = (TableViewSubview)view;
-				ViewLayerNative layer = (ViewLayerNative)subview.getLayer();
+				ViewGroup viewGroup = subview.getLayer().getViewGroup();
 
-				MLog(format, layer.getFrame(),
+				MLog(format, new Rect(viewGroup.getX(), viewGroup.getY(), viewGroup.getWidth(), viewGroup.getHeight()),
 						(subview instanceof TableViewCell ? subview._dataSourceInfo.indexPath.section + "x" + subview._dataSourceInfo.indexPath.row : subview._dataSourceInfo.section),
 						subview._dataSourceInfo.type, subview.getFrame(), this.visibleHeaders.contains(subview),
 						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
-						this.visibleSubviews.contains(subview), subview._isQueued, layer.getY());
+						this.visibleSubviews.contains(subview), subview._isQueued, viewGroup.getY());
 			}
 		}
 
@@ -685,12 +686,12 @@ public class TableView extends ScrollView {
 			float offsetY;
 
 			if(contentSize.height < bounds.size.height) {
-				offsetY = 0.0f;
+				offsetY = -this.getContentInset().top;
 			} else {
 				offsetY = contentSize.height - bounds.size.height;
 			}
 
-			this.setContentOffset(new Point(0.0f, offsetY));
+			this.setContentOffset(new Point(contentOffset.x, offsetY));
 		}
 
 		this.layoutSubviews();
@@ -1558,7 +1559,11 @@ public class TableView extends ScrollView {
 			this.insertSubview(cell, 0);
 		}
 
-		cell.layoutIfNeeded();
+		if(View.VIEW_LAYER_CLASS == ViewLayerNative.class) {
+			cell.layoutIfNeeded();
+		} else {
+			cell.setNeedsLayout();
+		}
 
 		return cell;
 	}

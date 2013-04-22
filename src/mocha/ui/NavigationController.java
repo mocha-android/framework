@@ -633,22 +633,26 @@ public class NavigationController extends ViewController {
 			// Cache from view to image
 			final ImageView transitionView = new ImageView(viewBounds);
 			{
-				Context context = new Context(viewBounds.size, view.scale, Bitmap.Config.ARGB_8888);
-				context.save();
-				context.getCanvas().translate(0.0f, navigationBarHeight * view.scale);
+				try {
+					Context context = new Context(viewBounds.size, view.scale, Bitmap.Config.ARGB_8888);
+					context.save();
+					context.getCanvas().translate(0.0f, navigationBarHeight * view.scale);
 
-				if(push) {
-					toView.getLayer().renderInContext(context);
-				} else {
-					fromView.getLayer().renderInContext(context);
+					if(push) {
+						toView.getLayer().renderInContext(context);
+					} else {
+						fromView.getLayer().renderInContext(context);
+					}
+
+					context.restore();
+
+					navigationBar.getLayer().renderInContext(context);
+
+					transitionView.setImage(context.getImage());
+					view.addSubview(transitionView);
+				} catch (OutOfMemoryError ignored) {
+
 				}
-
-				context.restore();
-
-				navigationBar.getLayer().renderInContext(context);
-
-				transitionView.setImage(context.getImage());
-				view.addSubview(transitionView);
 			}
 
 			if(push) {
@@ -691,7 +695,10 @@ public class NavigationController extends ViewController {
 					transitionView.removeFromSuperview();
 					Image image = transitionView.getImage();
 					transitionView.setImage(null);
-					image.recycle();
+
+					if(image != null) {
+						image.recycle();
+					}
 
 					if(push) {
 						adjustNavigationBar(toViewController.getNavigationItem(), true);
