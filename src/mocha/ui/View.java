@@ -662,10 +662,14 @@ public class View extends Responder implements Accessibility {
 
 	public Point convertPointFromView(Point point, View view) {
 		if(view == null) {
-			return this.getWindow().convertPointToView(point, this);
-		} else {
-			return view.convertPointToView(point, this);
+			view = this.getWindow();
 		}
+
+		if(view == null) {
+			return point;
+		}
+
+		return view.convertPointToView(point, this);
 	}
 
 	public Rect convertRectToView(Rect rect, View view) {
@@ -674,10 +678,14 @@ public class View extends Responder implements Accessibility {
 
 	public Rect convertRectFromView(Rect rect, View view) {
 		if(view == null) {
-			return this.getWindow().convertRectToView(rect, this);
-		} else {
-			return view.convertRectToView(rect, this);
+			view = this.getWindow();
 		}
+
+		if(view == null) {
+			return rect;
+		}
+
+		return view.convertRectToView(rect, this);
 	}
 
 	public void sizeToFit() {
@@ -964,7 +972,7 @@ public class View extends Responder implements Accessibility {
 	}
 
 	protected String toStringExtra() {
-		return String.format("frame = %s; hidden = %b%s", this.getFrame().toString(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""));
+		return String.format("frame = %s; hidden = %b%s%s", this.getFrame().toString(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""), (this._viewController != null ? "; viewController = " + this._viewController : ""));
 	}
 
 	// Rendering
