@@ -21,7 +21,6 @@ public class NavigationController extends ViewController {
 	public static final long HIDE_SHOW_BAR_DURATION = 330;
 
 	private NavigationBar navigationBar;
-	private View containerView;
 	private List<ViewController> viewControllers;
 	private boolean navigationBarHidden;
 	private NavigationBar.Delegate navigationBarDelegate;
@@ -29,6 +28,7 @@ public class NavigationController extends ViewController {
 	private boolean showHideNavigationBarDuringTransition;
 	private TransitionStyle transitionStyle;
 	private TransitionController transitionController;
+	private View topView;
 
 	public NavigationController(Class<? extends NavigationBar> navigationBarClass) {
 		this.viewControllers = new ArrayList<ViewController>();
@@ -110,21 +110,11 @@ public class NavigationController extends ViewController {
 
 		if(this.navigationBarHidden) {
 			this.navigationBar.setFrame(new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight));
-			navBarHeight = 0.0f;
 		} else {
 			this.navigationBar.setFrame(new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight));
 		}
 
 		this.navigationBar.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH);
-
-		Rect frame = bounds.copy();
-		frame.origin.y += navBarHeight;
-		frame.size.height -= navBarHeight;
-
-		this.containerView = new View(frame);
-		this.containerView.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
-		this.containerView.setBackgroundColor(Color.BLACK);
-		view.addSubview(this.containerView);
 
 		view.addSubview(this.navigationBar);
 	}
@@ -135,10 +125,10 @@ public class NavigationController extends ViewController {
 		ViewController topViewController = this.getTopViewController();
 
 		if(topViewController != null) {
-			View view = topViewController.getView();
-			view.setFrame(this.containerView.getBounds());
-			view.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
-			this.containerView.addSubview(view);
+			this.topView = topViewController.getView();
+			this.topView.setFrame(this.getContentBounds());
+			this.topView.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
+			this.getView().insertSubview(this.topView, 0);
 
 			for(ViewController viewController : this.viewControllers) {
 				this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), false);
@@ -281,7 +271,7 @@ public class NavigationController extends ViewController {
 		if(toViewController == fromViewController || !this.isViewLoaded()) {
 			if(completion != null) completion.run();
 		} else {
-			final Rect bounds = this.containerView.getBounds();
+			final Rect bounds = this.getContentBounds();
 
 			if(toViewController != null) {
 				toViewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
@@ -309,12 +299,15 @@ public class NavigationController extends ViewController {
 				}
 
 				if(toViewController != null) {
-					toViewController.beginAppearanceTransition(true, false);
-					toViewController.getView().setFrame(bounds);
-					toViewController.beginAppearanceTransition(true, false);
-					this.containerView.addSubview(toViewController.getView());
-					toViewController.endAppearanceTransition();
+					this.topView = toViewController.getView();
 
+					toViewController.beginAppearanceTransition(true, false);
+					this.topView.setFrame(bounds);
+					toViewController.beginAppearanceTransition(true, false);
+					this.getView().insertSubview(this.topView, 0);
+					toViewController.endAppearanceTransition();
+				} else {
+					this.topView = null;
 				}
 
 				if(completion != null) completion.run();
@@ -322,6 +315,18 @@ public class NavigationController extends ViewController {
 				this.transitionController.transitionFromViewController(fromViewController, toViewController, push, completion);
 			}
 		}
+	}
+
+	private Rect getContentBounds() {
+		Rect bounds = this.getView().getBounds();
+
+		if(!this.navigationBarHidden) {
+			float height = this.navigationBar.getFrame().size.height;
+			bounds.origin.y += height;
+			bounds.size.height -= height;
+		}
+
+		return bounds;
 	}
 
 	public void backKeyPressed(Event event) {
@@ -400,14 +405,17 @@ public class NavigationController extends ViewController {
 			navigationFrame = new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight);
 		}
 
-		final Rect containerFrame = bounds.copy();
-		containerFrame.origin.y += navBarHeight;
-		containerFrame.size.height -= navBarHeight;
+		final Rect contentFrame = bounds.copy();
+		contentFrame.origin.y += navBarHeight;
+		contentFrame.size.height -= navBarHeight;
 
 		if(!animated) {
 			this.navigationBar.setFrame(navigationFrame);
 			this.navigationBar.setHidden(this.navigationBarHidden);
-			this.containerView.setFrame(containerFrame);
+
+			if(this.topView != null) {
+				this.topView.setFrame(contentFrame);
+			}
 
 			if(animations != null) {
 				animations.performAnimatedChanges();
@@ -427,7 +435,10 @@ public class NavigationController extends ViewController {
 			View.animateWithDuration(HIDE_SHOW_BAR_DURATION, new View.Animations() {
 				public void performAnimatedChanges() {
 					navigationBar.setFrame(navigationFrame);
-					containerView.setFrame(containerFrame);
+
+					if(topView != null) {
+						topView.setFrame(contentFrame);
+					}
 
 					if(animations != null) {
 						animations.performAnimatedChanges();
@@ -464,7 +475,7 @@ public class NavigationController extends ViewController {
 	private class TransitionControlleriOS extends TransitionController {
 
 		void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
-			final Rect bounds = containerView.getBounds();
+			final Rect bounds = topView == null ? getContentBounds() : topView.getBounds();
 
 			final Rect fromToFrame = bounds.copy();
 			final Rect toFrame = bounds.copy();
@@ -533,7 +544,9 @@ public class NavigationController extends ViewController {
 						fromToFrame.size.height = containerFrame.size.height;
 
 						navigationBar.setFrame(fromNavigationFrame);
-						containerView.setFrame(containerFrame);
+						if(topView != null) {
+							topView.setFrame(containerFrame);
+						}
 						fromViewController.getView().setFrame(fromFromFrame);
 						toViewController.getView().setFrame(fromToFrame);
 
@@ -612,15 +625,14 @@ public class NavigationController extends ViewController {
 		void _transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
 			final View fromView = fromViewController.getView();
 			final View toView = toViewController.getView();
-			final Rect bounds = containerView.getBounds();
 
 			final View view = getView();
 			Rect viewBounds = view.getBounds();
 
-			toView.setFrame(bounds);
-
 			fromViewController.beginAppearanceTransition(false, push);
 			toViewController.beginAppearanceTransition(true, !push);
+
+			toView.setFrame(getContentBounds());
 
 			long start = android.os.SystemClock.uptimeMillis();
 
@@ -671,7 +683,8 @@ public class NavigationController extends ViewController {
 				transitionView.setTransform(scaled);
 			} else {
 				fromView.removeFromSuperview();
-				containerView.addSubview(toView);
+				getView().addSubview(toView);
+				getView().bringSubviewToFront(navigationBar);
 				view.bringSubviewToFront(transitionView);
 			}
 
@@ -702,9 +715,12 @@ public class NavigationController extends ViewController {
 
 					if(push) {
 						adjustNavigationBar(toViewController.getNavigationItem(), true);
-						containerView.addSubview(toView);
+						getView().addSubview(toView);
+						getView().bringSubviewToFront(navigationBar);
 						fromView.removeFromSuperview();
 					}
+
+					topView = toView;
 
 					fromViewController.endAppearanceTransition();
 					toViewController.endAppearanceTransition();
