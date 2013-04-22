@@ -414,7 +414,7 @@ public class NotificationCenter extends Object {
 			Observeration observation = iterator.next();
 			Observer observer1 = observation.observer == null ? null : observation.observer.get();
 			java.lang.Object target = observation.target == null ? null : observation.target.get();
-			if((observer1 == null && target == null) || ((observer1 == observer || target == observation) && observation.isObserving(name, sender))) {
+			if((observer1 == null && target == null) || ((observer1 == observer || target == observer) && observation.isObserving(name, sender))) {
 				iterator.remove();
 			}
 		}

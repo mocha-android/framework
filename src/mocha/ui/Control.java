@@ -76,6 +76,11 @@ public class Control extends View {
 		public void onControlEvent(Control control, ControlEvent controlEvent, Event event);
 	}
 
+
+	public @interface TargetAction {
+
+	}
+
 	private boolean enabled;
 	private boolean selected;
 	private boolean highlighted;

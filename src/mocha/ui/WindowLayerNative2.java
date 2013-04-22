@@ -89,15 +89,17 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 					float beginHeight = this.lastKeyboardHeight / scale;
 
 					if(this.lastProposedHeight > 0.0f) {
-						String startNotification;
-						String endNotification;
+						final String startNotification;
+						final String endNotification;
 
 						if(proposedHeight < largestHeight) {
 							startNotification = Window.KEYBOARD_WILL_SHOW_NOTIFICATION;
 							endNotification = Window.KEYBOARD_DID_SHOW_NOTIFICATION;
 
 							this.lastKeyboardHeight = largestHeight - proposedHeight;
+							MWarn("KEYBOARD VISIBLE WITH HEIGHT: %d", largestHeight - proposedHeight);
 						} else {
+							MWarn("KEYBOARD NOT VISIBLE");
 							this.lastKeyboardHeight = 0;
 							startNotification = Window.KEYBOARD_WILL_HIDE_NOTIFICATION;
 							endNotification = Window.KEYBOARD_DID_HIDE_NOTIFICATION;
@@ -108,14 +110,18 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 						Rect beginFrame = new Rect(0.0f, bounds.size.height - beginHeight, bounds.size.width, beginHeight);
 						Rect endFrame = new Rect(0.0f, bounds.size.height - endHeight, bounds.size.width, endHeight);
 
-						Map<String,Object> info = new HashMap<String,Object>();
+						final Map<String,Object> info = new HashMap<String,Object>();
 						info.put(Window.KEYBOARD_FRAME_BEGIN_USER_INFO_KEY, beginFrame);
 						info.put(Window.KEYBOARD_FRAME_END_USER_INFO_KEY, endFrame);
 						info.put(Window.KEYBOARD_ANIMATION_DURATION_USER_INFO_KEY, 0L);
 						info.put(Window.KEYBOARD_ANIMATION_CURVE_USER_INFO_KEY, View.AnimationCurve.LINEAR);
 
-						NotificationCenter.defaultCenter().post(startNotification, getWindow(), info);
-						NotificationCenter.defaultCenter().post(endNotification, getWindow(), info);
+						performOnMainAfterDelay(0, new Runnable() {
+							public void run() {
+								NotificationCenter.defaultCenter().post(startNotification, getWindow(), info);
+								NotificationCenter.defaultCenter().post(endNotification, getWindow(), info);
+							}
+						});
 					}
 
 					this.lastProposedHeight = proposedHeight;

@@ -56,6 +56,8 @@ public class WebView extends View {
 
 		this.webView = new android.webkit.WebView(Application.sharedApplication().getContext());
 		this.webView.getSettings().setJavaScriptEnabled(true);
+		this.webView.getSettings().setSupportZoom(true);
+		this.webView.getSettings().setUseWideViewPort(true);
 		this.webView.setWebViewClient(new WebViewClient());
 
 		this.nativeView = new NativeView<android.webkit.WebView>(this.webView);
@@ -110,6 +112,22 @@ public class WebView extends View {
 	public void setBackgroundColor(int backgroundColor) {
 		super.setBackgroundColor(backgroundColor);
 		this.nativeView.setBackgroundColor(backgroundColor);
+	}
+
+	public void setNeedsLayout() {
+		super.setNeedsLayout();
+
+		if(this.nativeView != null) {
+			this.nativeView.getNativeView().invalidate();
+		}
+	}
+
+	public void setNeedsDisplay() {
+		super.setNeedsDisplay();
+
+		if(this.nativeView != null) {
+			this.nativeView.getNativeView().forceLayout();
+		}
 	}
 
 	public void loadUrl(String url, Map<String,String> extraHeaders) {
@@ -187,6 +205,7 @@ public class WebView extends View {
 	public void setScalesPageToFit(boolean scalesPageToFit) {
 		this.scalesPageToFit = scalesPageToFit;
 		this.webView.setInitialScale(scalesPageToFit ? 100 : 0);
+		this.webView.getSettings().setLoadWithOverviewMode(scalesPageToFit);
 	}
 
 	public float getContentHeight() {
