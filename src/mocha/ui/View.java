@@ -944,8 +944,7 @@ public class View extends Responder implements Accessibility {
 
 	public void layoutIfNeeded() {
 		if(this.needsLayout) {
-			this.layoutSubviews();
-			this.needsLayout = false;
+			this._layoutSubviews();
 		}
 	}
 
@@ -972,7 +971,7 @@ public class View extends Responder implements Accessibility {
 	}
 
 	protected String toStringExtra() {
-		return String.format("frame = %s; hidden = %b%s%s", this.getFrame().toString(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""), (this._viewController != null ? "; viewController = " + this._viewController : ""));
+		return String.format("frame = %s; alpha = %.2f; hidden = %b%s%s", this.getFrame().toString(), this.getAlpha(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""), (this._viewController != null ? "; viewController = " + this._viewController : ""));
 	}
 
 	// Rendering

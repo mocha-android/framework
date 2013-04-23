@@ -482,7 +482,7 @@ public class SegmentedControl extends Control {
 		for (Segment segment : this.segments) {
 
 			if(segment == last) {
-				frame.size.width = bounds.size.width - frame.origin.x;
+				frame.size.width = ceilf(bounds.size.width - frame.origin.x);
 			} else {
 				frame.size.width = segment.width <= 0.0f ? autosizingSegmentWidth : segment.width;
 			}
