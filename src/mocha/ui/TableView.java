@@ -1557,11 +1557,7 @@ public class TableView extends ScrollView {
 			this.insertSubview(cell, 0);
 		}
 
-		if(View.VIEW_LAYER_CLASS == ViewLayerNative.class) {
-			cell.layoutIfNeeded();
-		} else {
-			cell.setNeedsLayout();
-		}
+		cell.layoutSubviews();
 
 		return cell;
 	}
