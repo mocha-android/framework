@@ -786,18 +786,22 @@ public class View extends Responder implements Accessibility {
 			view.superview.subviews.remove(view);
 		}
 
-		Window oldWindow = view.getWindow();
-		Window newWindow = this.getWindow();
+		if(view.superview == this) {
+			this.exchangeSubviews(this.subviews.indexOf(view), index);
+		} else {
+			Window oldWindow = view.getWindow();
+			Window newWindow = this.getWindow();
 
-		view.willMoveWindows(oldWindow, newWindow);
-		view.willMoveToSuperview(this);
-		this.subviews.add(index, view);
-		this.layer.insertSublayerAtIndex(view.layer, index);
-		view.superview = this;
-		view.didMoveWindows(oldWindow, newWindow);
-		view.didMoveToSuperview();
-		view.layer.didMoveToSuperlayer();
-		this.didAddSubview(view);
+			view.willMoveWindows(oldWindow, newWindow);
+			view.willMoveToSuperview(this);
+			this.subviews.add(index, view);
+			this.layer.insertSublayerAtIndex(view.layer, index);
+			view.superview = this;
+			view.didMoveWindows(oldWindow, newWindow);
+			view.didMoveToSuperview();
+			view.layer.didMoveToSuperlayer();
+			this.didAddSubview(view);
+		}
 	}
 
 	public void exchangeSubviews(int index1, int index2) {
@@ -822,7 +826,11 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public void addSubview(View view) {
-		this.insertSubview(view, this.subviews.size());
+		if(view.superview == this) {
+			this.bringSubviewToFront(view);
+		} else {
+			this.insertSubview(view, this.subviews.size());
+		}
 	}
 
 	public void insertSubviewBelowSubview(View view, View belowSubview) {

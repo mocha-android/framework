@@ -27,6 +27,7 @@ import java.util.List;
 public class NavigationItem extends mocha.foundation.Object {
 	private String title;
 	private BarButtonItem backBarButtonItem;
+	private Button backBarButton;
 	private boolean hidesBackButton;
 	private boolean leftItemsSupplementBackButton;
 	private List<BarButtonItem> leftBarButtonItems;
@@ -115,6 +116,15 @@ public class NavigationItem extends mocha.foundation.Object {
 	 */
 	public void setBackBarButtonItem(BarButtonItem backBarButtonItem) {
 		this.backBarButtonItem = backBarButtonItem;
+		this.backBarButton = null;
+	}
+
+	Button getBackBarButton() {
+		return backBarButton;
+	}
+
+	void setBackBarButton(Button backBarButton) {
+		this.backBarButton = backBarButton;
 	}
 
 	/**

@@ -916,37 +916,16 @@ public class ViewController extends Responder {
 			toView.setFrame(bounds);
 			toView.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
 
-			fromViewController.beginAppearanceTransition(false, presenting);
-			toViewController.beginAppearanceTransition(true, !presenting);
-
-			long start = android.os.SystemClock.uptimeMillis();
-
-			// Cache from view to image
-			final ImageView transitionView = new ImageView(bounds);
-			{
-				Context context = new Context(bounds.size, view.scale, Bitmap.Config.ARGB_8888);
-				if(presenting) {
-					toView.getLayer().renderInContext(context);
-				} else {
-					fromView.getLayer().renderInContext(context);
-				}
-
-				transitionView.setImage(context.getImage());
-				view.addSubview(transitionView);
-			}
-
-			MWarn("Took %dms to build UI cache", android.os.SystemClock.uptimeMillis() - start);
-
 			// Animate
 			final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
 
 			if(presenting) {
-				transitionView.setAlpha(0.0f);
-				transitionView.setTransform(scaled);
-			} else {
-				fromView.removeFromSuperview();
+				toView.setAlpha(0.0f);
+				toView.setTransform(scaled);
 				window.addSubview(toView);
-				view.bringSubviewToFront(transitionView);
+			} else {
+				window.addSubview(toView);
+				window.bringSubviewToFront(fromView);
 			}
 
 			View.animateWithDuration(300, 1, new View.Animations() {
@@ -954,29 +933,15 @@ public class ViewController extends Responder {
 					View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
 
 					if(presenting) {
-						transitionView.setAlpha(1.0f);
-						transitionView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
+						toView.setAlpha(1.0f);
+						toView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
 					} else {
-						transitionView.setAlpha(0.0f);
-						transitionView.setTransform(scaled);
+						fromView.setAlpha(0.0f);
+						fromView.setTransform(scaled);
 					}
 				}
 			}, new View.AnimationCompletion() {
 				public void animationCompletion(boolean finished) {
-					transitionView.removeFromSuperview();
-					Image image = transitionView.getImage();
-					transitionView.setImage(null);
-					image.recycle();
-
-					if(presenting) {
-						window.addSubview(toView);
-						fromView.removeFromSuperview();
-					} else {
-						window.addSubview(toViewController.getView());
-					}
-
-					transitionView.removeFromSuperview();
-
 					window.setUserInteractionEnabled(restore);
 
 					if(completion != null) {

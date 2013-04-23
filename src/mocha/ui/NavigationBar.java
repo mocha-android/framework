@@ -320,8 +320,8 @@ public class NavigationBar extends View {
 	}
 
 	private void updateItemsWithTransition(final Transition transition, boolean animated, final Runnable additionalTransitions, final Runnable transitionCompleteCallback) {
-		final View previousLeftView = this.leftView;
-		final View previousRightView = this.rightView;
+		View previousLeftView = this.leftView;
+		View previousRightView = this.rightView;
 		final View previousCenterView = this.centerView;
 		final boolean previousLeftIsBackButton = this.leftIsBackButton;
 		final Rect bounds = this.getBounds();
@@ -346,6 +346,10 @@ public class NavigationBar extends View {
 				this.leftView.setFrame(frame);
 			}
 
+			if(this.leftView == previousLeftView) {
+				previousLeftView = null;
+			}
+
 			this.rightView = getItemView(topItem.getRightBarButtonItem());
 
 			if (this.rightView != null) {
@@ -354,6 +358,10 @@ public class NavigationBar extends View {
 				frame.origin.x = bounds.size.width - frame.size.width - this.itemEdgeInsets.right;
 				frame.origin.y = this.itemEdgeInsets.top;
 				this.rightView.setFrame(frame);
+			}
+
+			if(this.rightView == previousRightView) {
+				previousRightView = null;
 			}
 
 			float titleMinX = this.itemEdgeInsets.left;
@@ -460,6 +468,8 @@ public class NavigationBar extends View {
 				this.addSubview(this.leftView);
 			}
 
+			final View finalPreviousRightView = previousRightView;
+			final View finalPreviousLeftView = previousLeftView;
 			View.animateWithDuration(ANIMATION_DURATION, new Animations() {
 				public void performAnimatedChanges() {
 					View.setAnimationCurve(ANIMATION_CURVE);
@@ -478,8 +488,8 @@ public class NavigationBar extends View {
 						centerView.setFrame(centerFrame);
 					}
 
-					if(previousRightView != null) {
-						previousRightView.setAlpha(0.0f);
+					if(finalPreviousRightView != null) {
+						finalPreviousRightView.setAlpha(0.0f);
 					}
 
 					if(previousCenterView != null) {
@@ -487,11 +497,11 @@ public class NavigationBar extends View {
 						previousCenterView.setFrame(getAnimateFromRectForTitleView(previousCenterView, transition, true));
 					}
 
-					if(previousLeftView != null) {
-						previousLeftView.setAlpha(0.0f);
+					if(finalPreviousLeftView != null) {
+						finalPreviousLeftView.setAlpha(0.0f);
 
 						if(previousLeftIsBackButton) {
-							previousLeftView.setFrame(getAnimateFromRectForBackButton(previousLeftView, transition, true));
+							finalPreviousLeftView.setFrame(getAnimateFromRectForBackButton(finalPreviousLeftView, transition, true));
 						}
 					}
 
@@ -501,8 +511,8 @@ public class NavigationBar extends View {
 				}
 			}, new AnimationCompletion() {
 				public void animationCompletion(boolean finished) {
-					if(previousRightView != null) previousRightView.removeFromSuperview();
-					if(previousLeftView != null) previousLeftView.removeFromSuperview();
+					if(finalPreviousRightView != null) finalPreviousRightView.removeFromSuperview();
+					if(finalPreviousLeftView != null) finalPreviousLeftView.removeFromSuperview();
 					if(previousCenterView != null) previousCenterView.removeFromSuperview();
 
 					if(transitionCompleteCallback != null) {
@@ -520,12 +530,12 @@ public class NavigationBar extends View {
 				this.addSubview(this.centerView);
 			}
 
-			if(this.leftView != null) {
+			if(this.leftView != null && this.leftView.getSuperview() == null) {
 				this.leftView.setAlpha(1.0f);
 				this.addSubview(this.leftView);
 			}
 
-			if(this.rightView != null) {
+			if(this.rightView != null && this.rightView.getSuperview() == null) {
 				this.rightView.setAlpha(1.0f);
 				this.addSubview(this.rightView);
 			}
@@ -586,7 +596,7 @@ public class NavigationBar extends View {
 
 		// TODO: Handle animation
 		this.needsReload = true;
-		this.setNeedsLayout();
+		this.layoutSubviews();
 	}
 
 	public void layoutSubviews() {
@@ -641,14 +651,21 @@ public class NavigationBar extends View {
 	private Button getBackItemButton(NavigationItem navigationItem) {
 		if(navigationItem == null) return null;
 
-		BarButton button = BarButton.backButton(navigationItem);
-		button.addActionTarget(new Control.ActionTarget() {
-			public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
-				NavigationBar.this.popNavigationItemAnimated(true);
-			}
-		}, Control.ControlEvent.TOUCH_UP_INSIDE);
+		Button button = navigationItem.getBackBarButton();
 
-		this.setBarButtonSize(button, button.isBordered());
+		if(button == null) {
+			button = BarButton.backButton(navigationItem);
+
+			button.addActionTarget(new Control.ActionTarget() {
+				public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
+					NavigationBar.this.popNavigationItemAnimated(true);
+				}
+			}, Control.ControlEvent.TOUCH_UP_INSIDE);
+		} else {
+			// TODO: Should replace old target action
+		}
+
+		this.setBarButtonSize(button, button instanceof BarButton && ((BarButton) button).isBordered());
 
 		return button;
 	}
@@ -658,9 +675,12 @@ public class NavigationBar extends View {
 
 		if(barButtonItem.getCustomView() != null) {
 			return barButtonItem.getCustomView();
+		} else if(barButtonItem.getView() != null) {
+			return barButtonItem.getView();
 		} else {
 			BarButton button = BarButton.button(barButtonItem);
 			this.setBarButtonSize(button, button.isBordered());
+			barButtonItem.setView(button);
 
 			return button;
 		}

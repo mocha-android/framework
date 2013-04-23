@@ -609,18 +609,14 @@ public class TableView extends ScrollView {
 		}
 
 		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float offsetY = Math.max(point.y - sectionInfo.y, 0);
+		float offsetY = Math.max(point.y - sectionInfo.y - sectionInfo.headerHeight, 0);
 
-		if(offsetY < sectionInfo.headerHeight) {
+		if(offsetY < 0.0f) {
 			return null;
 		}
 
-		if (offsetY >= (sectionInfo.headerHeight + sectionInfo.cumulativeRowHeight)) {
+		if (offsetY >= sectionInfo.cumulativeRowHeight) {
 			return null;
-		}
-
-		if(this.tableStyle == Style.GROUPED) {
-			offsetY -= sectionInfo.headerHeight;
 		}
 
 		int row = 0;
@@ -639,6 +635,12 @@ public class TableView extends ScrollView {
 	}
 
 	public void reloadData() {
+		if(this.reloadingData) {
+			MWarn("WARNING: Nested call to TableView.reloadData() detected.  This is unsupported.");
+		}
+
+		this.reloadingData = true;
+
 		this.hasLoadedData = true;
 		this.updateSectionsInfo();
 
@@ -696,6 +698,7 @@ public class TableView extends ScrollView {
 
 		this.layoutSubviews();
 		View.setAnimationsEnabled(areAnimationsEnabled);
+		this.reloadingData = false;
 	}
 
 	boolean isEmpty() {
@@ -706,12 +709,6 @@ public class TableView extends ScrollView {
 		if (this.dataSource == null) {
 			return;
 		}
-
-		if(this.reloadingData) {
-			MWarn("WARNING: Nested call to TableView.reloadData() detected.  This is unsupported.");
-		}
-
-		this.reloadingData = true;
 
 		boolean isCustomStyle = (this.tableStyle == Style.CUSTOM);
 		boolean isGroupedStyle = (this.tableStyle == Style.GROUPED);
@@ -822,7 +819,6 @@ public class TableView extends ScrollView {
 		tableHeight += this.tableFooterHeight;
 
 		this.setContentSize(new Size(this.getBounds().size.width, tableHeight));
-		this.reloadingData = false;
 	}
 
 	private void updateTableHeaderHeight(float oldHeight, float newHeight) {
@@ -1036,7 +1032,7 @@ public class TableView extends ScrollView {
 			IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
 
 			if(indexPath != null) {
-				if(this.getTableStyle() == Style.PLAIN) {
+				if(this.getTableStyle() == Style.PLAIN && this.isSectionValid(indexPath.section)) {
 					SectionInfo info = this.sectionsInfo.get(indexPath.section);
 
 					if(info.headerHeight > 0.0f) {
@@ -1048,15 +1044,17 @@ public class TableView extends ScrollView {
 					}
 				}
 
-				TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
+				if(this.isIndexPathValid(indexPath)) {
+					TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
 
-				Rect frame = this.getRectForRowAtIndexPath(indexPath);
+					Rect frame = this.getRectForRowAtIndexPath(indexPath);
 
-				if(frame != null) {
-					visibleSubview.setFrame(frame);
-					this.visibleSubviews.add(visibleSubview);
-					this.tableViewCells.add((TableViewCell) visibleSubview);
-					size++;
+					if(frame != null) {
+						visibleSubview.setFrame(frame);
+						this.visibleSubviews.add(visibleSubview);
+						this.tableViewCells.add((TableViewCell) visibleSubview);
+						size++;
+					}
 				}
 			}
 		}
