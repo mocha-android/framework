@@ -25,6 +25,8 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 	private boolean didTryToFocus;
 
+	static boolean LEAVE_KEYBOARD;
+
 	EditText(Context context, mocha.ui.View containerView, boolean allowMultipleLines) {
 		super(context, null, R.style.Theme_Holo_Light);
 
@@ -47,8 +49,10 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	}
 
 	private void hideKeyboard() {
-		InputMethodManager imm = (InputMethodManager)this.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(this.getWindowToken(), 0);
+		if(!LEAVE_KEYBOARD) {
+			InputMethodManager imm = (InputMethodManager)this.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(this.getWindowToken(), 0);
+		}
 	}
 
 	public void clearFocus() {
@@ -197,7 +201,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		if(inputTypeIsText) {
 			if(traits.isSecureTextEntry()) {
 				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
-			} else {
+			} else if(traits.getKeyboardType() != TextInput.Keyboard.Type.EMAIL_ADDRESS) {
 				if(traits.getAutocapitalizationType() != null) switch (traits.getAutocapitalizationType()) {
 					case NONE:
 						inputType |= InputType.TYPE_TEXT_VARIATION_FILTER;

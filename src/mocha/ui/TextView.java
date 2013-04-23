@@ -95,7 +95,7 @@ public class TextView extends View implements TextInput.Traits {
 	}
 
 	public boolean canBecomeFirstResponder() {
-		return true;
+		return this.editable;
 	}
 
 	public boolean becomeFirstResponder() {
@@ -103,6 +103,11 @@ public class TextView extends View implements TextInput.Traits {
 			return false;
 		}
 
+		if(!this.editable) {
+			return false;
+		}
+
+		EditText.LEAVE_KEYBOARD = true;
 		if(super.becomeFirstResponder()) {
 			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
@@ -113,8 +118,10 @@ public class TextView extends View implements TextInput.Traits {
 
 			this.forceEndEditing = false;
 
+			EditText.LEAVE_KEYBOARD = false;
 			return true;
 		} else {
+			EditText.LEAVE_KEYBOARD = false;
 			return false;
 		}
 	}
@@ -264,8 +271,15 @@ public class TextView extends View implements TextInput.Traits {
 	}
 
 	public void setEditable(boolean editable) {
-		this.editable = editable;
-		this.editText.setInputType(InputType.TYPE_NULL);
+		if(this.editable != editable) {
+			if(this.editable && this.isFirstResponder()) {
+				this.resignFirstResponder();
+			}
+
+			this.editable = editable;
+			this.editText.setFocusable(editable);
+			this.editText.setFocusableInTouchMode(editable);
+		}
 	}
 
 	// - TextInput.Traits

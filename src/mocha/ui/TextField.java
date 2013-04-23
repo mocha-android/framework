@@ -144,6 +144,7 @@ public class TextField extends Control implements TextInput.Traits {
 			return false;
 		}
 
+		EditText.LEAVE_KEYBOARD = true;
 		if(super.becomeFirstResponder()) {
 			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
@@ -161,8 +162,10 @@ public class TextField extends Control implements TextInput.Traits {
 			NotificationCenter.defaultCenter().post(DID_BEGIN_EDITING_NOTIFICATION, this);
 			this.forceEndEditing = false;
 
+			EditText.LEAVE_KEYBOARD = false;
 			return true;
 		} else {
+			EditText.LEAVE_KEYBOARD = false;
 			return false;
 		}
 	}
