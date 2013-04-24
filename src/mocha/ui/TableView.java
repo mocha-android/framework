@@ -486,7 +486,9 @@ public class TableView extends ScrollView {
 		this.updateTableHeaderHeight(oldHeight, this.tableHeaderHeight);
 		this.tableHeaderAttached = false;
 
-		this.setNeedsLayout();
+		if(this.hasLoadedData) {
+			this.reloadAllViews();
+		}
 	}
 
 	public View getTableFooterView() {
@@ -510,7 +512,9 @@ public class TableView extends ScrollView {
 		contentSize.height += this.tableFooterHeight - oldHeight;
 		this.setContentSize(contentSize);
 
-		this.setNeedsLayout();
+		if(this.hasLoadedData) {
+			this.reloadAllViews();
+		}
 	}
 
 	public void setFrame(Rect frame) {
@@ -588,13 +592,13 @@ public class TableView extends ScrollView {
 	}
 
 	private int getSectionAtPoint(Point point) {
-		int section = 0;
+		int section = -1;
 
 		for(SectionInfo sectionInfo : this.sectionsInfo) {
-			if(point.y < sectionInfo.getMaxY()) {
-				break;
-			} else {
+			if(point.y >= sectionInfo.y) {
 				section++;
+			} else {
+				break;
 			}
 		}
 
@@ -609,7 +613,7 @@ public class TableView extends ScrollView {
 		}
 
 		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float offsetY = Math.max(point.y - sectionInfo.y - sectionInfo.headerHeight, 0);
+		float offsetY = point.y - sectionInfo.y - sectionInfo.headerHeight;
 
 		if(offsetY < 0.0f) {
 			return null;
@@ -634,16 +638,7 @@ public class TableView extends ScrollView {
 		return new IndexPath(section, row);
 	}
 
-	public void reloadData() {
-		if(this.reloadingData) {
-			MWarn("WARNING: Nested call to TableView.reloadData() detected.  This is unsupported.");
-		}
-
-		this.reloadingData = true;
-
-		this.hasLoadedData = true;
-		this.updateSectionsInfo();
-
+	private void clearAllViews() {
 		boolean areAnimationsEnabled = View.areAnimationsEnabled();
 		View.setAnimationsEnabled(false);
 
@@ -679,6 +674,20 @@ public class TableView extends ScrollView {
 		this.headersQueuedForReuse.clear();
 		this.footersQueuedForReuse.clear();
 		this.viewsToRemove.clear();
+		View.setAnimationsEnabled(areAnimationsEnabled);
+	}
+
+	private void reloadAllViews() {
+		this.reloadAllViews(true);
+	}
+
+	private void reloadAllViews(boolean clearOldViews) {
+		boolean areAnimationsEnabled = View.areAnimationsEnabled();
+		View.setAnimationsEnabled(false);
+
+		if(clearOldViews) {
+			this.clearAllViews();
+		}
 
 		Size contentSize = this.getContentSize();
 		Point contentOffset = this.getContentOffset();
@@ -698,6 +707,22 @@ public class TableView extends ScrollView {
 
 		this.layoutSubviews();
 		View.setAnimationsEnabled(areAnimationsEnabled);
+	}
+
+	public void reloadData() {
+		if(this.reloadingData) {
+			MWarn("WARNING: Nested call to TableView.reloadData() detected.  This is unsupported.");
+		}
+
+		this.reloadingData = true;
+
+		this.clearAllViews();
+
+		this.hasLoadedData = true;
+		this.updateSectionsInfo();
+
+		this.reloadAllViews(false);
+
 		this.reloadingData = false;
 	}
 
@@ -882,14 +907,14 @@ public class TableView extends ScrollView {
 			}
 		}
 
-		int section = this.getSectionAtPoint(this.getContentOffset());
+		int section = Math.max(this.getSectionAtPoint(this.getContentOffset()), 0);
 
 		if (minY >= 0 && minY <= this.maxPoint.y) {
 			this.scanSubviewsForQueuing(minY, maxY, section);
 		}
 
 		this.addSubviewsAtTop(minY);
-		this.addSubviewsAtBottom(maxY, section);
+		this.addSubviewsAtBottom(minY, maxY, section);
 
 		if(this.getSubviews().size() > 20) {
 			MWarn("subviews > 20, offset: %f", this.getContentOffset().y);
@@ -1023,28 +1048,49 @@ public class TableView extends ScrollView {
 		}
 	}
 
-	private void addSubviewsAtBottom(float maxY, int section) {
+	private void addSubviewsAtBottom(float minY, float maxY, int section) {
 		float offsetY;
-
 		int size = this.visibleSubviews.size();
+		boolean changedHeaders = false;
 
-		if(size == 0) {
-			IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
+		if(size == 0 && this.isSectionValid(section)) {
+			SectionInfo info = this.sectionsInfo.get(section);
 
-			if(indexPath != null) {
-				if(this.getTableStyle() == Style.PLAIN && this.isSectionValid(indexPath.section)) {
-					SectionInfo info = this.sectionsInfo.get(indexPath.section);
-
-					if(info.headerHeight > 0.0f) {
-						TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(indexPath.section));
-						this.addSubview(header);
-						this.visibleHeaders.add(header);
-						this.visibleSubviews.add(header);
-						size++;
-					}
+			if(this.getTableStyle() == Style.PLAIN) {
+				if(info.headerHeight > 0.0f) {
+					TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(section));
+					this.addSubview(header);
+					this.visibleHeaders.add(header);
+					this.visibleSubviews.add(header);
+					changedHeaders = true;
+					size++;
 				}
+			}
 
-				if(this.isIndexPathValid(indexPath)) {
+			if(this.getTableStyle() != Style.PLAIN && info.headerHeight > 0 && minY < info.y + info.headerHeight) {
+				TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(section));
+				Rect frame = header.getFrame();
+				frame.origin.x = 0.0f;
+				frame.origin.y = info.y;
+				header.setFrame(frame);
+				this.addSubview(header);
+				this.visibleHeaders.add(header);
+				this.visibleSubviews.add(header);
+				changedHeaders = true;
+				size++;
+			} else if(info.footerHeight > 0.0f && minY >= info.getMaxY() - info.footerHeight) {
+				TableViewSubview footer = this.getPopulatedFooter(this.getInfoForFooter(section));
+				Rect frame = footer.getFrame();
+				frame.origin.x = 0.0f;
+				frame.origin.y = info.y + info.cumulativeRowHeight;
+				footer.setFrame(frame);
+				this.addSubview(footer);
+				this.visibleSubviews.add(footer);
+				size++;
+			} else {
+				IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
+
+				if(indexPath != null && this.isIndexPathValid(indexPath)) {
 					TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
 
 					Rect frame = this.getRectForRowAtIndexPath(indexPath);
@@ -1074,8 +1120,6 @@ public class TableView extends ScrollView {
 		} else {
 			offsetY = visibleSubview.getFrame().maxY();
 		}
-
-		boolean changedHeaders = false;
 
 		while (offsetY <= maxY) {
 			visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForNextView(visibleSubview._dataSourceInfo));
