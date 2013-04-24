@@ -13,7 +13,9 @@ import android.view.Surface;
 import android.view.WindowManager;
 import mocha.foundation.Bundle;
 
-public class Application extends mocha.foundation.Object {
+import java.util.List;
+
+public class Application extends Responder {
 	public static final String DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
 	public static final String WILL_RESIGN_ACTIVE_NOTIFICATION = "APPLICATION_DID_WILL_RESIGN_ACTIVE_NOTIFICATION";
 	public static final String DID_BECOME_ACTIVE_NOTIFICATION = "APPLICATION_DID_BECOME_ACTIVE_NOTIFICATION";
@@ -235,4 +237,17 @@ public class Application extends mocha.foundation.Object {
 		}
 	}
 
+	public boolean canBecomeFirstResponder() {
+		return true;
+	}
+
+	boolean canBecomeDefaultFirstResponder() {
+		return true;
+	}
+
+	Responder getDefaultFirstResponder() {
+		List<Window> windows = this.activity.getWindows();
+		return windows != null && windows.size() > 0 ? windows.get(windows.size() - 1).getDefaultFirstResponder() : this;
+
+	}
 }

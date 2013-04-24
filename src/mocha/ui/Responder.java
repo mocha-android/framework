@@ -8,6 +8,8 @@ package mocha.ui;
 import java.util.List;
 
 public class Responder extends mocha.foundation.Object {
+	private boolean transitioningFirstResponders;
+	private boolean forceTransitionFirstResponder;
 
 	public Responder nextResponder() {
 		return null;
@@ -22,19 +24,19 @@ public class Responder extends mocha.foundation.Object {
 
 		if(this.isFirstResponder(window)) {
 			return true;
-		} else if(window != null && this.canBecomeFirstResponder()) {
+		} else if(window != null && this.canBecomeFirstResponder() && this.isInCompleteResponderChain()) {
 			Responder firstResponder = window.getFirstResponder();
-			boolean allow = false;
+			boolean allow;
 
 			if(firstResponder != null) {
-				if(firstResponder.canResignFirstResponder()) {
-					allow = firstResponder.resignFirstResponder();
-				}
+				firstResponder.transitioningFirstResponders = true;
+				allow = firstResponder.resignFirstResponder();
+				firstResponder.transitioningFirstResponders = false;
 			} else {
 				allow = true;
 			}
 
-			if(allow) {
+			if(allow || this.forceTransitionFirstResponder) {
 				window.setFirstResponder(this);
 				return true;
 			}
@@ -50,9 +52,11 @@ public class Responder extends mocha.foundation.Object {
 	public boolean resignFirstResponder() {
 		Window window = this.findWindow();
 
-		if(this.isFirstResponder(window)) {
+		if((this.isFirstResponder(window) && this.canResignFirstResponder()) || this.forceTransitionFirstResponder) {
 			window.setFirstResponder(null);
 		}
+
+		this.makeNextFirstResponderActiveIfAllowed();
 
 		return true;
 	}
@@ -63,6 +67,85 @@ public class Responder extends mocha.foundation.Object {
 
 	private boolean isFirstResponder(Window window) {
 		return window != null && window.getFirstResponder() == this;
+	}
+
+	private void makeNextFirstResponderActiveIfAllowed() {
+		if(!this.transitioningFirstResponders) {
+			this.makeNextFirstResponderActive();
+		}
+	}
+
+	private void makeNextFirstResponderActive() {
+		Responder nextResponder = this;
+
+		this.forceTransitionFirstResponder = true;
+
+		while((nextResponder = nextResponder.nextResponder()) != null) {
+			nextResponder.forceTransitionFirstResponder = true;
+
+			if(nextResponder.becomeFirstResponder()) {
+				nextResponder.forceTransitionFirstResponder = false;
+				break;
+			} else {
+				nextResponder.forceTransitionFirstResponder = false;
+			}
+		}
+
+		this.forceTransitionFirstResponder = false;
+	}
+
+	void promoteDeepestDefaultFirstResponder() {
+		Responder[] rootResponder = new Responder[1];
+
+		if(this.isInCompleteResponderChain(rootResponder)) {
+			Responder firstResponder = rootResponder[0].getDefaultFirstResponder();
+
+			while(firstResponder != null) {
+				if(firstResponder.canBecomeDefaultFirstResponder()) {
+					if(firstResponder.becomeFirstResponder()) {
+						break;
+					}
+				}
+
+				firstResponder = firstResponder.nextResponder();
+			}
+		}
+	}
+
+	boolean canBecomeDefaultFirstResponder() {
+		return false;
+	}
+
+	Responder getDefaultFirstResponder() {
+		Responder nextResponder = this.nextResponder();
+
+		if(nextResponder != null) {
+			return nextResponder.getDefaultFirstResponder();
+		} else {
+			return null;
+		}
+	}
+
+	boolean isInCompleteResponderChain() {
+		return isInCompleteResponderChain(null);
+	}
+
+	private boolean isInCompleteResponderChain(Responder[] rootResponder) {
+		Responder responder = this;
+
+		while(responder != null) {
+			if(responder == Application.sharedApplication()) {
+				if(rootResponder != null) {
+					rootResponder[0] = responder;
+				}
+
+				return true;
+			} else {
+				responder = responder.nextResponder();
+			}
+		}
+
+		return false;
 	}
 
 	public void touchesBegan(List<Touch> touches, Event event) {
@@ -118,4 +201,5 @@ public class Responder extends mocha.foundation.Object {
 			}
 		}
 	}
+
 }

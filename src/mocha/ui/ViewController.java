@@ -654,6 +654,7 @@ public class ViewController extends Responder {
 		this.presentedViewControllers.add(presentedViewController);
 		presentedViewController.presentingViewController = this;
 		window.addVisibleViewController(presentedViewController);
+		this.promoteDeepestDefaultFirstResponder();
 	}
 
 	private void removePresentedViewController(ViewController presentedViewController, Window window) {
@@ -662,6 +663,7 @@ public class ViewController extends Responder {
 		this.presentedViewControllers.remove(presentedViewController);
 		presentedViewController.presentingViewController = null;
 		window.removeVisibleViewController(presentedViewController);
+		this.promoteDeepestDefaultFirstResponder();
 	}
 
 
@@ -746,6 +748,26 @@ public class ViewController extends Responder {
 
 	public Responder nextResponder() {
 		return this.view != null ? this.view.getSuperview() : this.nextResponder;
+	}
+
+	public boolean canBecomeFirstResponder() {
+		return this.isInCompleteResponderChain() && this.isViewLoaded();
+	}
+
+	boolean canBecomeDefaultFirstResponder() {
+		return true;
+	}
+
+	Responder getDefaultFirstResponder() {
+		return this;
+	}
+
+	public void backKeyPressed(Event event) {
+		if(this.parentViewController == null && this.presentingViewController != null) {
+			this.dismissViewController(true);
+		} else {
+			super.backKeyPressed(event);
+		}
 	}
 
 	private abstract class PresentationController {

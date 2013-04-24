@@ -45,6 +45,10 @@ public class Activity extends android.app.Activity {
 		this.windows.add(window);
 	}
 
+	List<Window> getWindows() {
+		return this.windows;
+	}
+
 	public void onBackPressed() {
 		mocha.foundation.Object.MLog("Back key pressed");
 		if(this.application.isIgnoringInteractionEvents()) return;

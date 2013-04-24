@@ -149,6 +149,10 @@ public final class Window extends View {
 
 	public void makeKeyWindow() {
 		this.activity.setContentView(this.windowLayer.getNativeView());
+
+		if(this.rootViewController != null) {
+			this.promoteDeepestDefaultFirstResponder();
+		}
 	}
 
 	public void makeKeyAndVisible() {
@@ -344,6 +348,28 @@ public final class Window extends View {
 
 	void setFirstResponder(Responder firstResponder) {
 		this.firstResponder = firstResponder;
+	}
+
+	public Responder nextResponder() {
+		return Application.sharedApplication();
+	}
+
+	Responder getDefaultFirstResponder() {
+		if(this.visibleViewControllers.size() > 0) {
+			return this.visibleViewControllers.get(this.visibleViewControllers.size() - 1).getDefaultFirstResponder();
+		} else if(this.rootViewController != null) {
+			return this.rootViewController.getDefaultFirstResponder();
+		} else {
+			return this;
+		}
+	}
+
+	public boolean canBecomeFirstResponder() {
+		return true;
+	}
+
+	boolean canBecomeDefaultFirstResponder() {
+		return true;
 	}
 
 }

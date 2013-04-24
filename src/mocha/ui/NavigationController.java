@@ -136,6 +136,11 @@ public class NavigationController extends ViewController {
 		}
 	}
 
+	public void viewDidAppear(boolean animated) {
+		super.viewDidAppear(animated);
+		this.promoteDeepestDefaultFirstResponder();
+	}
+
 	public boolean canBecomeFirstResponder() {
 		return true;
 	}
@@ -265,11 +270,21 @@ public class NavigationController extends ViewController {
 		return poppingViewControllers;
 	}
 
-	private void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, boolean animated, final boolean push, final Runnable completion) {
+	private void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, boolean animated, final boolean push, final Runnable completion1) {
 		animated = animated && fromViewController != null && toViewController != null;
 
+		final Runnable completion = new Runnable() {
+			public void run() {
+				promoteDeepestDefaultFirstResponder();
+
+				if(completion1 != null) {
+					completion1.run();
+				}
+			}
+		};
+
 		if(toViewController == fromViewController || !this.isViewLoaded()) {
-			if(completion != null) completion.run();
+			completion.run();
 		} else {
 			final Rect bounds = this.getContentBounds();
 
@@ -310,7 +325,7 @@ public class NavigationController extends ViewController {
 					this.topView = null;
 				}
 
-				if(completion != null) completion.run();
+				completion.run();
 			} else {
 				this.transitionController.transitionFromViewController(fromViewController, toViewController, push, completion);
 			}
@@ -335,6 +350,18 @@ public class NavigationController extends ViewController {
 		} else {
 			super.backKeyPressed(event);
 		}
+	}
+
+	Responder getDefaultFirstResponder() {
+		if(this.viewControllers != null && this.viewControllers.size() > 0) {
+			Responder responder = this.getTopViewController().getDefaultFirstResponder();
+
+			if(responder != null && responder.isInCompleteResponderChain()) {
+				return responder;
+			}
+		}
+
+		return this;
 	}
 
 	/**
