@@ -226,12 +226,8 @@ public class TableView extends ScrollView {
 	public TableView(Style style, Rect frame) {
 		super(frame);
 
-		this.setBackgroundColor(Color.WHITE);
 		this.tableStyle = style == null ? Style.PLAIN : style;
-		this.separatorStyle = TableViewCell.SeparatorStyle.SINGLE_LINE;
-		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.numberOfSections = 1;
-		this.setRowHeight(DEFAULT_ROW_HEIGHT);
 		this.setAllowsSelection(true);
 		this.sectionsInfo = new ArrayList<SectionInfo>();
 		this.cellsQueuedForReuse = new HashMap<Object, List<TableViewCell>>();
@@ -252,6 +248,15 @@ public class TableView extends ScrollView {
 		this.viewsToRemove = new ArrayList<TableViewSubview>();
 
 		this.setAlwaysBounceVertical(true);
+	}
+
+	protected void onCreate(Rect frame) {
+		super.onCreate(frame);
+
+		this.setRowHeight(DEFAULT_ROW_HEIGHT);
+		this.setBackgroundColor(Color.WHITE);
+		this.separatorStyle = TableViewCell.SeparatorStyle.SINGLE_LINE;
+		this.separatorColor = Color.white(0.88f, 1.0f);
 	}
 
 	public Style getTableStyle() {

@@ -131,12 +131,14 @@ public class ViewLayerNative2 extends mocha.foundation.Object implements ViewLay
 		frame = frame == null ? Rect.zero() : frame.copy();
 		this.frame = frame;
 
-		if(!frame.size.equals(oldFrame.size)) {
-			this.updateSize();
-		}
 
 		if(!frame.origin.equals(oldFrame.origin)) {
 			this.updatePosition();
+		}
+
+		if(!frame.size.equals(oldFrame.size)) {
+			this.updateSize();
+			this.setNeedsLayout();
 		}
 
 		this.setBounds(bounds);
@@ -154,6 +156,11 @@ public class ViewLayerNative2 extends mocha.foundation.Object implements ViewLay
 
 	public Rect getBounds() {
 		return this.bounds;
+	}
+
+	private void updateLayout() {
+		this.updateSize();
+		this.updatePosition();
 	}
 
 	void updateSize() {
@@ -338,6 +345,8 @@ public class ViewLayerNative2 extends mocha.foundation.Object implements ViewLay
 			layer1.superlayer = this;
 			layer1.didMoveToSuperlayer();
 		}
+
+		layer1.updateLayout();
 	}
 
 	public void insertSublayerBelow(ViewLayer layer, ViewLayer sibling) {
