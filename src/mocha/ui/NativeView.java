@@ -18,6 +18,11 @@ public class NativeView <V extends android.view.View> extends View {
 	private V nativeView;
 	boolean trackingTouches;
 
+	// Used internally if we're going to add the native view
+	// to the hierarchy somewhere else and NativeView shouldn't
+	// touch it's layout
+	private boolean unmanagedNativeView;
+
 	public NativeView(V nativeView) {
 		if(this.getLayer().getViewGroup() == null) {
 			throw new RuntimeException("NativeView currently only works when using ViewLayerNative.");
@@ -44,7 +49,7 @@ public class NativeView <V extends android.view.View> extends View {
 
 		this.nativeView = nativeView;
 
-		if(this.nativeView != null) {
+		if(this.nativeView != null && !this.unmanagedNativeView) {
 			this.nativeView.setOnTouchListener(new android.view.View.OnTouchListener() {
 				public boolean onTouch(android.view.View view, MotionEvent motionEvent) {
 					if(getWindow().canDeliverToNativeView(NativeView.this, motionEvent, view)) {
@@ -56,6 +61,23 @@ public class NativeView <V extends android.view.View> extends View {
 			});
 
 			this.getLayer().getViewGroup().addView(this.nativeView);
+		}
+	}
+
+	boolean isUnmanagedNativeView() {
+		return unmanagedNativeView;
+	}
+
+	void setUnmanagedNativeView(boolean unmanagedNativeView) {
+		this.unmanagedNativeView = unmanagedNativeView;
+
+		if(this.unmanagedNativeView) {
+			if(this.nativeView != null) {
+				this.nativeView.setOnClickListener(null);
+				((ViewGroup)this.nativeView.getParent()).removeView(this.nativeView);
+			}
+		} else {
+			// TODO
 		}
 	}
 
@@ -81,7 +103,7 @@ public class NativeView <V extends android.view.View> extends View {
 	}
 
 	private void updateNativeViewFrame() {
-		if(this.nativeView == null) return;
+		if(this.nativeView == null || this.unmanagedNativeView) return;
 
 		android.graphics.Rect frame = this.getFrame().toSystemRect(this.scale);
 		int width = frame.width();

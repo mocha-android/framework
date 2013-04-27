@@ -135,6 +135,10 @@ public class TextField extends Control implements TextInput.Traits {
 		}, ControlEvent.TOUCH_UP_INSIDE);
 	}
 
+	NativeView<EditText> getNativeView() {
+		return nativeView;
+	}
+
 	public boolean canBecomeFirstResponder() {
 		return true;
 	}

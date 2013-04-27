@@ -65,8 +65,14 @@ public class AlertView extends mocha.foundation.Object {
 		}
 	}
 
-	public enum Style {
+	public enum Appearance {
 		LIGHT, DARK
+	}
+
+	public enum Style {
+		DEFAULT,
+		PLAIN_TEXT_INPUT,
+		SECURE_TEXT_INPUT
 	}
 
 	private Listener listener;
@@ -76,10 +82,12 @@ public class AlertView extends mocha.foundation.Object {
 	private CharSequence cancelButtonTitle;
 	private List<CharSequence> otherButtonTitles;
 	private AlertDialog alertDialog;
-	private Style style;
+	private Appearance appearance;
 	private boolean destructive;
 	private int dismissedWithButtonIndex;
 	private final static int CANCEL_BUTTON_INDEX = -1;
+	private List<TextField> textFields;
+	private Style style;
 
 	/**
 	 * Create an alert view
@@ -91,7 +99,7 @@ public class AlertView extends mocha.foundation.Object {
 	 * @param otherButtonTitles Other button titles, may be null
 	 */
 	public AlertView(CharSequence title, CharSequence message, Listener listener, CharSequence cancelButtonTitle, CharSequence... otherButtonTitles) {
-		this.style = Style.DARK;
+		this.appearance = Appearance.DARK;
 		this.setListener(listener);
 
 		this.title = title;
@@ -200,11 +208,65 @@ public class AlertView extends mocha.foundation.Object {
 
 	/**
 	 * Set the style of the alert
+	 * NOTE: This will clear out any text fields that may have had
+	 * changes made to them.
 	 *
 	 * @param style Alert style
 	 */
 	public void setStyle(Style style) {
 		this.style = style;
+
+		if(this.textFields != null) {
+			this.textFields.clear();
+		} else {
+			this.textFields = new ArrayList<TextField>();
+		}
+
+		switch (style) {
+			case DEFAULT:
+				break;
+			case PLAIN_TEXT_INPUT:
+				this.textFields.add(new TextField());
+				break;
+			case SECURE_TEXT_INPUT:
+				TextField textField = new TextField();
+				textField.getNativeView().setUnmanagedNativeView(true);
+				textField.setSecureTextEntry(true);
+				this.textFields.add(textField);
+				break;
+		}
+	}
+
+	/**
+	 * Get a text field
+	 *
+	 * @param index Index of the text field, starting at 0
+	 * @return Text field
+	 */
+	public TextField getTextField(int index) {
+		if(this.textFields != null) {
+			return this.textFields.get(index);
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
+	}
+
+	/**
+	 * Get the appearance of the alert
+	 *
+	 * @return Alert appearance
+	 */
+	public Appearance getAppearance() {
+		return appearance;
+	}
+
+	/**
+	 * Set the appearance of the alert
+	 *
+	 * @param appearance Alert appearance
+	 */
+	public void setAppearance(Appearance appearance) {
+		this.appearance = appearance;
 	}
 
 	/**
@@ -249,7 +311,7 @@ public class AlertView extends mocha.foundation.Object {
 	 * Show the alert
 	 */
 	public void show() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(Application.sharedApplication().getContext(), this.style == Style.LIGHT ? AlertDialog.THEME_HOLO_LIGHT : AlertDialog.THEME_HOLO_DARK);
+		AlertDialog.Builder builder = new AlertDialog.Builder(Application.sharedApplication().getContext(), this.appearance == Appearance.LIGHT ? AlertDialog.THEME_HOLO_LIGHT : AlertDialog.THEME_HOLO_DARK);
 
 		if(this.title != null) {
 			builder.setTitle(this.title);
@@ -292,6 +354,10 @@ public class AlertView extends mocha.foundation.Object {
 					}
 				});
 			}
+		}
+
+		if(this.textFields != null && this.textFields.size() > 0) {
+			builder.setView(this.textFields.get(0).getNativeView().getNativeView());
 		}
 
 		if(this.destructive) {
