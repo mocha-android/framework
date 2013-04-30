@@ -1,11 +1,13 @@
 /*
  *  @author Shaun
  *	@date 11/19/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
-public class Color extends mocha.foundation.Object {
+import mocha.foundation.MObject;
+
+public class Color extends MObject {
 	public static final int BLACK = android.graphics.Color.BLACK;
 	public static final int DKGRAY = android.graphics.Color.DKGRAY;
 	public static final int GRAY = android.graphics.Color.GRAY;

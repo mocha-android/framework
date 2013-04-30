@@ -1,13 +1,13 @@
 /*
  *  @author Shaun
  *	@date 11/19/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
 import java.util.Arrays;
 
-public class IndexPath extends mocha.foundation.Object implements mocha.foundation.Copying <IndexPath> {
+public class IndexPath extends MObject implements mocha.foundation.Copying <IndexPath> {
 	private final int[] indexes;
 	private final int hashCode;
 

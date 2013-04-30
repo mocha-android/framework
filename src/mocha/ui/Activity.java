@@ -1,12 +1,13 @@
 /*
  *  @author Shaun
  *	@date 11/15/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.content.res.Configuration;
 import android.view.WindowManager;
+import mocha.foundation.MObject;
 import mocha.foundation.NotificationCenter;
 
 import java.util.ArrayList;
@@ -50,14 +51,14 @@ public class Activity extends android.app.Activity {
 	}
 
 	public void onBackPressed() {
-		mocha.foundation.Object.MLog("Back key pressed");
+		MObject.MLog("Back key pressed");
 		if(this.application.isIgnoringInteractionEvents()) return;
 
 		if(this.windows.size() > 0) {
 			Responder responder = this.windows.get(0).getFirstResponder();
 
 			if(responder != null) {
-				mocha.foundation.Object.MLog("Back key pressed with first responder: %s", responder);
+				MObject.MLog("Back key pressed with first responder: %s", responder);
 				responder.backKeyPressed(Event.systemEvent(this.windows.get(0)));
 				return;
 			}
@@ -67,7 +68,7 @@ public class Activity extends android.app.Activity {
 	}
 
 	void backKeyPressed(Event event) {
-		mocha.foundation.Object.MLog("Back key event finished, calling super");
+		MObject.MLog("Back key event finished, calling super");
 		super.onBackPressed();
 	}
 

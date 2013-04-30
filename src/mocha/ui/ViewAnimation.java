@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 2/4/13
- *	@copyright	2013 enormego. All rights reserved.
+ *	@copyright	2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.util.FloatMath;
 import android.view.ViewGroup;
 import mocha.animation.TimingFunction;
+import mocha.foundation.MObject;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -17,7 +18,7 @@ import mocha.graphics.Rect;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
-class ViewAnimation extends mocha.foundation.Object {
+class ViewAnimation extends MObject {
 	private static final long DESIRED_ANIMATION_FRAME_RATE = 17; // 1sec / 16.667ms = 60fps, 1sec / 17 = 58.8fps
 	private static final boolean PROFILE_FRAME_RATE = false;
 
@@ -360,7 +361,7 @@ class ViewAnimation extends mocha.foundation.Object {
 		double fps = 1000 / mspf;
 
 		if(PROFILE_FRAME_RATE) {
-			mocha.foundation.Object.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
+			MObject.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
 		}
 
 		this.restoreLayerTypes();

@@ -1,11 +1,11 @@
 /*
  *  @author Shaun
  *	@date 12/9/12
- *	@copyright	2012 enormego All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
-public class Benchmark extends Object {
+public class Benchmark extends MObject {
 
 	private long start;
 	private long end;

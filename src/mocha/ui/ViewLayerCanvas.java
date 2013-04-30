@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 1/31/13
- *	@copyright	2013 enormego. All rights reserved.
+ *	@copyright	2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -9,18 +9,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.ViewGroup;
-import mocha.foundation.Benchmark;
+import mocha.foundation.MObject;
 import mocha.graphics.*;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ViewLayerCanvas extends mocha.foundation.Object implements ViewLayer {
+public class ViewLayerCanvas extends MObject implements ViewLayer {
 	private static boolean ignoreLayout;
 	private static final boolean CACHE_DRAWINGS = false;
 

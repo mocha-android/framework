@@ -1,12 +1,13 @@
 /**
  *  @author Shaun
  *  @date 3/10/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import mocha.foundation.MObject;
 import mocha.graphics.Rect;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 
 // TODO: Properly implement show() methods, currently just shows in the middle like an alert view of the screen.
 
-public class ActionSheet extends mocha.foundation.Object {
+public class ActionSheet extends MObject {
 
 	public interface Listener {
 		/**

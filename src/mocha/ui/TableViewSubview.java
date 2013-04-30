@@ -1,14 +1,13 @@
 /*
  *  @author Shaun
  *	@date 2/5/13
- *	@copyright	2013 enormego. All rights reserved.
+ *	@copyright	2013 Mocha. All rights reserved.
  */
 
 package mocha.ui;
 
 import mocha.foundation.IndexPath;
 import mocha.graphics.Rect;
-import mocha.graphics.Size;
 
 abstract public class TableViewSubview extends View {
 	boolean _isQueued;

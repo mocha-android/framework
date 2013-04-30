@@ -1,16 +1,17 @@
 /*
  *  @author Shaun
  *	@date 11/13/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Touch extends mocha.foundation.Object {
+public final class Touch extends MObject {
 	Point location;
 	Point previousLocation;
 	private View view;

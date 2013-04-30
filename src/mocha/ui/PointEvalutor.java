@@ -1,14 +1,15 @@
 /*
  *  @author Shaun
  *	@date 11/17/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.animation.TypeEvaluator;
+import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
-public class PointEvalutor extends mocha.foundation.Object implements TypeEvaluator <Point> {
+public class PointEvalutor extends MObject implements TypeEvaluator <Point> {
 
 	public Point evaluate(float fraction, Point start, Point end) {
 		Point current = new Point();

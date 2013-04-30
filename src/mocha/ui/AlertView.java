@@ -1,18 +1,19 @@
 /**
  *  @author Shaun
  *  @date 3/10/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import mocha.foundation.MObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class AlertView extends mocha.foundation.Object {
+public class AlertView extends MObject {
 
 	public interface Listener {
 		/**

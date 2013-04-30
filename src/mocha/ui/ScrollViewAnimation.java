@@ -1,17 +1,18 @@
 /*
  *  @author Shaun
  *	@date 11/24/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
 import mocha.graphics.Point;
 import mocha.graphics.Size;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class ScrollViewAnimation extends mocha.foundation.Object {
+class ScrollViewAnimation extends MObject {
 	private static float DECELERATION_FRICTION_FACTOR = 0.998f;
 	private static long DESIRED_ANIMATION_FRAME_RATE = (long)((1.0 / 60.0) * 1000.0);
 	private static float MINIMUM_VELOCITY = 10.0f;

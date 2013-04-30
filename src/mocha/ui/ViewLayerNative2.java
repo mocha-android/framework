@@ -1,7 +1,7 @@
 /**
  *  @author Shaun
  *  @date 4/20/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -12,7 +12,7 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.FrameLayout;
+import mocha.foundation.MObject;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Path;
 import mocha.graphics.Rect;
@@ -21,7 +21,7 @@ import mocha.graphics.Size;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewLayerNative2 extends mocha.foundation.Object implements ViewLayer {
+public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	private FrameLayout layout;
 	private Context context;
@@ -499,7 +499,7 @@ public class ViewLayerNative2 extends mocha.foundation.Object implements ViewLay
 //				Rect bounds = this.clipToView.convertRectToView(this.clipToView.getBounds(), this.view);
 //
 //				if(!bounds.contains(this.view.frame)) {
-//					mocha.foundation.Object.MLog("SELF: %s %s | CANVAS: %s | CLIPPING TO: %s %s | adjusted: %s", this.view.getClass().getName(), this.frame, canvas.getClipBounds(), this.clipToView.getClass().getName(), this.clipToView.getBounds(), bounds);
+//					mocha.foundation.MObject.MLog("SELF: %s %s | CANVAS: %s | CLIPPING TO: %s %s | adjusted: %s", this.view.getClass().getName(), this.frame, canvas.getClipBounds(), this.clipToView.getClass().getName(), this.clipToView.getBounds(), bounds);
 //					// clippingRect = bounds.toSystemRectF(this.scale);
 //				}
 			}

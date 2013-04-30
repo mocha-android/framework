@@ -1,21 +1,21 @@
 /*
  *  @author Shaun
  *	@date 11/20/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.graphics;
 
 import android.content.res.Resources;
 import android.graphics.*;
 import android.util.DisplayMetrics;
+import mocha.foundation.MObject;
 import mocha.ui.Application;
 import mocha.ui.EdgeInsets;
-import mocha.ui.Screen;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class Image extends mocha.foundation.Object {
+public class Image extends MObject {
 	private float scale;
 	private Size size;
 	private Bitmap bitmap;

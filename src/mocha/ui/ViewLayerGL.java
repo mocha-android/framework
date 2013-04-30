@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 11/28/12
- *	@copyright	2012 enormego All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.opengl.GLUtils;
 import android.view.ViewGroup;
 import mocha.foundation.Benchmark;
+import mocha.foundation.MObject;
 import mocha.graphics.*;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ViewLayerGL extends mocha.foundation.Object implements ViewLayer {
+public class ViewLayerGL extends MObject implements ViewLayer {
 	private static boolean ignoreLayout;
 
 	private android.content.Context context;

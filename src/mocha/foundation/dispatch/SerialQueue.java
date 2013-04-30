@@ -1,18 +1,19 @@
 /**
  *  @author Shaun
  *  @date 2/18/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.foundation.dispatch;
 
 import android.os.Handler;
 import android.os.Looper;
+import mocha.foundation.MObject;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
-public class SerialQueue extends mocha.foundation.Object implements Queue {
+public class SerialQueue extends MObject implements Queue {
 	private String label;
 	private Thread thread;
 	private int threadPriority;

@@ -1,13 +1,13 @@
 /**
  *  @author Shaun
  *  @date 3/21/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
 import java.lang.Object;
 
-public class Range extends mocha.foundation.Object implements Copying<Range> {
+public class Range extends MObject implements Copying<Range> {
 	public long location;
 	public long length;
 

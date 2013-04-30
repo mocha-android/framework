@@ -1,16 +1,17 @@
 /**
  *  @author Shaun
  *  @date 11/20/12
- *  @copyright	2012 enormego. All rights reserved.
+ *  @copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
 import mocha.graphics.Image;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 import mocha.graphics.TextDrawing;
 
-abstract class TableViewCellLayoutManager extends mocha.foundation.Object {
+abstract class TableViewCellLayoutManager extends MObject {
 	private static TableViewCellLayoutManager DEFAULT = new Default();
 	private static TableViewCellLayoutManager SUBTITLE = new Subtitle();
 	private static TableViewCellLayoutManager VALUE_1 = new Value1();

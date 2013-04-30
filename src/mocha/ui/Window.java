@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 11/13/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 

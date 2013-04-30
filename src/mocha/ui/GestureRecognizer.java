@@ -1,10 +1,11 @@
 /*
  *  @author Shaun
  *	@date 11/14/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
 import java.lang.ref.WeakReference;
@@ -13,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-abstract public class GestureRecognizer extends mocha.foundation.Object {
+abstract public class GestureRecognizer extends MObject {
 	public enum State {
 		// State     Recognized		Reset		Notify		Finished
 		POSSIBLE	(false,			false,		false,		false),

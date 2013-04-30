@@ -1,5 +1,7 @@
 package mocha.ui;
 
+import mocha.foundation.MObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  * These custom views can be system buttons. Use the UIBarButtonItem class to create custom
  * views to add to navigation items.
  */
-public class NavigationItem extends mocha.foundation.Object {
+public class NavigationItem extends MObject {
 	private String title;
 	private BarButtonItem backBarButtonItem;
 	private Button backBarButton;

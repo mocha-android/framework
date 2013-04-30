@@ -1,7 +1,7 @@
 /**
  *  @author Shaun
  *  @date 3/10/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class Bundle extends mocha.foundation.Object {
+public class Bundle extends MObject {
 
 	private Application application;
 

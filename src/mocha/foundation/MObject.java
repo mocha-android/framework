@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 11/23/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
@@ -11,7 +11,7 @@ import android.util.Log;
 
 import java.util.concurrent.Semaphore;
 
-public class Object {
+public class MObject {
 	private static ThreadLocal<Handler> handler = new ThreadLocal<Handler>();
 	private static Handler mainHandler;
 	private static String LOG_TAG = "Mocha";
@@ -22,7 +22,7 @@ public class Object {
 	}
 
 	public static void setLoggingEnabled(boolean loggingEnabled) {
-		Object.loggingEnabled = loggingEnabled;
+		MObject.loggingEnabled = loggingEnabled;
 	}
 
 	public String toString() {
@@ -87,13 +87,13 @@ public class Object {
 	}
 
 	private static Handler getHandler(boolean allowNullReturn) {
-		Handler handler = Object.handler.get();
+		Handler handler = MObject.handler.get();
 
 		if(handler == null) {
 			if(allowNullReturn) return null;
 
 			handler = new Handler();
-			Object.handler.set(handler);
+			MObject.handler.set(handler);
 		}
 
 		return handler;
@@ -105,7 +105,7 @@ public class Object {
 	 * @param delayInMillis milliseconds before the callback should be called
 	 * @param callback callback to be called after a delay
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to Object#cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to MObject#cancelCallbacks when cancelling.
 	 */
 	public static Runnable performAfterDelay(long delayInMillis, Runnable callback) {
 		// If we're on the main looper, there's no sense in creating
@@ -126,7 +126,7 @@ public class Object {
 	 * @param delayInMillis milliseconds before the callback should be called
 	 * @param callback callback to be called after a delay
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to Object#cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to MObject#cancelCallbacks when cancelling.
 	 */
 	public static Runnable performOnMainAfterDelay(long delayInMillis, Runnable callback) {
 		getMainHandler().postDelayed(callback, delayInMillis);
@@ -142,7 +142,7 @@ public class Object {
 	 *                      If false, the callback will be posted to the main thread.
 	 * @param callback Callback to be called on the main thread
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to Object.cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to MObject.cancelCallbacks when cancelling.
 	 */
 	public static Runnable performOnMain(boolean waitUntilDone, final Runnable callback) {
 		if(waitUntilDone) {
@@ -170,9 +170,9 @@ public class Object {
 	/**
 	 * Cancel callbacks made with performAfterDelay, performOnMainAfterDelay or performOnMain
 	 *
-	 * @see Object#performAfterDelay(long, Runnable)
-	 * @see Object#performOnMainAfterDelay(long, Runnable)
-	 * @see Object#performOnMain(boolean, Runnable)
+	 * @see MObject#performAfterDelay(long, Runnable)
+	 * @see MObject#performOnMainAfterDelay(long, Runnable)
+	 * @see MObject#performOnMain(boolean, Runnable)
 	 *
 	 * @param runnable Callback passed to performAfterDelay/performOnMainAfterDelay/performOnMain
 	 */

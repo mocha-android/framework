@@ -1,14 +1,15 @@
 /*
  *  @author Shaun
  *	@date 11/17/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.util.DisplayMetrics;
 import android.util.FloatMath;
+import mocha.foundation.MObject;
 
-public class Screen extends mocha.foundation.Object {
+public class Screen extends MObject {
 	private static Screen MAIN_SCREEN;
 
 	static void setupMainScreen(Activity activity) {

@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 11/28/12
- *	@copyright	2012 enormego All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -238,7 +238,7 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 //			Rect bounds = this.clipToView.convertRectToView(this.clipToView.getBounds(), this.view);
 //
 //			if(!bounds.contains(this.view.frame)) {
-//				mocha.foundation.Object.MLog("SELF: %s %s | CANVAS: %s | CLIPPING TO: %s %s | adjusted: %s", this.view.getClass().getName(), this.frame, canvas.getClipBounds(), this.clipToView.getClass().getName(), this.clipToView.getBounds(), bounds);
+//				mocha.foundation.MObject.MLog("SELF: %s %s | CANVAS: %s | CLIPPING TO: %s %s | adjusted: %s", this.view.getClass().getName(), this.frame, canvas.getClipBounds(), this.clipToView.getClass().getName(), this.clipToView.getBounds(), bounds);
 //				// clippingRect = bounds.toSystemRectF(this.scale);
 //			}
 		}

@@ -1,13 +1,15 @@
 /*
  *  @author Shaun
  *	@date 11/24/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
+
 import java.util.List;
 
-public class Responder extends mocha.foundation.Object {
+public class Responder extends MObject {
 	private boolean transitioningFirstResponders;
 	private boolean forceTransitionFirstResponder;
 

@@ -1,19 +1,18 @@
 /**
  *  @author Shaun
  *  @date 2/18/13
- *  @copyright 2013 TV Guide, Inc. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.graphics;
 
 import android.graphics.*;
-import android.util.FloatMath;
 import mocha.foundation.Copying;
-import mocha.ui.Color;
+import mocha.foundation.MObject;
 
 import java.util.Collections;
 import java.util.EnumSet;
 
-public class Path extends mocha.foundation.Object implements Copying<Path> {
+public class Path extends MObject implements Copying<Path> {
 	private final android.graphics.Path nativePath;
 	private float lineWidth;
 	private LineCap lineCapStyle;

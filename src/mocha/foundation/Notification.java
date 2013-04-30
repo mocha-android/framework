@@ -1,13 +1,13 @@
 /**
  *  @author Shaun
  *  @date 2/24/13
- *  @copyright 2013 TV Guide, Inc. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
 import java.util.Map;
 
-public class Notification extends Object {
+public class Notification extends MObject {
 
 	private String name;
 	private java.lang.Object sender;

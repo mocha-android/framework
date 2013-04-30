@@ -1,7 +1,7 @@
 /**
  *  @author Shaun
  *  @date 2/24/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
-public class NotificationCenter extends Object {
+public class NotificationCenter extends MObject {
 
 	public interface Observer {
 		/**

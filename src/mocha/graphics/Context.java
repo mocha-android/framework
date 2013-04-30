@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 11/19/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.graphics;
 
@@ -9,13 +9,14 @@ import android.graphics.*;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.FloatMath;
+import mocha.foundation.MObject;
 import mocha.ui.*;
 import mocha.ui.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Context extends mocha.foundation.Object {
+public final class Context extends MObject {
 	private final float scale;
 	private final List<Paint> paintStates;
 	private final List<Paint> strokePaintStates;

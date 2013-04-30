@@ -1,7 +1,7 @@
 /*
  *  @author Shaun
  *	@date 1/31/13
- *	@copyright	2013 enormego. All rights reserved.
+ *	@copyright	2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -16,7 +16,7 @@ public final class WindowLayerNative extends ViewLayerNative implements WindowLa
 
 	public WindowLayerNative(Context context) {
 		super(context);
-		mocha.foundation.Object.MLog("Created window layout class");
+		MObject.MLog("Created window layout class");
 	}
 
 	public android.view.View getNativeView() {
@@ -56,16 +56,16 @@ public final class WindowLayerNative extends ViewLayerNative implements WindowLa
 
 		if(changed) {
 			ViewGroup view = (ViewGroup)this.getParent();
-			mocha.foundation.Object.MLog("Parent: " + view);
+			MObject.MLog("Parent: " + view);
 
 			if(view != null) {
 				float scale = getView().scale;
 
 				Rect frame = new Rect(0, 0, view.getWidth() / scale, view.getHeight() / scale);
 				getWindow().superSetFrame(frame);
-				mocha.foundation.Object.MLog("Window Bounds: " + getView().getBounds().toString());
-				mocha.foundation.Object.MLog("Window Frame: " + frame);
-				mocha.foundation.Object.MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
+				MObject.MLog("Window Bounds: " + getView().getBounds().toString());
+				MObject.MLog("Window Frame: " + frame);
+				MObject.MLog("Window Raw Size: " + view.getWidth() + "x" + view.getHeight() + " - " + (view.getHeight() / scale));
 			}
 		}
 	}

@@ -1,13 +1,14 @@
 /**
  *  @author Shaun
  *  @date 2/11/13
- *  @copyright 2013 enormego. All rights reserved.
+ *  @copyright 2013 Mocha. All rights reserved.
  */
 package mocha.graphics;
 
 import android.util.FloatMath;
+import mocha.foundation.MObject;
 
-public class AffineTransform extends mocha.foundation.Object implements mocha.foundation.Copying <AffineTransform> {
+public class AffineTransform extends MObject implements mocha.foundation.Copying <AffineTransform> {
 	private static final AffineTransform IDENTITY = new AffineTransform(1, 0, 0, 1, 0, 0);
 
 	private float a, b, c, d;

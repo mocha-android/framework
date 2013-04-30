@@ -5,13 +5,15 @@
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-abstract public class Appearance<C> extends mocha.foundation.Object {
+abstract public class Appearance<C> extends MObject {
 	private List<StorageItem> storage;
 
 	private static class StorageItem {
@@ -44,7 +46,7 @@ abstract public class Appearance<C> extends mocha.foundation.Object {
 		this.storage.add(new StorageItem(method, args));
 	}
 
-	public static class Storage<C, A extends Appearance<C>> extends mocha.foundation.Object {
+	public static class Storage<C, A extends Appearance<C>> extends MObject {
 
 		private Map<Class, A> appearances;
 		private Class<A> appearanceClass;

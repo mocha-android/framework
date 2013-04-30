@@ -1,20 +1,19 @@
 /*
  *  @author Shaun
  *	@date 1/29/13
- *	@copyright	2013 enormego All rights reserved.
+ *	@copyright	2013 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.MObject;
 import mocha.graphics.Image;
-import mocha.graphics.Offset;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BarItem extends mocha.foundation.Object {
+public class BarItem extends MObject {
 	private Image image;
 	private Image landscapeImagePhone;
 	private String title;

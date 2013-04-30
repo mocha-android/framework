@@ -1,16 +1,17 @@
 /**
  *  @author Shaun
  *	@date 11/19/12
- *	@copyright	2012 enormego. All rights reserved.
+ *	@copyright	2012 Mocha. All rights reserved.
  */
 package mocha.graphics;
 
 import android.graphics.Canvas;
 import android.text.*;
 import android.util.FloatMath;
+import mocha.foundation.MObject;
 import mocha.ui.Screen;
 
-public class TextDrawing extends mocha.foundation.Object {
+public class TextDrawing extends MObject {
 
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font) {
 		return draw(context, text, rect, font, TextAlignment.LEFT);

@@ -1,18 +1,19 @@
 /*
  *  @author Shaun
  *  @date 11/13/12
- *  @copyright 2012 enormego. All rights reserved.
+ *  @copyright 2012 Mocha. All rights reserved.
  */
 package mocha.ui;
 
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
 import java.util.*;
 
-public final class Event extends mocha.foundation.Object {
+public final class Event extends MObject {
 	private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout();
 	private static final int DOUBLE_TAP_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
 
