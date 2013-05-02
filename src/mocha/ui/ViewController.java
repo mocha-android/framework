@@ -336,21 +336,21 @@ public class ViewController extends Responder {
 		return nearestViewController;
 	}
 
-	// Notifies when rotation begins, reaches halfway point and ends.
-	protected void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation, long duration) {
-
+	protected void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
+		if(this.shouldAutomaticallyForwardRotationMethods() && this.childViewControllers != null && this.childViewControllers.size() > 0) {
+			for(ViewController viewController : this.childViewControllers) {
+				viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+			}
+		}
 	}
 
 	protected void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
-
+		if(this.shouldAutomaticallyForwardRotationMethods() && this.childViewControllers != null && this.childViewControllers.size() > 0) {
+			for(ViewController viewController : this.childViewControllers) {
+				viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+			}
+		}
 	}
-
-	// Called from within a rotating animation block, for additional animations during rotation.
-	// A subclass may override this method, or the two-part variants below, but not both.
-	protected void willAnimateRotationToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation, long duration) {
-
-	}
-
 
 	/**
 	 * Adds the given view controller as a child.
@@ -545,6 +545,10 @@ public class ViewController extends Responder {
 	 * @return true if appearance methods are forwarded or false if they are not.
 	 */
 	public boolean shouldAutomaticallyForwardAppearanceMethods() {
+		return true;
+	}
+
+	public boolean shouldAutomaticallyForwardRotationMethods() {
 		return true;
 	}
 

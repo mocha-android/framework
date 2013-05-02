@@ -18,6 +18,8 @@ public class Activity extends android.app.Activity {
 	private Application application;
 	private boolean setup;
 	private boolean hasPreviouslyLaunched;
+	private Configuration currentConfiguration;
+	private InterfaceOrientation currentOrientation;
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		this.setTheme(android.R.style.Theme_Holo);
@@ -35,11 +37,40 @@ public class Activity extends android.app.Activity {
 
 			this.setup = true;
 		}
+
+		this.setCurrentConfiguration(this.getResources().getConfiguration());
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		this.windows.get(0).makeKeyAndVisible();
+		if(this.currentConfiguration.orientation != newConfig.orientation) {
+			InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
+			Window keyWindow = this.windows != null && this.windows.size() > 0 ? this.windows.get(this.windows.size() - 1) : null;
+
+			if(keyWindow != null) {
+				keyWindow.willRotateToInterfaceOrientation(this.application.getStatusBarOrientation());
+			}
+
+			super.onConfigurationChanged(newConfig);
+
+			if(keyWindow != null) {
+				keyWindow.makeKeyAndVisible();
+			}
+
+			if(this.currentConfiguration.orientation != newConfig.orientation) {
+				if(keyWindow != null) {
+					keyWindow.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+				}
+			}
+		} else {
+			super.onConfigurationChanged(newConfig);
+		}
+
+		this.setCurrentConfiguration(newConfig);
+	}
+
+	private void setCurrentConfiguration(Configuration configuration) {
+		this.currentConfiguration = new Configuration(configuration);
+		this.currentOrientation = this.application.getStatusBarOrientation();
 	}
 
 	void addWindow(Window window) {

@@ -372,4 +372,28 @@ public final class Window extends View {
 		return true;
 	}
 
+	void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
+		HashSet<ViewController> viewControllers = new HashSet<ViewController>(this.visibleViewControllers);
+
+		if(this.rootViewController != null) {
+			viewControllers.add(this.rootViewController);
+		}
+
+		for(ViewController viewController : viewControllers) {
+			viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+		}
+	}
+
+	void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
+		HashSet<ViewController> viewControllers = new HashSet<ViewController>(this.visibleViewControllers);
+
+		if(this.rootViewController != null) {
+			viewControllers.add(this.rootViewController);
+		}
+
+		for(ViewController viewController : viewControllers) {
+			viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+		}
+	}
+
 }

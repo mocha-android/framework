@@ -599,6 +599,14 @@ public class NavigationBar extends View {
 		this.layoutSubviews();
 	}
 
+	public void setFrame(Rect frame) {
+		if(!this.getFrame().size.equals(frame.size)) {
+			this.needsReload = true;
+		}
+
+		super.setFrame(frame);
+	}
+
 	public void layoutSubviews() {
 		super.layoutSubviews();
 

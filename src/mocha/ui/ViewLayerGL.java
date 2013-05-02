@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class ViewLayerGL extends MObject implements ViewLayer {
-	private static boolean ignoreLayout;
-
 	private android.content.Context context;
 	private View view;
 	private Rect frame;
@@ -44,8 +42,11 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 	private Size shadowOffset;
 	private float shadowRadius;
 	private Path shadowPath;
+	private Runnable layoutCallback;
+
 	final float scale;
 	final int dpi;
+
 
 	private final short[] indices = { 0, 1, 2, 0, 2, 3 };
 	private FloatBuffer vertexBuffer;
@@ -73,16 +74,6 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 
 	}
 
-	private static boolean pushIgnoreLayout() {
-		boolean old = ignoreLayout;
-		ignoreLayout = true;
-		return old;
-	}
-
-	private static void popIgnoreLayout(boolean oldValue) {
-		ignoreLayout = oldValue;
-	}
-
 	boolean layoutSublayersIfNeeded() {
 		if(this.needsLayout) {
 			this.layoutSublayers();
@@ -93,10 +84,7 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 	}
 
 	void layoutSublayers() {
-		if(ignoreLayout) return;
-		boolean ignoreLayout = pushIgnoreLayout();
 		this.getView()._layoutSubviews();
-		popIgnoreLayout(ignoreLayout);
 		this.needsLayout = false;
 	}
 
@@ -104,9 +92,13 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 		if(!this.needsLayout) {
 			this.needsLayout = true;
 
-			WindowLayerGL windowLayer = this.getWindowLayer();
-			if(windowLayer != null) {
-				windowLayer.scheduleLayout();
+			if(this.layoutCallback == null) {
+				layoutCallback = performOnMainAfterDelay(0, new Runnable() {
+					public void run() {
+						layoutCallback = null;
+						layoutSublayersIfNeeded();
+					}
+				});
 			}
 		}
 	}
@@ -199,9 +191,7 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 		this.bounds = bounds.copy();
 
 		if(oldPoint != null && !oldPoint.equals(this.bounds.origin)) {
-			boolean ignoreLayout = pushIgnoreLayout();
-			this.view._layoutSubviews();
-			popIgnoreLayout(ignoreLayout);
+			this.layoutSublayers();
 		} else if(setNeedsLayout) {
 			this.view.setNeedsLayout();
 		}
@@ -344,9 +334,7 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 		View superview = this.getView().getSuperview();
 
 		if(superview != null) {
-			boolean ignoreLayout = pushIgnoreLayout();
-			this.getView()._layoutSubviews();
-			popIgnoreLayout(ignoreLayout);
+			this.layoutSublayers();
 		}
 	}
 
