@@ -31,4 +31,9 @@ class TableViewFooter extends TableViewSubview {
 		return this.label.getText().toString();
 	}
 
+	public static float getHeight(CharSequence title, float constrainedToWidth) {
+		// TODO: Fully implement
+		return 30.0f;
+	}
+
 }

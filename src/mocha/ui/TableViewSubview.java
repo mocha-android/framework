@@ -11,7 +11,11 @@ import mocha.graphics.Rect;
 
 abstract public class TableViewSubview extends View {
 	boolean _isQueued;
-	Info _dataSourceInfo;
+	int _section;
+
+	// Only applies to cells
+	int _globalRow;
+	IndexPath _indexPath;
 
 	// Only applies to headers/footers
 	boolean createdByTableView;
@@ -24,26 +28,4 @@ abstract public class TableViewSubview extends View {
 		super(frame);
 	}
 
-	static class Info {
-		enum Type {
-			CELL, FOOTER, HEADER
-		}
-
-		Type type;
-		int section;
-
-		// Only applies to cells
-		IndexPath indexPath;
-
-		Info(Type type, int section) {
-			this.type = type;
-			this.section = section;
-		}
-
-		Info(Type type, IndexPath indexPath) {
-			this.type = type;
-			this.section = indexPath.section;
-			this.indexPath = indexPath;
-		}
-	}
 }

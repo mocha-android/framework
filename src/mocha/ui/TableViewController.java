@@ -7,7 +7,6 @@ package mocha.ui;
 
 import mocha.foundation.IndexPath;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 abstract public class TableViewController extends ViewController implements TableView.DataSource, TableView.Delegate {
@@ -59,7 +58,7 @@ abstract public class TableViewController extends ViewController implements Tabl
 		}
 
 		if(this.clearsSelectionOnViewWillAppear) {
-			Set<IndexPath> indexPaths = this.getTableView().indexPathsForSelectedRows();
+			Set<IndexPath> indexPaths = this.getTableView().getIndexPathsForSelectedRows();
 
 			if(indexPaths.size() > 0) {
 				for(IndexPath indexPath : indexPaths) {

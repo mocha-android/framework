@@ -22,7 +22,7 @@ public class Range extends MObject implements Copying<Range> {
 	}
 
 	public boolean containsLocation(long location) {
-		return (location - this.location < this.length);
+		return location >= this.location && location < this.location + this.length;
 	}
 
 	public boolean equals(Object o) {

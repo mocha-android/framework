@@ -6,8 +6,10 @@
 
 package mocha.ui;
 
+import android.util.SparseArray;
 import android.view.ViewGroup;
 import mocha.foundation.IndexPath;
+import mocha.foundation.Range;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -16,9 +18,9 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 public class TableView extends ScrollView {
-	private static final float PLAIN_HEADER_HEIGHT = 23.0f;
+	static final float PLAIN_HEADER_HEIGHT = 23.0f;
+	static final float GROUPED_TABLE_Y_MARGIN = 10.0f;
 	private static final float DEFAULT_ROW_HEIGHT = 44.0f;
-	private static final float GROUPED_TABLE_Y_MARGIN = 10.0f;
 
 	/**
 	 * DataSource + Delegate Note: A rather odd design pattern here, but without optional methods in Java, I couldn't think
@@ -37,11 +39,11 @@ public class TableView extends ScrollView {
 		}
 
 		public interface Headers extends DataSource {
-			public String getTitleForHeaderInSections(TableView tableView, int section);
+			public String getTitleForHeaderInSection(TableView tableView, int section);
 		}
 
 		public interface Footers extends DataSource {
-			public String getTitleForFooterInSections(TableView tableView, int section);
+			public String getTitleForFooterInSection(TableView tableView, int section);
 		}
 	}
 
@@ -84,7 +86,7 @@ public class TableView extends ScrollView {
 		}
 
 		public interface Headers extends Delegate {
-			public TableViewSubview getViewForHeaderInSecton(TableView tableView, int section);
+			public TableViewSubview getViewForHeaderInSection(TableView tableView, int section);
 			public float getHeightForHeaderInSection(TableView tableView, int section);
 		}
 
@@ -112,57 +114,6 @@ public class TableView extends ScrollView {
 		BOTTOM
 	}
 
-	static class SectionInfo {
-		int numberOfRows;
-		Object header;
-		Object footer;
-		float y;
-		float headerHeight;
-		float footerHeight;
-		float[] rowHeights;
-		float cumulativeRowHeight;
-
-		float getMaxY() {
-			return y + headerHeight + footerHeight + cumulativeRowHeight;
-		}
-	}
-
-	static class TableViewCellIndexPathComparator implements Comparator<TableViewCell> {
-
-		public int compare(TableViewCell cellA, TableViewCell cellB) {
-			IndexPath indexPathA = cellA._dataSourceInfo.indexPath;
-			IndexPath indexPathB = cellB._dataSourceInfo.indexPath;
-
-			if (indexPathA.lowerThan(indexPathB)) {
-				return -1;
-			} else {
-				if (indexPathA.greaterThan(indexPathB)) {
-					return 1;
-				} else {
-					return 0;
-				}
-			}
-		}
-
-	}
-
-	static class TableViewSectionComparator implements Comparator<TableViewSubview> {
-
-		public int compare(TableViewSubview viewA, TableViewSubview viewB) {
-			int sectionA = viewA._dataSourceInfo.section;
-			int sectionB = viewB._dataSourceInfo.section;
-
-			if (sectionA < sectionB) {
-				return -1;
-			} else if (sectionA > sectionB) {
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-
-	}
-
 	public enum Style {
 		PLAIN, GROUPED, CUSTOM
 	}
@@ -175,31 +126,27 @@ public class TableView extends ScrollView {
 	private boolean allowsSelection;
 	private boolean reloadingData;
 
-	private DataSource dataSource;
-	private DataSource.Editing dataSourceEditing;
-	private DataSource.Headers dataSourceHeaders;
-	private DataSource.Footers dataSourceFooters;
+	DataSource dataSource;
+	DataSource.Editing dataSourceEditing;
+	DataSource.Headers dataSourceHeaders;
+	DataSource.Footers dataSourceFooters;
 
-	private Delegate delegate;
-	private Delegate.RowSizing delegateRowSizing;
-	private Delegate.RowDisplay delegateRowDisplay;
-	private Delegate.Selection delegateSelection;
-	private Delegate.Deselection delegateDeselection;
-	private Delegate.Highlighting delegateHighlighting;
-	private Delegate.Headers delegateHeaders;
-	private Delegate.Footers delegateFooters;
-	private Delegate.Editing delegateEditing;
-	private Delegate.AccessorySelection delegateAccessorySelection;
+	Delegate delegate;
+	Delegate.RowSizing delegateRowSizing;
+	Delegate.RowDisplay delegateRowDisplay;
+	Delegate.Selection delegateSelection;
+	Delegate.Deselection delegateDeselection;
+	Delegate.Highlighting delegateHighlighting;
+	Delegate.Headers delegateHeaders;
+	Delegate.Footers delegateFooters;
+	Delegate.Editing delegateEditing;
+	Delegate.AccessorySelection delegateAccessorySelection;
 
-	private int numberOfSections;
-	private List<SectionInfo> sectionsInfo;
+	private TableViewRowData rowData;
 	private Map<Object,List<TableViewCell>> cellsQueuedForReuse;
 	private Map<Object,Class<? extends TableViewCell>> registeredClasses;
 	private List<TableViewSubview> headersQueuedForReuse;
 	private List<TableViewSubview> footersQueuedForReuse;
-	private List<TableViewSubview> visibleHeaders;
-	private List<TableViewSubview> visibleSubviews;
-	private boolean usesCustomRowHeights;
 	private Runnable cellTouchCallback;
 	private TableViewCell touchedCell;
 	private boolean touchesMoved;
@@ -209,14 +156,14 @@ public class TableView extends ScrollView {
 	private List<IndexPath> cellsBeingEditedPaths;
 	private View tableHeaderView;
 	private View tableFooterView;
-	private float tableHeaderHeight;
-	private float tableFooterHeight;
 	private boolean tableHeaderAttached;
 	private boolean tableFooterAttached;
 	private boolean hasLoadedData;
 
-	private List<TableViewSubview> tableViewHeaders;
-	private List<TableViewCell> tableViewCells;
+	private Range visibleRows;
+	private List<TableViewCell> visibleCells;
+	private SparseArray<TableViewSubview> visibleHeaderViews;
+	private SparseArray<TableViewSubview> visibleFooterViews;
 	private List<TableViewSubview> viewsToRemove;
 
 	public TableView(Style style) {
@@ -227,24 +174,21 @@ public class TableView extends ScrollView {
 		super(frame);
 
 		this.tableStyle = style == null ? Style.PLAIN : style;
-		this.numberOfSections = 1;
 		this.setAllowsSelection(true);
-		this.sectionsInfo = new ArrayList<SectionInfo>();
+		this.rowData = new TableViewRowData(this);
 		this.cellsQueuedForReuse = new HashMap<Object, List<TableViewCell>>();
 		this.registeredClasses = new HashMap<Object, Class<? extends TableViewCell>>();
 		this.headersQueuedForReuse = new ArrayList<TableViewSubview>();
 		this.footersQueuedForReuse = new ArrayList<TableViewSubview>();
-		this.visibleHeaders = new ArrayList<TableViewSubview>();
-		this.visibleSubviews = new ArrayList<TableViewSubview>();
-		this.usesCustomRowHeights = false;
 		this.touchedCell = null;
 		this.selectedRowIndexPath = null;
 		this.selectedRowsIndexPaths = new HashSet<IndexPath>();
 		this.editing = false;
 		this.cellsBeingEditedPaths = new ArrayList<IndexPath>();
 
-		this.tableViewHeaders = new ArrayList<TableViewSubview>();
-		this.tableViewCells = new ArrayList<TableViewCell>();
+		this.visibleCells = new ArrayList<TableViewCell>();
+		this.visibleHeaderViews = new SparseArray<TableViewSubview>();
+		this.visibleFooterViews = new SparseArray<TableViewSubview>();
 		this.viewsToRemove = new ArrayList<TableViewSubview>();
 
 		this.setAlwaysBounceVertical(true);
@@ -323,46 +267,12 @@ public class TableView extends ScrollView {
 				TableViewSubview subview = (TableViewSubview)view;
 				ViewGroup viewGroup = subview.getLayer().getViewGroup();
 
-				MLog(format, new Rect(viewGroup.getX(), viewGroup.getY(), viewGroup.getWidth(), viewGroup.getHeight()),
-						(subview instanceof TableViewCell ? subview._dataSourceInfo.indexPath.section + "x" + subview._dataSourceInfo.indexPath.row : subview._dataSourceInfo.section),
-						subview._dataSourceInfo.type, subview.getFrame(), this.visibleHeaders.contains(subview),
-						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
-						this.visibleSubviews.contains(subview), subview._isQueued, viewGroup.getY());
+//				MLog(format, new Rect(viewGroup.getX(), viewGroup.getY(), viewGroup.getWidth(), viewGroup.getHeight()),
+//						(subview instanceof TableViewCell ? subview._dataSourceInfo.indexPath.section + "x" + subview._dataSourceInfo.indexPath.row : subview._dataSourceInfo.section),
+//						subview._dataSourceInfo.type, subview.getFrame(), this.visibleHeaders.contains(subview),
+//						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
+//						this.visibleSubviews.contains(subview), subview._isQueued, viewGroup.getY());
 			}
-		}
-
-		MLog("============================");
-	}
-
-	private void debugSectionInfo() {
-		MLog("============================");
-		MLog("Section Info Debug");
-		MLog("----------------------------");
-		int s = 0;
-		for(SectionInfo sectionInfo : this.sectionsInfo) {
-			MLog("| Section: %-2s | Rows: %-2s | Offset: %-5s | header: %-5s", s, sectionInfo.numberOfRows, sectionInfo.y, sectionInfo.headerHeight);
-			float y = sectionInfo.y + sectionInfo.headerHeight;
-			int r = 0;
-
-			float[] rowHeights;
-
-			if(!this.usesCustomRowHeights) {
-				rowHeights = new float[sectionInfo.numberOfRows];
-
-				for(int i = 0; i < sectionInfo.numberOfRows; i++) {
-					rowHeights[i] = this.rowHeight;
-				}
-			} else {
-				rowHeights = sectionInfo.rowHeights;
-			}
-
-			for(float rowHeight : rowHeights) {
-				MLog("| Row: %-2s, %-2s | Offset: %-5s | Height: %-5s", s, r, y, rowHeight);
-				y += rowHeight;
-				r++;
-			}
-
-			s++;
 		}
 
 		MLog("============================");
@@ -485,10 +395,7 @@ public class TableView extends ScrollView {
 			this.tableHeaderView = tableHeaderView;
 		}
 
-
-		float oldHeight = this.tableHeaderHeight;
-		this.tableHeaderHeight = this.tableHeaderView != null ? this.tableHeaderView.getFrame().size.height : 0.0f;
-		this.updateTableHeaderHeight(oldHeight, this.tableHeaderHeight);
+		this.rowData.tableHeaderHeightDidChangeToHeight(this.tableHeaderView != null ? this.tableHeaderView.getFrame().size.height : 0.0f);
 		this.tableHeaderAttached = false;
 
 		if(this.hasLoadedData) {
@@ -509,12 +416,10 @@ public class TableView extends ScrollView {
 			this.tableFooterView = tableFooterView;
 		}
 
-		float oldHeight = this.tableFooterHeight;
-		this.tableFooterHeight = this.tableFooterView != null ? this.tableFooterView.getFrame().size.height : 0.0f;
-		this.tableFooterAttached = false;
+		this.rowData.tableFooterHeightDidChangeToHeight(this.tableFooterView != null ? this.tableFooterView.getFrame().size.height : 0.0f);
 
 		Size contentSize = this.getContentSize();
-		contentSize.height += this.tableFooterHeight - oldHeight;
+		contentSize.height += this.rowData.getTableHeight();
 		this.setContentSize(contentSize);
 
 		if(this.hasLoadedData) {
@@ -535,49 +440,24 @@ public class TableView extends ScrollView {
 					this.reloadData();
 				}
 			} else {*/
-				this.setContentSize(new Size(newSize.width, this.getContentSize().height));
+				this.setContentSize(new Size(newSize.width, this.rowData.getTableHeight()));
 			//}
 
+			this.rowData.tableViewWidthDidChangeToWidth(newSize.width);
 			this.layoutSubviews();
 		}
 	}
 
 	public int getNumberOfSections() {
-		return this.sectionsInfo != null ? this.sectionsInfo.size() : 0;
+		return this.rowData.getNumberOfSections();
 	}
 
 	public int getNumberOfRowsInSection(int section) {
-		if (this.sectionsInfo.size() <= section) {
-			if(this.dataSource != null) {
-				return this.dataSource.getNumberOfRowsInSection(this, section);
-			} else {
-				return 0;
-			}
-
-		} else {
-			if(this.isSectionValid(section)) {
-				return this.sectionsInfo.get(section).numberOfRows;
-			}
-		}
-
-		return 0;
-	}
-
-	private boolean isSectionValid(int section) {
-		return (section >= 0 && section < this.numberOfSections);
-	}
-
-	private boolean isIndexPathValid(IndexPath indexPath) {
-		if(indexPath == null) return false;
-
-		int section = indexPath.section;
-		int row = indexPath.row;
-
-		return (this.isSectionValid(section) && row >= 0 && row < this.sectionsInfo.get(section).numberOfRows);
+		return this.rowData.getNumberOfRowsInSection(section);
 	}
 
 	public TableViewCell getCellForRowAtIndexPath(IndexPath indexPath) {
-		if (indexPath != null && this.isIndexPathValid(indexPath)) {
+		if (indexPath != null) {
 			List<TableViewCell> cells = this.getVisibleCells();
 
 			for(TableViewCell cell : cells) {
@@ -593,54 +473,11 @@ public class TableView extends ScrollView {
 	}
 
 	public IndexPath getIndexPathForCell(TableViewCell cell) {
-		return cell._dataSourceInfo.indexPath;
-	}
-
-	private int getSectionAtPoint(Point point) {
-		int section = -1;
-
-		for(SectionInfo sectionInfo : this.sectionsInfo) {
-			if(point.y >= sectionInfo.y) {
-				section++;
-			} else {
-				break;
-			}
-		}
-
-		return (section >= this.numberOfSections) ? this.numberOfSections - 1 : section;
+		return cell._indexPath;
 	}
 
 	public IndexPath getIndexPathForRowAtPoint(Point point) {
-		int section = this.getSectionAtPoint(point);
-
-		if (section == -1) {
-			return null;
-		}
-
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float offsetY = point.y - sectionInfo.y - sectionInfo.headerHeight;
-
-		if(offsetY < 0.0f) {
-			return null;
-		}
-
-		if (offsetY >= sectionInfo.cumulativeRowHeight) {
-			return null;
-		}
-
-		int row = 0;
-		float current = 0;
-		for(int i = 0; i < sectionInfo.numberOfRows; i++) {
-			current += this.usesCustomRowHeights ? sectionInfo.rowHeights[i] : this.rowHeight;
-
-			if(offsetY < current) {
-				break;
-			} else {
-				row++;
-			}
-		}
-
-		return new IndexPath(section, row);
+		return this.rowData.getIndexPathForRowAtPoint(point);
 	}
 
 	private void clearAllViews() {
@@ -667,18 +504,19 @@ public class TableView extends ScrollView {
 					}
 
 					if(this.delegateRowDisplay != null) {
-						this.delegateRowDisplay.didEndDisplayingCell(this, cell, cell._dataSourceInfo.indexPath);
+						this.delegateRowDisplay.didEndDisplayingCell(this, cell, cell._indexPath);
 					}
 				}
 			}
 		}
 
-		this.tableViewCells.clear();
-		this.visibleSubviews.clear();
-		this.visibleHeaders.clear();
+		this.visibleHeaderViews.clear();
+		this.visibleFooterViews.clear();
+		this.visibleCells.clear();
 		this.headersQueuedForReuse.clear();
 		this.footersQueuedForReuse.clear();
 		this.viewsToRemove.clear();
+		this.visibleRows = null;
 		View.setAnimationsEnabled(areAnimationsEnabled);
 	}
 
@@ -724,7 +562,8 @@ public class TableView extends ScrollView {
 		this.clearAllViews();
 
 		this.hasLoadedData = true;
-		this.updateSectionsInfo();
+		this.rowData.reloadData();
+		this.setContentSize(new Size(this.getBounds().size.width, this.rowData.getTableHeight()));
 
 		this.reloadAllViews(false);
 
@@ -732,134 +571,7 @@ public class TableView extends ScrollView {
 	}
 
 	boolean isEmpty() {
-		return this.sectionsInfo == null || this.sectionsInfo.size() == 0;
-	}
-
-	private void updateSectionsInfo() {
-		if (this.dataSource == null) {
-			return;
-		}
-
-		boolean isCustomStyle = (this.tableStyle == Style.CUSTOM);
-		boolean isGroupedStyle = (this.tableStyle == Style.GROUPED);
-		boolean isPlainStyle = (this.tableStyle == Style.PLAIN);
-
-		this.sectionsInfo.clear();
-		this.usesCustomRowHeights = this.delegateRowSizing != null;
-		this.numberOfSections = this.dataSource.getNumberOfSections(this);
-
-		boolean hasHeaderTitles = this.dataSourceHeaders != null;
-		boolean hasFooterTitles = this.dataSourceFooters != null;
-
-		boolean hasHeaderViews = this.delegateHeaders != null;
-		boolean hasFooterViews = this.delegateFooters != null;
-
-		TableViewHeader header = null;
-		TableViewFooter footer = null;
-
-		if (isGroupedStyle) {
-			header = new TableViewHeader.Grouped();
-
-			footer = new TableViewFooter();
-		}
-
-		float tableHeight = this.tableHeaderHeight;
-
-		for (int section = 0; section < this.numberOfSections; section++) {
-			SectionInfo sectionInfo = new SectionInfo();
-			sectionInfo.numberOfRows = this.getNumberOfRowsInSection(section);
-			sectionInfo.y = tableHeight;
-
-			float headerHeight = 0.0f;
-			float footerHeight = 0.0f;
-			String headerTitle = null;
-			String footerTitle = null;
-
-			if (!isCustomStyle) {
-				if(hasHeaderViews) {
-					headerHeight = this.delegateHeaders.getHeightForHeaderInSection(this, section);
-				}
-
-				if (hasHeaderTitles) {
-					headerTitle = this.dataSourceHeaders.getTitleForHeaderInSections(this, section);
-				}
-
-				if(headerHeight <= 0.0f) {
-					if (isGroupedStyle) {
-						if (headerTitle == null) {
-							headerHeight = (section == 0) ? GROUPED_TABLE_Y_MARGIN : (2 * GROUPED_TABLE_Y_MARGIN + 1);
-						} else if(header != null) {
-							header.setText(headerTitle);
-							headerHeight = header.sizeThatFits(this.getBounds().size).height;
-						}
-					} else {
-						if (headerTitle != null) {
-							headerHeight = PLAIN_HEADER_HEIGHT;
-						}
-					}
-				}
-
-				if (isGroupedStyle && (hasFooterTitles || hasFooterViews)) {
-					if(hasFooterViews) {
-						footerHeight = this.delegateFooters.getHeightForFooterInSection(this, section);
-					}
-
-					if(hasFooterTitles) {
-						footerTitle = this.dataSourceFooters.getTitleForFooterInSections(this, section);
-					}
-
-					if (footerTitle != null) {
-						footer.setText(footerTitle);
-
-						if(footerHeight <= 0.0f) {
-							footerHeight = footer.sizeThatFits(this.getBounds().size).height;
-						}
-					}
-				}
-			}
-
-			sectionInfo.header = headerTitle;
-			sectionInfo.footer = footerTitle;
-			sectionInfo.headerHeight = headerHeight;
-			sectionInfo.footerHeight = footerHeight;
-
-			if (this.usesCustomRowHeights) {
-				float[] rowHeights = new float[sectionInfo.numberOfRows];
-				sectionInfo.cumulativeRowHeight = 0.0f;
-
-				for (int row = 0; row < sectionInfo.numberOfRows; row++) {
-					float height = this.delegateRowSizing.getHeightForRowAtIndexPath(this, new IndexPath(section, row));
-					sectionInfo.cumulativeRowHeight += height;
-					rowHeights[row] = height;
-				}
-
-				sectionInfo.rowHeights = rowHeights;
-			} else {
-				sectionInfo.cumulativeRowHeight = sectionInfo.numberOfRows * this.rowHeight;
-			}
-
-			this.sectionsInfo.add(sectionInfo);
-			tableHeight += sectionInfo.cumulativeRowHeight + headerHeight + footerHeight;
-		}
-
-		if (isGroupedStyle) {
-			tableHeight += GROUPED_TABLE_Y_MARGIN + 1.0f;
-		}
-
-		tableHeight += this.tableFooterHeight;
-
-		this.setContentSize(new Size(this.getBounds().size.width, tableHeight));
-	}
-
-	private void updateTableHeaderHeight(float oldHeight, float newHeight) {
-		float delta = newHeight - oldHeight;
-		for(SectionInfo sectionInfo : this.sectionsInfo) {
-			sectionInfo.y += delta;
-		}
-
-		Size contentSize = this.getContentSize();
-		contentSize.height += delta;
-		this.setContentSize(contentSize);
+		return this.rowData.isEmpty();
 	}
 
 	public void beginUpdates() {
@@ -874,17 +586,84 @@ public class TableView extends ScrollView {
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
-		if (this.sectionsInfo.size() == 0) {
+		if (this.rowData.getNumberOfSections() == 0) {
 			return;
 		}
 
-		float minY = this.getContentOffset().y;
-		float maxY = minY + this.getBounds().size.height;
+		if(this.getSubviews().size() > 20) {
+			MWarn("subviews > 20 (%d), offset: %f", this.getSubviews().size(), this.getContentOffset().y);
+		}
+
+		this.updateVisibleCells();
+
+		for(TableViewSubview view : this.viewsToRemove) {
+			view.removeFromSuperview();
+		}
+
+		this.viewsToRemove.clear();
+	}
+
+	private void updateVisibleCells() {
+		Rect bounds = this.getBounds();
+
+		Range visibleRows = this.rowData.getGlobalRowsInRect(bounds);
+
+		if(this.visibleRows == null || !this.visibleRows.equals(visibleRows)) {
+			this.visibleRows = visibleRows;
+
+			Iterator<TableViewCell> cells = this.visibleCells.iterator();
+
+			while(cells.hasNext()) {
+				TableViewCell cell = cells.next();
+
+				if(!visibleRows.containsLocation(cell._globalRow)) {
+					this.enqueueCell(cell);
+					cells.remove();
+				}
+			}
+
+			int visibleCellsSize = this.visibleCells.size();
+			int visibleCellsStart = visibleCellsSize > 0 ? this.visibleCells.get(0)._globalRow : Integer.MAX_VALUE;
+			int visibleCellsEnd = visibleCellsSize > 0 ? this.visibleCells.get(visibleCellsSize - 1)._globalRow : Integer.MIN_VALUE;
+
+			int start = (int)visibleRows.location;
+			int end = (int)visibleRows.max();
+
+			for(int globalRow = start; globalRow < end; globalRow++) {
+				if(globalRow < visibleCellsStart || globalRow > visibleCellsEnd) {
+					IndexPath indexPath = this.rowData.getIndexPathForRowAtGlobalRow(globalRow);
+					TableViewCell cell = this.createPreparedCellForRowAtIndexPath(indexPath);
+					cell._globalRow = globalRow;
+					cell.setFrame(this.rowData.getRectForGlobalRow(globalRow));
+
+					if(this.delegateRowDisplay != null) {
+						this.delegateRowDisplay.willDisplayCell(this, cell, indexPath);
+					}
+
+					if (cell.getSuperview() != this) {
+						cell.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
+						this.insertSubview(cell, 0);
+					}
+
+					cell.layoutSubviews();
+
+					this.visibleCells.add(globalRow - start, cell);
+				}
+			}
+		}
+
+		this.updateTableHeadersAndFooters(bounds);
+		this.updateVisibleHeadersAndFooters(bounds);
+	}
+
+	private void updateTableHeadersAndFooters(Rect bounds) {
+		float minY = bounds.origin.y;
+		float maxY = minY + bounds.size.height;
 
 		if(this.tableHeaderView != null) {
-			if(minY <= this.tableHeaderHeight) {
+			if(minY <= this.rowData.getHeightForTableHeaderView()) {
 				if(!this.tableHeaderAttached) {
-					this.tableHeaderView.setFrame(new Rect(0.0f, 0.0f, this.getFrame().size.width, this.tableHeaderHeight));
+					this.tableHeaderView.setFrame(this.rowData.getRectForTableHeaderView());
 					this.tableHeaderView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
 					this.insertSubview(this.tableHeaderView, 0);
 					this.tableHeaderAttached = true;
@@ -896,591 +675,180 @@ public class TableView extends ScrollView {
 		}
 
 		if(this.tableFooterView != null) {
-			float offset = this.getContentSize().height - tableFooterHeight;
+			float offset = this.getContentSize().height - this.rowData.getHeightForTableFooterView();
 			if(maxY >= offset) {
 				if(!this.tableFooterAttached) {
-					this.tableFooterView.setFrame(new Rect(0.0f, offset, this.getFrame().size.width, this.tableFooterHeight));
+					this.tableFooterView.setFrame(this.rowData.getRectForTableFooterView());
 					this.tableFooterView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
 					this.insertSubview(this.tableFooterView, 0);
 					this.tableFooterAttached = true;
 				} else if(this.tableFooterView.getFrame().origin.y < offset) {
-					this.tableFooterView.setFrame(new Rect(0.0f, offset, this.getFrame().size.width, this.tableFooterHeight));
+					this.tableFooterView.setFrame(this.rowData.getRectForTableFooterView());
 				}
 			} else if(this.tableFooterAttached) {
 				this.tableFooterView.removeFromSuperview();
 				this.tableFooterAttached = false;
 			}
 		}
-
-		int section = Math.max(this.getSectionAtPoint(this.getContentOffset()), 0);
-
-		if (minY >= 0 && minY <= this.maxPoint.y) {
-			this.scanSubviewsForQueuing(minY, maxY, section);
-		}
-
-		this.addSubviewsAtTop(minY);
-		this.addSubviewsAtBottom(minY, maxY, section);
-
-		if(this.getSubviews().size() > 20) {
-			MWarn("subviews > 20, offset: %f", this.getContentOffset().y);
-		}
-
-		for(TableViewSubview view : this.viewsToRemove) {
-			view.removeFromSuperview();
-		}
-
-		this.viewsToRemove.clear();
-
-		if (this.tableStyle == Style.PLAIN) {
-			this.updateStickyHeaderPositions(minY, section);
-		}
 	}
 
-	private void scanSubviewsForQueuing(float minY, float maxY, int section) {
-		boolean isPlain = (this.tableStyle == Style.PLAIN);
+	private void updateVisibleHeadersAndFooters(Rect visibleBounds) {
+		Range visibleSections = this.rowData.getSectionsInRect(visibleBounds);
 
-		for(View view : this.getSubviews()) {
-			if(!(view instanceof TableViewSubview)) continue;
-			TableViewSubview subview = (TableViewSubview)view;
+		this.ensureHeaderFooterViewsInRange(this.visibleHeaderViews, visibleSections, true);
+		this.ensureHeaderFooterViewsInRange(this.visibleFooterViews, visibleSections, false);
 
-			if(subview._isQueued) continue;
+		int start = (int)visibleSections.location;
+		int end = (int)visibleSections.max();
 
-			if((view.getFrame().maxY() <= minY || view.getFrame().origin.y >= maxY)) {
-				List<? extends TableViewSubview> queuedViews = null;
-				TableViewSubview.Info info = subview._dataSourceInfo;
+		for(int section = start; section < end; section++) {
+			boolean hasHeader = this.rowData.hasHeaderForSection(section);
+			boolean hasFooter = this.rowData.hasFooterForSection(section);
 
-				if (info.type == TableViewSubview.Info.Type.CELL) {
-					TableViewCell cell = (TableViewCell)subview;
+			if(hasHeader || hasFooter) {
+				if(hasHeader) {
+					TableViewSubview headerView = this.visibleHeaderViews.get(section);
 
-					queuedViews = this.cellsQueuedForReuse.get(cell._reuseIdentifier);
+					if(headerView == null || this.tableStyle != Style.PLAIN) {
+						Rect headerRect = this.rowData.getRectForHeaderInSection(section);
 
-					if(queuedViews == null) {
-						List<TableViewCell> queuedCells = new ArrayList<TableViewCell>();
-						this.cellsQueuedForReuse.put(cell._reuseIdentifier, queuedCells);
-						queuedViews = queuedCells;
-					}
-
-					if(this.delegateRowDisplay != null) {
-						this.delegateRowDisplay.didEndDisplayingCell(this, cell, info.indexPath);
-					}
-				} else {
-					if (info.type == TableViewSubview.Info.Type.HEADER) {
-						if (isPlain && subview._dataSourceInfo.section == section) {
-							continue;
-						}
-
-						queuedViews = this.headersQueuedForReuse;
-					} else {
-						queuedViews = this.footersQueuedForReuse;
-					}
-				}
-
-				this.enqueueView(queuedViews, subview);
-			}
-		}
-	}
-
-	private void addSubviewsAtTop(float minY) {
-		TableViewSubview visibleSubview = this.visibleSubviews.size() > 0 ? this.visibleSubviews.get(0) : null;
-
-		if (visibleSubview == null) {
-			return;
-		}
-
-		float offsetY = visibleSubview.getFrame().origin.y;
-		boolean isPlain = this.tableStyle == Style.PLAIN;
-		View header = null;
-
-		if (offsetY >= minY && isPlain && this.visibleHeaders.size() > 0 && visibleSubview == this.visibleHeaders.get(0)) {
-			if(this.visibleSubviews.size() > 1) {
-				header = this.visibleHeaders.get(0);
-				visibleSubview = this.visibleSubviews.get(1);
-				offsetY = visibleSubview.getFrame().origin.y;
-			} else {
-				return;
-			}
-		}
-
-		boolean changedHeaders = false;
-
-		while (offsetY >= minY) {
-			visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForPreviousView(visibleSubview._dataSourceInfo));
-
-			if (visibleSubview == null) {
-				break;
-			}
-
-			offsetY -= visibleSubview.getBounds().size.height;
-
-			if (visibleSubview == header) {
-				header = null;
-				continue;
-			}
-
-			Rect frame = visibleSubview.getFrame();
-			frame.origin.x = 0.0f;
-			frame.origin.y = offsetY;
-			visibleSubview.setFrame(frame);
-
-			if (header != null) {
-				this.visibleSubviews.add(1, visibleSubview);
-			} else {
-				this.visibleSubviews.add(0, visibleSubview);
-			}
-
-			if (visibleSubview._dataSourceInfo.type == TableViewSubview.Info.Type.HEADER) {
-				this.visibleHeaders.add(0, visibleSubview);
-				changedHeaders = true;
-			} else if(visibleSubview instanceof TableViewCell) {
-				this.tableViewCells.add((TableViewCell) visibleSubview);
-			}
-		}
-
-		if (isPlain && (this.visibleHeaders.size() == 0 || this.visibleHeaders.get(0) != this.visibleSubviews.get(0))) {
-			TableViewSubview.Info info = this.visibleSubviews.get(0)._dataSourceInfo;
-			int section = (info.type == TableViewSubview.Info.Type.CELL) ? info.indexPath.section : info.section;
-
-			if (this.sectionsInfo.get(section).header != null) {
-				visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForHeader(section));
-				this.visibleSubviews.add(0, visibleSubview);
-				this.visibleHeaders.add(0, visibleSubview);
-				changedHeaders = true;
-			}
-		}
-
-		if(changedHeaders) {
-			this.headersChanged();
-		}
-	}
-
-	private void addSubviewsAtBottom(float minY, float maxY, int section) {
-		float offsetY;
-		int size = this.visibleSubviews.size();
-		boolean changedHeaders = false;
-
-		if(size == 0 && this.isSectionValid(section)) {
-			SectionInfo info = this.sectionsInfo.get(section);
-
-			if(this.getTableStyle() == Style.PLAIN) {
-				if(info.headerHeight > 0.0f) {
-					TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(section));
-					this.addSubview(header);
-					this.visibleHeaders.add(header);
-					this.visibleSubviews.add(header);
-					changedHeaders = true;
-					size++;
-				}
-			}
-
-			if(this.getTableStyle() != Style.PLAIN && info.headerHeight > 0 && minY < info.y + info.headerHeight) {
-				TableViewSubview header = this.getPopulatedHeader(this.getInfoForHeader(section));
-				Rect frame = header.getFrame();
-				frame.origin.x = 0.0f;
-				frame.origin.y = info.y;
-				header.setFrame(frame);
-				this.addSubview(header);
-				this.visibleHeaders.add(header);
-				this.visibleSubviews.add(header);
-				changedHeaders = true;
-				size++;
-			} else if(info.footerHeight > 0.0f && minY >= info.getMaxY() - info.footerHeight) {
-				TableViewSubview footer = this.getPopulatedFooter(this.getInfoForFooter(section));
-				Rect frame = footer.getFrame();
-				frame.origin.x = 0.0f;
-				frame.origin.y = info.y + info.cumulativeRowHeight;
-				footer.setFrame(frame);
-				this.addSubview(footer);
-				this.visibleSubviews.add(footer);
-				size++;
-			} else {
-				IndexPath indexPath = this.getIndexPathForRowAtPoint(this.getBounds().origin);
-
-				if(indexPath != null && this.isIndexPathValid(indexPath)) {
-					TableViewSubview visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForCell(indexPath));
-
-					Rect frame = this.getRectForRowAtIndexPath(indexPath);
-
-					if(frame != null) {
-						visibleSubview.setFrame(frame);
-						this.visibleSubviews.add(visibleSubview);
-						this.tableViewCells.add((TableViewCell) visibleSubview);
-						size++;
-					}
-				}
-			}
-		}
-
-		TableViewSubview visibleSubview = (size > 0) ? this.visibleSubviews.get(size - 1) : null;
-
-		if (visibleSubview == null) {
-			visibleSubview = new TableViewFooter();
-
-			if (section == 0) {
-				offsetY = this.tableHeaderHeight;
-				visibleSubview._dataSourceInfo = this.getInfoForFooter(-1);
-			} else {
-				offsetY = this.sectionsInfo.get(section).y;
-				visibleSubview._dataSourceInfo = this.getInfoForFooter(section - 1);
-			}
-		} else {
-			offsetY = visibleSubview.getFrame().maxY();
-		}
-
-		while (offsetY <= maxY) {
-			visibleSubview = this.getPopulatedSubviewForInfo(this.getInfoForNextView(visibleSubview._dataSourceInfo));
-
-			if (visibleSubview == null) {
-				break;
-			}
-
-			Rect frame = visibleSubview.getFrame();
-			frame.origin.x = 0.0f;
-			frame.origin.y = offsetY;
-			visibleSubview.setFrame(frame);
-
-			offsetY += frame.size.height;
-
-			this.visibleSubviews.add(visibleSubview);
-
-			if (visibleSubview._dataSourceInfo.type == TableViewSubview.Info.Type.HEADER) {
-				this.visibleHeaders.add(visibleSubview);
-				changedHeaders = true;
-			} else if(visibleSubview instanceof TableViewCell) {
-				this.tableViewCells.add((TableViewCell) visibleSubview);
-			}
-		}
-
-		if(changedHeaders) {
-			this.headersChanged();
-		}
-	}
-
-	private void headersChanged() {
-		if(this.tableStyle != Style.PLAIN) return;
-
-		Collections.sort(this.visibleHeaders, new TableViewSectionComparator());
-
-		if(this.visibleHeaders.size() > 0) {
-			for(View view : this.visibleHeaders) {
-				this.bringSubviewToFront(view);
-			}
-		}
-	}
-
-	private void updateStickyHeaderPositions(float minY, int section) {
-		List<TableViewSubview> visibleHeaders = this.visibleHeaders;
-		TableViewSubview header;
-		int headerSection;
-		TableViewSubview nextHeader;
-		float y;
-
-		for (int idx = visibleHeaders.size() - 1; idx >= 0; idx--) {
-			header = visibleHeaders.get(idx);
-			headerSection = header._dataSourceInfo.section;
-
-			if (headerSection == section) {
-				if (visibleHeaders.size() > idx + 1 && (nextHeader = visibleHeaders.get(idx + 1)) != null && nextHeader.getFrame().origin.y < minY + header.getFrame().size.height) {
-					y = nextHeader.getFrame().origin.y - nextHeader.getFrame().size.height;
-				} else {
-					if(this.tableHeaderView != null) {
-						y = Math.max(minY, this.tableHeaderHeight);
-					} else {
-						y = minY;
-					}
-				}
-
-				float y2 = Math.max(0.0f, y);
-
-				if(y2 != y) {
-					y = y2;
-				}
-			} else {
-				y = this.sectionsInfo.get(headerSection).y;
-			}
-
-			Rect frame = header.getFrame();
-			frame.origin.x = 0.0f;
-			frame.origin.y = y;
-			header.setFrame(frame);
-		}
-	}
-
-	private TableViewSubview.Info getInfoForCell(IndexPath indexPath) {
-		return new TableViewSubview.Info(TableViewSubview.Info.Type.CELL, indexPath);
-	}
-
-	private TableViewSubview.Info getInfoForHeader(int section) {
-		return new TableViewSubview.Info(TableViewSubview.Info.Type.HEADER, section);
-	}
-
-	private TableViewSubview.Info getInfoForFooter(int section) {
-		return new TableViewSubview.Info(TableViewSubview.Info.Type.FOOTER, section);
-	}
-
-	private TableViewSubview.Info getInfoForFirstViewInSection(int section) {
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-
-		if (sectionInfo.header != null || sectionInfo.headerHeight > 0.0f) {
-			return this.getInfoForHeader(section);
-		} else {
-			if (sectionInfo.numberOfRows > 0) {
-				return this.getInfoForCell(new IndexPath(section, 0));
-			} else {
-				if (sectionInfo.footerHeight > 0) {
-					return this.getInfoForFooter(section);
-				}
-			}
-		}
-
-		return null;
-	}
-
-	private TableViewSubview.Info getInfoForLastViewInSection(int section) {
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-
-		if (sectionInfo.footerHeight > 0) {
-			return this.getInfoForFooter(section);
-		} else {
-			if (sectionInfo.numberOfRows > 0) {
-				return this.getInfoForCell(new IndexPath(section, sectionInfo.numberOfRows - 1));
-			}
-		}
-
-		if (sectionInfo.header != null || sectionInfo.headerHeight > 0.0f) {
-			return this.getInfoForHeader(section);
-		}
-
-		return null;
-	}
-
-	private TableViewSubview.Info getInfoForNextView(TableViewSubview.Info info) {
-		TableViewSubview.Info nextViewInfo = null;
-
-		if (info.type == TableViewSubview.Info.Type.CELL) {
-			IndexPath indexPath = info.indexPath;
-			SectionInfo sectionInfo = this.sectionsInfo.get(indexPath.section);
-			if ((indexPath.row + 1) < sectionInfo.numberOfRows) {
-				nextViewInfo = this.getInfoForCell(new IndexPath(indexPath.section, indexPath.row + 1));
-			} else {
-				if (sectionInfo.footerHeight > 0.0f) {
-					nextViewInfo = this.getInfoForFooter(indexPath.section);
-				} else {
-					if ((indexPath.section + 1) < this.numberOfSections) {
-						nextViewInfo = this.getInfoForFirstViewInSection(indexPath.section + 1);
-					}
-				}
-			}
-		} else {
-			if (info.type == TableViewSubview.Info.Type.HEADER) {
-				int section = info.section;
-				SectionInfo sectionInfo = this.sectionsInfo.get(section);
-
-				if (sectionInfo.numberOfRows > 0) {
-					nextViewInfo = this.getInfoForCell(new IndexPath(section, 0));
-				} else {
-					if (sectionInfo.footerHeight > 0) {
-						nextViewInfo = this.getInfoForFooter(section);
-					} else {
-						if (++section < this.numberOfSections) {
-							nextViewInfo = this.getInfoForFirstViewInSection(section);
+						if(visibleBounds.intersects(headerRect) || this.tableStyle == Style.PLAIN) {
+							if(headerView == null) {
+								headerView = this.createPreparedHeaderForSection(section);
+								headerView.setFrame(headerRect);
+								this.addSubview(headerView);
+								this.visibleHeaderViews.put(section, headerView);
+							}
+						} else if(headerView != null) {
+							this.enqueueHeaderFooterView(headerView, true);
 						}
 					}
 				}
-			} else {
-				int section = info.section;
 
-				if (++section < this.numberOfSections) {
-					nextViewInfo = this.getInfoForFirstViewInSection(section);
-				}
-			}
-		}
+				if(hasFooter) {
+					Rect footerRect = this.rowData.getRectForFooterInSection(section);
+					TableViewSubview footerView = this.visibleFooterViews.get(section);
 
-		return nextViewInfo;
-	}
+					if(visibleBounds.intersects(footerRect)) {
+						if(footerView == null) {
+							footerView = this.createPreparedFooterForSection(section);
+							footerView.setFrame(footerRect);
 
-	private TableViewSubview.Info getInfoForPreviousView(TableViewSubview.Info info) {
-		TableViewSubview.Info previousInfo = null;
+							if(footerView.getSuperview() != this) {
+								this.addSubview(footerView);
+							}
 
-		if (info.type == TableViewSubview.Info.Type.CELL) {
-			IndexPath indexPath = info.indexPath;
-
-			if (indexPath.row >= 1) {
-				previousInfo = this.getInfoForCell(new IndexPath(indexPath.section, indexPath.row - 1));
-			} else {
-				SectionInfo sectionInfo = this.sectionsInfo.get(indexPath.section);
-
-				if (sectionInfo.header != null || sectionInfo.headerHeight > 0.0f) {
-					previousInfo = this.getInfoForHeader(indexPath.section);
-				} else {
-					if (indexPath.section >= 1) {
-						previousInfo = this.getInfoForLastViewInSection(indexPath.section - 1);
-					}
-				}
-			}
-		} else {
-			if (info.type == TableViewSubview.Info.Type.HEADER) {
-				int section = info.section;
-				if (--section >= 0) {
-					previousInfo = this.getInfoForLastViewInSection(section);
-				}
-			} else {
-				int section = info.section;
-				SectionInfo sectionInfo = this.sectionsInfo.get(section);
-				if (sectionInfo.numberOfRows > 0) {
-					previousInfo = this.getInfoForCell(new IndexPath(section, sectionInfo.numberOfRows - 1));
-				} else {
-					if (sectionInfo.header != null || sectionInfo.headerHeight > 0.0f) {
-						previousInfo = this.getInfoForHeader(section);
-					} else {
-						if (--section >= 0) {
-							previousInfo = this.getInfoForLastViewInSection(section);
+							this.visibleFooterViews.put(section, footerView);
 						}
+					} else if(footerView != null) {
+						this.enqueueHeaderFooterView(footerView, false);
 					}
 				}
 			}
 		}
 
-		return previousInfo;
+		if(this.tableStyle == Style.PLAIN) {
+			this.updatePinnedTableHeader(visibleBounds);
+		}
 	}
 
-	public Rect getRectForSection(int section) {
-		if (!this.isSectionValid(section)) {
-			return Rect.zero();
-		}
+	private void ensureHeaderFooterViewsInRange(SparseArray<TableViewSubview> headerFooterViews, Range visibleSections, boolean headers) {
+		if(headerFooterViews.size() == 0) return;
 
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float height = sectionInfo.headerHeight + sectionInfo.cumulativeRowHeight + sectionInfo.footerHeight;
-		return new Rect(0, sectionInfo.y, this.getBounds().size.width, height);
-	}
+		boolean _break = false;
 
-	public Rect getRectForRowAtIndexPath(IndexPath indexPath) {
-		if (!this.isIndexPathValid(indexPath)) {
-			return Rect.zero();
-		}
+		while(!_break) {
+			_break = true;
 
-		SectionInfo sectionInfo = this.sectionsInfo.get(indexPath.section);
-		float y = sectionInfo.y + sectionInfo.headerHeight;
-		float height;
+			int size = headerFooterViews.size();
 
-		if (this.usesCustomRowHeights) {
-			int row = indexPath.row;
+			for(int i = 0; i < size; i++) {
+				int section = headerFooterViews.keyAt(i);
 
-			for (int i = 0; i < row; i++) {
-				y += sectionInfo.rowHeights[i];
-			}
-
-			height = sectionInfo.rowHeights[row];
-		} else {
-			y += indexPath.row * this.rowHeight;
-			height = this.rowHeight;
-		}
-
-		return new Rect(0, y, this.getBounds().size.width, height);
-	}
-
-	public Rect getRectForFooterInSection(int section) {
-		if (!this.isSectionValid(section) || this.tableStyle != Style.GROUPED) {
-			return Rect.zero();
-		}
-
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float y = sectionInfo.y + sectionInfo.headerHeight + sectionInfo.cumulativeRowHeight;
-		return new Rect(0, y, this.getBounds().size.width, sectionInfo.footerHeight);
-	}
-
-	public Rect getRectForHeaderInSection(int section) {
-		if (!this.isSectionValid(section)) {
-			return Rect.zero();
-		}
-
-		SectionInfo sectionInfo = this.sectionsInfo.get(section);
-		float y = sectionInfo.y;
-
-		if (this.tableStyle == Style.PLAIN) {
-			for(TableViewSubview header : this.tableViewHeaders) {
-				if (header._dataSourceInfo.section == section) {
-					if (!header._isQueued) {
-						return header.getFrame();
-					}
-
+				if(!visibleSections.containsLocation(section)) {
+					this.enqueueHeaderFooterView(headerFooterViews.get(section), headers);
+					headerFooterViews.removeAt(i);
+					_break = false;
 					break;
 				}
 			}
 		}
+	}
 
-		return new Rect(0.0f, y, this.getBounds().size.width, sectionInfo.headerHeight);
+	private void updatePinnedTableHeader(Rect bounds) {
+		if(this.tableStyle == Style.PLAIN) {
+			int numberOfSections = this.visibleHeaderViews.size();
+
+			for(int i = 0; i < numberOfSections; i++) {
+				int section = this.visibleHeaderViews.keyAt(i);
+				this.visibleHeaderViews.get(section).setFrame(this.rowData.getFloatingRectForHeaderInSection(section, bounds));
+			}
+		}
+	}
+
+	private void enqueueCell(TableViewCell cell) {
+		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell._reuseIdentifier);
+
+		if(queuedViews == null) {
+			List<TableViewCell> queuedCells = new ArrayList<TableViewCell>();
+			this.cellsQueuedForReuse.put(cell._reuseIdentifier, queuedCells);
+			queuedViews = queuedCells;
+		}
+
+		this.enqueueView(queuedViews, cell);
+	}
+
+	private void enqueueHeaderFooterView(TableViewSubview headerFooterView, boolean header) {
+		if(header) {
+			this.visibleHeaderViews.remove(headerFooterView._section);
+			this.enqueueView(this.headersQueuedForReuse, headerFooterView);
+		} else {
+			this.visibleFooterViews.remove(headerFooterView._section);
+			this.enqueueView(this.footersQueuedForReuse, headerFooterView);
+		}
+
+		this.viewsToRemove.add(headerFooterView);
+	}
+
+	public Rect getRectForSection(int section) {
+		return this.rowData.getRectForSection(section);
+	}
+
+	public Rect getRectForRowAtIndexPath(IndexPath indexPath) {
+		return this.rowData.getRectForRow(indexPath.section, indexPath.row);
+	}
+
+	public Rect getRectForFooterInSection(int section) {
+		return this.rowData.getRectForFooterInSection(section);
+	}
+
+	public Rect getRectForHeaderInSection(int section) {
+		return this.rowData.getRectForHeaderInSection(section);
 	}
 
 	public List<TableViewCell> getVisibleCells() {
-		List<TableViewCell> visibleCells = new ArrayList<TableViewCell>();
-
-		for(TableViewCell cell : this.tableViewCells) {
-			if(!cell._isQueued) {
-				visibleCells.add(cell);
-			}
-		}
-
-		Collections.sort(visibleCells, new TableViewCellIndexPathComparator());
-
-		return visibleCells;
+		return new ArrayList<TableViewCell>(this.visibleCells);
 	}
 
 	public List<IndexPath> getIndexPathsForVisibleRows() {
-		List<TableViewCell> visibleCells = this.getVisibleCells();
-
-		if (visibleCells.size() == 0) {
-			return null;
-		}
-
 		List<IndexPath> indexPaths = new ArrayList<IndexPath>();
 
-		for(TableViewCell cell : visibleCells) {
+		for(TableViewCell cell : this.visibleCells) {
 			indexPaths.add(this.getIndexPathForCell(cell));
 		}
 
 		return indexPaths;
 	}
 
-	private TableViewSubview getPopulatedSubviewForInfo(TableViewSubview.Info info) {
-		if (info == null) {
+	private TableViewSubview createPreparedHeaderForSection(int section) {
+		if (section >= this.rowData.getNumberOfSections()) {
 			return null;
 		}
-
-		TableViewSubview view;
-
-		if (info.type == TableViewSubview.Info.Type.CELL) {
-			view = this.getPopulatedCell(info);
-		} else {
-			if (info.type == TableViewSubview.Info.Type.HEADER) {
-				view = this.getPopulatedHeader(info);
-			} else {
-				view = this.getPopulatedFooter(info);
-			}
-		}
-
-		if (view == null) {
-			return null;
-		} else {
-			return view;
-		}
-	}
-
-	private TableViewSubview getPopulatedHeader(TableViewSubview.Info info) {
-		if (info.section >= this.numberOfSections) {
-			return null;
-		}
-
-		if (this.visibleHeaders.size() > 0 && this.visibleHeaders.get(0)._dataSourceInfo.section == info.section) {
-			return this.visibleHeaders.get(0);
-		}
-
-		SectionInfo sectionInfo = this.sectionsInfo.get(info.section);
-		if(sectionInfo.headerHeight <= 0.0f) return null;
 
 		TableViewSubview header = null;
 
 		if(this.delegateHeaders != null) {
-			header = this.delegateHeaders.getViewForHeaderInSecton(this, info.section);
+			header = this.delegateHeaders.getViewForHeaderInSection(this, section);
 
 			if(header != null) {
 				header.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
@@ -1499,42 +867,28 @@ public class TableView extends ScrollView {
 			}
 		}
 
-		Rect frame = header.getFrame();
-		frame.size.height = sectionInfo.headerHeight;
-		frame.size.width = this.getBounds().size.width;
 		header.setFrame(frame);
 
 		if(header instanceof TableViewHeader) {
-			String text = (String)sectionInfo.header;
+			String text = this.dataSourceHeaders != null ? this.dataSourceHeaders.getTitleForHeaderInSection(this, section) : null;
 			((TableViewHeader) header).setText(text);
-			((TableViewHeader) header).setHidden(text == null || text.length() == 0);
 		}
 
 		header._isQueued = false;
-		header._dataSourceInfo = info;
-
-		if(header.getSuperview() != this) {
-			this.addSubview(header);
-		}
+		header._section = section;
 
 		return header;
 	}
 
-	private TableViewSubview getPopulatedFooter(TableViewSubview.Info info) {
-		if (info.section >= this.numberOfSections) {
+	private TableViewSubview createPreparedFooterForSection(int section) {
+		if (section >= this.rowData.getNumberOfSections()) {
 			return null;
 		}
-
-		SectionInfo sectionInfo = this.sectionsInfo.get(info.section);
-		if(sectionInfo.footerHeight <= 0.0f) {
-			return null;
-		}
-
 
 		TableViewSubview footer = null;
 
 		if(this.delegateFooters != null) {
-			footer = this.delegateFooters.getViewForFooterInSecton(this, info.section);
+			footer = this.delegateFooters.getViewForFooterInSecton(this, section);
 
 			if(footer != null) {
 				footer.createdByTableView = false;
@@ -1552,34 +906,23 @@ public class TableView extends ScrollView {
 			}
 		}
 
-		Rect frame = footer.getFrame();
-		frame.size.height = sectionInfo.footerHeight;
-		frame.size.width = this.getBounds().size.width;
-		footer.setFrame(frame);
-
-		if(footer.getSuperview() != this) {
-			this.addSubview(footer);
-		}
-
 		if(footer instanceof TableViewFooter) {
-			((TableViewFooter) footer).setText((String)sectionInfo.footer);
+			((TableViewFooter) footer).setText(this.dataSourceFooters != null ? this.dataSourceFooters.getTitleForFooterInSection(this, section) : null);
 		}
 
 		footer._isQueued = false;
-		footer._dataSourceInfo = info;
+		footer._section = section;
 
 		return footer;
 	}
 
-	private TableViewCell getPopulatedCell(TableViewSubview.Info info) {
-		IndexPath indexPath = info.indexPath;
-
+	private TableViewCell createPreparedCellForRowAtIndexPath(IndexPath indexPath) {
 		if(this.dataSource == null) return null; // Should never get here, but may as well check.
 
 		TableViewCell cell = this.dataSource.getCellForRowAtIndexPath(this, indexPath);
 		cell._firstRowInSection = indexPath.row == 0;
-		cell._lastRowInSection = (indexPath.row == this.sectionsInfo.get(indexPath.section).numberOfRows - 1);
-		cell._dataSourceInfo = info;
+		cell._lastRowInSection = (indexPath.row == this.rowData.getNumberOfRowsInSection(indexPath.section) - 1);
+		cell._indexPath = indexPath;
 		cell.setTableStyle(this.getTableStyle());
 
 		cell.setSelected(this.isRowAtIndexPathSelected(indexPath));
@@ -1591,22 +934,6 @@ public class TableView extends ScrollView {
 			cell.setSeparatorStyle(this.separatorStyle);
 			cell.setSeparatorColor(this.separatorColor);
 		}
-
-		Rect frame = cell.getFrame();
-		frame.size.width = this.getBounds().size.width;
-		frame.size.height = this.usesCustomRowHeights ? this.sectionsInfo.get(indexPath.section).rowHeights[indexPath.row] : this.getRowHeight();
-		cell.setFrame(frame);
-
-		if(this.delegateRowDisplay != null) {
-			this.delegateRowDisplay.willDisplayCell(this, cell, indexPath);
-		}
-
-		if (cell.getSuperview() != this) {
-			cell.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-			this.insertSubview(cell, 0);
-		}
-
-		cell.layoutSubviews();
 
 		return cell;
 	}
@@ -1658,15 +985,7 @@ public class TableView extends ScrollView {
 
 	@SuppressWarnings("unchecked")
 	private void enqueueView(List queuedViews, TableViewSubview view) {
-		this.visibleSubviews.remove(view);
-		this.visibleHeaders.remove(view);
-
-		boolean isCell = (view instanceof TableViewCell);
-		if(isCell) {
-			this.tableViewCells.remove((TableViewCell) view);
-		}
-
-		if(isCell || view.createdByTableView) {
+		if((view instanceof TableViewCell) || view.createdByTableView) {
 			queuedViews.add(view);
 		}
 
@@ -1696,7 +1015,7 @@ public class TableView extends ScrollView {
 		return false;
 	}
 
-	public IndexPath indexPathForSelectedRow() {
+	public IndexPath getIndexPathForSelectedRow() {
 		if(this.selectedRowsIndexPaths.size() > 0) {
 			return this.selectedRowsIndexPaths.iterator().next();
 		} else {
@@ -1704,7 +1023,7 @@ public class TableView extends ScrollView {
 		}
 	}
 
-	public Set<IndexPath> indexPathsForSelectedRows() {
+	public Set<IndexPath> getIndexPathsForSelectedRows() {
 		return Collections.unmodifiableSet(this.selectedRowsIndexPaths);
 	}
 
@@ -1750,7 +1069,7 @@ public class TableView extends ScrollView {
 	}
 
 	public void selectRowAtIndexPath(IndexPath indexPath, boolean animated) {
-		if (!this.isIndexPathValid(indexPath)) {
+		if (!this.rowData.isValidIndexPath(indexPath)) {
 			throw new RuntimeException("Tried to select row with invalid index path: " + indexPath);
 		}
 
@@ -1786,7 +1105,7 @@ public class TableView extends ScrollView {
 
 	private void markCellAsSelected(TableViewCell cell, boolean selected, boolean animated) {
 		cell.setSelected(selected, animated);
-		this.selectionDidChangeForRowAtIndexPath(cell._dataSourceInfo.indexPath, selected);
+		this.selectionDidChangeForRowAtIndexPath(cell._indexPath, selected);
 	}
 
 	void disclosureButtonWasSelectedAtIndexPath(IndexPath indexPath) {
@@ -1843,59 +1162,53 @@ public class TableView extends ScrollView {
 
 	}
 
-	private void scrollRectToVisible(Rect rect, ScrollPosition scrollPosition, boolean animated) {
-		Rect bounds = this.getBounds();
-
-		if (rect != null && rect.size.height > 0) {
-			// adjust the rect based on the desired scroll position setting
-			switch (scrollPosition) {
-				case TOP: {
-					rect.size.height = bounds.size.height;
-					break;
-				}
-
-				case MIDDLE: {
-					rect.origin.y -= (bounds.size.height / 2.0f) - rect.size.height;
-					rect.size.height = bounds.size.height;
-					break;
-				}
-
-				case BOTTOM: {
-					rect.origin.y -= bounds.size.height - rect.size.height;
-					rect.size.height = bounds.size.height;
-					break;
-				}
-
-				case NONE: {
-					break;
-				}
-			}
-
-			if(rect.origin.y < 0.0f) {
-				rect.origin.y = 0.0f;
-			}
-
-			if(rect.maxY() > bounds.maxY()) {
-				rect.origin.y -= rect.maxY() - bounds.maxY();
-			}
-
-			this.scrollRectToVisible(rect, animated);
-		}
-	}
-
 	public void scrollToRowAtIndexPath(IndexPath indexPath, ScrollPosition scrollPosition, boolean animated) {
 		Rect rect;
 
-		if (indexPath.row == 0 && indexPath.section == 0) {
-			Rect bounds = this.getBounds();
-			rect = new Rect(0.0f, 0.0f, bounds.size.width, bounds.size.height);
-		} else if (indexPath.row > 0) {
-			rect = this.getRectForRowAtIndexPath(indexPath);
-		} else {
+		if (indexPath.row < 0) {
 			rect = this.getRectForSection(indexPath.section);
+		} else {
+			rect = this.getRectForRowAtIndexPath(indexPath);
+
+			if((indexPath.row == 0 || this.tableStyle == Style.PLAIN) && this.rowData.hasHeaderForSection(indexPath.section)) {
+				float headerHeight = this.rowData.getHeightForHeaderInSection(indexPath.section);
+				rect.origin.y -= headerHeight;
+				rect.size.height += headerHeight;
+			}
 		}
 
-		// this.scrollRectToVisible(rect, scrollPosition, animated);
+		Rect bounds = this.getBounds();
+		float calculateY;
+
+		if(scrollPosition == ScrollPosition.NONE) {
+			if(bounds.contains(rect)) {
+				return;
+			} else if(rect.origin.y < bounds.origin.y) {
+				scrollPosition = ScrollPosition.TOP;
+			} else if(rect.maxY() > bounds.maxY()) {
+				scrollPosition = ScrollPosition.BOTTOM;
+			} else {
+				scrollPosition = ScrollPosition.MIDDLE;
+			}
+		}
+
+		switch(scrollPosition) {
+			case TOP:
+				rect = new Rect(rect.origin.x, rect.origin.y, rect.size.width, bounds.size.height);
+				break;
+
+			case BOTTOM:
+				calculateY = Math.max(rect.origin.y-(bounds.size.height-rect.size.height), -this.getContentInset().top);
+				rect = new Rect(rect.origin.x, calculateY, rect.size.width, bounds.size.height);
+				break;
+
+			case MIDDLE:
+				calculateY = Math.max(rect.origin.y - ((bounds.size.height / 2) - (rect.size.height / 2)), -this.getContentInset().top);
+				rect = new Rect(rect.origin.x, calculateY, rect.size.width, bounds.size.height);
+				break;
+		}
+
+		this.scrollRectToVisible(rect, animated);
 	}
 
 	public void touchesBegan(List<Touch> touches, Event event) {

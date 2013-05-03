@@ -57,5 +57,10 @@ abstract class TableViewHeader extends TableViewSubview {
 			this.label.setTextColor(Color.BLUE);
 		}
 
+		public static float getHeight(CharSequence title, float constrainedToWidth) {
+			// TODO: Fully implement
+			return 30.0f;
+		}
+
 	}
 }
