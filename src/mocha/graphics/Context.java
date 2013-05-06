@@ -99,6 +99,37 @@ public final class Context extends MObject {
 		this.canvas = new Canvas(this.bitmap);
 	}
 
+	/**
+	 * @hide
+	 * @param newCanvas New canvas
+	 */
+	public void reset(Canvas newCanvas) {
+		if(this.bitmap != null) return;
+
+		this.canvas = newCanvas;
+
+		if(this.canvas == null) return;
+
+		this.paint.reset();
+		this.paint.setFlags(Paint.DITHER_FLAG);
+
+		this.strokePaint.reset();
+		this.strokePaint.setFlags(Paint.DITHER_FLAG);
+		this.strokePaint.setStyle(Paint.Style.STROKE);
+		this.strokePaint.setStrokeJoin(Paint.Join.ROUND);
+		this.strokePaint.setStrokeCap(Paint.Cap.ROUND);
+
+		this.textPaint.reset();
+		this.textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+
+		this.paintStates.clear();
+		this.strokePaintStates.clear();
+		this.textPaintStates.clear();
+		this.clipPaths.clear();
+
+		this.clipPath = null;
+	}
+
 	public Rect getClipBoundingBox() {
 		if(this.clipPath != null) {
 			return this.clipPath.getBounds();

@@ -25,6 +25,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	private FrameLayout layout;
 	private Context context;
+	private mocha.graphics.Context drawContext;
 
 	private Rect frame;
 	private Rect bounds;
@@ -552,7 +553,15 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 			super.onDraw(canvas);
 
 			if(supportsDrawing) {
-				view.draw(new mocha.graphics.Context(canvas, scale), new Rect(view.getBounds()));
+				if(drawContext != null) {
+					drawContext.reset(canvas);
+				} else {
+					drawContext = new mocha.graphics.Context(canvas, scale);
+				}
+
+				view.draw(drawContext, view.getBounds());
+
+				drawContext.reset(null);
 			}
 		}
 
