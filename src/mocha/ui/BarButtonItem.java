@@ -68,8 +68,6 @@ public class BarButtonItem extends BarItem implements Accessibility {
 		if(appearanceStorage != null) {
 			appearanceStorage.apply(this);
 		}
-
-		MLog("Background images: %s", this.backgroundImages.get(BarMetrics.DEFAULT));
 	}
 
 	private BarButtonItem(Action action, Style style) {

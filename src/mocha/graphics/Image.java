@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import mocha.foundation.MObject;
 import mocha.ui.Application;
 import mocha.ui.EdgeInsets;
+import mocha.ui.Screen;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -46,6 +47,11 @@ public class Image extends MObject {
 		} else {
 			return null;
 		}
+	}
+
+	public Image() {
+		this.scale = Screen.mainScreen().getScale();
+		this.size = Size.zero();
 	}
 
 	public Image(Bitmap bitmap) {
@@ -167,6 +173,8 @@ public class Image extends MObject {
 	}
 
 	public void draw(Context context, Rect rect, Context.BlendMode blendMode, float alpha) {
+		if(this.bitmap == null) return;
+
 		Canvas canvas = context.getCanvas();
 
 		Paint paint = new Paint(context.getPaint());
@@ -191,6 +199,8 @@ public class Image extends MObject {
 	}
 
 	public void drawAsPattern(Context context, Rect rect) {
+		if(this.bitmap == null) return;
+
 		Paint paint = new Paint(context.getPaint());
 		Shader shader = new BitmapShader(this.bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
 		paint.setShader(shader);
