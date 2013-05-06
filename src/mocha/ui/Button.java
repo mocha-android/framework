@@ -102,32 +102,54 @@ public class Button extends Control {
 			content.remove(type);
 		}
 
-		this.updateContent();
+		this.updateContent(type);
 	}
 
 	public CharSequence getTitleForState(State... states) {
 		return (CharSequence)this.getContent(ContentType.TITLE, states);
 	}
 
+	private CharSequence getTitleForState(EnumSet<State> stateSet) {
+		return (CharSequence)this.getContent(ContentType.TITLE, stateSet);
+	}
+
 	public int getTitleColor(State... states) {
 		return this.getColor(ContentType.TITLE_COLOR, states);
+	}
+
+	private int getTitleColor(EnumSet<State> stateSet) {
+		return this.getColor(ContentType.TITLE_COLOR, stateSet);
 	}
 
 	public int getTitleShadowColor(State... states) {
 		return this.getColor(ContentType.TITLE_SHADOW_COLOR, states);
 	}
 
+	private int getTitleShadowColor(EnumSet<State> stateSet) {
+		return this.getColor(ContentType.TITLE_SHADOW_COLOR, stateSet);
+	}
+
 	public Image getImage(State... states) {
 		return (Image)this.getContent(ContentType.IMAGE, states);
+	}
+
+	public Image getImage(EnumSet<State> stateSet) {
+		return (Image)this.getContent(ContentType.IMAGE, stateSet);
 	}
 
 	public Image getBackgroundImage(State... states) {
 		return (Image)this.getContent(ContentType.BACKGROUND_IMAGE, states);
 	}
 
-	private Object getContent(ContentType type, State... states) {
-		EnumSet<State> stateSet = Control.getStateSet(states);
+	private Image getBackgroundImage(EnumSet<State> stateSet) {
+		return (Image)this.getContent(ContentType.BACKGROUND_IMAGE, stateSet);
+	}
 
+	private Object getContent(ContentType type, State... states) {
+		return getContent(type, State.toSet(states));
+	}
+
+	private Object getContent(ContentType type, EnumSet<State> stateSet) {
 		Object object = null;
 		HashMap<ContentType, Object> content = this.content.get(stateSet);
 
@@ -143,7 +165,11 @@ public class Button extends Control {
 	}
 
 	private int getColor(ContentType type, State... states) {
-		Object color = this.getContent(type, states);
+		return this.getColor(type, State.toSet(states));
+	}
+
+	private int getColor(ContentType type, EnumSet<State> stateSet) {
+		Object color = this.getContent(type, stateSet);
 		return color == null ? 0 : (Integer)color;
 	}
 
@@ -234,17 +260,49 @@ public class Button extends Control {
 		return this.backgroundImageView != null ? this.backgroundImageView.getImage() : null;
 	}
 
-	private void updateContent() {
-		State[] states = this.getStates();
+	private void updateContent(ContentType changedContent) {
+		EnumSet<State> states = this.getState();
 
-		this.titleLabel.setText(this.getTitleForState(states));
-		this.titleLabel.setTextColor(this.getTitleColor(states));
-		this.titleLabel.setShadowColor(this.getTitleShadowColor(states));
+		boolean needsLayout = false;
 
-		this.imageView.setImage(this.getImage(states));
-		this.backgroundImageView.setImage(this.getBackgroundImage(states));
+		if(changedContent == null || changedContent == ContentType.TITLE) {
+			int oldTextLength = this.titleLabel.getText().length();
+			CharSequence newText = this.getTitleForState(states);
+			this.titleLabel.setText(newText);
 
-		if(this.adjustsImageWhenDisabled) {
+			int newTextLength = newText == null ? 0 : newText.length();
+			needsLayout = oldTextLength == 0 && newTextLength > 0 || oldTextLength > 0 && newTextLength == 0;
+		}
+
+		if(changedContent == null || changedContent == ContentType.TITLE_COLOR) {
+			this.titleLabel.setTextColor(this.getTitleColor(states));
+		}
+
+		if(changedContent == null || changedContent == ContentType.TITLE_SHADOW_COLOR) {
+			this.titleLabel.setShadowColor(this.getTitleShadowColor(states));
+		}
+
+		if(changedContent == null || changedContent == ContentType.IMAGE) {
+			Image oldImage = needsLayout ? null : this.imageView.getImage();
+			Image newImage = this.getImage(states);
+			this.imageView.setImage(newImage);
+
+			if(!needsLayout) {
+				if(oldImage != null && newImage == null) {
+					needsLayout = true;
+				} else if(oldImage == null && newImage != null) {
+					needsLayout = true;
+				} else if (oldImage != null) {
+					needsLayout = !oldImage.getSize().equals(newImage.getSize());
+				}
+			}
+		}
+
+		if(changedContent == null || changedContent == ContentType.BACKGROUND_IMAGE) {
+			this.backgroundImageView.setImage(this.getBackgroundImage(states));
+		}
+
+		if(this.adjustsImageWhenDisabled && changedContent == null) {
 			if(this.getState().contains(State.DISABLED)) {
 				this.imageView.setAlpha(0.35f);
 			} else {
@@ -252,7 +310,13 @@ public class Button extends Control {
 			}
 		}
 
-		this.layoutSubviews();
+		if(needsLayout) {
+			if(this.getSuperview() != null) {
+				this.layoutSubviews();
+			} else {
+				this.setNeedsLayout();
+			}
+		}
 	}
 
 	public Rect getBackgroundRectForBounds(Rect bounds) {
@@ -413,7 +477,7 @@ public class Button extends Control {
 
 	protected void stateDidChange() {
 		super.stateDidChange();
-		this.updateContent();
+		this.updateContent(null);
 	}
 
 }

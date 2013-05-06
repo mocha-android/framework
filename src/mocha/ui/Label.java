@@ -38,7 +38,6 @@ public class Label extends View implements Highlightable {
 		this.textColor = Color.BLACK;
 		this.setBackgroundColor(Color.WHITE);
 		this.enabled = true;
-		this.font = Font.getSystemFontWithSize(17.0f);
 		this.numberOfLines = 1;
 		this.setClipsToBounds(true);
 		this.shadowOffset = new Size(0.0f, -1.0f);
@@ -61,7 +60,11 @@ public class Label extends View implements Highlightable {
 	}
 
 	public Font getFont() {
-		return font;
+		if(this.font == null) {
+			this.font = Font.getSystemFontWithSize(17.0f);
+		}
+
+		return this.font;
 	}
 
 	public void setFont(Font font) {
@@ -188,10 +191,10 @@ public class Label extends View implements Highlightable {
 			Size maxSize = new Size(bounds.size);
 
 			if (numberOfLines > 0) {
-				maxSize.height = this.font.getLineHeight() * numberOfLines;
+				maxSize.height = this.getFont().getLineHeight() * numberOfLines;
 			}
 
-			return new Rect(bounds.origin, TextDrawing.getTextSize(this.text, this.font, maxSize, this.lineBreakMode));
+			return new Rect(bounds.origin, TextDrawing.getTextSize(this.text, this.getFont(), maxSize, this.lineBreakMode));
 		}
 
 		return new Rect(bounds.origin.x, bounds.origin.y, 0.0f, 0.0f);
@@ -209,7 +212,7 @@ public class Label extends View implements Highlightable {
 		// This seems odd, but generally if sizeThatFits is called, it's followed up
 		// with a call to setFrame(), and this allows us to use the cached layout we
 		// just created vs creating a new one.
-		this.lastSize = Size.min(TextDrawing.getTextSize(this.text, this.font, size, this.lineBreakMode), size);
+		this.lastSize = Size.min(TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode), size);
 		this.setNeedsDisplay();
 
 		return this.lastSize.copy();
@@ -230,7 +233,7 @@ public class Label extends View implements Highlightable {
 		context.save();
 		context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
 		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
-		TextDrawing.draw(context, this.text, rect, this.font, this.textAlignment, this.lineBreakMode);
+		TextDrawing.draw(context, this.text, rect, this.getFont(), this.textAlignment, this.lineBreakMode);
 		context.restore();
 	}
 
@@ -244,10 +247,10 @@ public class Label extends View implements Highlightable {
 			Size maxSize = bounds.size.copy();
 
 			if (this.numberOfLines > 0) {
-				maxSize.height = this.font.getLineHeight() * this.numberOfLines;
+				maxSize.height = this.getFont().getLineHeight() * this.numberOfLines;
 			}
 
-			this.textSize = TextDrawing.getTextSize(this.text, this.font, maxSize, this.lineBreakMode);
+			this.textSize = TextDrawing.getTextSize(this.text, this.getFont(), maxSize, this.lineBreakMode);
 			this.lastSize = bounds.size.copy();
 			this.textNeedsMeasuring = false;
 		}

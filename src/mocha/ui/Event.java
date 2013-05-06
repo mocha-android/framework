@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -42,7 +43,7 @@ public final class Event extends MObject {
 	 *
 	 * After all touches have ended, this is cleared.
 	 */
-	private Map<Integer,Touch> lifetimeTouches;
+	private SparseArray<Touch> lifetimeTouches;
 
 	/**
 	 * Touches currently on the screen, they may not be part of the current event
@@ -91,7 +92,7 @@ public final class Event extends MObject {
 	 */
 	static Event touchEvent(Window window) {
 		Event event = new Event();
-		event.lifetimeTouches = new HashMap<Integer, Touch>();
+		event.lifetimeTouches = new SparseArray<Touch>();
 		event.currentTouches = new ArrayList<Touch>();
 		event.allTouches = new ArrayList<Touch>();
 		event.type = Type.TOUCHES;

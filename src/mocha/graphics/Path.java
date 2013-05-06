@@ -69,7 +69,10 @@ public class Path extends MObject implements Copying<Path> {
 	public static Path withRoundedRect(Rect rect, Size cornerRadii, Corner... byRoundingCorners) {
 		android.graphics.Path path = new android.graphics.Path();
 		EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
-		Collections.addAll(corners, byRoundingCorners);
+
+		if(byRoundingCorners != null) {
+			Collections.addAll(corners, byRoundingCorners);
+		}
 
 		Point min = rect.origin;
 		Point max = rect.max();

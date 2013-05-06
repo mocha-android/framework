@@ -5,6 +5,8 @@
  */
 package mocha.foundation;
 
+import android.util.SparseArray;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,7 +47,7 @@ public class NotificationCenter extends MObject {
 
 	private static NotificationCenter defaultCenter = new NotificationCenter();
 	private Map<String,List<Observeration>> observationsByName = new HashMap<String, List<Observeration>>();
-	private Map<Integer,List<Observeration>> observationsBySender = new HashMap<Integer, List<Observeration>>();
+	private SparseArray<List<Observeration>> observationsBySender = new SparseArray<List<Observeration>>();
 
 	private Semaphore lock = new Semaphore(1);
 
@@ -114,8 +116,9 @@ public class NotificationCenter extends MObject {
 			}
 		}
 
-		for(List<Observeration> observationsBySender : this.observationsBySender.values()) {
-			for(Observeration observation : observationsBySender) {
+		int size = this.observationsBySender.size();
+		for(int i = 0; i < size; i++) {
+			for(Observeration observation : this.observationsBySender.valueAt(i)) {
 				if(observation.isObserving(name, sender)) {
 					observations.add(observation);
 				}
@@ -391,15 +394,27 @@ public class NotificationCenter extends MObject {
 				}
 			}
 		} else {
-			Iterator<Map.Entry<Integer,List<Observeration>>> iterator = this.observationsBySender.entrySet().iterator();
+			int size = this.observationsBySender.size();
+			int[] keys = null;
+			int numberOfKeysToRemove = 0;
 
-			while (iterator.hasNext()) {
-				Map.Entry<Integer,List<Observeration>> entry = iterator.next();
-				List<Observeration> observations = entry.getValue();
+			for(int i = 0; i < size; i++) {
+				List<Observeration> observations = this.observationsBySender.valueAt(i);
 				this.removeObserver(observations, observer, notificationName, null);
 
 				if(observations.size() == 0) {
-					iterator.remove();
+					if(numberOfKeysToRemove == 0) {
+						keys = new int[size];
+					}
+
+					keys[numberOfKeysToRemove] = this.observationsBySender.keyAt(i);
+					numberOfKeysToRemove++;
+				}
+			}
+
+			if(numberOfKeysToRemove > 0) {
+				for(int i = 0; i < numberOfKeysToRemove; i++) {
+					this.observationsBySender.remove(keys[i]);
 				}
 			}
 		}

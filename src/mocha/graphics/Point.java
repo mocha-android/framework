@@ -16,7 +16,8 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public Point() {
-		this(0.0f, 0.0f);
+		this.x = 0.0f;
+		this.y = 0.0f;
 	}
 
 	public Point(float x, float y) {

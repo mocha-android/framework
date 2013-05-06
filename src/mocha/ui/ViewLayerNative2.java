@@ -43,6 +43,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	private ViewLayerNative2 superlayer;
 
 	private View view;
+	private Runnable scheduledLayoutCallback;
 	private Runnable layoutCallback;
 
 	private View clipToView;
@@ -58,6 +59,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		this.layout = this.createLayout(context);
 		this.layout.setClipToPadding(false);
 		this.layout.setClipChildren(false);
+		this.layout.setWillNotDraw(false);
 
 		this.sublayers = new ArrayList<ViewLayerNative2>();
 
@@ -87,7 +89,6 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	public void setSupportsDrawing(boolean supportsDrawing) {
 		this.supportsDrawing = supportsDrawing;
-		this.layout.setWillNotDraw(!supportsDrawing);
 	}
 
 	public int getBackgroundColor() {
@@ -204,17 +205,15 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	public void setNeedsLayout() {
-		if(this.layoutCallback != null) {
+		if(this.scheduledLayoutCallback != null) {
 			return;
 		}
 
-		this.layoutCallback = performOnMainAfterDelay(0, new Runnable() {
-			public void run() {
-				layoutCallback = null;
-				view._layoutSubviews();
-			}
-		});
+		if(this.layoutCallback == null) {
+			this.layoutCallback = new LayoutCallback();
+		}
 
+		this.scheduledLayoutCallback = performOnMainAfterDelay(0, this.layoutCallback);
 		this.layout.requestLayout();
 	}
 
@@ -319,29 +318,33 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	public void insertSublayerAtIndex(ViewLayer layer, int index) {
 		ViewLayerNative2 layer1 = this.assertLayerType(layer);
+		ViewLayer superlayer = layer1.getSuperlayer();
 
-		if(layer1.getSuperlayer() != null && layer1.getSuperlayer() != this) {
+		if(superlayer != null && superlayer != this) {
 			layer1.removeFromSuperlayer();
 		}
 
 		int size = this.sublayers.size();
-		index = Math.min(size, Math.max(0, index));
 
-		if(layer1.getSuperlayer() == this) {
+		if(superlayer == this) {
 			this.layout.removeView(layer1.layout);
 		}
 
 		layer1.setClipToView(this.clipsToBounds ? this.getView() : this.clipToView);
 
-		if(index == size) {
+		if(index >= size) {
 			this.layout.addView(layer1.layout);
 			this.sublayers.add(layer1);
 		} else {
+			if(index < 0) {
+				index = 0;
+			}
+
 			this.layout.addView(layer1.layout, index);
 			this.sublayers.add(index, layer1);
 		}
 
-		if(layer1.getSuperlayer() != this) {
+		if(superlayer != this) {
 			layer1.superlayer = this;
 			layer1.didMoveToSuperlayer();
 		}
@@ -481,6 +484,13 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		return new Layout(context);
 	}
 
+	class LayoutCallback implements Runnable {
+		public void run() {
+			scheduledLayoutCallback = null;
+			view._layoutSubviews();
+		}
+	}
+
 	class Layout extends FrameLayout {
 		Layout(Context context) {
 			super(context);
@@ -541,7 +551,9 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 
-			view.draw(new mocha.graphics.Context(canvas, scale), new Rect(view.getBounds()));
+			if(supportsDrawing) {
+				view.draw(new mocha.graphics.Context(canvas, scale), new Rect(view.getBounds()));
+			}
 		}
 
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {

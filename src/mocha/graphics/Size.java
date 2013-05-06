@@ -14,7 +14,8 @@ public final class Size implements mocha.foundation.Copying <Size> {
 	}
 
 	public Size() {
-		this(0.0f, 0.0f);
+		this.width = 0.0f;
+		this.height = 0.0f;
 	}
 
 	public Size(float width, float height) {

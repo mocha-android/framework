@@ -252,6 +252,8 @@ public class View extends Responder implements Accessibility {
 
 	public void setClipsToBounds(boolean clipsToBounds) {
 		if(this.clipsToBounds != clipsToBounds) {
+			this.clipsToBounds = clipsToBounds;
+
 			this.layer.setClipsToBounds(clipsToBounds);
 			this.setNeedsDisplay();
 		}
@@ -273,7 +275,7 @@ public class View extends Responder implements Accessibility {
 				return;
 			}
 
-			if(this.superview != null && !this.superview.getBounds().contains(this.frame)) {
+			if(this.superview != null && !this.superview.bounds.contains(this.frame)) {
 				// Fixes a weird bug in Android that leaves artifacts on the screen
 				// if the old frame wasn't fully contained within the bounds.
 				this.superview.setNeedsDisplay(this.frame);

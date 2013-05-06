@@ -304,7 +304,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 				this.addSubview(this.actualAccessoryView);
 			}
 
-			this.setNeedsLayout();
+			this.layoutSubviews();
 		}
 	}
 
