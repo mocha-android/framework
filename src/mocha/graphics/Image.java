@@ -40,11 +40,16 @@ public class Image extends MObject {
 	}
 
 	public static Image imageWithData(byte[] bytes, int offset, int length) {
-		Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, offset, length);
+		try {
+			Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, offset, length);
 
-		if(bitmap != null) {
-			return new Image(bitmap);
-		} else {
+			if(bitmap != null) {
+				return new Image(bitmap);
+			} else {
+				return null;
+			}
+		} catch (OutOfMemoryError e) {
+			MWarn(e, "Could not decode image.");
 			return null;
 		}
 	}

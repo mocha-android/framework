@@ -386,12 +386,11 @@ public class View extends Responder implements Accessibility {
 			transform = transform.copy();
 		}
 
-		this.transform = transform;
-
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.TRANSFORM, transform);
 		} else {
 			this.layer.setTransform(transform);
+			this.transform = transform;
 		}
 	}
 

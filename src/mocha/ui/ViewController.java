@@ -560,7 +560,7 @@ public class ViewController extends Responder {
 		this.getRootParentViewController()._presentViewController(viewController, animated, completion);
 	}
 
-	private void _presentViewController(ViewController viewController, boolean animated, Runnable completion) {
+	private void _presentViewController(ViewController viewController, boolean animated, final Runnable completion) {
 		// TODO: Handle stuff like orientation changes, transition styles and presentation styles
 
 		final Window window = this.getWindow();
@@ -577,7 +577,15 @@ public class ViewController extends Responder {
 		ViewController hideViewController = stackSize == 0 ? this : this.presentedViewControllers.get(stackSize - 1);
 
 		this.addPresentedViewController(viewController, window);
-		this.getPresentationController(viewController.getModalTransitionStyle()).presentViewController(viewController, hideViewController, animated, window, completion);
+		this.getPresentationController(viewController.getModalTransitionStyle()).presentViewController(viewController, hideViewController, animated, window, new Runnable() {
+			public void run() {
+				if(completion != null) {
+					completion.run();
+				}
+
+				promoteDeepestDefaultFirstResponder();
+			}
+		});
 	}
 
 	public void dismissViewController(boolean animated) {
@@ -658,7 +666,6 @@ public class ViewController extends Responder {
 		this.presentedViewControllers.add(presentedViewController);
 		presentedViewController.presentingViewController = this;
 		window.addVisibleViewController(presentedViewController);
-		this.promoteDeepestDefaultFirstResponder();
 	}
 
 	private void removePresentedViewController(ViewController presentedViewController, Window window) {
