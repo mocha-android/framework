@@ -208,7 +208,7 @@ public class SerialQueue extends MObject implements Queue {
 				try {
 					Thread.sleep(1, 0);
 
-					if(android.os.SystemClock.uptimeMillis() - start > 100) {
+					if(android.os.SystemClock.uptimeMillis() - start > 500) {
 						throw new RuntimeException("Unable to create SerialQueue thread, something is very wrong.");
 					}
 				} catch (InterruptedException ignored) { }
