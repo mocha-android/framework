@@ -78,7 +78,11 @@ public class Image extends MObject {
 	 * @return A new image object with the specified cap insets.
 	 */
 	public Image resizableImageWithCapInsets(EdgeInsets capInsets) {
-		if(capInsets == null) {
+		if(this.bitmap == null) {
+			Image image = new Image();
+			image.capInsets = capInsets;
+			return image;
+		} else if(capInsets == null) {
 			return new Image(this.bitmap);
 		} else {
 			Image image = new Image(this.bitmap);
