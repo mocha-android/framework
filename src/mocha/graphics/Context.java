@@ -28,6 +28,8 @@ public final class Context extends MObject {
 	private TextPaint textPaint;
 	private Bitmap bitmap;
 	private Path clipPath;
+	private android.graphics.RectF reuseableSystemRectF;
+	private android.graphics.Rect reuseableSystemRect;
 
 	public enum BlendMode {
 		NORMAL, MULTIPLY, SCREEN, OVERLAY, DARKEN, LIGHTEN,
@@ -56,6 +58,9 @@ public final class Context extends MObject {
 		this.strokePaint.setStyle(Paint.Style.STROKE);
 		this.strokePaint.setStrokeJoin(Paint.Join.ROUND);
 		this.strokePaint.setStrokeCap(Paint.Cap.ROUND);
+
+		this.reuseableSystemRect = new android.graphics.Rect();
+		this.reuseableSystemRectF = new android.graphics.RectF();
 	}
 
 	private Context(Context context, Canvas canvas) {
@@ -414,8 +419,8 @@ public final class Context extends MObject {
 
 	public void fillRect(Rect rect) {
 		if(this.clipPath != null) {
-			Rect bounds = this.clipPath.getBounds();
-			/*if(rect.contains(bounds)) {
+			/*Rect bounds = this.clipPath.getBounds();
+			if(rect.contains(bounds)) {
 				this.clipPath.fill(this);
 			} else {*/
 				this.drawClippedToPath(rect, new DrawClippedToPath() {
@@ -425,13 +430,15 @@ public final class Context extends MObject {
 			});
 			//}
 		} else {
-			this.canvas.drawRect(rect.toSystemRect(scale), this.paint);
+			rect.toSystemRect(this.reuseableSystemRect, this.scale);
+			this.canvas.drawRect(this.reuseableSystemRect, this.paint);
 		}
 	}
 
 	public void strokeRect(Rect rect) {
 		android.graphics.Path path = new android.graphics.Path();
-		path.addRect(rect.toSystemRectF(this.scale), android.graphics.Path.Direction.CCW);
+		rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
+		path.addRect(this.reuseableSystemRectF, android.graphics.Path.Direction.CCW);
 		this.canvas.drawPath(path, this.strokePaint);
 	}
 
@@ -444,7 +451,8 @@ public final class Context extends MObject {
 
 	public void clipToRect(Rect rect) {
 		this.clipPath = null;
-		this.canvas.clipRect(rect.toSystemRect(this.scale));
+		rect.toSystemRect(this.reuseableSystemRect, this.scale);
+		this.canvas.clipRect(this.reuseableSystemRect);
 	}
 
 	public void fillEllipseInRect(Rect rect) {
@@ -458,7 +466,8 @@ public final class Context extends MObject {
 				}
 			});
 		} else {
-			this.canvas.drawOval(rect.toSystemRectF(this.scale), this.paint);
+			rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
+			this.canvas.drawOval(this.reuseableSystemRectF, this.paint);
 		}
 
 		if(!isAntiAlias) this.paint.setAntiAlias(false);
@@ -467,7 +476,8 @@ public final class Context extends MObject {
 	public void strokeEllipseInRect(Rect rect) {
 		boolean isAntiAlias = this.strokePaint.isAntiAlias();
 		if(!isAntiAlias) this.strokePaint.setAntiAlias(true);
-		this.canvas.drawOval(rect.toSystemRectF(this.scale), this.strokePaint);
+		rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
+		this.canvas.drawOval(this.reuseableSystemRectF, this.strokePaint);
 		if(!isAntiAlias) this.strokePaint.setAntiAlias(false);
 	}
 

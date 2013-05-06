@@ -29,6 +29,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	private Rect frame;
 	private Rect bounds;
+	private android.graphics.Rect reuseableRect;
 
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
@@ -66,6 +67,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 		this.frame = Rect.zero();
 		this.bounds = Rect.zero();
+		this.reuseableRect = new android.graphics.Rect();
 		this.transform = AffineTransform.identity();
 		this.clipsToBounds = false;
 
@@ -129,16 +131,18 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	public void setFrame(Rect frame, Rect bounds) {
-		Rect oldFrame = this.frame;
-		frame = frame == null ? Rect.zero() : frame.copy();
-		this.frame = frame;
+		frame = frame == null ? Rect.zero() : frame;
+		boolean originChanged = !frame.origin.equals(this.frame.origin);
+		boolean sizeChanged = !frame.size.equals(this.frame.size);
+
+		this.frame.set(frame);
 
 
-		if(!frame.origin.equals(oldFrame.origin)) {
+		if(originChanged) {
 			this.updatePosition();
 		}
 
-		if(!frame.size.equals(oldFrame.size)) {
+		if(sizeChanged) {
 			this.updateSize();
 			this.setNeedsLayout();
 		}
@@ -148,7 +152,14 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	public void setBounds(Rect bounds) {
 		if(!this.bounds.equals(bounds)) {
-			this.bounds = bounds == null ? Rect.zero() : bounds.copy();
+			if(bounds == null) {
+				this.bounds.origin.x = 0.0f;
+				this.bounds.origin.y = 0.0f;
+				this.bounds.size.width = 0.0f;
+				this.bounds.size.height = 0.0f;
+			} else {
+				this.bounds.set(bounds);
+			}
 
 			for(ViewLayerNative2 sublayer : this.sublayers) {
 				sublayer.updatePosition();
@@ -166,8 +177,8 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	void updateSize() {
-		android.graphics.Rect frame = this.frame.toSystemRect(scale);
-		this.layout.setLayoutParams(new FrameLayout.LayoutParams(frame.width(), frame.height()));
+		this.frame.toSystemRect(this.reuseableRect, this.scale);
+		this.layout.setLayoutParams(new FrameLayout.LayoutParams(this.reuseableRect.width(), this.reuseableRect.height()));
 	}
 
 	void updatePosition() {

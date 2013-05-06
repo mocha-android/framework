@@ -860,6 +860,7 @@ public class ViewController extends Responder {
 			final Rect bounds = window.getBounds();
 
 			revealViewController.getView().setFrame(bounds);
+			revealViewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			window.insertSubviewBelowSubview(revealViewController.getView(), hideViewController.getView());
 
 			hideViewController.isBeingDismissed = true;
@@ -901,6 +902,8 @@ public class ViewController extends Responder {
 			} else {
 				viewController.getView().setFrame(bounds);
 			}
+
+			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 
 			viewController.isBeingPresented = true;
 			viewController.beginAppearanceTransition(true, animated);

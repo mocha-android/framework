@@ -168,6 +168,7 @@ public class View extends Responder implements Accessibility {
 	private boolean userInteractionEnabled;
 	Rect frame;
 	private Rect bounds;
+	private AffineTransform transform;
 	private List<GestureRecognizer> gestureRecognizers;
 	private boolean clipsToBounds;
 	public final float scale;
@@ -211,8 +212,8 @@ public class View extends Responder implements Accessibility {
 			throw new RuntimeException(e);
 		}
 
-		this.frame = new Rect(frame);
-		this.bounds = new Rect(Point.zero(), frame.size);
+		this.frame = frame.copy();
+		this.bounds = new Rect(0.0f, 0.0f, frame.size.width, frame.size.height);
 
 		this.layer.setView(this);
 		this.layer.setFrame(this.frame, this.bounds);
@@ -235,7 +236,7 @@ public class View extends Responder implements Accessibility {
 
 		this.layer.setSupportsDrawing(supportsDrawing);
 
-		this.onCreate(frame);
+		this.onCreate(frame.copy());
 
 		if(!this.onCreatedCalled) {
 			throw new RuntimeException(this.getClass().getCanonicalName() + " overrides onCreate but does not call super.");
@@ -271,7 +272,7 @@ public class View extends Responder implements Accessibility {
 		if(!frame.equals(this.frame)) {
 			if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 				currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
-				this.frame = frame.copy();
+				this.frame.set(frame);
 				return;
 			}
 
@@ -281,13 +282,13 @@ public class View extends Responder implements Accessibility {
 				this.superview.setNeedsDisplay(this.frame);
 			}
 
-			Rect oldBounds = this.bounds;
+			Rect oldBounds = this.bounds.copy();
 
-			this.frame = frame.copy();
+			this.frame.set(frame);
 			boolean boundsChanged;
 
 			if(!this.bounds.size.equals(this.frame.size)) {
-				this.bounds = new Rect(this.bounds.origin, this.frame.size);
+				this.bounds.size = this.frame.size.copy();
 				boundsChanged = true;
 			} else {
 				boundsChanged = false;
@@ -385,6 +386,8 @@ public class View extends Responder implements Accessibility {
 			transform = transform.copy();
 		}
 
+		this.transform = transform;
+
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.TRANSFORM, transform);
 		} else {
@@ -393,7 +396,11 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public AffineTransform getTransform() {
-		return this.layer.getTransform();
+		if(this.transform == null) {
+			return AffineTransform.identity();
+		} else {
+			return this.transform.copy();
+		}
 	}
 
 	public boolean doesAutoresizeSubviews() {
@@ -637,11 +644,11 @@ public class View extends Responder implements Accessibility {
 
 	Point convertPointToWindow(Point point) {
 		View view = this;
-		Point convertedPoint = point.copy();
+		Point convertedPoint = point == null ? new Point() : point.copy();
 
 		while(view != null) {
-			convertedPoint.x += view.getFrame().origin.x - view.getBounds().origin.x;
-			convertedPoint.y += view.getFrame().origin.y - view.getBounds().origin.y;
+			convertedPoint.x += view.frame.origin.x - view.bounds.origin.x;
+			convertedPoint.y += view.frame.origin.y - view.bounds.origin.y;
 			view = view.superview;
 		}
 
@@ -653,13 +660,13 @@ public class View extends Responder implements Accessibility {
 			view = this.getWindow();
 		}
 
-		Point fromPoint = this.convertPointToWindow(Point.zero());
-		Point toPoint = view.convertPointToWindow(Point.zero());
+		Point fromPoint = this.convertPointToWindow(null);
+		Point toPoint = view.convertPointToWindow(null);
 
-		float deltaX = fromPoint.x - toPoint.x;
-		float deltaY = fromPoint.y - toPoint.y;
+		fromPoint.x = point.x + (fromPoint.x - toPoint.x);
+		fromPoint.y = point.y + (fromPoint.y - toPoint.y);
 
-		return new Point(point.x + deltaX, point.y + deltaY);
+		return fromPoint;
 	}
 
 	public Point convertPointFromView(Point point, View view) {
@@ -704,10 +711,9 @@ public class View extends Responder implements Accessibility {
 		if(this.isHidden() || !this.isUserInteractionEnabled() || this.getAlpha() < 0.01f || !this.pointInside(point, event)) {
 			return null;
 		} else {
-			ArrayList<View> reverseSubviews = new ArrayList<View>(this.subviews);
-			Collections.reverse(reverseSubviews);
-
-			for(View subview : reverseSubviews) {
+			int size = this.subviews.size();
+			for(int i = size - 1; i >= 0; i--) {
+				View subview = this.subviews.get(i);
 				View hitView = subview.hitTest(subview.convertPointFromView(point, this), event);
 
 				if(hitView != null) {
@@ -720,7 +726,11 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public boolean pointInside(Point point, Event event) {
-		return this.getTransform().apply(this.getBounds()).contains(point);
+		if(this.transform == null || this.transform.isIdentity()) {
+			return this.bounds.contains(point);
+		} else {
+			return this.transform.apply(this.bounds).contains(point);
+		}
 	}
 
 	public void playClickSound() {

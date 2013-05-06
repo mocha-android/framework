@@ -156,24 +156,6 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		this.size.height = rect.size.height;
 	}
 
-	public android.graphics.Rect toSystemRect() {
-		android.graphics.Rect rect = new android.graphics.Rect();
-		rect.left = (int)this.origin.x;
-		rect.right = (int)this.maxX();
-		rect.top = (int)this.origin.y;
-		rect.bottom = (int)this.maxY();
-		return rect;
-	}
-
-	public android.graphics.Rect toSystemRect(float scale) {
-		android.graphics.Rect rect = new android.graphics.Rect();
-		rect.left = (int)FloatMath.floor(this.origin.x * scale);
-		rect.right = (int)FloatMath.floor(this.maxX() * scale);
-		rect.top = (int)FloatMath.floor(this.origin.y * scale);
-		rect.bottom = (int)FloatMath.floor(this.maxY() * scale);
-		return rect;
-	}
-
 	public Rect getScaledRect(float scale) {
 		Rect rect = this.copy();
 		rect.origin.x = FloatMath.floor(rect.origin.x * scale);
@@ -183,22 +165,56 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		return rect;
 	}
 
+	public android.graphics.Rect toSystemRect() {
+		android.graphics.Rect rect = new android.graphics.Rect();
+		this.toSystemRect(rect);
+		return rect;
+	}
+
+	public android.graphics.Rect toSystemRect(float scale) {
+		android.graphics.Rect rect = new android.graphics.Rect();
+		this.toSystemRect(rect, scale);
+		return rect;
+	}
+
+	public void toSystemRect(android.graphics.Rect outRect) {
+		outRect.left = (int)this.origin.x;
+		outRect.right = (int)this.maxX();
+		outRect.top = (int)this.origin.y;
+		outRect.bottom = (int)this.maxY();
+	}
+
+	public void toSystemRect(android.graphics.Rect outRect, float scale) {
+		outRect.left = (int)FloatMath.floor(this.origin.x * scale);
+		outRect.right = (int)FloatMath.floor(this.maxX() * scale);
+		outRect.top = (int)FloatMath.floor(this.origin.y * scale);
+		outRect.bottom = (int)FloatMath.floor(this.maxY() * scale);
+	}
+
 	public android.graphics.RectF toSystemRectF() {
 		android.graphics.RectF rectF = new android.graphics.RectF();
-		rectF.left = this.origin.x;
-		rectF.right = this.maxX();
-		rectF.top = this.origin.y;
-		rectF.bottom = this.maxY();
+		this.toSystemRectF(rectF);
 		return rectF;
 	}
 
 	public android.graphics.RectF toSystemRectF(float scale) {
 		android.graphics.RectF rectF = new android.graphics.RectF();
-		rectF.left = this.origin.x * scale;
-		rectF.right = this.maxX() * scale;
-		rectF.top = this.origin.y  * scale;
-		rectF.bottom = this.maxY() * scale;
+		this.toSystemRectF(rectF, scale);
 		return rectF;
+	}
+
+	public void toSystemRectF(android.graphics.RectF outRect) {
+		outRect.left = this.origin.x;
+		outRect.right = this.maxX();
+		outRect.top = this.origin.y;
+		outRect.bottom = this.maxY();
+	}
+
+	public void toSystemRectF(android.graphics.RectF outRect, float scale) {
+		outRect.left = this.origin.x * scale;
+		outRect.right = this.maxX() * scale;
+		outRect.top = this.origin.y  * scale;
+		outRect.bottom = this.maxY() * scale;
 	}
 
 	public String toString() {
