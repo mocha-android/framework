@@ -144,6 +144,8 @@ public class PanGestureRecognizer extends GestureRecognizer {
 	}
 
 	void addTrackingDataPoint(Point point, Event event) {
+		if(point == null) return;
+
 		long timestamp = event.getTimestamp();
 		this.purgeTrackingDataPointsWithTime(timestamp);
 		this.trackingDataPoints.add(new TrackingDataPoint(timestamp, point.copy()));

@@ -88,6 +88,10 @@ public final class Window extends View {
 			}
 
 			this.rootViewController = rootViewController;
+
+			if(this.rootViewController != null) {
+				this.rootViewController.promoteDeepestDefaultFirstResponder();
+			}
 		}
 	}
 
