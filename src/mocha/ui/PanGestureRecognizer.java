@@ -149,9 +149,30 @@ public class PanGestureRecognizer extends GestureRecognizer {
 		this.trackingDataPoints.add(new TrackingDataPoint(timestamp, point.copy()));
 	}
 
+	void cancel() {
+		if(this.tracking || this.panning) {
+			this.tracking = false;
+			this.panning = false;
+			this.trackingDataPoints.clear();
+			this.startTouchPosition = null;
+			this.lastTouchPosition = null;
+		}
+	}
+
+	protected void setState(State state) {
+		super.setState(state);
+
+		if(state == State.FAILED) {
+			this.cancel();
+		}
+	}
+
 	protected void reset() {
 		super.reset();
+		this._reset();
+	}
 
+	private void _reset() {
 		this.tracking = false;
 		this.panning = false;
 		this.trackingDataPoints.clear();

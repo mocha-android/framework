@@ -156,4 +156,9 @@ public class ImageView extends View implements Highlightable {
 
 		image.draw(context, imageRect);
 	}
+
+	boolean getOverridesDraw() {
+		return true;
+	}
+
 }

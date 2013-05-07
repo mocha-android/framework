@@ -225,21 +225,22 @@ public class View extends Responder implements Accessibility {
 		this.clipsToBounds = false;
 		this.contentMode = ContentMode.SCALE_TO_FILL;
 		this.multipleTouchEnabled = false;
+		this.needsLayout = true;
 
-		boolean supportsDrawing;
-		
-		try {
-			supportsDrawing = this.getClass().getMethod("draw", mocha.graphics.Context.class, Rect.class).getDeclaringClass() != View.class;
-		} catch (NoSuchMethodException e) {
-			supportsDrawing = false;
-		}
-
-		this.layer.setSupportsDrawing(supportsDrawing);
+		this.layer.setSupportsDrawing(this.getOverridesDraw());
 
 		this.onCreate(frame.copy());
 
 		if(!this.onCreatedCalled) {
 			throw new RuntimeException(this.getClass().getCanonicalName() + " overrides onCreate but does not call super.");
+		}
+	}
+
+	boolean getOverridesDraw() {
+		try {
+			return this.getClass().getMethod("draw", mocha.graphics.Context.class, Rect.class).getDeclaringClass() != View.class;
+		} catch (NoSuchMethodException e) {
+			return false;
 		}
 	}
 
@@ -982,7 +983,6 @@ public class View extends Responder implements Accessibility {
 			if(this._viewController != null) {
 				this._viewController.viewDidLayoutSubviews();
 			}
-
 		}
 	}
 

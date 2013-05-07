@@ -263,4 +263,8 @@ public class Label extends View implements Highlightable {
 		this.drawTextInRect(context, drawRect);
 	}
 
+	boolean getOverridesDraw() {
+		return true;
+	}
+
 }

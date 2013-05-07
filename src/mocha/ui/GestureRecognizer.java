@@ -237,7 +237,8 @@ abstract public class GestureRecognizer extends MObject {
 
 		// Not sure if iOS enforces this, but it makes sense to.
 		if(this.state.finished && state != State.POSSIBLE) {
-			throw new RuntimeException("This gesture has already finished and can only be set to a POSSIBLE state.");
+			MWarn("The gesture %s has already finished and can only be set to a POSSIBLE state, setting to %s is not allowed.", this, state);
+			return;
 		}
 
 		// In testing, iOS doesn't allow you to skip from POSSIBLE to CHANGED
