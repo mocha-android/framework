@@ -802,12 +802,12 @@ public class ViewController extends Responder {
 		protected void dismissPresentedViewControllerFinish(ViewController hideViewController, ViewController revealViewController, List<ViewController> dismissViewControllers, Window window, Runnable completion) {
 			hideViewController.getView().removeFromSuperview();
 
-			hideViewController.endAppearanceTransition();
-			revealViewController.endAppearanceTransition();
-
 			for(ViewController dismissViewController : dismissViewControllers) {
 				removePresentedViewController(dismissViewController, window);
 			}
+
+			hideViewController.endAppearanceTransition();
+			revealViewController.endAppearanceTransition();
 
 			if(completion != null) {
 				completion.run();
