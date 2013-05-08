@@ -26,9 +26,14 @@ public class Image extends MObject {
 	public static Image imageNamed(int resourceId) {
 		if(resourceId <= 0) return null;
 
-		android.content.Context context = Application.sharedApplication().getContext();
-		Resources resources = context.getResources();
-		return new Image(BitmapFactory.decodeResource(resources, resourceId));
+		try {
+			android.content.Context context = Application.sharedApplication().getContext();
+			Resources resources = context.getResources();
+			return new Image(BitmapFactory.decodeResource(resources, resourceId));
+		} catch (OutOfMemoryError e) {
+			MWarn(e, "Could not decode image.");
+			return null;
+		}
 	}
 
 	public static Image imageWithData(byte[] bytes) {
