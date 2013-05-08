@@ -180,7 +180,7 @@ public final class Context extends MObject {
 	}
 
 	public void scale(float x, float y) {
-		this.canvas.scale(x * this.scale, y * this.scale);
+		this.canvas.scale(x, y);
 	}
 
 	public void translate(float x, float y) {
