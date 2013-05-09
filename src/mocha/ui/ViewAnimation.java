@@ -46,6 +46,12 @@ class ViewAnimation extends MObject {
 	String animationID;
 	Object context;
 
+	// Repeat info
+	boolean repeats;
+	boolean reverses;
+	boolean reversing;
+	double repeatCount;
+
 
 	enum Type {
 		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, TRANSFORM, CALLBACK_POINT, CALLBACK_EDGE_INSETS
@@ -179,6 +185,16 @@ class ViewAnimation extends MObject {
 			}
 		}
 
+		if(this.reverses) {
+			if(this.repeatCount <= 0.0) {
+				this.repeatCount = 1.0;
+			}
+		}
+
+		if(this.repeatCount > 0.0) {
+			this.repeats = true;
+		}
+
 		long timeModifier = View.SLOW_ANIMATIONS ? 10 : 1;
 
 		this.duration *= timeModifier;
@@ -198,6 +214,8 @@ class ViewAnimation extends MObject {
 			this.frameCount++;
 		}
 
+		boolean reverse = this.reverses && this.reversing;
+
 		// MLog("Running for %f", time);
 		for(Animation animation : this.animations.values()) {
 			// MLog("Running %s on %s", animation.type, animation.view);
@@ -208,19 +226,30 @@ class ViewAnimation extends MObject {
 				continue;
 			}
 
+			Object startValue;
+			Object endValue;
+
+			if(reverse) {
+				startValue = animation.endValue;
+				endValue = animation.startValue;
+			} else {
+				startValue = animation.startValue;
+				endValue = animation.endValue;
+			}
+
 			switch (animation.type) {
 				case FRAME:
-					animation.view.setFrame(this.interpolate(frame, (Rect)animation.startValue, (Rect)animation.endValue));
+					animation.view.setFrame(this.interpolate(frame, (Rect)startValue, (Rect)endValue));
 					break;
 				case BOUNDS:
-					animation.view.setBounds(this.interpolate(frame, (Rect) animation.startValue, (Rect) animation.endValue));
+					animation.view.setBounds(this.interpolate(frame, (Rect) startValue, (Rect) endValue));
 					break;
 				case ALPHA:
-					animation.view.setAlpha(this.interpolate(frame, (Float) animation.startValue, (Float) animation.endValue));
+					animation.view.setAlpha(this.interpolate(frame, (Float) startValue, (Float) endValue));
 					break;
 				case BACKGROUND_COLOR:
-					int[] startColor = (int[])animation.startValue;
-					int[] endColor = (int[])animation.endValue;
+					int[] startColor = (int[])startValue;
+					int[] endColor = (int[])endValue;
 
 					int red = this.interpolate(frame, startColor[0], endColor[0]);
 					int green = this.interpolate(frame, startColor[1], endColor[1]);
@@ -230,8 +259,8 @@ class ViewAnimation extends MObject {
 					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
 					break;
 				case TRANSFORM:
-					AffineTransformHolder startTransform = (AffineTransformHolder)animation.startValue;
-					AffineTransformHolder endTransform = (AffineTransformHolder)animation.endValue;
+					AffineTransformHolder startTransform = (AffineTransformHolder)startValue;
+					AffineTransformHolder endTransform = (AffineTransformHolder)endValue;
 					AffineTransform transform;
 
 					if(time <= 0.0f) {
@@ -245,10 +274,10 @@ class ViewAnimation extends MObject {
 					animation.view.setTransform(transform);
 					break;
 				case CALLBACK_POINT:
-					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point)animation.startValue, (Point)animation.endValue));
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point)startValue, (Point)endValue));
 					break;
 				case CALLBACK_EDGE_INSETS:
-					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets)animation.startValue, (EdgeInsets)animation.endValue));
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets)startValue, (EdgeInsets)endValue));
 					break;
 			}
 		}
@@ -514,12 +543,28 @@ class ViewAnimation extends MObject {
 				long elapsed = startTime - animation.startTime;
 				float frame = animation.duration > 0 ? (float)elapsed / animation.duration : 1.0f;
 				// MWarn("Processing frame %f", frame);
-				if(frame > 1.0f) frame = 1.0f;
+				if(frame > 1.0f) {
+					frame = 1.0f;
+				} else if(animation.repeats && animation.repeatCount < 0.5) {
+					if(frame >= animation.repeatCount * 2) {
+						frame = 1.0f;
+					}
+				}
+
 				animation.processFrame(frame);
 
 				if(frame == 1.0f) {
-					iterator.remove();
-					animation.onAnimationEnd();
+					if(animation.repeats && animation.repeatCount > 0) {
+						animation.startTime = startTime;
+						animation.repeatCount -= 0.5;
+
+						if(animation.reverses) {
+							animation.reversing = !animation.reversing;
+						}
+					} else {
+						iterator.remove();
+						animation.onAnimationEnd();
+					}
 				}
 			}
 

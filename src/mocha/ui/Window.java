@@ -80,9 +80,15 @@ public final class Window extends View {
 				view.setFrame(this.getBounds());
 				view.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
 
-				rootViewController.viewWillAppear(true);
+				if(this.getSuperview() != null) {
+					rootViewController.beginAppearanceTransition(true, false);
+				}
+
 				this.addSubview(view);
-				rootViewController.viewDidAppear(false);
+
+				if(this.getSuperview() != null) {
+					rootViewController.endAppearanceTransition();
+				}
 
 				this.addVisibleViewController(rootViewController);
 			}
@@ -119,11 +125,6 @@ public final class Window extends View {
 
 	void onResume() {
 		this.windowLayer.onWindowResume();
-
-		if(this.rootViewController != null) {
-			this.rootViewController.beginAppearanceTransition(true, false);
-			this.rootViewController.endAppearanceTransition();
-		}
 
 		for(ViewController viewController : this.visibleViewControllers) {
 			viewController.beginAppearanceTransition(true, false);
@@ -377,25 +378,13 @@ public final class Window extends View {
 	}
 
 	void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
-		HashSet<ViewController> viewControllers = new HashSet<ViewController>(this.visibleViewControllers);
-
-		if(this.rootViewController != null) {
-			viewControllers.add(this.rootViewController);
-		}
-
-		for(ViewController viewController : viewControllers) {
+		for(ViewController viewController : this.visibleViewControllers) {
 			viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
 		}
 	}
 
 	void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
-		HashSet<ViewController> viewControllers = new HashSet<ViewController>(this.visibleViewControllers);
-
-		if(this.rootViewController != null) {
-			viewControllers.add(this.rootViewController);
-		}
-
-		for(ViewController viewController : viewControllers) {
+		for(ViewController viewController : this.visibleViewControllers) {
 			viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
 		}
 	}

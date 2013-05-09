@@ -1299,6 +1299,18 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	public static void setAnimationRepeatCount(double repeatCount) {
+		if(currentViewAnimation != null) {
+			currentViewAnimation.repeatCount = repeatCount;
+		}
+	}
+
+	public static void setAnimationRepeatAutoreverses(boolean autoreverses) {
+		if(currentViewAnimation != null) {
+			currentViewAnimation.reverses = autoreverses;
+		}
+	}
+
 	public static void setAnimationDelay(long delay) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.delay = delay;
