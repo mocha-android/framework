@@ -43,12 +43,18 @@ public class TextDrawing extends MObject {
 		float maxWidth = constrainWidth(rect.size.width * scale);
 
 		Layout layout = getLayout(text, maxWidth, heightSupportsMultipleLines(rect.size.height, font), textPaint, textAlignment, lineBreakMode);
-		rect = getAdjustedRect(rect, layout, textAlignment, font, scale);
+		adjustRect(rect, layout, textAlignment, font, scale);
+
+		float clipLeft = rect.origin.x * scale;
+		float clipTop = rect.origin.y * scale;
+		float clipRight = clipLeft + (rect.size.width * scale);
+		float clipBottom = clipTop + (rect.size.height * scale);
 
 		Canvas canvas = context.getCanvas();
-		canvas.save(Canvas.MATRIX_SAVE_FLAG);
+		canvas.save(Canvas.CLIP_SAVE_FLAG | Canvas.MATRIX_SAVE_FLAG);
+		canvas.clipRect(clipLeft, clipTop, clipRight, clipBottom);
 		canvas.translate(rect.origin.x * scale, rect.origin.y * scale);
-		layout.draw(context.getCanvas());
+		layout.draw(canvas);
 		canvas.restore();
 
 		return getLayoutSize(layout, font, scale);
@@ -218,10 +224,8 @@ public class TextDrawing extends MObject {
 		}
 	}
 
-	private static Rect getAdjustedRect(Rect rect, Layout layout, TextAlignment textAlignment, Font font, float scale) {
+	private static void adjustRect(Rect rect, Layout layout, TextAlignment textAlignment, Font font, float scale) {
 		if(textAlignment != TextAlignment.LEFT && layout instanceof BoringLayout) {
-			rect = rect.copy();
-
 			float textWidth = getLayoutSize(layout, font, scale).width;
 
 			if(textAlignment == TextAlignment.CENTER) {
@@ -232,8 +236,6 @@ public class TextDrawing extends MObject {
 
 			rect.size.width = textWidth;
 		}
-
-		return rect;
 	}
 
 }
