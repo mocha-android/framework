@@ -212,6 +212,15 @@ public class Label extends View implements Highlightable {
 		// This seems odd, but generally if sizeThatFits is called, it's followed up
 		// with a call to setFrame(), and this allows us to use the cached layout we
 		// just created vs creating a new one.
+
+		float lineHeight = this.getFont().getLineHeight();
+
+		if (this.numberOfLines > 0) {
+			size.height = this.getFont().getLineHeight() * lineHeight;
+		} else {
+			size.height = floorf(size.height / lineHeight) * lineHeight;
+		}
+
 		this.lastSize = Size.min(TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode), size);
 		this.setNeedsDisplay();
 
@@ -245,9 +254,12 @@ public class Label extends View implements Highlightable {
 
 		if(lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
 			Size maxSize = bounds.size.copy();
+			float lineHeight = this.getFont().getLineHeight();
 
 			if (this.numberOfLines > 0) {
-				maxSize.height = this.getFont().getLineHeight() * this.numberOfLines;
+				maxSize.height = this.getFont().getLineHeight() * lineHeight;
+			} else {
+				maxSize.height = floorf(rect.size.height / lineHeight) * lineHeight;
 			}
 
 			this.textSize = TextDrawing.getTextSize(this.text, this.getFont(), maxSize, this.lineBreakMode);
