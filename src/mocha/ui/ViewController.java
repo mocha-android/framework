@@ -785,9 +785,12 @@ public class ViewController extends Responder {
 
 		abstract void presentViewController(final ViewController viewController, final ViewController hideViewController, final boolean animated, final Window window, final Runnable completion);
 
-		protected void presentViewControllerFinish(ViewController presentedViewController, ViewController hideViewController, Runnable completion) {
-			presentedViewController.endAppearanceTransition();
-			hideViewController.endAppearanceTransition();
+		protected void presentViewControllerFinish(ViewController presentedViewController, ViewController hideViewController, Window window, Runnable completion) {
+			if(window.isVisible()) {
+				presentedViewController.endAppearanceTransition();
+				hideViewController.endAppearanceTransition();
+			}
+
 			hideViewController.getView().removeFromSuperview();
 
 			presentedViewController.isBeingPresented = false;
@@ -823,8 +826,9 @@ public class ViewController extends Responder {
 
 	private class PresentationControllerCoverVertical extends PresentationController {
 
-		void presentViewController(final ViewController viewController, final ViewController hideViewController, final boolean animated, final Window window, final Runnable completion) {
+		void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
 			final Rect bounds = window.getBounds();
+			animated = animated && window.isVisible();
 
 			if(animated) {
 				Rect startFrame = bounds.copy();
@@ -835,11 +839,13 @@ public class ViewController extends Responder {
 			}
 
 			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
-
-
 			viewController.isBeingPresented = true;
-			viewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
+
+			if(window.isVisible()) {
+				viewController.beginAppearanceTransition(true, animated);
+				hideViewController.beginAppearanceTransition(false, animated);
+			}
+
 			window.addSubview(viewController.getView());
 
 
@@ -853,12 +859,12 @@ public class ViewController extends Responder {
 							}
 						}, new View.AnimationCompletion() {
 							public void animationCompletion(boolean finished) {
-								presentViewControllerFinish(viewController, hideViewController, completion);
+								presentViewControllerFinish(viewController, hideViewController, window, completion);
 								window.setUserInteractionEnabled(restore);
 							}
 						});
 			} else {
-				this.presentViewControllerFinish(viewController, hideViewController, completion);
+				this.presentViewControllerFinish(viewController, hideViewController, window, completion);
 			}
 
 		}
@@ -899,8 +905,9 @@ public class ViewController extends Responder {
 
 	private class PresentationControllerAndroid extends PresentationController {
 
-		void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, Window window, final Runnable completion) {
+		void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
 			final Rect bounds = window.getBounds();
+			animated = animated && window.isVisible();
 
 			if(animated) {
 				Rect startFrame = bounds.copy();
@@ -911,16 +918,17 @@ public class ViewController extends Responder {
 			}
 
 			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
-
 			viewController.isBeingPresented = true;
-			viewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
 
+			if(window.isVisible()) {
+				viewController.beginAppearanceTransition(true, animated);
+				hideViewController.beginAppearanceTransition(false, animated);
+			}
 
 			if(animated) {
 				this.transitionViewController(hideViewController, viewController, true, window, new Runnable() {
 					public void run() {
-						presentViewControllerFinish(viewController, hideViewController, completion);
+						presentViewControllerFinish(viewController, hideViewController, window, completion);
 
 						if(completion != null) {
 							completion.run();
@@ -929,7 +937,7 @@ public class ViewController extends Responder {
 				});
 			} else {
 				window.addSubview(viewController.getView());
-				this.presentViewControllerFinish(viewController, hideViewController, completion);
+				this.presentViewControllerFinish(viewController, hideViewController, window, completion);
 			}
 		}
 

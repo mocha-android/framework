@@ -19,6 +19,7 @@ public final class Window extends View {
 	private Event lastEvent;
 	protected ViewController rootViewController;
 	private List<ViewController> visibleViewControllers; // Root view controllers + visible modals
+	private boolean visible;
 
 	public static final String KEYBOARD_WILL_SHOW_NOTIFICATION = "KEYBOARD_WILL_SHOW_NOTIFICATION";
 	public static final String KEYBOARD_DID_SHOW_NOTIFICATION = "KEYBOARD_DID_SHOW_NOTIFICATION";
@@ -34,7 +35,7 @@ public final class Window extends View {
 
 	public Window(Activity activity) {
 		super(activity, Screen.mainScreen().getBounds());
-		this.getLayer().setBackgroundColor(Color.YELLOW);
+		this.getLayer().setBackgroundColor(Color.BLACK);
 		this.activity = activity;
 		this.activity.addWindow(this);
 
@@ -111,11 +112,7 @@ public final class Window extends View {
 
 	void onPause() {
 		this.windowLayer.onWindowPause();
-
-		if(this.rootViewController != null) {
-			this.rootViewController.beginAppearanceTransition(false, false);
-			this.rootViewController.endAppearanceTransition();
-		}
+		this.visible = false;
 
 		for(ViewController viewController : this.visibleViewControllers) {
 			viewController.beginAppearanceTransition(false, false);
@@ -125,11 +122,16 @@ public final class Window extends View {
 
 	void onResume() {
 		this.windowLayer.onWindowResume();
+		this.visible = true;
 
 		for(ViewController viewController : this.visibleViewControllers) {
 			viewController.beginAppearanceTransition(true, false);
 			viewController.endAppearanceTransition();
 		}
+	}
+
+	boolean isVisible() {
+		return visible;
 	}
 
 	public void setFrame(Rect frame) {
