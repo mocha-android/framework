@@ -43,8 +43,8 @@ public class Activity extends android.app.Activity {
 
 	public void onConfigurationChanged(Configuration newConfig) {
 		if(this.currentConfiguration.orientation != newConfig.orientation) {
-			InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
-			Window keyWindow = this.windows != null && this.windows.size() > 0 ? this.windows.get(this.windows.size() - 1) : null;
+			final InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
+			final Window keyWindow = this.windows != null && this.windows.size() > 0 ? this.windows.get(this.windows.size() - 1) : null;
 
 			if(keyWindow != null) {
 				keyWindow.willRotateToInterfaceOrientation(this.application.getStatusBarOrientation());
@@ -58,7 +58,11 @@ public class Activity extends android.app.Activity {
 
 			if(this.currentConfiguration.orientation != newConfig.orientation) {
 				if(keyWindow != null) {
-					keyWindow.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+					MObject.performOnMainAfterDelay(0, new Runnable() {
+						public void run() {
+							keyWindow.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+						}
+					});
 				}
 			}
 		} else {

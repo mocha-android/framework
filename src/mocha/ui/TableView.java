@@ -429,10 +429,14 @@ public class TableView extends ScrollView {
 
 	public void setFrame(Rect frame) {
 		Size oldSize = this.getFrame().size;
-		super.setFrame(frame);
-		Size newSize = this.getFrame().size;
 
-		if(!newSize.equals(oldSize)) {
+		if(oldSize.width != frame.size.width) {
+			this.rowData.tableViewWidthDidChangeToWidth(frame.size.width);
+		}
+
+		super.setFrame(frame);
+
+		if(!frame.size.equals(oldSize)) {
 			this.updateIndex();
 
 			/*if (this.tableStyle == Style.GROUPED) {
@@ -440,10 +444,9 @@ public class TableView extends ScrollView {
 					this.reloadData();
 				}
 			} else {*/
-				this.setContentSize(new Size(newSize.width, this.rowData.getTableHeight()));
+				this.setContentSize(new Size(frame.size.width, this.rowData.getTableHeight()));
 			//}
 
-			this.rowData.tableViewWidthDidChangeToWidth(newSize.width);
 			this.layoutSubviews();
 		}
 	}
