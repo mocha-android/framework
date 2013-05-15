@@ -5,8 +5,6 @@
  */
 package mocha.ui;
 
-import android.graphics.Bitmap;
-import mocha.animation.TimingFunction;
 import mocha.graphics.*;
 
 import java.util.ArrayList;
@@ -24,10 +22,10 @@ public class NavigationController extends ViewController {
 	private List<ViewController> viewControllers;
 	private boolean navigationBarHidden;
 	private NavigationBar.Delegate navigationBarDelegate;
-	private boolean transition;
+	private boolean inTransition;
 	private boolean showHideNavigationBarDuringTransition;
 	private TransitionStyle transitionStyle;
-	private TransitionController transitionController;
+	private NavigationTransitionController transitionController;
 	private View topView;
 
 	public NavigationController(Class<? extends NavigationBar> navigationBarClass) {
@@ -99,7 +97,7 @@ public class NavigationController extends ViewController {
 	protected void loadView() {
 		super.loadView();
 
-		this.transitionController = this.transitionStyle == TransitionStyle.ANDROID ? new TransitionControllerAndroid() : new TransitionControlleriOS();
+		this.transitionController = this.transitionStyle == TransitionStyle.ANDROID ? new NavigationTransitionControllerAndroid(this) : new NavigationTransitionControlleriOS(this);
 
 		View view = this.getView();
 		view.setClipsToBounds(true);
@@ -332,7 +330,7 @@ public class NavigationController extends ViewController {
 		}
 	}
 
-	private Rect getContentBounds() {
+	Rect getContentBounds() {
 		Rect bounds = this.getView().getBounds();
 
 		if(!this.navigationBarHidden) {
@@ -342,6 +340,30 @@ public class NavigationController extends ViewController {
 		}
 
 		return bounds;
+	}
+
+	View getTopView() {
+		return topView;
+	}
+
+	void setTopView(View topView) {
+		this.topView = topView;
+	}
+
+	public void setShouldShowHideNavigationBarDuringTransition(boolean showHideNavigationBarDuringTransition) {
+		this.showHideNavigationBarDuringTransition = showHideNavigationBarDuringTransition;
+	}
+
+	boolean getShouldShowHideNavigationBarDuringTransition() {
+		return showHideNavigationBarDuringTransition;
+	}
+
+	boolean isInTransition() {
+		return inTransition;
+	}
+
+	void setInTransition(boolean inTransition) {
+		this.inTransition = inTransition;
 	}
 
 	public void backKeyPressed(Event event) {
@@ -454,7 +476,7 @@ public class NavigationController extends ViewController {
 		} else {
 			this.navigationBar.setHidden(false);
 
-			if(this.transition) {
+			if(this.inTransition) {
 				this.showHideNavigationBarDuringTransition = true;
 				return;
 			}
@@ -483,299 +505,6 @@ public class NavigationController extends ViewController {
 				}
 			});
 		}
-	}
-
-	abstract private class TransitionController {
-		/**
-		 * Handle the animation between the from and to view controllers.
-		 * Guaranteed to have both a from and to view controller, and we're
-		 * always animated if we're at this point.
-		 *
-		 * @param fromViewController View controller transitioning from
-		 * @param toViewController View controller transition to
-		 * @param push Whether or not we're adding the view controller, or removing it
-		 * @param completion Callback to run upon completion, may be null
-		 */
-		abstract void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion);
-	}
-
-	private class TransitionControlleriOS extends TransitionController {
-
-		void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
-			final Rect bounds = topView == null ? getContentBounds() : topView.getBounds();
-
-			final Rect fromToFrame = bounds.copy();
-			final Rect toFrame = bounds.copy();
-
-			fromToFrame.origin.x = bounds.size.width * (push ? 1.0f : -1.0f);
-			toViewController.getView().setFrame(fromToFrame);
-
-			final Rect viewBounds = getView().getBounds();
-
-			transition = true;
-
-			View.setAnimationsEnabled(false, new Runnable() {
-				public void run() {
-					fromViewController.getView().getSuperview().addSubview(toViewController.getView());
-				}
-			});
-
-			fromViewController.beginAppearanceTransition(false, true);
-			toViewController.beginAppearanceTransition(true, true);
-
-			final Runnable transition = new Runnable() {
-				public void run() {
-					Application.sharedApplication().beginIgnoringInteractionEvents();
-
-					Rect fromFrame = bounds.copy();
-					fromFrame.origin.x = bounds.size.width * (push ? -1.0f : 1.0f);
-
-					if(showHideNavigationBarDuringTransition) {
-						boolean restore = View.areAnimationsEnabled();
-						View.setAnimationsEnabled(false);
-
-						Rect containerFrame = viewBounds.copy();
-						Rect fromFromFrame = viewBounds.copy();
-						Rect fromNavigationFrame = navigationBar.getFrame();
-						Rect toNavigationFrame = navigationBar.getFrame();
-						toNavigationFrame.origin.y = 0.0f;
-						fromNavigationFrame.origin.y = 0.0f;
-
-						float navigationBarHeight = fromNavigationFrame.size.height;
-
-						if(!navigationBarHidden) {
-							containerFrame.origin.y += navigationBarHeight;
-							containerFrame.size.height -= navigationBarHeight;
-
-							toFrame.size.height -= navigationBarHeight;
-
-							fromFromFrame.origin.y -= navigationBarHeight;
-							fromFrame.origin.y -= navigationBarHeight;
-
-							fromNavigationFrame.origin.x = viewBounds.size.width * (push ? 1.0f : -1.0f);
-							toNavigationFrame.origin.x = 0.0f;
-						} else {
-							fromFromFrame.origin.y += navigationBarHeight;
-							fromFromFrame.size.height -= navigationBarHeight;
-
-							fromFrame.origin.y += navigationBarHeight;
-
-							toNavigationFrame.origin.x = viewBounds.size.width * (push ? -1.0f : 1.0f);
-							fromNavigationFrame.origin.x = 0.0f;
-						}
-
-						toFrame.origin.y = 0.0f;
-						toFrame.size.height = containerFrame.size.height;
-
-						fromToFrame.origin.y = 0.0f;
-						fromToFrame.size.height = containerFrame.size.height;
-
-						navigationBar.setFrame(fromNavigationFrame);
-						if(topView != null) {
-							topView.setFrame(containerFrame);
-						}
-						fromViewController.getView().setFrame(fromFromFrame);
-						toViewController.getView().setFrame(fromToFrame);
-
-						View.setAnimationsEnabled(restore);
-
-						navigationBar.setFrame(toNavigationFrame);
-					}
-
-					fromViewController.getView().setFrame(fromFrame);
-					toViewController.getView().setFrame(toFrame);
-				}
-			};
-
-			final Runnable complete = new Runnable() {
-				public void run() {
-					toViewController.getView().setFrame(toFrame);
-					if(completion != null) completion.run();
-
-					fromViewController.getView().removeFromSuperview();
-					fromViewController.endAppearanceTransition();
-					toViewController.endAppearanceTransition();
-
-					NavigationController.this.transition = false;
-					showHideNavigationBarDuringTransition = false;
-
-					Application.sharedApplication().endIgnoringInteractionEvents();
-				}
-			};
-
-
-			navigationBar.setDelegate(null);
-
-			if(showHideNavigationBarDuringTransition) {
-				if(push) {
-					navigationBar.pushNavigationItem(toViewController.getNavigationItem(), false);
-					navigationBar.setDelegate(navigationBarDelegate);
-				}
-
-				View.animateWithDuration(HIDE_SHOW_BAR_DURATION, new View.Animations() {
-							public void performAnimatedChanges() {
-								transition.run();
-							}
-						}, new View.AnimationCompletion() {
-							public void animationCompletion(boolean finished) {
-								if(!push) {
-									navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), false, null, null);
-									navigationBar.setDelegate(navigationBarDelegate);
-								}
-
-								complete.run();
-							}
-						});
-			} else {
-				if(push) {
-					navigationBar.pushNavigationItem(toViewController.getNavigationItem(), true, transition, complete);
-				} else {
-					navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), true, transition, complete);
-				}
-
-				navigationBar.setDelegate(navigationBarDelegate);
-			}
-		}
-
-	}
-
-	private class TransitionControllerAndroid extends TransitionController {
-
-		void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
-			performAfterDelay(0, new Runnable() {
-				public void run() {
-					_transitionFromViewController(fromViewController, toViewController, push, completion);
-				}
-			});
-		}
-
-		void _transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
-			final View fromView = fromViewController.getView();
-			final View toView = toViewController.getView();
-
-			final View view = getView();
-			Rect viewBounds = view.getBounds();
-
-			fromViewController.beginAppearanceTransition(false, push);
-			toViewController.beginAppearanceTransition(true, !push);
-
-			toView.setFrame(getContentBounds());
-
-			long start = android.os.SystemClock.uptimeMillis();
-
-			float navigationBarHeight = navigationBar.getFrame().size.height;
-
-			if(push) {
-				this.adjustNavigationBar(toViewController.getNavigationItem(), true);
-			}
-
-			// Cache from view to image
-			final ImageView transitionView = new ImageView(viewBounds);
-			{
-				try {
-					Context context = new Context(viewBounds.size, view.scale, Bitmap.Config.ARGB_8888);
-					context.save();
-					context.getCanvas().translate(0.0f, navigationBarHeight * view.scale);
-
-					if(push) {
-						toView.getLayer().renderInContext(context);
-					} else {
-						fromView.getLayer().renderInContext(context);
-					}
-
-					context.restore();
-
-					navigationBar.getLayer().renderInContext(context);
-
-					transitionView.setImage(context.getImage());
-					view.addSubview(transitionView);
-				} catch (OutOfMemoryError ignored) {
-
-				}
-			}
-
-			if(push) {
-				this.adjustNavigationBar(fromViewController.getNavigationItem(), false);
-			} else {
-				this.adjustNavigationBar(toViewController.getNavigationItem(), false);
-			}
-
-			MWarn("Took %dms to build UI cache", android.os.SystemClock.uptimeMillis() - start);
-
-			// Animate
-			final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
-
-			if(push) {
-				transitionView.setAlpha(0.0f);
-				transitionView.setTransform(scaled);
-			} else {
-				fromView.removeFromSuperview();
-				getView().addSubview(toView);
-				getView().bringSubviewToFront(navigationBar);
-				view.bringSubviewToFront(transitionView);
-			}
-
-			final boolean restore = view.isUserInteractionEnabled();
-			view.setUserInteractionEnabled(false);
-
-			View.animateWithDuration(300, 1, new View.Animations() {
-				public void performAnimatedChanges() {
-					View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
-
-					if(push) {
-						transitionView.setAlpha(1.0f);
-						transitionView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
-					} else {
-						transitionView.setAlpha(0.0f);
-						transitionView.setTransform(scaled);
-					}
-				}
-			}, new View.AnimationCompletion() {
-				public void animationCompletion(boolean finished) {
-					transitionView.removeFromSuperview();
-					Image image = transitionView.getImage();
-					transitionView.setImage(null);
-
-					if(image != null) {
-						image.recycle();
-					}
-
-					if(push) {
-						adjustNavigationBar(toViewController.getNavigationItem(), true);
-						getView().addSubview(toView);
-						getView().bringSubviewToFront(navigationBar);
-						fromView.removeFromSuperview();
-					}
-
-					topView = toView;
-
-					fromViewController.endAppearanceTransition();
-					toViewController.endAppearanceTransition();
-
-					transitionView.removeFromSuperview();
-
-					if(completion != null) {
-						completion.run();
-					}
-
-					view.setUserInteractionEnabled(restore);
-				}
-			});
-
-		}
-
-		private void adjustNavigationBar(NavigationItem navigationItem, boolean push) {
-			navigationBar.setDelegate(null);
-
-			if(push) {
-				navigationBar.pushNavigationItem(navigationItem, false);
-			} else {
-				navigationBar.popToNavigationItemAnimated(navigationItem, false, null, null);
-			}
-
-			navigationBar.setDelegate(navigationBarDelegate);
-		}
-
 	}
 
 }
