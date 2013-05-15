@@ -5,13 +5,7 @@
  */
 package mocha.ui;
 
-import android.graphics.Bitmap;
-import mocha.animation.TimingFunction;
 import mocha.foundation.NotificationCenter;
-import mocha.graphics.AffineTransform;
-import mocha.graphics.Context;
-import mocha.graphics.Image;
-import mocha.graphics.Rect;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -56,7 +50,7 @@ public class ViewController extends Responder {
 	private boolean isBeingDismissed;
 	private boolean isMovingToParentViewController;
 	private boolean isMovingFromParentViewController;
-	private Window presentingFromWindow;
+	Window presentingFromWindow;
 
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
@@ -631,11 +625,11 @@ public class ViewController extends Responder {
 		this.getPresentationController(hideViewController.getModalTransitionStyle()).dismissPresentedViewController(hideViewController, revealViewController, dismissViewControllers, animated, window, null);
 	}
 
-	private PresentationController getPresentationController(ModalTransitionStyle transitionStyle) {
+	private ViewPresentationController getPresentationController(ModalTransitionStyle transitionStyle) {
 		if(transitionStyle == ModalTransitionStyle.ANDROID) {
-			return new PresentationControllerAndroid();
+			return new ViewPresentationControllerAndroid(this);
 		} else {
-			return new PresentationControllerCoverVertical();
+			return new ViewPresentationControllerCoverVertical(this);
 		}
 	}
 
@@ -668,7 +662,7 @@ public class ViewController extends Responder {
 		window.addVisibleViewController(presentedViewController);
 	}
 
-	private void removePresentedViewController(ViewController presentedViewController, Window window) {
+	void removePresentedViewController(ViewController presentedViewController, Window window) {
 		if(this.presentedViewControllers == null) return;
 
 		this.presentedViewControllers.remove(presentedViewController);
@@ -706,8 +700,16 @@ public class ViewController extends Responder {
 		}
 	}
 
+	void setBeingPresented(boolean beingPresented) {
+		this.isBeingPresented = beingPresented;
+	}
+
 	public boolean isBeingPresented() {
 		return this.isBeingPresented;
+	}
+
+	void setBeingDismissed(boolean beingDismissed) {
+		this.isBeingDismissed = beingDismissed;
 	}
 
 	public boolean isBeingDismissed() {
@@ -779,244 +781,6 @@ public class ViewController extends Responder {
 		} else {
 			super.backKeyPressed(event);
 		}
-	}
-
-	private abstract class PresentationController {
-
-		abstract void presentViewController(final ViewController viewController, final ViewController hideViewController, final boolean animated, final Window window, final Runnable completion);
-
-		protected void presentViewControllerFinish(ViewController presentedViewController, ViewController hideViewController, Window window, Runnable completion) {
-			if(window.isVisible()) {
-				presentedViewController.endAppearanceTransition();
-				hideViewController.endAppearanceTransition();
-			}
-
-			hideViewController.getView().removeFromSuperview();
-
-			presentedViewController.isBeingPresented = false;
-
-			if(completion != null) {
-				completion.run();
-			}
-		}
-
-		abstract void dismissPresentedViewController(ViewController hideViewController, ViewController revealViewController, List<ViewController> dismissViewControllers, boolean animated, Window window, final Runnable completion);
-
-		protected void dismissPresentedViewControllerFinish(ViewController hideViewController, ViewController revealViewController, List<ViewController> dismissViewControllers, Window window, Runnable completion) {
-			hideViewController.getView().removeFromSuperview();
-
-			for(ViewController dismissViewController : dismissViewControllers) {
-				removePresentedViewController(dismissViewController, window);
-			}
-
-			hideViewController.endAppearanceTransition();
-			revealViewController.endAppearanceTransition();
-
-			if(completion != null) {
-				completion.run();
-			}
-
-			hideViewController.isBeingDismissed = false;
-
-			if(revealViewController == ViewController.this) {
-				presentingFromWindow = null;
-			}
-		}
-	}
-
-	private class PresentationControllerCoverVertical extends PresentationController {
-
-		void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
-			final Rect bounds = window.getBounds();
-			animated = animated && window.isVisible();
-
-			if(animated) {
-				Rect startFrame = bounds.copy();
-				startFrame.offset(0.0f, bounds.size.height);
-				viewController.getView().setFrame(startFrame);
-			} else {
-				viewController.getView().setFrame(bounds);
-			}
-
-			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
-			viewController.isBeingPresented = true;
-
-			if(window.isVisible()) {
-				viewController.beginAppearanceTransition(true, animated);
-				hideViewController.beginAppearanceTransition(false, animated);
-			}
-
-			window.addSubview(viewController.getView());
-
-
-			if(animated) {
-				final boolean restore = window.isUserInteractionEnabled();
-				window.setUserInteractionEnabled(false);
-
-				View.animateWithDuration(330, new View.Animations() {
-							public void performAnimatedChanges() {
-								viewController.getView().setFrame(bounds);
-							}
-						}, new View.AnimationCompletion() {
-							public void animationCompletion(boolean finished) {
-								presentViewControllerFinish(viewController, hideViewController, window, completion);
-								window.setUserInteractionEnabled(restore);
-							}
-						});
-			} else {
-				this.presentViewControllerFinish(viewController, hideViewController, window, completion);
-			}
-
-		}
-
-		void dismissPresentedViewController(final ViewController hideViewController, final ViewController revealViewController, final List<ViewController> dismissViewControllers, boolean animated, final Window window, final Runnable completion) {
-			final Rect bounds = window.getBounds();
-
-			revealViewController.getView().setFrame(bounds);
-			revealViewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
-			window.insertSubviewBelowSubview(revealViewController.getView(), hideViewController.getView());
-
-			hideViewController.isBeingDismissed = true;
-
-			revealViewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
-
-			if(animated) {
-				final boolean restore = window.isUserInteractionEnabled();
-				window.setUserInteractionEnabled(false);
-
-				View.animateWithDuration(330, new View.Animations() {
-							public void performAnimatedChanges() {
-								Rect endFrame = bounds.copy();
-								endFrame.offset(0.0f, bounds.size.height);
-								hideViewController.getView().setFrame(endFrame);
-							}
-						}, new View.AnimationCompletion() {
-							public void animationCompletion(boolean finished) {
-								dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-								window.setUserInteractionEnabled(restore);
-							}
-						});
-			} else {
-				this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-			}
-		}
-	}
-
-	private class PresentationControllerAndroid extends PresentationController {
-
-		void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
-			final Rect bounds = window.getBounds();
-			animated = animated && window.isVisible();
-
-			if(animated) {
-				Rect startFrame = bounds.copy();
-				startFrame.offset(0.0f, bounds.size.height);
-				viewController.getView().setFrame(startFrame);
-			} else {
-				viewController.getView().setFrame(bounds);
-			}
-
-			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
-			viewController.isBeingPresented = true;
-
-			if(window.isVisible()) {
-				viewController.beginAppearanceTransition(true, animated);
-				hideViewController.beginAppearanceTransition(false, animated);
-			}
-
-			if(animated) {
-				this.transitionViewController(hideViewController, viewController, true, window, new Runnable() {
-					public void run() {
-						presentViewControllerFinish(viewController, hideViewController, window, completion);
-
-						if(completion != null) {
-							completion.run();
-						}
-					}
-				});
-			} else {
-				window.addSubview(viewController.getView());
-				this.presentViewControllerFinish(viewController, hideViewController, window, completion);
-			}
-		}
-
-		void transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
-			performAfterDelay(0, new Runnable() {
-				public void run() {
-					_transitionViewController(fromViewController, toViewController, presenting, window, completion);
-				}
-			});
-		}
-
-		void _transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
-			final View fromView = fromViewController.getView();
-			final View toView = toViewController.getView();
-			final Rect bounds = window.getBounds();
-
-			final boolean restore = window.isUserInteractionEnabled();
-			window.setUserInteractionEnabled(false);
-
-			toView.setFrame(bounds);
-			toView.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
-
-			// Animate
-			final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
-
-			if(presenting) {
-				toView.setAlpha(0.0f);
-				toView.setTransform(scaled);
-				window.addSubview(toView);
-			} else {
-				window.addSubview(toView);
-				window.bringSubviewToFront(fromView);
-			}
-
-			View.animateWithDuration(300, 1, new View.Animations() {
-						public void performAnimatedChanges() {
-					View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
-
-					if(presenting) {
-						toView.setAlpha(1.0f);
-						toView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
-					} else {
-						fromView.setAlpha(0.0f);
-						fromView.setTransform(scaled);
-					}
-				}
-			}, new View.AnimationCompletion() {
-				public void animationCompletion(boolean finished) {
-					window.setUserInteractionEnabled(restore);
-
-					if(completion != null) {
-						completion.run();
-					}
-				}
-			});
-		}
-
-		void dismissPresentedViewController(final ViewController hideViewController, final ViewController revealViewController, final List<ViewController> dismissViewControllers, boolean animated, final Window window, final Runnable completion) {
-			final Rect bounds = window.getBounds();
-
-			revealViewController.getView().setFrame(bounds);
-
-			hideViewController.isBeingDismissed = true;
-
-			revealViewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
-
-			if(animated) {
-				this.transitionViewController(hideViewController, revealViewController, false, window, new Runnable() {
-					public void run() {
-						dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-					}
-				});
-			} else {
-				window.addSubview(revealViewController.getView());
-				this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-			}
-		}
-
 	}
 
 }
