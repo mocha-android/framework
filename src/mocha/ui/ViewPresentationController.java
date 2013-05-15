@@ -6,9 +6,8 @@
 package mocha.ui;
 
 import mocha.foundation.MObject;
-import mocha.graphics.Rect;
-
 import java.util.List;
+import java.util.Set;
 
 abstract class ViewPresentationController extends MObject {
 
@@ -19,7 +18,21 @@ abstract class ViewPresentationController extends MObject {
 	}
 
 	void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
-		animated = animated && window.isVisible();
+		InterfaceOrientation presentOrientation = viewController.getPreferredInterfaceOrientationForPresentation();
+
+		if(presentOrientation == null) {
+			Set<InterfaceOrientation> supportedOrientations = viewController.getSupportedInterfaceOrientations();
+
+			if(!supportedOrientations.contains(hideViewController.getInterfaceOrientation())) {
+				presentOrientation = supportedOrientations.iterator().next();
+			}
+		}
+
+		if(presentOrientation != null && presentOrientation == hideViewController.getInterfaceOrientation()) {
+			presentOrientation = null;
+		}
+
+		animated = animated && window.isVisible() && presentOrientation == null;
 
 		if(animated) {
 			this.presentViewControllerAnimated(viewController, hideViewController, window, new Runnable() {
@@ -28,6 +41,14 @@ abstract class ViewPresentationController extends MObject {
 				}
 			});
 		} else {
+			hideViewController.setRestoreToInterfaceOrientationOnReappear(hideViewController.getInterfaceOrientation());
+
+			if(presentOrientation != null) {
+				window.setIgnoreNextRotationEvent();
+				hideViewController.getView().setAutoresizing(View.Autoresizing.NONE);
+				window.setOrientation(presentOrientation);
+			}
+
 			viewController.getView().setFrame(window.getBounds());
 			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			viewController.setBeingPresented(true);
@@ -60,7 +81,14 @@ abstract class ViewPresentationController extends MObject {
 	}
 
 	void dismissPresentedViewController(final ViewController hideViewController, final ViewController revealViewController, final List<ViewController> dismissViewControllers, boolean animated, final Window window, final Runnable completion) {
-		animated = animated && window.isVisible();
+		InterfaceOrientation restoreOrientation = revealViewController.getRestoreToInterfaceOrientationOnReappear();
+		revealViewController.setRestoreToInterfaceOrientationOnReappear(null);
+
+		if(restoreOrientation != null && restoreOrientation == hideViewController.getInterfaceOrientation()) {
+			restoreOrientation = null;
+		}
+
+		animated = animated && window.isVisible() && restoreOrientation == null;
 
 		if(animated) {
 			this.dismissPresentedViewControllerAnimated(hideViewController, revealViewController, window, new Runnable() {
@@ -69,12 +97,18 @@ abstract class ViewPresentationController extends MObject {
 				}
 			});
 		} else {
-			revealViewController.getView().setFrame(window.getBounds());
+			if(restoreOrientation != null) {
+				window.setIgnoreNextRotationEvent();
+				hideViewController.getView().setAutoresizing(View.Autoresizing.NONE);
+				window.setOrientation(restoreOrientation);
+			}
 
-			hideViewController.setBeingDismissed(true);
+			revealViewController.getView().setFrame(window.getBounds());
+			revealViewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 
 			revealViewController.beginAppearanceTransition(true, animated);
 			hideViewController.beginAppearanceTransition(false, animated);
+			hideViewController.setBeingDismissed(true);
 
 			window.addSubview(revealViewController.getView());
 			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);

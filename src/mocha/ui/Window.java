@@ -5,12 +5,18 @@
  */
 package mocha.ui;
 
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.view.Display;
 import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.WindowManager;
 import mocha.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class Window extends View {
 	private Activity activity;
@@ -20,6 +26,7 @@ public final class Window extends View {
 	protected ViewController rootViewController;
 	private List<ViewController> visibleViewControllers; // Root view controllers + visible modals
 	private boolean visible;
+	private int ignoreRotationEvent;
 
 	public static final String KEYBOARD_WILL_SHOW_NOTIFICATION = "KEYBOARD_WILL_SHOW_NOTIFICATION";
 	public static final String KEYBOARD_DID_SHOW_NOTIFICATION = "KEYBOARD_DID_SHOW_NOTIFICATION";
@@ -47,35 +54,40 @@ public final class Window extends View {
 		return WINDOW_LAYER_CLASS;
 	}
 
+	ViewController getTopFullScreenViewController() {
+		// TODO: Check for non-fullscreen modals in the future
+		return this.visibleViewControllers.get(this.visibleViewControllers.size() - 1);
+	}
+
 	public ViewController getRootViewController() {
 		return this.rootViewController;
 	}
 
 	public void setRootViewController(ViewController rootViewController) {
 		if(this.rootViewController != rootViewController) {
-			ViewController oldViewController = this.rootViewController;
+			// Remove the old root + any modals
 
-			if(oldViewController != null) {
-				oldViewController.viewWillDisappear(false);
-				oldViewController.setNextResponder(null);
+			for(ViewController viewController : this.visibleViewControllers) {
+				viewController.beginAppearanceTransition(false, false);
+				viewController.setNextResponder(null);
 			}
 
 			while(this.getSubviews().size() > 0) {
 				this.getSubviews().get(0).removeFromSuperview();
 			}
 
-			if(oldViewController != null) {
-				oldViewController.viewDidDisappear(false);
-
-				if(oldViewController.isFirstResponder()) {
-					oldViewController.resignFirstResponder();
-				}
-
-				this.removeVisibleViewController(oldViewController);
+			for(ViewController viewController : this.visibleViewControllers) {
+				viewController.endAppearanceTransition();
 			}
+
+			this.visibleViewControllers.clear();
+
+			// Set the new root view controller
+			this.rootViewController = rootViewController;
 
 			if(rootViewController != null) {
 				rootViewController.setNextResponder(this);
+				this.addVisibleViewController(rootViewController);
 
 				View view = rootViewController.getView();
 				view.setFrame(this.getBounds());
@@ -85,16 +97,14 @@ public final class Window extends View {
 					rootViewController.beginAppearanceTransition(true, false);
 				}
 
+				this.topFullScreenViewControllerOrientationConfigChanged();
+
 				this.addSubview(view);
 
 				if(this.getSuperview() != null) {
 					rootViewController.endAppearanceTransition();
 				}
-
-				this.addVisibleViewController(rootViewController);
 			}
-
-			this.rootViewController = rootViewController;
 
 			if(this.rootViewController != null) {
 				this.rootViewController.promoteDeepestDefaultFirstResponder();
@@ -380,14 +390,110 @@ public final class Window extends View {
 	}
 
 	void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
+		if(this.ignoreRotationEvent == 2) {
+			this.ignoreRotationEvent--;
+			return;
+		}
+
 		for(ViewController viewController : this.visibleViewControllers) {
-			viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+			if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
+				viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+			}
 		}
 	}
 
 	void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
+		if(this.ignoreRotationEvent == 1) {
+			this.ignoreRotationEvent--;
+			return;
+		}
+
 		for(ViewController viewController : this.visibleViewControllers) {
-			viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+			if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
+				viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+			}
+		}
+	}
+
+	private void topFullScreenViewControllerOrientationConfigChanged() {
+		ViewController viewController = this.getTopFullScreenViewController();
+		boolean shouldAutorotate = viewController.getShouldAutorotate();
+
+		if(shouldAutorotate) {
+			this.setOrientations(viewController.getSupportedInterfaceOrientations());
+		} else {
+			this.activity.setRequestedOrientation(this.activity.getCurrentConfiguration().orientation);
+		}
+	}
+
+	void setOrientation(InterfaceOrientation orientation) {
+		this.setOrientation(orientation, this.isNativeLandscape());
+	}
+
+	private void setOrientation(InterfaceOrientation orientation, boolean isNativeLandscape) {
+		this.activity.setRequestedOrientation(orientation.toNativeOrientation(isNativeLandscape));
+	}
+
+	private void setOrientations(Set<InterfaceOrientation> orientations) {
+		boolean isNativeLandscape = this.isNativeLandscape();
+
+		orientations.remove(InterfaceOrientation.UNKNOWN);
+
+		InterfaceOrientation[] orientations1 = orientations.toArray(new InterfaceOrientation[orientations.size()]);
+		int size = orientations1.length;
+
+		if(size == 1) {
+			this.setOrientation(orientations1[0]);
+		} else if(size == 4 || size == 0) {
+			this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+		} else {
+			// TODO: Allow support for mixing PORTRAIT and LANDSCAPE_LEFT, but not LANDSCAPE_RIGHT.  Unsure if this is even possible.
+
+			if(orientations.contains(InterfaceOrientation.PORTRAIT) && orientations.containsAll(InterfaceOrientation.SET_LANDSCAPE)) {
+				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+			} else if((orientations.contains(InterfaceOrientation.PORTRAIT) || orientations.contains(InterfaceOrientation.PORTRAIT_UPSIDE_DOWN)) && !isNativeLandscape) {
+				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+			} else {
+				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+			}
+		}
+	}
+
+	void setIgnoreNextRotationEvent() {
+		this.ignoreRotationEvent = 2;
+	}
+
+	private boolean isNativeLandscape() {
+		Display display = ((WindowManager)this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		int rotation =  ((WindowManager)this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+		int width = display.getWidth();
+		int height = display.getHeight();
+
+		if(rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+			int temp = height;
+			//noinspection SuspiciousNameCombination
+			height = width;
+			width = temp;
+		}
+
+		return width > height;
+	}
+
+	void viewControllerOrientationConfigChanged(ViewController viewController) {
+		viewController = this.getTopViewController(viewController);
+
+		if(viewController == this.getTopFullScreenViewController()) {
+			this.topFullScreenViewControllerOrientationConfigChanged();
+		}
+	}
+
+	private ViewController getTopViewController(ViewController viewController) {
+		ViewController viewController1 = viewController.getParentViewController();
+
+		if(viewController1 != null) {
+			return this.getTopViewController(viewController1);
+		} else {
+			return viewController;
 		}
 	}
 

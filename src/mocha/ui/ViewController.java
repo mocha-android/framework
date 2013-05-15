@@ -8,9 +8,7 @@ package mocha.ui;
 import mocha.foundation.NotificationCenter;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ViewController extends Responder {
 	private static Method didReceiveMemoryWarningMethod;
@@ -52,10 +50,22 @@ public class ViewController extends Responder {
 	private boolean isMovingFromParentViewController;
 	Window presentingFromWindow;
 
+	private boolean shouldAutorotate;
+	private InterfaceOrientation preferredInterfaceOrientationForPresentation;
+	private Set<InterfaceOrientation> supportedInterfaceOrientations;
+	private InterfaceOrientation restoreToInterfaceOrientationOnReappear;
+
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
 		this.modalPresentationStyle = ModalPresentationStyle.FULL_SCREEN;
 		this.modalTransitionStyle = ModalTransitionStyle.COVER_VERTICAL;
+		this.shouldAutorotate = true;
+
+		if(Device.get().getUserInterfaceIdiom() == Device.UserInterfaceIdiom.PHONE) {
+			this.supportedInterfaceOrientations = EnumSet.copyOf(InterfaceOrientation.SET_ALL_BUT_UPSIDE_DOWN);
+		} else {
+			this.supportedInterfaceOrientations = EnumSet.copyOf(InterfaceOrientation.SET_ALL);
+		}
 
 		if(didReceiveMemoryWarningMethod == null) {
 			try {
@@ -346,6 +356,67 @@ public class ViewController extends Responder {
 		}
 	}
 
+	public final boolean getShouldAutorotate() {
+		return shouldAutorotate;
+	}
+
+	protected void setShouldAutorotate(boolean shouldAutorotate) {
+		this.shouldAutorotate = shouldAutorotate;
+		this.orientationConfigChanged();
+	}
+
+	public final InterfaceOrientation getPreferredInterfaceOrientationForPresentation() {
+		return preferredInterfaceOrientationForPresentation;
+	}
+
+	protected void setPreferredInterfaceOrientationForPresentation(InterfaceOrientation preferredInterfaceOrientationForPresentation) {
+		this.preferredInterfaceOrientationForPresentation = preferredInterfaceOrientationForPresentation;
+		this.orientationConfigChanged();
+	}
+
+	public final Set<InterfaceOrientation> getSupportedInterfaceOrientations() {
+		return EnumSet.copyOf(this.supportedInterfaceOrientations);
+	}
+
+	protected void setSupportedInterfaceOrientations(InterfaceOrientation... supportedInterfaceOrientations) {
+		this.setSupportedInterfaceOrientations(InterfaceOrientation.toSet(supportedInterfaceOrientations));
+	}
+
+	protected void setSupportedInterfaceOrientations(Set<InterfaceOrientation> supportedInterfaceOrientations) {
+		this.supportedInterfaceOrientations = EnumSet.copyOf(supportedInterfaceOrientations);
+		this.orientationConfigChanged();
+	}
+
+	private void orientationConfigChanged() {
+		if(this.parentViewController != null) {
+			this.parentViewController.childViewControllerOrientationConfigChanged(this);
+		} else {
+			this._orientationConfigChanged();
+		}
+	}
+
+	private void _orientationConfigChanged() {
+		if(this.isViewLoaded()) {
+			Window window = this.view.getWindow();
+
+			if(window != null) {
+				window.viewControllerOrientationConfigChanged(this);
+			}
+		}
+	}
+
+	void childViewControllerOrientationConfigChanged(ViewController viewController) {
+		this._orientationConfigChanged();
+	}
+
+	InterfaceOrientation getRestoreToInterfaceOrientationOnReappear() {
+		return restoreToInterfaceOrientationOnReappear;
+	}
+
+	void setRestoreToInterfaceOrientationOnReappear(InterfaceOrientation restoreToInterfaceOrientationOnReappear) {
+		this.restoreToInterfaceOrientationOnReappear = restoreToInterfaceOrientationOnReappear;
+	}
+
 	/**
 	 * Adds the given view controller as a child.
 	 *
@@ -554,7 +625,7 @@ public class ViewController extends Responder {
 		this.getRootParentViewController()._presentViewController(viewController, animated, completion);
 	}
 
-	private void _presentViewController(ViewController viewController, boolean animated, final Runnable completion) {
+	private void _presentViewController(final ViewController viewController, boolean animated, final Runnable completion) {
 		// TODO: Handle stuff like orientation changes, transition styles and presentation styles
 
 		final Window window = this.getWindow();
@@ -577,6 +648,7 @@ public class ViewController extends Responder {
 					completion.run();
 				}
 
+				window.viewControllerOrientationConfigChanged(viewController);
 				promoteDeepestDefaultFirstResponder();
 			}
 		});
@@ -622,7 +694,11 @@ public class ViewController extends Responder {
 			revealViewController = this.presentedViewControllers.get(index - 1);
 		}
 
-		this.getPresentationController(hideViewController.getModalTransitionStyle()).dismissPresentedViewController(hideViewController, revealViewController, dismissViewControllers, animated, window, null);
+		this.getPresentationController(hideViewController.getModalTransitionStyle()).dismissPresentedViewController(hideViewController, revealViewController, dismissViewControllers, animated, window, new Runnable() {
+			public void run() {
+				window.viewControllerOrientationConfigChanged(revealViewController);
+			}
+		});
 	}
 
 	private ViewPresentationController getPresentationController(ModalTransitionStyle transitionStyle) {

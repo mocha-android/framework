@@ -5,6 +5,8 @@
  */
 package mocha.ui;
 
+import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.view.WindowManager;
 import mocha.foundation.MObject;
@@ -20,6 +22,7 @@ public class Activity extends android.app.Activity {
 	private boolean hasPreviouslyLaunched;
 	private Configuration currentConfiguration;
 	private InterfaceOrientation currentOrientation;
+	private int currentRotation;
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		this.setTheme(android.R.style.Theme_Holo);
@@ -42,7 +45,7 @@ public class Activity extends android.app.Activity {
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {
-		if(this.currentConfiguration.orientation != newConfig.orientation) {
+		if(this.currentConfiguration.orientation != newConfig.orientation || this.currentRotation != this.getWindowRotation()) {
 			final InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
 			final Window keyWindow = this.windows != null && this.windows.size() > 0 ? this.windows.get(this.windows.size() - 1) : null;
 
@@ -75,6 +78,15 @@ public class Activity extends android.app.Activity {
 	private void setCurrentConfiguration(Configuration configuration) {
 		this.currentConfiguration = new Configuration(configuration);
 		this.currentOrientation = this.application.getStatusBarOrientation();
+		this.currentRotation = this.getWindowRotation();
+	}
+
+	Configuration getCurrentConfiguration() {
+		return currentConfiguration;
+	}
+
+	private int getWindowRotation() {
+		return ((WindowManager)this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
 	}
 
 	void addWindow(Window window) {
