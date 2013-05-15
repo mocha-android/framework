@@ -7,58 +7,45 @@ package mocha.ui;
 
 import mocha.graphics.Rect;
 
-import java.util.List;
-
 class ViewPresentationControllerCoverVertical extends ViewPresentationController {
 
 	ViewPresentationControllerCoverVertical(ViewController viewController) {
 		super(viewController);
 	}
 
-	void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
+	protected void presentViewControllerAnimated(final ViewController viewController, final ViewController hideViewController, final Window window, final Runnable completion) {
 		final Rect bounds = window.getBounds();
-		animated = animated && window.isVisible();
-
-		if(animated) {
-			Rect startFrame = bounds.copy();
-			startFrame.offset(0.0f, bounds.size.height);
-			viewController.getView().setFrame(startFrame);
-		} else {
-			viewController.getView().setFrame(bounds);
-		}
+		Rect startFrame = bounds.copy();
+		startFrame.offset(0.0f, bounds.size.height);
+		viewController.getView().setFrame(startFrame);
 
 		viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
 		viewController.setBeingPresented(true);
 
-		if(window.isVisible()) {
-			viewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
-		}
+		viewController.beginAppearanceTransition(true, true);
+		hideViewController.beginAppearanceTransition(false, true);
 
 		window.addSubview(viewController.getView());
 
+		final boolean restore = window.isUserInteractionEnabled();
+		window.setUserInteractionEnabled(false);
 
-		if(animated) {
-			final boolean restore = window.isUserInteractionEnabled();
-			window.setUserInteractionEnabled(false);
+		View.animateWithDuration(330, new View.Animations() {
+			public void performAnimatedChanges() {
+				viewController.getView().setFrame(bounds);
+			}
+		}, new View.AnimationCompletion() {
+			public void animationCompletion(boolean finished) {
+				if(completion != null) {
+					completion.run();
+				}
 
-			View.animateWithDuration(330, new View.Animations() {
-						public void performAnimatedChanges() {
-							viewController.getView().setFrame(bounds);
-						}
-					}, new View.AnimationCompletion() {
-						public void animationCompletion(boolean finished) {
-							presentViewControllerFinish(viewController, hideViewController, window, completion);
-							window.setUserInteractionEnabled(restore);
-						}
-					});
-		} else {
-			this.presentViewControllerFinish(viewController, hideViewController, window, completion);
-		}
-
+				window.setUserInteractionEnabled(restore);
+			}
+		});
 	}
 
-	void dismissPresentedViewController(final ViewController hideViewController, final ViewController revealViewController, final List<ViewController> dismissViewControllers, boolean animated, final Window window, final Runnable completion) {
+	protected void dismissPresentedViewControllerAnimated(final ViewController hideViewController, final ViewController revealViewController, final Window window, final Runnable completion) {
 		final Rect bounds = window.getBounds();
 
 		revealViewController.getView().setFrame(bounds);
@@ -67,27 +54,23 @@ class ViewPresentationControllerCoverVertical extends ViewPresentationController
 
 		hideViewController.setBeingDismissed(true);
 
-		revealViewController.beginAppearanceTransition(true, animated);
-		hideViewController.beginAppearanceTransition(false, animated);
+		revealViewController.beginAppearanceTransition(true, true);
+		hideViewController.beginAppearanceTransition(false, true);
 
-		if(animated) {
-			final boolean restore = window.isUserInteractionEnabled();
-			window.setUserInteractionEnabled(false);
+		final boolean restore = window.isUserInteractionEnabled();
+		window.setUserInteractionEnabled(false);
 
-			View.animateWithDuration(330, new View.Animations() {
-						public void performAnimatedChanges() {
-							Rect endFrame = bounds.copy();
-							endFrame.offset(0.0f, bounds.size.height);
-							hideViewController.getView().setFrame(endFrame);
-						}
-					}, new View.AnimationCompletion() {
-						public void animationCompletion(boolean finished) {
-							dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-							window.setUserInteractionEnabled(restore);
-						}
-					});
-		} else {
-			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-		}
+		View.animateWithDuration(330, new View.Animations() {
+					public void performAnimatedChanges() {
+				Rect endFrame = bounds.copy();
+				endFrame.offset(0.0f, bounds.size.height);
+				hideViewController.getView().setFrame(endFrame);
+			}
+		}, new View.AnimationCompletion() {
+			public void animationCompletion(boolean finished) {
+				completion.run();
+				window.setUserInteractionEnabled(restore);
+			}
+		});
 	}
 }

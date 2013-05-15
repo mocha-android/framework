@@ -9,51 +9,53 @@ import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Rect;
 
-import java.util.List;
-
 class ViewPresentationControllerAndroid extends ViewPresentationController {
 
 	ViewPresentationControllerAndroid(ViewController viewController) {
 		super(viewController);
 	}
 
-	void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
+	protected void presentViewControllerAnimated(final ViewController viewController, final ViewController hideViewController, final Window window, final Runnable completion) {
 		final Rect bounds = window.getBounds();
-		animated = animated && window.isVisible();
-
-		if(animated) {
-			Rect startFrame = bounds.copy();
-			startFrame.offset(0.0f, bounds.size.height);
-			viewController.getView().setFrame(startFrame);
-		} else {
-			viewController.getView().setFrame(bounds);
-		}
+		Rect startFrame = bounds.copy();
+		startFrame.offset(0.0f, bounds.size.height);
+		viewController.getView().setFrame(startFrame);
 
 		viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 		viewController.setBeingPresented(true);
 
-		if(window.isVisible()) {
-			viewController.beginAppearanceTransition(true, animated);
-			hideViewController.beginAppearanceTransition(false, animated);
-		}
+		viewController.beginAppearanceTransition(true, true);
+		hideViewController.beginAppearanceTransition(false, true);
 
-		if(animated) {
-			this.transitionViewController(hideViewController, viewController, true, window, new Runnable() {
-				public void run() {
-					presentViewControllerFinish(viewController, hideViewController, window, completion);
-
-					if(completion != null) {
-						completion.run();
-					}
+		this.transitionViewController(hideViewController, viewController, true, window, new Runnable() {
+			public void run() {
+				if(completion != null) {
+					completion.run();
 				}
-			});
-		} else {
-			window.addSubview(viewController.getView());
-			this.presentViewControllerFinish(viewController, hideViewController, window, completion);
-		}
+			}
+		});
 	}
 
-	void transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
+	protected void dismissPresentedViewControllerAnimated(final ViewController hideViewController, final ViewController revealViewController, final Window window, final Runnable completion) {
+		final Rect bounds = window.getBounds();
+
+		revealViewController.getView().setFrame(bounds);
+
+		hideViewController.setBeingDismissed(true);
+
+		revealViewController.beginAppearanceTransition(true, true);
+		hideViewController.beginAppearanceTransition(false, true);
+
+		this.transitionViewController(hideViewController, revealViewController, false, window, new Runnable() {
+			public void run() {
+				if(completion != null) {
+					completion.run();
+				}
+			}
+		});
+	}
+
+	private void transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
 		performAfterDelay(0, new Runnable() {
 			public void run() {
 				_transitionViewController(fromViewController, toViewController, presenting, window, completion);
@@ -61,7 +63,7 @@ class ViewPresentationControllerAndroid extends ViewPresentationController {
 		});
 	}
 
-	void _transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
+	private void _transitionViewController(final ViewController fromViewController, final ViewController toViewController, final boolean presenting, final Window window, final Runnable completion) {
 		final View fromView = fromViewController.getView();
 		final View toView = toViewController.getView();
 		final Rect bounds = window.getBounds();
@@ -105,28 +107,6 @@ class ViewPresentationControllerAndroid extends ViewPresentationController {
 				}
 			}
 		});
-	}
-
-	void dismissPresentedViewController(final ViewController hideViewController, final ViewController revealViewController, final List<ViewController> dismissViewControllers, boolean animated, final Window window, final Runnable completion) {
-		final Rect bounds = window.getBounds();
-
-		revealViewController.getView().setFrame(bounds);
-
-		hideViewController.setBeingDismissed(true);
-
-		revealViewController.beginAppearanceTransition(true, animated);
-		hideViewController.beginAppearanceTransition(false, animated);
-
-		if(animated) {
-			this.transitionViewController(hideViewController, revealViewController, false, window, new Runnable() {
-				public void run() {
-					dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-				}
-			});
-		} else {
-			window.addSubview(revealViewController.getView());
-			this.dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
-		}
 	}
 
 }
