@@ -79,7 +79,6 @@ public class NavigationController extends ViewController {
 			this.addChildViewController(rootViewController);
 			this.viewControllers.add(rootViewController);
 			rootViewController.didMoveToParentViewController(this);
-			this.syncOrientationSettings();
 		}
 	}
 
@@ -385,20 +384,6 @@ public class NavigationController extends ViewController {
 		}
 
 		return this;
-	}
-
-	void childViewControllerOrientationConfigChanged(ViewController viewController) {
-		if(viewController == this.getTopViewController()) {
-			this.syncOrientationSettings();
-		} else {
-			super.childViewControllerOrientationConfigChanged(viewController);
-		}
-	}
-
-	private void syncOrientationSettings() {
-		ViewController viewController = this.getTopViewController();
-		this.setPreferredInterfaceOrientationForPresentation(viewController.getPreferredInterfaceOrientationForPresentation());
-		this.setSupportedInterfaceOrientations(viewController.getSupportedInterfaceOrientations());
 	}
 
 	/**

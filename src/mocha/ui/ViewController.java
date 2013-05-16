@@ -360,7 +360,7 @@ public class ViewController extends Responder {
 		return shouldAutorotate;
 	}
 
-	protected void setShouldAutorotate(boolean shouldAutorotate) {
+	public void setShouldAutorotate(boolean shouldAutorotate) {
 		this.shouldAutorotate = shouldAutorotate;
 		this.orientationConfigChanged();
 	}
@@ -369,33 +369,24 @@ public class ViewController extends Responder {
 		return preferredInterfaceOrientationForPresentation;
 	}
 
-	protected void setPreferredInterfaceOrientationForPresentation(InterfaceOrientation preferredInterfaceOrientationForPresentation) {
+	public void setPreferredInterfaceOrientationForPresentation(InterfaceOrientation preferredInterfaceOrientationForPresentation) {
 		this.preferredInterfaceOrientationForPresentation = preferredInterfaceOrientationForPresentation;
-		this.orientationConfigChanged();
 	}
 
 	public final Set<InterfaceOrientation> getSupportedInterfaceOrientations() {
 		return EnumSet.copyOf(this.supportedInterfaceOrientations);
 	}
 
-	protected void setSupportedInterfaceOrientations(InterfaceOrientation... supportedInterfaceOrientations) {
+	public void setSupportedInterfaceOrientations(InterfaceOrientation... supportedInterfaceOrientations) {
 		this.setSupportedInterfaceOrientations(InterfaceOrientation.toSet(supportedInterfaceOrientations));
 	}
 
-	protected void setSupportedInterfaceOrientations(Set<InterfaceOrientation> supportedInterfaceOrientations) {
+	public void setSupportedInterfaceOrientations(Set<InterfaceOrientation> supportedInterfaceOrientations) {
 		this.supportedInterfaceOrientations = EnumSet.copyOf(supportedInterfaceOrientations);
 		this.orientationConfigChanged();
 	}
 
 	private void orientationConfigChanged() {
-		if(this.parentViewController != null) {
-			this.parentViewController.childViewControllerOrientationConfigChanged(this);
-		} else {
-			this._orientationConfigChanged();
-		}
-	}
-
-	private void _orientationConfigChanged() {
 		if(this.isViewLoaded()) {
 			Window window = this.view.getWindow();
 
@@ -403,10 +394,6 @@ public class ViewController extends Responder {
 				window.viewControllerOrientationConfigChanged(this);
 			}
 		}
-	}
-
-	void childViewControllerOrientationConfigChanged(ViewController viewController) {
-		this._orientationConfigChanged();
 	}
 
 	InterfaceOrientation getRestoreToInterfaceOrientationOnReappear() {

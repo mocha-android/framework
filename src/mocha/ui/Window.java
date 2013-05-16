@@ -395,10 +395,10 @@ public final class Window extends View {
 			return;
 		}
 
-		for(ViewController viewController : this.visibleViewControllers) {
-			if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
-				viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
-			}
+		ViewController viewController = this.getTopFullScreenViewController();
+
+		if(viewController != null) {
+			viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
 		}
 	}
 
@@ -408,10 +408,10 @@ public final class Window extends View {
 			return;
 		}
 
-		for(ViewController viewController : this.visibleViewControllers) {
-			if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
-				viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
-			}
+		ViewController viewController = this.getTopFullScreenViewController();
+
+		if(viewController != null) {
+			viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
 		}
 	}
 
