@@ -41,9 +41,11 @@ abstract class ViewPresentationController extends MObject {
 				}
 			});
 		} else {
-			hideViewController.setRestoreToInterfaceOrientationOnReappear(hideViewController.getInterfaceOrientation());
-
 			if(presentOrientation != null) {
+				InterfaceOrientation interfaceOrientation = hideViewController.getInterfaceOrientation();
+				hideViewController.setRestoreToInterfaceOrientationOnReappear(hideViewController.getInterfaceOrientation());
+				hideViewController.setInterfaceOrientation(interfaceOrientation);
+
 				window.setIgnoreNextRotationEvent();
 				hideViewController.getView().setAutoresizing(View.Autoresizing.NONE);
 				window.setOrientation(presentOrientation);
@@ -71,6 +73,9 @@ abstract class ViewPresentationController extends MObject {
 			hideViewController.endAppearanceTransition();
 		}
 
+		hideViewController.setInterfaceOrientation(null);
+		presentedViewController.setInterfaceOrientation(null);
+
 		hideViewController.getView().removeFromSuperview();
 
 		presentedViewController.setBeingPresented(false);
@@ -88,6 +93,12 @@ abstract class ViewPresentationController extends MObject {
 			restoreOrientation = null;
 		}
 
+		if(restoreOrientation != null) {
+			if(revealViewController.getSupportedInterfaceOrientations().contains(hideViewController.getInterfaceOrientation())) {
+				restoreOrientation = null;
+			}
+		}
+
 		animated = animated && window.isVisible() && restoreOrientation == null;
 
 		if(animated) {
@@ -98,6 +109,9 @@ abstract class ViewPresentationController extends MObject {
 			});
 		} else {
 			if(restoreOrientation != null) {
+				InterfaceOrientation interfaceOrientation = hideViewController.getInterfaceOrientation();
+				hideViewController.setInterfaceOrientation(interfaceOrientation);
+
 				window.setIgnoreNextRotationEvent();
 				hideViewController.getView().setAutoresizing(View.Autoresizing.NONE);
 				window.setOrientation(restoreOrientation);
@@ -126,6 +140,9 @@ abstract class ViewPresentationController extends MObject {
 
 		hideViewController.endAppearanceTransition();
 		revealViewController.endAppearanceTransition();
+
+		hideViewController.setInterfaceOrientation(null);
+		revealViewController.setInterfaceOrientation(null);
 
 		if(completion != null) {
 			completion.run();

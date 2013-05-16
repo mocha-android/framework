@@ -54,6 +54,7 @@ public class ViewController extends Responder {
 	private InterfaceOrientation preferredInterfaceOrientationForPresentation;
 	private Set<InterfaceOrientation> supportedInterfaceOrientations;
 	private InterfaceOrientation restoreToInterfaceOrientationOnReappear;
+	private InterfaceOrientation interfaceOrientation;
 
 	public ViewController() {
 		this.childViewControllers = new ArrayList<ViewController>();
@@ -240,8 +241,15 @@ public class ViewController extends Responder {
 	 * @return interface orientation
 	 */
 	public InterfaceOrientation getInterfaceOrientation() {
-		// TODO: this needs to be smarter, shouldn't just grab the status bar orientation
-		return Application.sharedApplication().getStatusBarOrientation();
+		if(this.interfaceOrientation != null) {
+			return this.interfaceOrientation;
+		} else {
+			return Application.sharedApplication().getStatusBarOrientation();
+		}
+	}
+
+	void setInterfaceOrientation(InterfaceOrientation interfaceOrientation) {
+		this.interfaceOrientation = interfaceOrientation;
 	}
 
 	public String getTitle() {
