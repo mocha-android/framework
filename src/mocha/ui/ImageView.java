@@ -102,7 +102,7 @@ public class ImageView extends View implements Highlightable {
 			if(contentMode == ContentMode.SCALE_ASPECT_FILL) {
 				scale = Math.max(scaleX, scaleY);
 			} else {
-				scale = Math.min(1.0f, Math.min(scaleX, scaleY));
+				scale = Math.min(scaleX, scaleY);
 			}
 
 			imageRect.size.width *= scale;
