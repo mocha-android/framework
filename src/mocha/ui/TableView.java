@@ -165,6 +165,7 @@ public class TableView extends ScrollView {
 	private SparseArray<TableViewSubview> visibleHeaderViews;
 	private SparseArray<TableViewSubview> visibleFooterViews;
 	private List<TableViewSubview> viewsToRemove;
+	private boolean shouldUpdateVisibleViewFrames;
 
 	public TableView(Style style) {
 		this(style, new Rect(0.0f, 0.0f, 320.0f, 480.0f));
@@ -430,24 +431,18 @@ public class TableView extends ScrollView {
 	public void setFrame(Rect frame) {
 		Size oldSize = this.getFrame().size;
 
-		if(oldSize.width != frame.size.width) {
-			this.rowData.tableViewWidthDidChangeToWidth(frame.size.width);
-		}
-
 		super.setFrame(frame);
 
 		if(!frame.size.equals(oldSize)) {
+			if(oldSize.width != frame.size.width) {
+				this.rowData.tableViewWidthDidChangeToWidth(frame.size.width);
+			}
+
+			this.shouldUpdateVisibleViewFrames = true;
 			this.updateIndex();
-
-			/*if (this.tableStyle == Style.GROUPED) {
-				if(this.hasLoadedData) {
-					this.reloadData();
-				}
-			} else {*/
-				this.setContentSize(new Size(frame.size.width, this.rowData.getTableHeight()));
-			//}
-
+			this.setContentSize(new Size(frame.size.width, this.rowData.getTableHeight()));
 			this.layoutSubviews();
+			this.shouldUpdateVisibleViewFrames = false;
 		}
 	}
 
@@ -611,7 +606,7 @@ public class TableView extends ScrollView {
 
 		Range visibleRows = this.rowData.getGlobalRowsInRect(bounds);
 
-		if(this.visibleRows == null || !this.visibleRows.equals(visibleRows)) {
+		if(this.shouldUpdateVisibleViewFrames || this.visibleRows == null || !this.visibleRows.equals(visibleRows)) {
 			this.visibleRows = visibleRows;
 
 			Iterator<TableViewCell> cells = this.visibleCells.iterator();
@@ -622,6 +617,8 @@ public class TableView extends ScrollView {
 				if(!visibleRows.containsLocation(cell._globalRow)) {
 					this.enqueueCell(cell);
 					cells.remove();
+				} else if(this.shouldUpdateVisibleViewFrames) {
+					cell.setFrame(this.rowData.getRectForGlobalRow(cell._globalRow));
 				}
 			}
 

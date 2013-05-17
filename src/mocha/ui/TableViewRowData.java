@@ -566,6 +566,10 @@ class TableViewRowData {
 
 	public void tableViewWidthDidChangeToWidth(float width) {
 		this.tableWidth = width;
+
+		if(this.sectionRowData != null && this.sectionRowData.length > 0) {
+			this.reloadData();
+		}
 	}
 
 }
