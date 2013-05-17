@@ -248,6 +248,27 @@ public final class Event extends MObject {
 	}
 
 	/**
+	 * Cancels the event
+	 * @return true if there were any touches to cancel, false otherwise
+	 */
+	boolean cancel() {
+		boolean cancelled = false;
+
+		for(Touch touch : this.allTouches) {
+			if(touch.getPhase() != Touch.Phase.ENDED && touch.getPhase() != Touch.Phase.CANCELLED) {
+				touch.setTouchPhaseCancelled();
+				cancelled = true;
+			}
+		}
+
+		if(cancelled) {
+			this.resetTouchesOnNextClean = true;
+		}
+
+		return cancelled;
+	}
+
+	/**
 	 * Clean up touches after the event has been processed.
 	 */
 	void cleanTouches() {

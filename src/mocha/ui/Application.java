@@ -30,6 +30,7 @@ public class Application extends Responder {
 	private Delegate delegate;
 	private Activity activity;
 	private Bundle bundle;
+	private Runnable cancelTouchesCallback;
 
 	/**
 	 * Returns the singleton application instance
@@ -120,6 +121,20 @@ public class Application extends Responder {
 	 * method.
 	 */
 	public void beginIgnoringInteractionEvents() {
+		if(this.ignoreInteractionEventsLevel == 0) {
+			// Cancel all existing touches on next loop
+			this.cancelTouchesCallback = performOnMain(false, new Runnable() {
+				public void run() {
+					cancelTouchesCallback = null;
+					List<Window> windows = activity.getWindows();
+
+					for(Window window : windows) {
+						window.cancelAllTouches();
+					}
+				}
+			});
+		}
+
 		this.ignoreInteractionEventsLevel++;
 	}
 
@@ -134,7 +149,12 @@ public class Application extends Responder {
 	public void endIgnoringInteractionEvents() {
 		this.ignoreInteractionEventsLevel--;
 
-		if(this.ignoreInteractionEventsLevel < 0) {
+		if(this.ignoreInteractionEventsLevel == 0) {
+			if(this.cancelTouchesCallback != null) {
+				cancelCallbacks(this.cancelTouchesCallback);
+				this.cancelTouchesCallback = null;
+			}
+		} else if(this.ignoreInteractionEventsLevel < 0) {
 			throw new RuntimeException("Unbalanced calls to beginIgnoringInteractionEvents and endIgnoringInteractionEvents");
 		}
 	}

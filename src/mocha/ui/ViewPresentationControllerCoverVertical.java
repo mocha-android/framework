@@ -27,9 +27,6 @@ class ViewPresentationControllerCoverVertical extends ViewPresentationController
 
 		window.addSubview(viewController.getView());
 
-		final boolean restore = window.isUserInteractionEnabled();
-		window.setUserInteractionEnabled(false);
-
 		View.animateWithDuration(330, new View.Animations() {
 			public void performAnimatedChanges() {
 				viewController.getView().setFrame(bounds);
@@ -39,8 +36,6 @@ class ViewPresentationControllerCoverVertical extends ViewPresentationController
 				if(completion != null) {
 					completion.run();
 				}
-
-				window.setUserInteractionEnabled(restore);
 			}
 		});
 	}
@@ -57,9 +52,6 @@ class ViewPresentationControllerCoverVertical extends ViewPresentationController
 		revealViewController.beginAppearanceTransition(true, true);
 		hideViewController.beginAppearanceTransition(false, true);
 
-		final boolean restore = window.isUserInteractionEnabled();
-		window.setUserInteractionEnabled(false);
-
 		View.animateWithDuration(330, new View.Animations() {
 					public void performAnimatedChanges() {
 				Rect endFrame = bounds.copy();
@@ -69,7 +61,6 @@ class ViewPresentationControllerCoverVertical extends ViewPresentationController
 		}, new View.AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
 				completion.run();
-				window.setUserInteractionEnabled(restore);
 			}
 		});
 	}

@@ -68,9 +68,6 @@ class ViewPresentationControllerAndroid extends ViewPresentationController {
 		final View toView = toViewController.getView();
 		final Rect bounds = window.getBounds();
 
-		final boolean restore = window.isUserInteractionEnabled();
-		window.setUserInteractionEnabled(false);
-
 		toView.setFrame(bounds);
 		toView.setAutoresizing(View.Autoresizing.FLEXIBLE_WIDTH, View.Autoresizing.FLEXIBLE_HEIGHT);
 
@@ -100,8 +97,6 @@ class ViewPresentationControllerAndroid extends ViewPresentationController {
 			}
 		}, new View.AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				window.setUserInteractionEnabled(restore);
-
 				if(completion != null) {
 					completion.run();
 				}

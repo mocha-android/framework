@@ -224,7 +224,11 @@ public final class Window extends View {
 	}
 
 	public void sendEvent(Event event) {
-		if(Application.sharedApplication().isIgnoringInteractionEvents()) return;
+		this.sendEvent(event, false);
+	}
+
+	private void sendEvent(Event event, boolean ignoreIgnoringInteractionEvents) {
+		if(!ignoreIgnoringInteractionEvents && Application.sharedApplication().isIgnoringInteractionEvents()) return;
 
 		if(event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
@@ -352,6 +356,14 @@ public final class Window extends View {
 			default:
 				// Do nothing
 				break;
+		}
+	}
+
+	void cancelAllTouches() {
+		Event event = this.lastEvent;
+		if(event != null && event.cancel()) {
+			this.sendEvent(event, true);
+			event.cleanTouches();
 		}
 	}
 

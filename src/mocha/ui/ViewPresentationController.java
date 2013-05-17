@@ -35,9 +35,11 @@ abstract class ViewPresentationController extends MObject {
 		animated = animated && window.isVisible() && presentOrientation == null;
 
 		if(animated) {
+			Application.sharedApplication().beginIgnoringInteractionEvents();
 			this.presentViewControllerAnimated(viewController, hideViewController, window, new Runnable() {
 				public void run() {
 					presentViewControllerFinish(viewController, hideViewController, window, completion);
+					Application.sharedApplication().endIgnoringInteractionEvents();
 				}
 			});
 		} else {
@@ -102,9 +104,11 @@ abstract class ViewPresentationController extends MObject {
 		animated = animated && window.isVisible() && restoreOrientation == null;
 
 		if(animated) {
+			Application.sharedApplication().beginIgnoringInteractionEvents();
 			this.dismissPresentedViewControllerAnimated(hideViewController, revealViewController, window, new Runnable() {
 				public void run() {
 					dismissPresentedViewControllerFinish(hideViewController, revealViewController, dismissViewControllers, window, completion);
+					Application.sharedApplication().endIgnoringInteractionEvents();
 				}
 			});
 		} else {
