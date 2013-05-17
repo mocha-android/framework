@@ -99,6 +99,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.createScrollIndicators();
 		this.updateAlwaysBounce();
 		this.minPoint = Point.zero();
+		this.maxPoint = Point.zero();
 	}
 
 	public void layoutSubviews() {
@@ -540,11 +541,13 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private void createScrollIndicators() {
 		this.horizontalScrollIndicator = new ScrollIndicator();
 		this.horizontalScrollIndicator.setIndicatorStyle(this.indicatorStyle);
+		this.horizontalScrollIndicator.setVisible(false);
 		this.addSubview(this.horizontalScrollIndicator);
 
 
 		this.verticalScrollIndicator = new ScrollIndicator();
 		this.verticalScrollIndicator.setIndicatorStyle(this.indicatorStyle);
+		this.verticalScrollIndicator.setVisible(false);
 		this.addSubview(this.verticalScrollIndicator);
 	}
 

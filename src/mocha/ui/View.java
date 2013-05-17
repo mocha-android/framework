@@ -283,13 +283,17 @@ public class View extends Responder implements Accessibility {
 				this.superview.setNeedsDisplay(this.frame);
 			}
 
-			Rect oldBounds = this.bounds.copy();
-
 			this.frame.set(frame);
 			boolean boundsChanged;
 
-			if(!this.bounds.size.equals(this.frame.size)) {
-				this.bounds.size = this.frame.size.copy();
+			float oldWidth = this.bounds.size.width;
+			float oldHeight = this.bounds.size.height;
+			float x = this.bounds.origin.x;
+			float y = this.bounds.origin.y;
+
+			if(oldWidth != this.frame.size.width || oldHeight != this.frame.size.height) {
+				this.bounds.size.width = this.frame.size.width;
+				this.bounds.size.height = this.frame.size.height;
 				boundsChanged = true;
 			} else {
 				boundsChanged = false;
@@ -298,7 +302,7 @@ public class View extends Responder implements Accessibility {
 			this.layer.setFrame(this.frame, this.bounds);
 
 			if(boundsChanged) {
-				this.boundsDidChange(oldBounds, this.bounds);
+				this.boundsDidChange(x, y, oldWidth, oldHeight, x, y, this.bounds.size.width, this.bounds.size.height);
 			}
 		}
 	}
@@ -314,7 +318,7 @@ public class View extends Responder implements Accessibility {
 
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BOUNDS, bounds);
-			this.bounds = bounds.copy();
+			this.bounds = bounds;
 			return;
 		}
 
@@ -328,10 +332,14 @@ public class View extends Responder implements Accessibility {
 				this.superview.setNeedsDisplay();
 			}
 
-			Rect oldBounds = this.bounds;
-			this.bounds = bounds;
+			float oldX = this.bounds.origin.x;
+			float oldY = this.bounds.origin.y;
+			float oldWidth = this.bounds.size.width;
+			float oldHeight = this.bounds.size.height;
+
+			this.bounds.set(bounds);
 			this.layer.setBounds(this.bounds);
-			this.boundsDidChange(oldBounds, this.bounds);
+			this.boundsDidChange(oldX, oldY, oldWidth, oldHeight, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 		}
 	}
 
@@ -505,25 +513,24 @@ public class View extends Responder implements Accessibility {
 		return (this.autoresizingMask & mask) != 0;
 	}
 
-	private void superviewSizeDidChange_(Size oldSize, Size newSize) {
+	private void superviewSizeDidChange_(float oldWidth, float oldHeight, float newWidth, float newHeight) {
 		// NOTE: This is a port from Chameleon and is slightly faster than the version below however the
 		// logic is buggy and doesn't always scale correctly (specifically width+height only scaling, scales margins anyway)
 
 		if (this.autoresizingMask != Autoresizing.NONE.value) {
 			Rect frame = this.getFrame();
 
-			if(oldSize == null) oldSize = Size.zero();
-			Size delta = new Size(newSize.width-oldSize.width, newSize.height-oldSize.height);
+			Size delta = new Size(newWidth-oldWidth, newHeight-oldHeight);
 
 			if (hasAutoresizingFor(Autoresizing.FLEXIBLE_TOP_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value | Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value)) {
-				frame.origin.y = roundf(frame.origin.y + (frame.origin.y / oldSize.height * delta.height));
-				frame.size.height = roundf(frame.size.height + (frame.size.height / oldSize.height * delta.height));
+				frame.origin.y = roundf(frame.origin.y + (frame.origin.y / oldHeight * delta.height));
+				frame.size.height = roundf(frame.size.height + (frame.size.height / oldHeight * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_TOP_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value)) {
 				float t = frame.origin.y + frame.size.height;
 				frame.origin.y = roundf(frame.origin.y + (frame.origin.y / t * delta.height));
 				frame.size.height = roundf(frame.size.height + (frame.size.height / t * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value | Autoresizing.FLEXIBLE_HEIGHT.value)) {
-				frame.size.height = roundf(frame.size.height + (frame.size.height / (oldSize.height - frame.origin.y) * delta.height));
+				frame.size.height = roundf(frame.size.height + (frame.size.height / (oldHeight - frame.origin.y) * delta.height));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_BOTTOM_MARGIN.value | Autoresizing.FLEXIBLE_TOP_MARGIN.value)) {
 				frame.origin.y = roundf(frame.origin.y + (delta.height / 20.f));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_HEIGHT.value)) {
@@ -535,14 +542,14 @@ public class View extends Responder implements Accessibility {
 			}
 
 			if (hasAutoresizingFor(Autoresizing.FLEXIBLE_LEFT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value | Autoresizing.FLEXIBLE_RIGHT_MARGIN.value)) {
-				frame.origin.x = roundf(frame.origin.x + (frame.origin.x / oldSize.width * delta.width));
-				frame.size.width = roundf(frame.size.width + (frame.size.width / oldSize.width * delta.width));
+				frame.origin.x = roundf(frame.origin.x + (frame.origin.x / oldWidth * delta.width));
+				frame.size.width = roundf(frame.size.width + (frame.size.width / oldWidth * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_LEFT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value)) {
 				float t = frame.origin.x + frame.size.width;
 				frame.origin.x = roundf(frame.origin.x + (frame.origin.x / t * delta.width));
 				frame.size.width = roundf(frame.size.width + (frame.size.width / t * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_RIGHT_MARGIN.value | Autoresizing.FLEXIBLE_WIDTH.value)) {
-				frame.size.width = roundf(frame.size.width + (frame.size.width / (oldSize.width - frame.origin.x) * delta.width));
+				frame.size.width = roundf(frame.size.width + (frame.size.width / (oldWidth - frame.origin.x) * delta.width));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_RIGHT_MARGIN.value | Autoresizing.FLEXIBLE_LEFT_MARGIN.value)) {
 				frame.origin.x = roundf(frame.origin.x + (delta.width / 2.0f));
 			} else if (hasAutoresizingFor(Autoresizing.FLEXIBLE_WIDTH.value)) {
@@ -557,7 +564,7 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
-	private void superviewSizeDidChange(Size oldSuperviewSize, Size newSuperviewSize) {
+	private void superviewSizeDidChange(float oldWidth, float oldHeight, float newWidth, float newHeight) {
 		int mask = this.autoresizingMask;
 		if(mask == AUTORESIZING_NONE) return;
 
@@ -565,54 +572,54 @@ public class View extends Responder implements Accessibility {
 		Size size = this.frame.size.copy();
 		float delta;
 
-		if (oldSuperviewSize.width != 0.0f || size.width == 0.0f) {
+		if (oldWidth != 0.0f || size.width == 0.0f) {
 			int horizontalMask = (mask & AUTORESIZING_FLEXIBLE_LEFT_MARGIN) + (mask & AUTORESIZING_FLEXIBLE_WIDTH) + (mask & AUTORESIZING_FLEXIBLE_RIGHT_MARGIN);
 
 			if(horizontalMask != AUTORESIZING_NONE) {
 				if(horizontalMask == AUTORESIZING_FLEXIBLE_LEFT_MARGIN) {
-					origin.x += newSuperviewSize.width - oldSuperviewSize.width;
+					origin.x += newWidth - oldWidth;
 				} else if(horizontalMask == AUTORESIZING_FLEXIBLE_WIDTH) {
-					size.width = newSuperviewSize.width - (oldSuperviewSize.width - this.frame.size.width);
+					size.width = newWidth - (oldWidth - this.frame.size.width);
 				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH)) {
-					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
-					origin.x = (this.frame.origin.x / (oldSuperviewSize.width - delta)) * (newSuperviewSize.width - delta);
-					size.width = newSuperviewSize.width - origin.x - delta;
+					delta = (oldWidth - this.frame.size.width - this.frame.origin.x);
+					origin.x = (this.frame.origin.x / (oldWidth - delta)) * (newWidth - delta);
+					size.width = newWidth - origin.x - delta;
 				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_RIGHT_MARGIN)) {
-					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
-					origin.x += (newSuperviewSize.width - oldSuperviewSize.width) * (this.frame.origin.x / (this.frame.origin.x + delta));
+					delta = (oldWidth - this.frame.size.width - this.frame.origin.x);
+					origin.x += (newWidth - oldWidth) * (this.frame.origin.x / (this.frame.origin.x + delta));
 				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_RIGHT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH)) {
-					delta = (oldSuperviewSize.width - this.frame.size.width - this.frame.origin.x);
-					float scaledRightMargin = (delta / (oldSuperviewSize.width - this.frame.origin.x)) * (newSuperviewSize.width - this.frame.origin.x);
-					size.width = newSuperviewSize.width - origin.x - scaledRightMargin;
+					delta = (oldWidth - this.frame.size.width - this.frame.origin.x);
+					float scaledRightMargin = (delta / (oldWidth - this.frame.origin.x)) * (newWidth - this.frame.origin.x);
+					size.width = newWidth - origin.x - scaledRightMargin;
 				} else if(horizontalMask == (AUTORESIZING_FLEXIBLE_LEFT_MARGIN | AUTORESIZING_FLEXIBLE_WIDTH | AUTORESIZING_FLEXIBLE_RIGHT_MARGIN)) {
-					origin.x = (this.frame.origin.x / oldSuperviewSize.width) * newSuperviewSize.width;
-					size.width = (this.frame.size.width / oldSuperviewSize.width) * newSuperviewSize.width;
+					origin.x = (this.frame.origin.x / oldWidth) * newWidth;
+					size.width = (this.frame.size.width / oldWidth) * newWidth;
 				}
 			}
 		}
 
-		if (oldSuperviewSize.height != 0 || size.height == 0) {
+		if (oldHeight != 0 || size.height == 0) {
 			int verticalMask = (mask & AUTORESIZING_FLEXIBLE_TOP_MARGIN) + (mask & AUTORESIZING_FLEXIBLE_HEIGHT) + (mask & AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN);
 
 			if(verticalMask != AUTORESIZING_NONE) {
 				if(verticalMask == AUTORESIZING_FLEXIBLE_TOP_MARGIN) {
-					origin.y += newSuperviewSize.height - oldSuperviewSize.height;
+					origin.y += newHeight - oldHeight;
 				} else if(verticalMask == AUTORESIZING_FLEXIBLE_HEIGHT) {
-					size.height = newSuperviewSize.height - (oldSuperviewSize.height - this.frame.size.height);
+					size.height = newHeight - (oldHeight - this.frame.size.height);
 				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT)) {
-					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
-					origin.y = (this.frame.origin.y / (oldSuperviewSize.height - delta)) * (newSuperviewSize.height - delta);
-					size.height = newSuperviewSize.height - origin.y - delta;
+					delta = (oldHeight - this.frame.size.height - this.frame.origin.y);
+					origin.y = (this.frame.origin.y / (oldHeight - delta)) * (newHeight - delta);
+					size.height = newHeight - origin.y - delta;
 				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN)) {
-					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
-					origin.y += (newSuperviewSize.height - oldSuperviewSize.height) * (this.frame.origin.y / (this.frame.origin.y + delta));
+					delta = (oldHeight - this.frame.size.height - this.frame.origin.y);
+					origin.y += (newHeight - oldHeight) * (this.frame.origin.y / (this.frame.origin.y + delta));
 				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT)) {
-					delta = (oldSuperviewSize.height - this.frame.size.height - this.frame.origin.y);
-					float scaledBottomMargin = (delta / (oldSuperviewSize.height - this.frame.origin.y)) * (newSuperviewSize.height - this.frame.origin.y);
-					size.height = newSuperviewSize.height - origin.y - scaledBottomMargin;
+					delta = (oldHeight - this.frame.size.height - this.frame.origin.y);
+					float scaledBottomMargin = (delta / (oldHeight - this.frame.origin.y)) * (newHeight - this.frame.origin.y);
+					size.height = newHeight - origin.y - scaledBottomMargin;
 				} else if(verticalMask == (AUTORESIZING_FLEXIBLE_TOP_MARGIN | AUTORESIZING_FLEXIBLE_HEIGHT | AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN)) {
-					origin.y = (this.frame.origin.y / oldSuperviewSize.height) * newSuperviewSize.height;
-					size.height = (this.frame.size.height / oldSuperviewSize.height) * newSuperviewSize.height;
+					origin.y = (this.frame.origin.y / oldHeight) * newHeight;
+					size.height = (this.frame.size.height / oldHeight) * newHeight;
 				}
 			}
 		}
@@ -622,14 +629,17 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
-	void boundsDidChange(Rect oldBounds, Rect newBounds) {
-		if(oldBounds == null || !oldBounds.equals(newBounds)) {
+	void boundsDidChange(float oldX, float oldY, float oldWidth, float oldHeight, float newX, float newY, float newWidth, float newHeight) {
+		boolean originChanged = oldX != newX || oldY != newY;
+		boolean sizeChanged = oldWidth != newWidth || oldHeight != newHeight;
+
+		if(originChanged || sizeChanged) {
 			this.setNeedsLayout();
 
-			if (oldBounds == null || !oldBounds.size.equals(newBounds.size)) {
+			if (sizeChanged) {
 				if (this.autoresizesSubviews) {
 					for (View subview : this.subviews) {
-						subview.superviewSizeDidChange(oldBounds == null ? null : oldBounds.size, newBounds.size);
+						subview.superviewSizeDidChange(oldWidth, oldHeight, newWidth, newHeight);
 					}
 				}
 			}
