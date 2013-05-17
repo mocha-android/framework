@@ -94,28 +94,22 @@ public class ImageView extends View implements Highlightable {
 
 		if(contentMode == ContentMode.SCALE_TO_FILL || contentMode == ContentMode.REDRAW) {
 			imageRect.size = rect.size.copy();
-		} else if(contentMode == ContentMode.SCALE_ASPECT_FILL) {
-			if (imageRect.size.height < imageRect.size.width) {
-				imageRect.size.width = floorf((imageRect.size.width / imageRect.size.height) * rect.size.height);
-				imageRect.size.height = rect.size.height;
+		} else if(contentMode == ContentMode.SCALE_ASPECT_FILL || contentMode == ContentMode.SCALE_ASPECT_FIT) {
+			float scaleX = rect.size.width / imageRect.size.width;
+			float scaleY = rect.size.height / imageRect.size.height;
+			float scale;
+
+			if(contentMode == ContentMode.SCALE_ASPECT_FILL) {
+				scale = Math.max(scaleX, scaleY);
 			} else {
-				imageRect.size.height = floorf((imageRect.size.height / imageRect.size.width) * rect.size.width);
-				imageRect.size.width = rect.size.width;
+				scale = Math.min(1.0f, Math.min(scaleX, scaleY));
 			}
 
-			imageRect.origin.x += floorf((rect.size.width - imageRect.size.width) / 2.0f);
-			imageRect.origin.y += floorf((rect.size.height - imageRect.size.height) / 2.0f);
-		} else if(contentMode == ContentMode.SCALE_ASPECT_FIT) {
-			if (imageRect.size.height < imageRect.size.width) {
-				imageRect.size.height = floorf((imageRect.size.height / imageRect.size.width) * rect.size.width);
-				imageRect.size.width = rect.size.width;
-			} else {
-				imageRect.size.width = floorf((imageRect.size.width / imageRect.size.height) * rect.size.height);
-				imageRect.size.height = rect.size.height;
-			}
+			imageRect.size.width *= scale;
+			imageRect.size.height *= scale;
 
-			imageRect.origin.x += floorf((rect.size.width - imageRect.size.width) / 2.0f);
-			imageRect.origin.y += floorf((rect.size.height - imageRect.size.height) / 2.0f);
+			imageRect.origin.x += (rect.size.width - imageRect.size.width) / 2.0f;
+			imageRect.origin.y += (rect.size.height - imageRect.size.height) / 2.0f;
 		} else {
 			switch (contentMode) {
 				case TOP:
@@ -131,7 +125,7 @@ public class ImageView extends View implements Highlightable {
 					break;
 
 				default:
-					imageRect.origin.y += floorf((rect.size.height - imageRect.size.height) / 2.0f);
+					imageRect.origin.y += (rect.size.height - imageRect.size.height) / 2.0f;
 					break;
 			}
 
@@ -149,11 +143,12 @@ public class ImageView extends View implements Highlightable {
 					break;
 
 				default:
-					imageRect.origin.x += floorf((rect.size.width - imageRect.size.width) / 2.0f);
+					imageRect.origin.x += (rect.size.width - imageRect.size.width) / 2.0f;
 					break;
 			}
 		}
 
+		imageRect.makeIntegral();
 		image.draw(context, imageRect);
 	}
 

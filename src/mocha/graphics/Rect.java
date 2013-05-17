@@ -149,6 +149,21 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
+	public void makeIntegral() {
+		float maxX = (float)Math.ceil(this.maxX());
+		float maxY = (float)Math.ceil(this.maxY());
+		this.origin.x = (float)Math.floor(this.origin.x);
+		this.origin.y = (float)Math.floor(this.origin.y);
+		this.size.width = maxX - this.minX();
+		this.size.height = maxY - this.minY();
+	}
+
+	public Rect getIntegral() {
+		Rect rect = this.copy();
+		rect.makeIntegral();
+		return rect;
+	}
+
 	public void set(Rect rect) {
 		this.origin.x = rect.origin.x;
 		this.origin.y = rect.origin.y;
