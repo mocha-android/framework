@@ -32,7 +32,6 @@ public class PageControl extends Control {
 		this.pageDotSize = new Size(10.0f, 20.0f);
 
 		this.hidesForSinglePage = false;
-		this.setContentMode(ContentMode.REDRAW);
 
 		super.onCreate(frame);
 	}

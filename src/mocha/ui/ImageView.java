@@ -92,7 +92,7 @@ public class ImageView extends View implements Highlightable {
 
 		ContentMode contentMode = this.getContentMode();
 
-		if(contentMode == ContentMode.SCALE_TO_FILL || contentMode == ContentMode.REDRAW) {
+		if(contentMode == ContentMode.SCALE_TO_FILL) {
 			imageRect.size = rect.size.copy();
 		} else if(contentMode == ContentMode.SCALE_ASPECT_FILL || contentMode == ContentMode.SCALE_ASPECT_FIT) {
 			float scaleX = rect.size.width / imageRect.size.width;

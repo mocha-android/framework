@@ -372,10 +372,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.beginAnimations(null, null);
 			View.setAnimationDuration(animationDuration);
 			View.setTimingFunction(timingFunction);
-			View.setAnimationDidStartCallback(new AnimationDidStart() {
-				public void animationDidStart(String animationID, Object context) {
+			View.setAnimationWillStartCallback(new AnimationWillStart() {
+				public void animationWillStart(String animationID, Object context) {
 					inSimpleAnimation = true;
-					if(listenerAnimations != null) {
+					if (listenerAnimations != null) {
 						listenerAnimations.willBeginScrollingAnimation(ScrollView.this);
 					}
 				}

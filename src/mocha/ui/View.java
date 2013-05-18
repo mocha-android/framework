@@ -22,7 +22,16 @@ public class View extends Responder implements Accessibility {
 	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative2.class;
 	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative2.class;
 
+	/**
+	 * Set to true to make all animations take 10x longer than normal
+	 * @hide
+	 */
 	public static boolean SLOW_ANIMATIONS = false;
+
+	/**
+	 * Set to true to log dropped frames duration animations
+	 * @hide
+	 */
 	public static boolean SHOW_DROPPED_ANIMATION_FRAMES = false;
 
 	private static final int AUTORESIZING_NONE = 0;
@@ -34,12 +43,40 @@ public class View extends Responder implements Accessibility {
 	private static final int AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN = 1 << 5;
 
 	public enum Autoresizing {
+		/**
+		 * View does not resize
+		 * <p><i>This is the default value</i></p>
+		 */
 		NONE(AUTORESIZING_NONE),
-		FLEXIBLE_LEFT_MARGIN(AUTORESIZING_FLEXIBLE_LEFT_MARGIN),
-		FLEXIBLE_WIDTH(AUTORESIZING_FLEXIBLE_WIDTH),
-		FLEXIBLE_RIGHT_MARGIN(AUTORESIZING_FLEXIBLE_RIGHT_MARGIN),
-		FLEXIBLE_TOP_MARGIN(AUTORESIZING_FLEXIBLE_TOP_MARGIN),
+
+		/**
+		 * Resizes the view by adjusting the height
+		 */
 		FLEXIBLE_HEIGHT(AUTORESIZING_FLEXIBLE_HEIGHT),
+
+		/**
+		 * Resizes the view by adjusting the width
+		 */
+		FLEXIBLE_WIDTH(AUTORESIZING_FLEXIBLE_WIDTH),
+
+		/**
+		 * Resizes the view by adjusting the left margin
+		 */
+		FLEXIBLE_LEFT_MARGIN(AUTORESIZING_FLEXIBLE_LEFT_MARGIN),
+
+		/**
+		 * Resizes the view by adjusting the right margin
+		 */
+		FLEXIBLE_RIGHT_MARGIN(AUTORESIZING_FLEXIBLE_RIGHT_MARGIN),
+
+		/**
+		 * Resizes the view by adjusting the top margin
+		 */
+		FLEXIBLE_TOP_MARGIN(AUTORESIZING_FLEXIBLE_TOP_MARGIN),
+
+		/**
+		 * Resizes the view by adjusting the bottom margin
+		 */
 		FLEXIBLE_BOTTOM_MARGIN(AUTORESIZING_FLEXIBLE_BOTTOM_MARGIN);
 
 		private int value;
@@ -47,12 +84,19 @@ public class View extends Responder implements Accessibility {
 			this.value = value;
 		}
 
-		public int getValue() {
+		int getValue() {
 			return this.value;
 		}
 
-		public static final EnumSet<Autoresizing> FLEXIBLE_SIZE = EnumSet.of(Autoresizing.FLEXIBLE_WIDTH, Autoresizing.FLEXIBLE_HEIGHT);
-		public static final EnumSet<Autoresizing> FLEXIBLE_MARGINS = EnumSet.of(Autoresizing.FLEXIBLE_TOP_MARGIN, Autoresizing.FLEXIBLE_LEFT_MARGIN, Autoresizing.FLEXIBLE_BOTTOM_MARGIN, Autoresizing.FLEXIBLE_RIGHT_MARGIN);
+		/**
+		 * Convenience Set to pass to {@link View#setAutoresizing(java.util.Set)} to resize both width and height
+		 */
+		public static final Set<Autoresizing> FLEXIBLE_SIZE = Collections.unmodifiableSet(EnumSet.of(Autoresizing.FLEXIBLE_WIDTH, Autoresizing.FLEXIBLE_HEIGHT));
+
+		/**
+		 * Convenience Set to pass to {@link View#setAutoresizing(java.util.Set)} to resize all margins
+		 */
+		public static final Set<Autoresizing> FLEXIBLE_MARGINS = Collections.unmodifiableSet(EnumSet.of(Autoresizing.FLEXIBLE_TOP_MARGIN, Autoresizing.FLEXIBLE_LEFT_MARGIN, Autoresizing.FLEXIBLE_BOTTOM_MARGIN, Autoresizing.FLEXIBLE_RIGHT_MARGIN));
 	}
 
 	public enum ContentMode {
@@ -73,11 +117,6 @@ public class View extends Responder implements Accessibility {
 		 * Some portion of content may be clipped
 		 */
 		SCALE_ASPECT_FILL,
-
-		/**
-		 * Calls setNeedsDisplay on bounds change
-		 */
-		REDRAW,
 
 		/**
 		 * Aligned to the center vertically and horizontally
@@ -131,29 +170,86 @@ public class View extends Responder implements Accessibility {
 		 * Aligned to the bottom vertically, aligned to the right horizontally
 		 * Content size will not be changed
 		 */
-		BOTTOM_RIGHT,
+		BOTTOM_RIGHT
 	}
 
 	public enum AnimationCurve {
+		/**
+		 * Animation starts and ends slow, and accelerates during the middle
+		 * <p><i>This is the default value</i></p>
+		 */
 		EASE_IN_OUT,
+
+		/**
+		 * Animation starts slow and accelerates until it's complete
+		 */
 		EASE_IN,
+
+		/**
+		 * Animation starts quickly and slows down until it's complete
+		 */
 		EASE_OUT,
+
+		/**
+		 * Animation progresses evenly throughout it's duration
+		 */
 		LINEAR
 	}
 
-	public interface AnimationDidStart {
-		public void animationDidStart(String animationID, Object context);
+	/**
+	 * Callback for when animations start
+	 * @see View#setAnimationWillStartCallback(mocha.ui.View.AnimationWillStart)
+	 */
+	public interface AnimationWillStart {
+		/**
+		 * Called right before the first frame of the animation is processed
+		 *
+		 * @param animationID Animation ID set via {@link View#beginAnimations(String, Object)}
+		 * @param context Context set via {@link View#beginAnimations(String, Object)}
+		 */
+		public void animationWillStart(String animationID, Object context);
 	}
 
+	/**
+	 * Call for when animations stop
+	 * @see View#setAnimationDidStopCallback(mocha.ui.View.AnimationDidStop)
+	 */
 	public interface AnimationDidStop {
+		/**
+		 * Called after the last frame of the animation is processed or if it was cancelled
+		 *
+		 * @param animationID Animation ID set via {@link View#beginAnimations(String, Object)}
+		 * @param finished true if the animation finished, false if it was cancelled
+		 * @param context Context set via {@link View#beginAnimations(String, Object)}
+		 */
 		public void animationDidStop(String animationID, boolean finished, Object context);
 	}
 
+	/**
+	 * Callback for when an animation completes
+	 * @see View#animateWithDuration(long, mocha.ui.View.Animations, mocha.ui.View.AnimationCompletion)
+	 * @see View#animateWithDuration(long, long, mocha.ui.View.Animations, mocha.ui.View.AnimationCompletion)
+	 */
 	public interface AnimationCompletion {
+		/**
+		 * Called after the last frame of the animation is processed or if it was cancelled
+		 *
+		 * @param finished true if the animation finished, false if it was cancelled
+		 */
 		public void animationCompletion(boolean finished);
 	}
 
+	/**
+	 * Callback for when animated changes should be performed
+	 * @see View#animateWithDuration(long, mocha.ui.View.Animations)
+	 * @see View#animateWithDuration(long, mocha.ui.View.Animations, mocha.ui.View.AnimationCompletion)
+	 * @see View#animateWithDuration(long, long, mocha.ui.View.Animations, mocha.ui.View.AnimationCompletion)
+	 */
 	public interface Animations {
+		/**
+		 * Called by {@link View#animateWithDuration(long, mocha.ui.View.Animations)} in an animation context
+		 * Any changes to animatable properties will be animated if changed within this method.
+		 */
 		public void performAnimatedChanges();
 	}
 
@@ -244,14 +340,30 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Called at the end of the constructor.  It's recommended for view's to do any initialization work
+	 * in this method and not the constructor.
+	 *
+	 * {@important All subclasses must call super, if they do not, a runtime exception is thrown.}
+	 *
+	 * @param frame Frame the constructor was called with, or {@link Rect#zero()} if there wasn't one provided
+	 */
 	protected void onCreate(Rect frame) {
 		this.onCreatedCalled = true;
 	}
 
-	public boolean clipsToBounds() {
+	public boolean getClipsToBounds() {
 		return clipsToBounds;
 	}
 
+	/**
+	 * Set whether or not this view clips it's subviews to it's bounds
+	 *
+	 * <p>Clipping subviews to a views bounds will come with a performance hit, so it's
+	 * recommend this is only used when absolutely necessary.</p>
+	 *
+	 * @param clipsToBounds if true, subviews (recursively) will be clipped to the bounds of this view
+	 */
 	public void setClipsToBounds(boolean clipsToBounds) {
 		if(this.clipsToBounds != clipsToBounds) {
 			this.clipsToBounds = clipsToBounds;
@@ -265,6 +377,12 @@ public class View extends Responder implements Accessibility {
 		return this.frame.copy();
 	}
 
+	/**
+	 * Set the frame of the view
+	 *
+	 * @animatable
+	 * @param frame New frame
+	 */
 	public void setFrame(Rect frame) {
 		if(frame == null) {
 			frame = Rect.zero();
@@ -306,11 +424,20 @@ public class View extends Responder implements Accessibility {
 			}
 		}
 	}
-
 	public Rect getBounds() {
 		return this.bounds.copy();
 	}
 
+	/**
+	 * Set the bounds of the view
+	 *
+	 * <p>All subviews are laid out relative to the origin of their superviews bounds.  By default
+	 * the origin is 0,0, however if it's set to a value of 25,25, all subviews will be laid out
+	 * starting 25pt from the left, and 25pt from the top.</p>
+	 *
+	 * @animatable
+	 * @param bounds New bounds
+	 */
 	public void setBounds(Rect bounds) {
 		if(bounds == null) {
 			bounds = Rect.zero();
@@ -357,7 +484,11 @@ public class View extends Responder implements Accessibility {
 		return autoresizingMask;
 	}
 
-	public void setAutoresizing(EnumSet<Autoresizing> autoresizing) {
+	/**
+	 * Set the autoresizing rules for this view
+	 * @param autoresizing Set of rules this view should autoresize by
+	 */
+	public void setAutoresizing(Set<Autoresizing> autoresizing) {
 		this.autoresizingMask = 0;
 
 		for(Autoresizing option : autoresizing) {
@@ -365,10 +496,19 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Set a single autoresizing rule for this view
+	 * @param autoresizing Rule this view should autoresize by
+	 */
 	public void setAutoresizing(Autoresizing autoresizing) {
 		this.setAutoresizing(EnumSet.of(autoresizing));
 	}
 
+	/**
+	 * Set the autoresizing rules for this view
+	 * @param first First autoresizing rule
+	 * @param others The rest of the autoresizing rules
+	 */
 	public void setAutoresizing(Autoresizing first, Autoresizing... others) {
 		this.setAutoresizing(EnumSet.of(first, others));
 	}
@@ -377,6 +517,12 @@ public class View extends Responder implements Accessibility {
 		return backgroundColor;
 	}
 
+	/**
+	 * Set the background color of this view
+	 *
+	 * @animatable
+	 * @param backgroundColor New background color
+	 */
 	public void setBackgroundColor(int backgroundColor) {
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BACKGROUND_COLOR, backgroundColor);
@@ -388,6 +534,12 @@ public class View extends Responder implements Accessibility {
 		this.layer.setBackgroundColor(backgroundColor);
 	}
 
+	/**
+	 * Set the transform of this view
+	 *
+	 * @animatable
+	 * @param transform Transform value
+	 */
 	public void setTransform(AffineTransform transform) {
 		if(transform == null) {
 			transform = AffineTransform.identity();
@@ -415,6 +567,14 @@ public class View extends Responder implements Accessibility {
 		return autoresizesSubviews;
 	}
 
+	/**
+	 * Set whether or not this view autoresizes it's subviews
+	 *
+	 * Defaul value is true.
+	 *
+	 * @param autoresizesSubviews If true, subviews will be autoresized according to their rules
+	 *                               if false, no changes will occurr to subviews
+	 */
 	public void setAutoresizesSubviews(boolean autoresizesSubviews) {
 		this.autoresizesSubviews = autoresizesSubviews;
 	}
@@ -423,6 +583,15 @@ public class View extends Responder implements Accessibility {
 		return contentMode;
 	}
 
+	/**
+	 * Setting a content mode tells the view how to lay out it's
+	 * content relative to the bounds of this view.
+	 *
+	 * This does not affect all views, only certain views that contain content
+	 * such as {@link ImageView} handle this value.
+	 *
+	 * @param contentMode Content mode
+	 */
 	public void setContentMode(ContentMode contentMode) {
 		if(contentMode == null) {
 			contentMode = ContentMode.SCALE_TO_FILL;
@@ -435,10 +604,20 @@ public class View extends Responder implements Accessibility {
 		return tag;
 	}
 
+	/**
+	 * Set a tag to easily identify and look up views
+	 *
+	 * @param tag
+	 */
 	public void setTag(int tag) {
 		this.tag = tag;
 	}
 
+	/**
+	 * Get the layer backing this view
+	 * @return Backing layer
+	 * @hide
+	 */
 	public ViewLayer getLayer() {
 		return this.layer;
 	}
@@ -447,10 +626,26 @@ public class View extends Responder implements Accessibility {
 		return this.getLayer().isHidden();
 	}
 
+	/**
+	 * Set whether or not a view is hidden.
+	 *
+	 * A hidden view will not receive any touches and will not be draw.
+	 *
+	 * @param hidden Whether or not the view is hidden
+	 */
 	public void setHidden(boolean hidden) {
 		this.getLayer().setHidden(hidden);
 	}
 
+	/**
+	 * Set the alpha value for this view
+	 *
+	 * <p>If the view has an alpha value less than 0.01, no touches will be delivered.</p>
+	 * {@note Alpha blending is expensive, use sparingly!}
+	 *
+	 * @animatable
+	 * @param alpha A number between 0.0 (completely transparent) and 1.0 (completely opaque)
+	 */
 	public void setAlpha(float alpha) {
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, ViewAnimation.Type.ALPHA, alpha);
@@ -467,6 +662,13 @@ public class View extends Responder implements Accessibility {
 		return userInteractionEnabled;
 	}
 
+	/**
+	 * Set whether or not this view (and any of it's subviews) can receive touches
+	 *
+	 * <p><i>Default value is true.</i></p>
+	 *
+	 * @param userInteractionEnabled True if this view can receive touches, false otherwise.
+	 */
 	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
 		this.userInteractionEnabled = userInteractionEnabled;
 	}
@@ -475,6 +677,13 @@ public class View extends Responder implements Accessibility {
 		return multipleTouchEnabled;
 	}
 
+	/**
+	 * Set whether or not this view can recieves multiple touches
+	 *
+	 * <p><i>Default value is false.</i></p>
+	 *
+	 * @param multipleTouchEnabled True if this view supports multi touch, false otherwise.
+	 */
 	public void setMultipleTouchEnabled(boolean multipleTouchEnabled) {
 		this.multipleTouchEnabled = multipleTouchEnabled;
 	}
@@ -665,6 +874,14 @@ public class View extends Responder implements Accessibility {
 		return convertedPoint;
 	}
 
+	/**
+	 * Converts a point in this views bounds to be relative to the bounds
+	 * of the provided view.
+	 *
+	 * @param point Point to convert
+	 * @param view Target view to convert the point to
+	 * @return Point relative to the target views bounds
+	 */
 	public Point convertPointToView(Point point, View view) {
 		if(view == null) {
 			view = this.getWindow();
@@ -679,6 +896,13 @@ public class View extends Responder implements Accessibility {
 		return fromPoint;
 	}
 
+	/**
+	 * Convert point from the provided view to be relative to the bounds of this view.
+	 *
+	 * @param point Point to convert
+	 * @param view View to convert point from
+	 * @return Point relative to this views bounds
+	 */
 	public Point convertPointFromView(Point point, View view) {
 		if(view == null) {
 			view = this.getWindow();
@@ -691,10 +915,30 @@ public class View extends Responder implements Accessibility {
 		return view.convertPointToView(point, this);
 	}
 
+	/**
+	 * Converts a rect in this views bounds to be relative to the bounds
+	 * of the provided view.
+	 *
+	 * {@note Only the origin of the rect is affected by this, size will remain unchanged.}
+	 *
+	 * @param rect Rect to convert
+	 * @param view Target view to convert the rect origin to
+	 * @return Rect relative to the target views bounds
+	 */
 	public Rect convertRectToView(Rect rect, View view) {
 		return new Rect(this.convertPointToView(rect.origin, view), rect.size);
 	}
 
+	/**
+	 * Converts a rect in the provided views to be relative to the bounds
+	 * of this view.
+	 *
+	 * {@note Only the origin of the rect is affected by this, size will remain unchanged.}
+	 *
+	 * @param rect Rect to convert
+	 * @param view View to convert rect origin from
+	 * @return Rect relative to this views bounds
+	 */
 	public Rect convertRectFromView(Rect rect, View view) {
 		if(view == null) {
 			view = this.getWindow();
@@ -707,16 +951,44 @@ public class View extends Responder implements Accessibility {
 		return view.convertRectToView(rect, this);
 	}
 
+	/**
+	 * Adjusts the frame of this view to fit.
+	 *
+	 * <p>The default behavior is to set this current frames size
+	 * to the value of {@link View#sizeThatFits(mocha.graphics.Size)} using the current
+	 * frame.size value.</p>
+	 */
 	public void sizeToFit() {
 		Rect frame = this.getFrame();
 		frame.size = this.sizeThatFits(frame.size);
 		this.setFrame(frame);
 	}
 
+	/**
+	 * Get a size that fits within the bounds of the provided size.
+	 *
+	 * <p>The default behavior is to take the small width and smallest height between
+	 * the views frame size and the provided size.</p>
+	 *
+	 * @param size Max size
+	 * @return Size that fits the provided size
+	 */
 	public Size sizeThatFits(Size size) {
 		return new Size(Math.min(this.frame.size.width, size.width), Math.min(this.frame.size.height, size.height));
 	}
 
+	/**
+	 * Recursively find the deepest view that contains this point, isn't hidden, has user interaction enabled
+	 * as has an alpha value > 0.01.
+	 *
+	 * {@note The view returned by this method is not guaranteed to be within this views hierarchy.
+	 * Subclasses can override this method to redirect touches to an entirely different view, so do not make
+	 * any assumptions based on the returned view and the view hiearchy.}
+	 *
+	 * @param point Point relative to the bounds of this view
+	 * @param event If triggered by a touch event, that event will be provided, otherwise this will be null.
+	 * @return Deepest view containing the point or null if nothing matches.
+	 */
 	public View hitTest(Point point, Event event) {
 		if(this.isHidden() || !this.isUserInteractionEnabled() || this.getAlpha() < 0.01f || !this.pointInside(point, event)) {
 			return null;
@@ -735,6 +1007,13 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Check whether or not a point is contained by this view.
+	 *
+	 * @param point Point to check
+	 * @param event If triggered by a touch event, that event will be provided, otherwise this will be null.
+	 * @return Whether or not this view contains the point
+	 */
 	public boolean pointInside(Point point, Event event) {
 		if(this.transform == null || this.transform.isIdentity()) {
 			return this.bounds.contains(point);
@@ -743,12 +1022,22 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Plays the standard Android click sound.
+	 *
+	 * {@important This view must be attached to a window for the sound to play.}
+	 */
 	public void playClickSound() {
 		if(this.getLayer().getViewGroup() != null) {
 			this.getLayer().getViewGroup().playSoundEffect(SoundEffectConstants.CLICK);
 		}
 	}
 
+	/**
+	 * Performs the standard Android haptic feedback. (BZZZT!)
+	 *
+	 * {@important This view must be attached to a window for haptic feedback to be performed.}
+	 */
 	public void performHapticFeedback() {
 		if(this.getLayer().getViewGroup() != null) {
 			this.getLayer().getViewGroup().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
@@ -765,18 +1054,34 @@ public class View extends Responder implements Accessibility {
 		this._viewController = viewController;
 	}
 
+	@Override
 	public Responder nextResponder() {
 		return this._viewController != null ? this._viewController : this.superview;
 	}
 
+	/**
+	 * Get the superview the view is attached to
+	 *
+	 * @return Superview or null
+	 */
 	public View getSuperview() {
 		return superview;
 	}
 
+	/**
+	 * Get the window the view is attached to
+	 *
+	 * @return Window or null
+	 */
 	public Window getWindow() {
 		return superview != null ? superview.getWindow() : null;
 	}
 
+	/**
+	 * Get a list of the views subviews
+	 *
+	 * @return Subviews
+	 */
 	public List<View> getSubviews() {
 		if(subviews != null) {
 			return Collections.unmodifiableList(subviews);
@@ -785,6 +1090,11 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Removes the view from it's superview.
+	 *
+	 * If this view doesn't have a superview, this method does nothing.
+	 */
 	public void removeFromSuperview() {
 		if(this.superview != null) {
 			Window oldWindow = this.getWindow();
@@ -801,6 +1111,15 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Inserts a subview at the specified index
+	 *
+	 * If the view already has a superview and it's not this view, the view is first
+	 * removed from it's superview.
+	 *
+	 * @param view View to insert
+	 * @param index Index to insert the view at. Must be >= 0 and <= the number of subviews
+	 */
 	public void insertSubview(View view, int index) {
 		if(view.superview != null && view.superview != this) {
 			view.superview.willRemoveSubview(view);
@@ -827,6 +1146,12 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Exchange the order of two views
+	 *
+	 * @param index1 Index of view 1
+	 * @param index2 Index of view 2
+	 */
 	public void exchangeSubviews(int index1, int index2) {
 		if(index1 > index2) {
 			int t = index2;
@@ -848,6 +1173,14 @@ public class View extends Responder implements Accessibility {
 		layer2.didMoveToSuperlayer();
 	}
 
+	/**
+	 * Adds the subview to the front
+	 *
+	 * <p>If the views superview is this view, the view is brought to the front</p>
+	 * <p>If the view has a superview that's not this view, it's first removed from it's superview</p>
+	 *
+	 * @param view View to add
+	 */
 	public void addSubview(View view) {
 		if(view.superview == this) {
 			this.bringSubviewToFront(view);
@@ -856,16 +1189,41 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Insert a subview below a view already added to this view.
+	 *
+	 * If the view already has a superview and it's not this view, the view is first
+	 * removed from it's superview.
+	 *
+	 * @param view View to insert
+	 * @param belowSubview Subview to insert the view directly below
+	 */
 	public void insertSubviewBelowSubview(View view, View belowSubview) {
 		int index = this.subviews.indexOf(belowSubview);
 		this.insertSubview(view, index <= 0 ? 0 : index - 1);
 	}
 
+	/**
+	 * Insert a subview above a view already added to this view.
+	 *
+	 * If the view already has a superview and it's not this view, the view is first
+	 * removed from it's superview.
+	 *
+	 * @param view View to insert
+	 * @param aboveSubview Subview to insert the view directly above
+	 */
 	public void insertSubviewAboveSubview(View view, View aboveSubview) {
 		int index = this.subviews.indexOf(aboveSubview);
 		this.insertSubview(view, index < 0 ? 0 : index + 1);
 	}
 
+	/**
+	 * Brings the view to the front of the subview stack
+	 *
+	 * If the view's superview is not this view, this method does nothing.
+	 *
+	 * @param view View to bring to the front
+	 */
 	public void bringSubviewToFront(View view) {
 		if(view.superview != this) return;
 
@@ -875,6 +1233,13 @@ public class View extends Responder implements Accessibility {
 		this.subviews.add(view);
 	}
 
+	/**
+	 * Send the view to the back of the subview stack
+	 *
+	 * If the view's superview is not this view, this method does nothing.
+	 *
+	 * @param view View to send to the back
+	 */
 	public void sendSubviewToBack(View view) {
 		if(view.superview != this) return;
 
@@ -885,26 +1250,52 @@ public class View extends Responder implements Accessibility {
 		view.layer.didMoveToSuperlayer();
 	}
 
+	/**
+	 * Called when a subview was added
+	 *
+	 * @param subview Subview that was added
+	 */
 	public void didAddSubview(View subview) {
 
 	}
 
+	/**
+	 * Called right before a subview is removed
+	 *
+	 * @param subview Subview that will be removd
+	 */
 	public void willRemoveSubview(View subview) {
 
 	}
 
+	/**
+	 * Called right before the view moves to it's new superview
+	 *
+	 * @param newSuperview New superview or null if being removed from a superview
+	 */
 	public void willMoveToSuperview(View newSuperview) {
 
 	}
 
+	/**
+	 * Called right after a view changes superviews
+	 */
 	public void didMoveToSuperview() {
 
 	}
 
+	/**
+	 * Called right before a view moves to a new window
+	 *
+	 * @param newWindow New window or null if being removed
+	 */
 	public void willMoveToWindow(Window newWindow) {
 
 	}
 
+	/**
+	 * Called directly after a view changes windows or is removed from one
+	 */
 	public void didMoveToWindow() {
 
 	}
@@ -933,15 +1324,20 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
-	// returns YES for self.
-	public View viewWithTag(int tag) {
+	/**
+	 * Finds a view by a tag, including this view
+	 *
+	 * @param tag Tag to search for
+	 * @return First view matching the tag or null if none is found
+	 */
+	public View getViewWithTag(int tag) {
 		View foundView = null;
 
 		if (this.tag == tag) {
 			foundView = this;
 		} else if(this.subviews.size() > 0) {
 			for (View view : this.subviews) {
-				foundView = view.viewWithTag(tag);
+				foundView = view.getViewWithTag(tag);
 				if (foundView != null) break;
 			}
 		}
@@ -949,6 +1345,12 @@ public class View extends Responder implements Accessibility {
 		return foundView;
 	}
 
+	/**
+	 * Determines whether or not the view descends from this view
+	 *
+	 * @param view Subview to check
+	 * @return true if the subview is contained within this views subview hiearchy or if the view is this view, false otherwise
+	 */
 	// recursive search. includes self
 	public boolean isDescendantOfView(View view) {
 		if (view != null) {
@@ -966,13 +1368,19 @@ public class View extends Responder implements Accessibility {
 		return false;
 	}
 
-
-	// Allows you to perform layer before the drawing cycle happens. -layoutIfNeeded forces layer early
+	/**
+	 * Schedules this view to be laid out on the next loop
+	 *
+	 * Multiple calls to this method before the next layout takes place will have no affect.
+	 */
 	public void setNeedsLayout() {
 		this.needsLayout = true;
 		this.layer.setNeedsLayout();
 	}
 
+	/**
+	 * Calls {@link mocha.ui.View#layoutSubviews()} if layout is needed (set by {@link mocha.ui.View#setNeedsLayout()}
+	 */
 	public void layoutIfNeeded() {
 		if(this.needsLayout) {
 			this._layoutSubviews();
@@ -996,37 +1404,75 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * The default behavior of this method does nothing.  Subclasses should override this method
+	 * if autoresizing rules do not provide the level of control necessary to lay out a views subviews.
+	 */
 	public void layoutSubviews() {
 		this.needsLayout = false;
 	}
 
+	@Override
 	protected String toStringExtra() {
 		return String.format("frame = %s; bounds = %s; alpha = %.2f; hidden = %b%s%s", this.getFrame(), this.getBounds(), this.getAlpha(), this.isHidden(), (this.tag != 0 ? "; tag = "+this.tag : ""), (this._viewController != null ? "; viewController = " + this._viewController : ""));
 	}
 
 	// Rendering
 
+	/**
+	 * Sets the entire view as dirty and will be completely redrawn in the near future.
+	 */
 	public void setNeedsDisplay() {
 		this.layer.setNeedsDisplay();
 	}
 
+	/**
+	 * Sets a portion of this view as dirty that will be redrawn in the near future
+	 * @param dirtyRect Rect of the view to set dirty
+	 */
 	public void setNeedsDisplay(Rect dirtyRect) {
 		this.layer.setNeedsDisplay(dirtyRect);
 	}
 
+	/**
+	 * Draw the views contents within the provided rect
+	 *
+	 * @param context Context to draw into
+	 * @param rect The part of the view that is dirty or the views bounds if the entire view is dirty
+	 */
 	public void draw(mocha.graphics.Context context, Rect rect) {
 
 	}
 
 	// Gestures
 
+	/**
+	 * Add a gesture recognizer to this view
+	 *
+	 * Gesture recognizers and views are a 1 to 1 pairing, if the gesture recognizer is already
+	 * attached to another view, it is first removed from that view before being added to this one.
+	 *
+	 * @param gestureRecognizer Gesture recognizer to add
+	 */
 	public void addGestureRecognizer(GestureRecognizer gestureRecognizer) {
 		if(!this.gestureRecognizers.contains(gestureRecognizer)) {
+			if(gestureRecognizer.getView() != null) {
+				gestureRecognizer.getView().removeGestureRecognizer(gestureRecognizer);
+			}
+
 			this.gestureRecognizers.add(gestureRecognizer);
 			gestureRecognizer.setView(this);
 		}
 	}
 
+	/**
+	 * Remove a gesture recognizer from this from
+	 *
+	 * This method will not do anything if the gesture recognizer isn't already
+	 * attached to this view.
+	 *
+	 * @param gestureRecognizer Gesture recognizer to remove
+	 */
 	public void removeGestureRecognizer(GestureRecognizer gestureRecognizer) {
 		if(this.gestureRecognizers.contains(gestureRecognizer)) {
 			gestureRecognizer.setView(null);
@@ -1034,62 +1480,148 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
+	/**
+	 * Get all gesture recognizers attached to this view
+	 * @return List of this views gesture recognizers
+	 */
 	public List<GestureRecognizer> getGestureRecognizers() {
 		return Collections.unmodifiableList(this.gestureRecognizers);
 	}
 
 	// Helpers
 
+	/**
+	 * Convenince method to ceil a float and return an int
+	 *
+	 * @param f Float value to ceil
+	 * @return ceiled int
+	 */
 	public static int ceil(float f) {
 		return (int)FloatMath.ceil(f);
 	}
 
+	/**
+	 * Convenince method to ceil a double and return an int
+	 *
+	 * @param d Double value to ceil
+	 * @return ceiled int
+	 */
 	public static int ceil(double d) {
 		return (int)Math.ceil(d);
 	}
 
+	/**
+	 * Convenince method to floor a float and return an int
+
+	 * @param f Float value to floor
+	 * @return floored int
+	 */
 	public static int floor(float f) {
 		return (int)FloatMath.floor(f);
 	}
 
+	/**
+	 * Convenince method to floor a double and return an int
+	 *
+	 * @param d Double value to floor
+	 * @return floored int
+	 */
 	public static int floor(double d) {
 		return (int)Math.floor(d);
 	}
 
+	/**
+	 * Convenince method to round a float and return an int
+	 *
+	 * @param f Float value to round
+	 * @return rounded int
+	 */
 	public static int round(float f) {
-		return (int)FloatMath.floor(f + 0.5f);
+		return Math.round(f + 0.5f);
 	}
 
+	/**
+	 * Convenince method to round a double and return an int
+	 *
+	 * @param d Double value to round
+	 * @return rounded int
+	 */
 	public static int round(double d) {
 		return (int)Math.round(d);
 	}
 
+	/**
+	 * Convenince method to ceil a float and return a float
+	 *
+	 * @param f Float value to ceil
+	 * @return ceiled float
+	 */
 	public static float ceilf(float f) {
-		return FloatMath.ceil(f);
+		// NOTE: We don't use FloatMath because Android Lint says this is faster
+		return (float)Math.ceil(f);
 	}
 
+	/**
+	 * Convenince method to floor a float and return a float
+	 *
+	 * @param f Float value to floor
+	 * @return floored float
+	 */
 	public static float floorf(float f) {
+		// NOTE: We don't use FloatMath because Android Lint says this is faster
 		return FloatMath.floor(f);
 	}
 
+	/**
+	 * Convenince method to round a float and return a float
+	 *
+	 * @param f Float value to ceil
+	 * @return rounded float
+	 */
 	public static float roundf(float f) {
+		// NOTE: We don't use FloatMath because Android Lint says this is faster
 		return FloatMath.floor(f + 0.5f);
 	}
 
+	/**
+	 * Clamps the value to the minimum and maximum bounds
+	 *
+	 * @param value Value to clamp
+	 * @param minimum Minimum the value can be
+	 * @param maximum Maximum the value can be
+	 * @return If the value is > maximum, maximum is returned, if the value < minimum, minimum is returned, otherwise the provided value is returned.
+	 */
 	public static float clampf(float value, float minimum, float maximum) {
 		return Math.min(Math.max(value, minimum), maximum);
 	}
 
+	/**
+	 * Converts degrees to radians
+	 *
+	 * @param degrees Degrees to convert
+	 * @return Radians
+	 */
 	public static float degreesToRadians(float degrees) {
 		return (degrees / 360.0f) * ((float)Math.PI * 2.0f);
 	}
 
+	/**
+	 * Converts radians to degrees
+	 *
+	 * @param radians Radians to convert
+	 * @return Degrees
+	 */
 	public static float radiansToDegrees(float radians) {
 		return (radians / ((float)Math.PI * 2)) * 360.0f;
 	}
 
 	// Layer backing
 
+	/**
+	 * Get the layer class backing this view
+	 * @return View layer
+	 * @hide
+	 */
 	public Class<? extends ViewLayer> getLayerClass() {
 		return VIEW_LAYER_CLASS;
 	}
@@ -1100,50 +1632,62 @@ public class View extends Responder implements Accessibility {
 
 	// Accessibility
 
+	@Override
 	public boolean isAccessibilityElement() {
 		return isAccessibilityElement;
 	}
 
+	@Override
 	public void setIsAccessibilityElement(boolean accessibilityElement) {
 		isAccessibilityElement = accessibilityElement;
 	}
 
+	@Override
 	public String getAccessibilityLabel() {
 		return accessibilityLabel;
 	}
 
+	@Override
 	public void setAccessibilityLabel(String accessibilityLabel) {
 		this.accessibilityLabel = accessibilityLabel;
 	}
 
+	@Override
 	public String getAccessibilityHint() {
 		return accessibilityHint;
 	}
 
+	@Override
 	public void setAccessibilityHint(String accessibilityHint) {
 		this.accessibilityHint = accessibilityHint;
 	}
 
+	@Override
 	public String getAccessibilityValue() {
 		return accessibilityValue;
 	}
 
+	@Override
 	public void setAccessibilityValue(String accessibilityValue) {
 		this.accessibilityValue = accessibilityValue;
 	}
 
+	@Override
 	public Trait[] getAccessibilityTraits() {
 		return accessibilityTraits;
 	}
 
+	@Override
 	public void setAccessibilityTraits(Trait... accessibilityTraits) {
 		this.accessibilityTraits = accessibilityTraits;
 	}
 
+	@Override
 	public Rect getAccessibilityFrame() {
 		return accessibilityFrame;
 	}
 
+	@Override
 	public void setAccessibilityFrame(Rect accessibilityFrame) {
 		this.accessibilityFrame = accessibilityFrame;
 	}
@@ -1152,74 +1696,90 @@ public class View extends Responder implements Accessibility {
 		return accessibilityActivationPoint;
 	}
 
+	@Override
 	public void setAccessibilityActivationPoint(Point accessibilityActivationPoint) {
 		this.accessibilityActivationPoint = accessibilityActivationPoint;
 	}
 
+	@Override
 	public boolean getAccessibilityElementsHidden() {
 		return accessibilityElementsHidden;
 	}
 
+	@Override
 	public void setAccessibilityElementsHidden(boolean accessibilityElementsHidden) {
 		this.accessibilityElementsHidden = accessibilityElementsHidden;
 	}
 
+	@Override
 	public boolean getAccessibilityViewIsModal() {
 		return accessibilityViewIsModal;
 	}
 
+	@Override
 	public void setAccessibilityViewIsModal(boolean accessibilityViewIsModal) {
 		this.accessibilityViewIsModal = accessibilityViewIsModal;
 	}
 
+	@Override
 	public boolean shouldGroupAccessibilityChildren() {
 		return shouldGroupAccessibilityChildren;
 	}
 
+	@Override
 	public void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren) {
 		this.shouldGroupAccessibilityChildren = shouldGroupAccessibilityChildren;
 	}
 
 	// Animations
 
+	/**
+	 * Options to pass into {@link View#transition(View, View, long, mocha.ui.View.AnimationCompletion, mocha.ui.View.AnimationOption...)}
+	 */
 	public enum AnimationOption {
+		/**
+		 * If provided, {@link mocha.ui.View#layoutIfNeeded()} if needed will be called on the transitioning views.
+		 */
 		LAYOUT_SUBVIEWS,
+
+		/**
+		 * By default, transitions disable user interaction on the transitioning views during the animation.
+		 * This option allows user interaction to take place
+		 */
 		ALLOW_USER_INTERACTION,
-		/*BEGIN_FROM_CURRENT_STATE,
-		REPEAT,
-		AUTOREVERSE,
-		OVERRIDE_INHERITED_DURATION,
-		OVERRIDE_INHERITED_CURVE,
-		ALLOW_ANIMATED_CONTENT,*/
+
+		/**
+		 * Optionally show/hide the transition views instead of changing their
+		 * superview, which is the default behavior.
+		 */
 		SHOW_HIDE_TRANSITION_VIEWS,
 
+		/**
+		 * @see AnimationCurve#EASE_IN_OUT
+		 */
 		CURVE_EASE_IN_OUT,
+
+		/**
+		 * @see AnimationCurve#EASE_IN
+		 */
 		CURVE_EASE_IN,
+
+		/**
+		 * @see AnimationCurve#EASE_OUT
+		 */
 		CURVE_EASE_OUT,
+
+		/**
+		 * @see AnimationCurve#LINEAR
+		 */
 		CURVE_LINEAR,
 
 		TRANSITION_NONE,
-		/*TRANSITION_FLIP_FROM_LEFT,
-		TRANSITION_FLIP_FROM_RIGHT,
-		TRANSITION_CURL_UP,
-		TRANSITION_CURL_DOWN,*/
-		TRANSITION_CROSS_DISSOLVE,
-		/*TRANSITION_FLIP_FROM_TOP,
-		TRANSITION_FLIP_FROM_BOTTOM*/
-	}
 
-	/**
-	 * Cancels any animation blocks referencing this view. This will apply to
-	 * ALL view's in an animation block and not just this view. The animating
-	 * properties will be left the state they were upon cancellation. Meaning,
-	 * if alpha was animating from 0.0f to 1.0f and the animation is cancelled
-	 * half way through, the final alpha value will be 0.5f.
-	 *
-	 * NOTE: Calling this in an animation block will have no affect and be ignored.
-	 */
-	public void cancelAnimations() {
-		if(currentViewAnimation != null) return;
-		ViewAnimation.cancelAllAnimationsReferencingView(this);
+		/**
+		 * If provided, the transition will fade between the two views
+		 */
+		TRANSITION_CROSS_DISSOLVE,
 	}
 
 	private static List<ViewAnimation> viewAnimationStack = new ArrayList<ViewAnimation>();
@@ -1227,7 +1787,7 @@ public class View extends Responder implements Accessibility {
 	static boolean areAnimationsEnabled = true;
 
 	/**
-	 * Check whether or not your're in an animation tranaction
+	 * Check whether or not you're in an animation tranaction
 	 *
 	 * @return If true, setting animatable properties will cause them to animate the change
 	 */
@@ -1235,15 +1795,35 @@ public class View extends Responder implements Accessibility {
 		return currentViewAnimation != null && areAnimationsEnabled;
 	}
 
+	/**
+	 * Setup an animation with the specied duration and group of animations
+	 *
+	 * @param duration Length of the animation in milliseconds
+	 * @param animations Changes to be animated
+	 */
 	public static void animateWithDuration(long duration, Animations animations) {
 		animateWithDuration(duration, animations, null);
 	}
 
+	/**
+	 * Setup an animation with the specied duration and group of animations
+	 *
+	 * @param duration Length of the animation in milliseconds
+	 * @param animations Changes to be animated
+	 * @param completion Callback for when the animation ends
+	 */
 	public static void animateWithDuration(long duration, Animations animations, final AnimationCompletion completion) {
 		animateWithDuration(duration, 0, animations, completion);
 	}
 
+	/**
+	 * Setup an animation with the specied duration and group of animations
 
+	 * @param duration Length of the animation in milliseconds
+	 * @param delay Milliseconds to wait before starting the animation
+	 * @param animations Changes to be animated
+	 * @param completion Callback for when the animation ends
+	 */
 	public static void animateWithDuration(long duration, long delay, Animations animations, final AnimationCompletion completion) {
 		beginAnimations(null, null);
 		setAnimationDuration(duration);
@@ -1262,10 +1842,19 @@ public class View extends Responder implements Accessibility {
 		commitAnimations();
 	}
 
+	/**
+	 * Begin an animation context
+	 */
 	public static void beginAnimations() {
 		beginAnimations(null, null);
 	}
 
+	/**
+	 * Begin an animation context
+	 *
+	 * @param animationID Animation ID for this context
+	 * @param context Optional context parameter to pass through to will start/did stop callbacks
+	 */
 	public static void beginAnimations(String animationID, Object context) {
 		currentViewAnimation = new ViewAnimation();
 		currentViewAnimation.animationID = animationID;
@@ -1273,6 +1862,9 @@ public class View extends Responder implements Accessibility {
 		viewAnimationStack.add(currentViewAnimation);
 	}
 
+	/**
+	 * Commit and start the changes made within this animation context
+	 */
 	public static void commitAnimations() {
 		int size = viewAnimationStack.size();
 		ViewAnimation viewAnimation = viewAnimationStack.remove(size - 1);
@@ -1287,46 +1879,117 @@ public class View extends Responder implements Accessibility {
 		viewAnimation.start();
 	}
 
+	/**
+	 * Cancels any animation blocks referencing this view.
+	 *
+	 * This will apply to ALL view's in an animation block and not just this view.
+	 * The animating properties will be left the state they were upon cancellation.
+	 * Meaning, if alpha was animating from 0.0f to 1.0f and the animation is cancelled
+	 * half way through, the final alpha value will be 0.5f.
+	 *
+	 * {@note Calling this in an animation block will have no affect and be ignored.}
+	 */
+	public void cancelAnimations() {
+		if(currentViewAnimation != null) return;
+		ViewAnimation.cancelAllAnimationsReferencingView(this);
+	}
+
+	/**
+	 * Check whether or not we're in an animation context
+	 *
+	 * @return If true if we're in an animation context, false otherwise
+	 */
 	public static boolean isInAnimationContext() {
 		return currentViewAnimation != null;
 	}
 
-	public static void setAnimationDidStartCallback(AnimationDidStart animationDidStartCallback) {
+	/**
+	 * Set a callback for when the animation is about to start
+	 *
+	 * This method does nothing if we're not in an animation context
+	 *
+	 * @param animationWillStartCallback Animation will start callback
+	 */
+	public static void setAnimationWillStartCallback(AnimationWillStart animationWillStartCallback) {
 		if(currentViewAnimation != null) {
-			currentViewAnimation.didStart = animationDidStartCallback;
+			currentViewAnimation.willStart = animationWillStartCallback;
 		}
 	}
 
+	/**
+	 * Set a callback for when the animation stops
+	 *
+	 * This method does nothing if we're not in an animation context
+	 *
+	 * @param animationDidStopCallback Animation did stop callback
+	 */
 	public static void setAnimationDidStopCallback(AnimationDidStop animationDidStopCallback) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.didStop = animationDidStopCallback;
 		}
 	}
 
+	/**
+	 * Set the duration of the animation
+	 *
+	 * @param duration Duration in milliseconds
+	 */
 	public static void setAnimationDuration(long duration) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.duration = duration;
 		}
 	}
 
+	/**
+	 * Set how many times the animation should repeat
+	 *
+	 * <p>Setting to 0 will play the animation once without repeating, you may set this
+	 * value to a fraction, 0.5 implies a single play through from start to end. Once the number
+	 * of repeats has finished, the values are set to their end values.</p>
+	 *
+	 * <p>Set to {@link Double#MAX_VALUE} to repeat infinitely.</p>
+	 *
+	 * @param repeatCount Number of times the animation should repeat
+	 */
 	public static void setAnimationRepeatCount(double repeatCount) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.repeatCount = repeatCount;
 		}
 	}
 
+	/**
+	 * Set whether or not the animation reverses when it repeats
+	 *
+	 * Repeating and reversing animations should always end on a .5 value, not a .0 value.
+	 * A .5 value indicates the animation will end on the "end" values, a .0 value indicates
+	 * the animation will end on the "start" values and then snap back to the end values
+	 * upon completion.
+	 *
+	 * @param autoreverses If true, the animation will play backwards after it gets to the end, and then forwards again until the number of repeats is complete.
+	 *                     If false and the animation repeats, the animation will jump back to the start values after it ends
+	 */
 	public static void setAnimationRepeatAutoreverses(boolean autoreverses) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.reverses = autoreverses;
 		}
 	}
 
+	/**
+	 * Set the number of milliseconds to wait before starting the animation
+	 *
+	 * @param delay Milliseconds to delay the animation start
+	 */
 	public static void setAnimationDelay(long delay) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.delay = delay;
 		}
 	}
 
+	/**
+	 * Set the curve of the animation
+	 *
+	 * @param animationCurve Animation curve
+	 */
 	public static void setAnimationCurve(AnimationCurve animationCurve) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.animationCurve = animationCurve;
@@ -1364,10 +2027,30 @@ public class View extends Responder implements Accessibility {
 		areAnimationsEnabled = enabled;
 	}
 
+	/**
+	 * Check whether or not animations are enabled
+	 *
+	 * {@note This is true by default, true simply means animations can take place, not that they are taking place.}
+	 *
+	 * @return true if animations are allowed, false otherwise
+	 */
 	public static boolean areAnimationsEnabled() {
 		return areAnimationsEnabled;
 	}
 
+	/**
+	 * Transition from one view to another
+	 *
+	 * {@note By default, the toView is added to fromView's superview, and fromView is removed from it's
+	 * superview upon completion of the transition.  You can supply the SHOW_HIDE_TRANSITION_VIEWS option to
+	 * hide the fromView upon completion instead of removing it.}
+	 *
+	 * @param fromView View to transition from
+	 * @param toView View to transition to
+	 * @param duration Length of the transition animation in milliseconds
+	 * @param completion Completion callback
+	 * @param options Animation options
+	 */
 	public static void transition(final View fromView, final View toView, long duration, final AnimationCompletion completion, AnimationOption... options) {
 		final EnumSet<AnimationOption> _options;
 

@@ -41,7 +41,7 @@ class ViewAnimation extends MObject {
 	long delay = 0;
 	View.AnimationCurve animationCurve = View.AnimationCurve.EASE_IN_OUT;
 	TimingFunction timingFunction;
-	View.AnimationDidStart didStart;
+	View.AnimationWillStart willStart;
 	View.AnimationDidStop didStop;
 	String animationID;
 	Object context;
@@ -162,7 +162,7 @@ class ViewAnimation extends MObject {
 		hasBeenAddedToActiveAnimations = true;
 
 		if(this.animations == null || this.animations.size() == 0) {
-			if(didStart != null) didStart.animationDidStart(animationID, context);
+			if(willStart != null) willStart.animationWillStart(animationID, context);
 			if(didStop != null) didStop.animationDidStop(animationID, true, context);
 			return;
 		}
@@ -360,8 +360,8 @@ class ViewAnimation extends MObject {
 	/// New implementation
 
 	private void onAnimationStart() {
-		if (didStart != null) {
-			didStart.animationDidStart(animationID, context);
+		if (willStart != null) {
+			willStart.animationWillStart(animationID, context);
 		}
 
 		for(Animation animation : this.animations.values()) {
