@@ -8,8 +8,8 @@ package mocha.ui;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.opengl.GLUtils;
+import android.util.TimingLogger;
 import android.view.ViewGroup;
-import mocha.foundation.Benchmark;
 import mocha.foundation.MObject;
 import mocha.graphics.*;
 
@@ -496,26 +496,25 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 			Rect scaledFrame = frame.getScaledRect(scale);
 			int width = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.width));
 			int height = upperPowerOfTwo((int)Math.ceil(scaledFrame.size.height));
-			Benchmark benchmark = new Benchmark();
-			benchmark.start();
+			TimingLogger timings = new TimingLogger("Mocha", "GL Render");
 
 			Bitmap bitmap = width > 0 && height > 0 ? Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888) : null;
 
 			if(bitmap != null) {
-				benchmark.step("Create bitmap");
+				timings.addSplit("Create bitmap");
 
 				bitmap.setDensity(dpi);
-				benchmark.step("Set density");
+				timings.addSplit("Set density");
 
 				Canvas canvas = new Canvas(bitmap);
 				// bitmap.eraseColor(0);
 
-				benchmark.step("Create canvas");
+				timings.addSplit("Create canvas");
 
 				Context context = new Context(canvas, scale);
-				benchmark.step("Create context");
+				timings.addSplit("Create context");
 				view.draw(context, bounds.copy());
-				benchmark.step("Draw");
+				timings.addSplit("Draw");
 
 				int[] id = new int[1];
 				gl.glGenTextures(1, id, 0);
@@ -527,17 +526,17 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 				gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 
 				GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-				benchmark.step("Store texture");
+				timings.addSplit("Store texture");
 
 				bitmap.recycle();
 			} else {
 				this.id = -1;
 			}
 
-			benchmark.step("Recycle");
+			timings.addSplit("Recycle");
 
-			benchmark.end();
-			// benchmark.log();
+			timings.dumpToLog();
+			// timings.log();
 		}
 
 		private int upperPowerOfTwo(int v) {
