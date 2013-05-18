@@ -49,6 +49,7 @@ public class WebView extends View {
 	public WebView(Rect frame) { super(frame); }
 	public WebView() { super(); }
 
+	@Override
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
@@ -96,24 +97,36 @@ public class WebView extends View {
 		});
 	}
 
+	@Override
 	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
 		super.setUserInteractionEnabled(userInteractionEnabled);
 		this.nativeView.setUserInteractionEnabled(userInteractionEnabled);
 	}
 
+	/**
+	 * Get the delegate for this web view
+	 * @return Delegate
+	 */
 	public Delegate getDelegate() {
 		return delegate;
 	}
 
+	/**
+	 * Set the web view delegate
+	 *
+	 * @param delegate Delegate
+	 */
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
 	}
 
+	@Override
 	public void setBackgroundColor(int backgroundColor) {
 		super.setBackgroundColor(backgroundColor);
 		this.nativeView.setBackgroundColor(backgroundColor);
 	}
 
+	@Override
 	public void setNeedsLayout() {
 		super.setNeedsLayout();
 
@@ -122,6 +135,7 @@ public class WebView extends View {
 		}
 	}
 
+	@Override
 	public void setNeedsDisplay() {
 		super.setNeedsDisplay();
 
@@ -130,84 +144,174 @@ public class WebView extends View {
 		}
 	}
 
+	/**
+	 * Load a url and provide extra request headers
+	 *
+	 * @param url URL to load
+	 * @param extraHeaders Extra request headers to be sent
+	 */
 	public void loadUrl(String url, Map<String,String> extraHeaders) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.webView.loadUrl(url, extraHeaders);
 	}
 
+	/**
+	 * Load a url
+	 *
+	 * @param url URL to load
+	 */
 	public void loadUrl(String url) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.webView.loadUrl(url);
 	}
 
+	/**
+	 * Post a URL with a post body
+	 *
+	 * @param url URL to post to
+	 * @param postData Post body
+	 */
 	public void postUrl(String url, byte[] postData) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.webView.postUrl(url, postData);
 	}
-	
+
+	/**
+	 * Load an HTML string with a base URL
+	 *
+	 * @param htmlString HTML String to load
+	 * @param baseUrl Base URL for the document
+	 */
 	public void loadHTMLString(String htmlString, String baseUrl) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.loadData(htmlString, "text/html", "utf-8", baseUrl);
 	}
 
+	/**
+	 * Load data with a base URL
+	 *
+	 * @param data Data to load
+	 * @param mimeType Mime type of the data
+	 * @param textEncodingName Name of the data encoding
+	 * @param baseUrl Base URL for the document
+	 */
 	public void loadData(String data, String mimeType, String textEncodingName, String baseUrl) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.webView.loadDataWithBaseURL(baseUrl, data, mimeType, textEncodingName, null);
 	}
 
+	/**
+	 * Execute javascript on the current page and return it's response
+	 *
+	 * @param javascript Javascript to evaluate
+	 * @return Javascript response
+	 */
 	public String getStringByEvaluatingJavaScriptFromString(String javascript) {
 		return this.evaluateJavascriptInterface.getStringByEvaluatingJavaScriptFromString(javascript);
 	}
 
+	/**
+	 * Reload the current page
+	 */
 	public void reload() {
 		this.lastNavigationType = NavigationType.RELOAD;
 		this.webView.reload();
 	}
 
+	/**
+	 * Stop a page from loading
+	 */
 	public void stopLoading() {
 		this.webView.stopLoading();
 	}
 
+	/**
+	 * Go backwards in the history stack
+	 */
 	public void goBack() {
 		this.lastNavigationType = NavigationType.BACK_FORWARD;
 		this.webView.goBack();
 	}
 
+	/**
+	 * Go forwards in the history stack
+	 */
 	public void goForward() {
 		this.lastNavigationType = NavigationType.BACK_FORWARD;
 		this.webView.goForward();
 	}
 
+	/**
+	 * Whether or not the web view can go backwards
+	 *
+	 * @return true if there's more items in the history stack, false otherwise
+	 */
 	public boolean canGoBack() {
 		return this.webView.canGoBack();
 	}
 
+	/**
+	 * Whether or not the web view can go fowards
+	 *
+	 * @return true if we're not at the front of the history stack, false otherwise
+	 */
 	public boolean canGoForward() {
 		return this.webView.canGoForward();
 	}
 
+	/**
+	 * Check whether the page is loading
+	 *
+	 * @return true if the page is loading, false otherwise
+	 */
 	public boolean isLoading() {
 		return this.isLoading;
 	}
 
+	/**
+	 * Get the url for the current page
+	 *
+	 * @return Url of the current page
+	 */
 	public String getUrl() {
 		return this.webView.getUrl();
 	}
 
+	/**
+	 * Get the title of the document
+	 *
+	 * @return Document title
+	 */
 	public String getTitle() {
 		return this.webView.getTitle();
 	}
 
+	/**
+	 * Get whether or not pages auto-scale to fit the viewport
+	 *
+	 * @return true if pages auto-scale to fit the viewport, false otherwise
+	 */
 	public boolean getScalesPageToFit() {
 		return this.scalesPageToFit;
 	}
 
+	/**
+	 * Set whther or not pages auto-scale to fit the viewport
+	 *
+	 * @param scalesPageToFit If true, large pages will be scaled down to fit the viewport
+	 *                        If false, large pages will appear as their actual size and panning is required
+	 */
 	public void setScalesPageToFit(boolean scalesPageToFit) {
 		this.scalesPageToFit = scalesPageToFit;
 		this.webView.setInitialScale(scalesPageToFit ? 100 : 0);
 		this.webView.getSettings().setLoadWithOverviewMode(scalesPageToFit);
 	}
 
+	/**
+	 * Get the height of the current content
+	 *
+	 * @return Content height
+	 */
 	public float getContentHeight() {
 		return this.webView.getContentHeight();
 	}

@@ -24,6 +24,7 @@ public class Activity extends android.app.Activity {
 	private InterfaceOrientation currentOrientation;
 	private int currentRotation;
 
+	@Override
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		this.setTheme(android.R.style.Theme_Holo);
 		super.onCreate(savedInstanceState);
@@ -44,6 +45,7 @@ public class Activity extends android.app.Activity {
 		this.setCurrentConfiguration(this.getResources().getConfiguration());
 	}
 
+	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		if(this.currentConfiguration.orientation != newConfig.orientation || this.currentRotation != this.getWindowRotation()) {
 			final InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
@@ -97,15 +99,14 @@ public class Activity extends android.app.Activity {
 		return this.windows;
 	}
 
+	@Override
 	public void onBackPressed() {
-		MObject.MLog("Back key pressed");
 		if(this.application.isIgnoringInteractionEvents()) return;
 
 		if(this.windows.size() > 0) {
 			Responder responder = this.windows.get(0).getFirstResponder();
 
 			if(responder != null) {
-				MObject.MLog("Back key pressed with first responder: %s", responder);
 				responder.backKeyPressed(Event.systemEvent(this.windows.get(0)));
 				return;
 			}
@@ -119,6 +120,7 @@ public class Activity extends android.app.Activity {
 		super.onBackPressed();
 	}
 
+	@Override
 	protected void onPause() {
 		super.onPause();
 
@@ -129,6 +131,7 @@ public class Activity extends android.app.Activity {
 		}
 	}
 
+	@Override
 	protected void onResume() {
 		super.onResume();
 
@@ -143,12 +146,14 @@ public class Activity extends android.app.Activity {
 		}
 	}
 
+	@Override
 	public void onLowMemory() {
 		super.onLowMemory();
 
 		NotificationCenter.defaultCenter().post(Application.DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, this.application);
 	}
 
+	@Override
 	protected void onDestroy() {
 		NotificationCenter.defaultCenter().post(Application.WILL_TERMINATE_NOTIFICATION, this.application);
 

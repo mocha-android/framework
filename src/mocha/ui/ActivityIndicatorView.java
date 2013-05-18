@@ -34,6 +34,11 @@ public class ActivityIndicatorView extends View {
 	private Interpolator animatingInterpolator;
 	private Interpolator stoppedInterpolator;
 
+	/**
+	 * Create a new ActivityIndicatorView
+	 *
+	 * @param style Style of the activity indicator
+	 */
 	public ActivityIndicatorView(Style style) {
 		this.hidesWhenStopped = true;
 		this.setHidden(true);
@@ -50,6 +55,7 @@ public class ActivityIndicatorView extends View {
 		this.setBackgroundColor(Color.TRANSPARENT);
 	}
 
+	@Override
 	public void sizeToFit() {
 		Rect frame = this.getFrame();
 
@@ -64,10 +70,20 @@ public class ActivityIndicatorView extends View {
 		this.setFrame(frame);
 	}
 
+	/**
+	 * Get the activity indicator style
+	 *
+	 * @return Activity indicator style
+	 */
 	public Style getStyle() {
 		return style;
 	}
 
+	/**
+	 * Set the activity indicator style
+	 *
+	 * @param style Style of the activity indicator
+	 */
 	public void setStyle(Style style) {
 		if(style == null) {
 			style = Style.WHITE;
@@ -108,6 +124,7 @@ public class ActivityIndicatorView extends View {
 		}
 	}
 
+	@Override
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
@@ -117,10 +134,22 @@ public class ActivityIndicatorView extends View {
 		}
 	}
 
-	public boolean hidesWhenStopped() {
+	/**
+	 * Get whether or not this view hides when activity is stopped
+	 *
+	 * @return if true, the hidden state of this view is automatically toggled
+	 * depending on whether or not we're animating.
+	 */
+	public boolean getHidesWhenStopped() {
 		return hidesWhenStopped;
 	}
 
+	/**
+	 * Set whether or not this view hides when activity is stopped
+	 *
+	 * @param hidesWhenStopped If true, this view will be automatically set to hidden when it's stopped, and set to visible when it's animating.
+	 *                         If false, hidden is unchanged regardless of whether it's stopped or not.
+	 */
 	public void setHidesWhenStopped(boolean hidesWhenStopped) {
 		if(this.hidesWhenStopped != hidesWhenStopped) {
 			this.hidesWhenStopped = hidesWhenStopped;
@@ -133,6 +162,9 @@ public class ActivityIndicatorView extends View {
 		}
 	}
 
+	/**
+	 * Start the activity animation
+	 */
 	public void startAnimating() {
 		if(this.animating) return;
 
@@ -144,6 +176,9 @@ public class ActivityIndicatorView extends View {
 		}
 	}
 
+	/**
+	 * Stop the activity animation
+	 */
 	public void stopAnimating() {
 		if(!this.animating) return;
 
@@ -154,6 +189,11 @@ public class ActivityIndicatorView extends View {
 		}
 	}
 
+	/**
+	 * Check if we're animating
+	 *
+	 * @return true if we're animating, false otherwise
+	 */
 	public boolean isAnimating() {
 		return this.animating;
 	}
