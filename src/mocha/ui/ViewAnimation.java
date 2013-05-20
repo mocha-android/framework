@@ -54,7 +54,13 @@ class ViewAnimation extends MObject {
 
 
 	enum Type {
-		FRAME, BOUNDS, ALPHA, BACKGROUND_COLOR, TRANSFORM, CALLBACK_POINT, CALLBACK_EDGE_INSETS
+		FRAME(0), BOUNDS(1), ALPHA(2), BACKGROUND_COLOR(3), TRANSFORM(4), CALLBACK_POINT(5), CALLBACK_EDGE_INSETS(6);
+
+		final int value;
+
+		private Type(int value) {
+			this.value = value;
+		}
 	}
 
 	interface ProcessFrameCallback {
@@ -70,6 +76,16 @@ class ViewAnimation extends MObject {
 		boolean shouldUseHardwareLayer;
 		boolean shouldRestoreToOriginalLayerType;
 		int originalLayerType;
+
+		public void setEndValue(Object endValue) {
+			if(this.type == Type.BACKGROUND_COLOR) {
+				this.endValue = Color.components((Integer)endValue);
+			} else if(type == Type.TRANSFORM) {
+				this.endValue = new AffineTransformHolder((AffineTransform)endValue);
+			} else {
+				this.endValue = endValue;
+			}
+		}
 	}
 
 	/**
@@ -114,13 +130,7 @@ class ViewAnimation extends MObject {
 			}
 		}
 
-		if(type == Type.BACKGROUND_COLOR) {
-			animation.endValue = Color.components((Integer)endValue);
-		} else if(type == Type.TRANSFORM) {
-			animation.endValue = new AffineTransformHolder((AffineTransform)endValue);
-		} else {
-			animation.endValue = endValue;
-		}
+		animation.setEndValue(endValue);
 
 		if(!animation.startValue.equals(animation.endValue)) {
 			this.animations.put(key, animation);
@@ -153,7 +163,7 @@ class ViewAnimation extends MObject {
 			this.animations.put(key, animation);
 		}
 
-		animation.endValue = endValue;
+		animation.setEndValue(endValue);
 		animation.processFrameCallback = processFrameCallback;
 	}
 
@@ -200,7 +210,32 @@ class ViewAnimation extends MObject {
 		this.duration *= timeModifier;
 		this.delay *= timeModifier;
 
+
+		Set<String> strings = this.animations.keySet();
+		String[] keys = strings.toArray(new String[strings.size()]);
+		ViewAnimationHandler.cancelAnimationsForKeys(keys);
+
+		for(Animation animation : this.animations.values()) {
+			animation.view.animations[animation.type.value] = this;
+		}
+
 		ViewAnimationHandler.addAnimation(this);
+	}
+
+	boolean changeEndValueForAnimationType(View view, Type type, Object endValue) {
+		if(!this.isCancelled) {
+			String key = view.hashCode() + "-" + type.toString();
+			Animation animation = this.animations.get(key);
+
+			if(animation != null) {
+				animation.setEndValue(endValue);
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	private void processFrame(float time) {
@@ -237,6 +272,7 @@ class ViewAnimation extends MObject {
 				endValue = animation.endValue;
 			}
 
+			animation.view.animationIsSetting = true;
 			switch (animation.type) {
 				case FRAME:
 					animation.view.setFrame(this.interpolate(frame, (Rect)startValue, (Rect)endValue));
@@ -280,6 +316,7 @@ class ViewAnimation extends MObject {
 					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets)startValue, (EdgeInsets)endValue));
 					break;
 			}
+			animation.view.animationIsSetting = false;
 		}
 
 //		if(PROFILE_FRAME_RATE) {
@@ -394,6 +431,7 @@ class ViewAnimation extends MObject {
 		}
 
 		this.restoreLayerTypes();
+		this.cleanAnimationReferences();
 
 		if (didStop != null) {
 			didStop.animationDidStop(animationID, true, context);
@@ -402,9 +440,18 @@ class ViewAnimation extends MObject {
 
 	private void onAnimationCancel() {
 		this.restoreLayerTypes();
+		this.cleanAnimationReferences();
 
 		if (didStop != null) {
 			didStop.animationDidStop(animationID, false, context);
+		}
+	}
+
+	private void cleanAnimationReferences() {
+		for(Animation animation : this.animations.values()) {
+			if(animation.view.animations[animation.type.value] == this) {
+				animation.view.animations[animation.type.value] = null;
+			}
 		}
 	}
 
@@ -507,6 +554,41 @@ class ViewAnimation extends MObject {
 			}
 			lock.release();
 		}
+
+		static synchronized void cancelAnimationsForKeys(final String[] keys) {
+			if(handler == null) return; // Nothings scheduled!
+
+			if(isProcessing) {
+				handler.postAtFrontOfQueue(new Runnable() {
+					public void run() {
+						_cancelAnimationsForKeys(keys);
+					}
+				});
+			} else {
+				_cancelAnimationsForKeys(keys);
+			}
+		}
+
+		static synchronized void _cancelAnimationsForKeys(String[] keys) {
+			lock.acquireUninterruptibly();
+			{
+				for(ViewAnimation viewAnimation : activeAnimations) {
+					if(viewAnimation.isCancelled) continue;
+
+					for(String key: keys) {
+						if(viewAnimation.animations.containsKey(key)) {
+							viewAnimation.animations.remove(key);
+
+							if(viewAnimation.animations.size() == 0) {
+								viewAnimation.isCancelled = true;
+							}
+						}
+					}
+				}
+			}
+			lock.release();
+		}
+
 
 		private static void run() {
 			long startTime = android.os.SystemClock.uptimeMillis();

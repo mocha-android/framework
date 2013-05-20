@@ -351,7 +351,9 @@ public class ViewController extends Responder {
 	protected void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
 		if(this.shouldAutomaticallyForwardRotationMethods() && this.childViewControllers != null && this.childViewControllers.size() > 0) {
 			for(ViewController viewController : this.childViewControllers) {
-				viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+				if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
+					viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
+				}
 			}
 		}
 	}
@@ -359,7 +361,9 @@ public class ViewController extends Responder {
 	protected void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
 		if(this.shouldAutomaticallyForwardRotationMethods() && this.childViewControllers != null && this.childViewControllers.size() > 0) {
 			for(ViewController viewController : this.childViewControllers) {
-				viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+				if(viewController.isViewLoaded() && viewController.getView().getSuperview() != null) {
+					viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+				}
 			}
 		}
 	}

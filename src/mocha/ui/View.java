@@ -273,6 +273,17 @@ public class View extends Responder implements Accessibility {
 	private boolean multipleTouchEnabled;
 	Touch trackingSingleTouch;
 
+	/**
+	 * Mapped to {@link ViewAnimation.Type#value}. Each property type can
+	 * only have one animation, so this is 1 to 1
+	 */
+	ViewAnimation[] animations;
+
+	/**
+	 * Animatable properties should check this before calling {@link View#changeEndValueForAnimationType(mocha.ui.ViewAnimation.Type, Object)}
+	 */
+	boolean animationIsSetting;
+
 	private ViewController _viewController;
 
 	// Accesibility
@@ -310,6 +321,7 @@ public class View extends Responder implements Accessibility {
 
 		this.frame = frame.copy();
 		this.bounds = new Rect(0.0f, 0.0f, frame.size.width, frame.size.height);
+		this.animations = new ViewAnimation[ViewAnimation.Type.values().length];
 
 		this.layer.setView(this);
 		this.layer.setFrame(this.frame, this.bounds);
@@ -389,10 +401,19 @@ public class View extends Responder implements Accessibility {
 		}
 
 		if(!frame.equals(this.frame)) {
+			ViewAnimation.Type animationType = ViewAnimation.Type.FRAME;
+
 			if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-				currentViewAnimation.addAnimation(this, ViewAnimation.Type.FRAME, frame.copy());
+				currentViewAnimation.addAnimation(this, animationType, frame.copy());
 				this.frame.set(frame);
 				return;
+			}
+
+			if(!this.animationIsSetting && this.animations[animationType.value] != null) {
+				if(this.changeEndValueForAnimationType(animationType, frame.copy())) {
+					this.frame.set(frame);
+					return;
+				}
 			}
 
 			if(this.superview != null && !this.superview.bounds.contains(this.frame)) {
@@ -424,6 +445,7 @@ public class View extends Responder implements Accessibility {
 			}
 		}
 	}
+
 	public Rect getBounds() {
 		return this.bounds.copy();
 	}
@@ -443,10 +465,19 @@ public class View extends Responder implements Accessibility {
 			bounds = Rect.zero();
 		}
 
+		ViewAnimation.Type type = ViewAnimation.Type.BOUNDS;
+
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BOUNDS, bounds);
-			this.bounds = bounds;
+			currentViewAnimation.addAnimation(this, type, bounds);
+			this.bounds = bounds.copy();
 			return;
+		}
+
+		if(!this.animationIsSetting && this.animations[type.value] != null) {
+			if(this.changeEndValueForAnimationType(type, bounds.copy())) {
+				this.bounds = bounds.copy();
+				return;
+			}
 		}
 
 		if(!bounds.equals(this.bounds)) {
@@ -524,10 +555,18 @@ public class View extends Responder implements Accessibility {
 	 * @param backgroundColor New background color
 	 */
 	public void setBackgroundColor(int backgroundColor) {
+		ViewAnimation.Type type = ViewAnimation.Type.BACKGROUND_COLOR;
+
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.BACKGROUND_COLOR, backgroundColor);
+			currentViewAnimation.addAnimation(this, type, backgroundColor);
 			this.backgroundColor = backgroundColor;
 			return;
+		}
+
+		if(!this.animationIsSetting && this.animations[type.value] != null) {
+			if(this.changeEndValueForAnimationType(type, backgroundColor)) {
+				return;
+			}
 		}
 
 		this.backgroundColor = backgroundColor;
@@ -547,9 +586,18 @@ public class View extends Responder implements Accessibility {
 			transform = transform.copy();
 		}
 
+		ViewAnimation.Type type = ViewAnimation.Type.TRANSFORM;
+
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.TRANSFORM, transform);
+			currentViewAnimation.addAnimation(this, type, transform);
 		} else {
+			if(!this.animationIsSetting && this.animations[type.value] != null) {
+				if(this.changeEndValueForAnimationType(type, transform)) {
+					this.transform = transform;
+					return;
+				}
+			}
+
 			this.layer.setTransform(transform);
 			this.transform = transform;
 		}
@@ -647,9 +695,16 @@ public class View extends Responder implements Accessibility {
 	 * @param alpha A number between 0.0 (completely transparent) and 1.0 (completely opaque)
 	 */
 	public void setAlpha(float alpha) {
+		ViewAnimation.Type type = ViewAnimation.Type.ALPHA;
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.ALPHA, alpha);
+			currentViewAnimation.addAnimation(this, type, alpha);
 		} else {
+			if(!this.animationIsSetting && this.animations[type.value] != null) {
+				if(this.changeEndValueForAnimationType(type, alpha)) {
+					return;
+				}
+			}
+
 			this.getLayer().setAlpha(alpha);
 		}
 	}
@@ -1887,11 +1942,15 @@ public class View extends Responder implements Accessibility {
 	 * Meaning, if alpha was animating from 0.0f to 1.0f and the animation is cancelled
 	 * half way through, the final alpha value will be 0.5f.
 	 *
-	 * {@note Calling this in an animation block will have no affect and be ignored.}
+	 * {@note Calling this in an animation context will not remove changes made in that context.}
 	 */
 	public void cancelAnimations() {
-		if(currentViewAnimation != null) return;
 		ViewAnimation.cancelAllAnimationsReferencingView(this);
+	}
+
+	boolean changeEndValueForAnimationType(ViewAnimation.Type type, Object endValue) {
+		ViewAnimation animation = this.animations[type.value];
+		return animation != null && animation.changeEndValueForAnimationType(this, type, endValue);
 	}
 
 	/**

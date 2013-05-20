@@ -219,14 +219,22 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		if(!this.contentInset.equals(contentInset)) {
+			ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_EDGE_INSETS;
+
 			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_EDGE_INSETS, this.contentInset, contentInset, new ViewAnimation.ProcessFrameCallback() {
+				currentViewAnimation.addAnimation(this, type, this.contentInset, contentInset, new ViewAnimation.ProcessFrameCallback() {
 					public void processFrame(Object value) {
 						setContentInset((EdgeInsets)value);
 					}
 				});
 
 				return;
+			}
+
+			if(!this.animationIsSetting && this.animations[type.value] != null) {
+				if(this.changeEndValueForAnimationType(type, contentInset.copy())) {
+					return;
+				}
 			}
 
 			EdgeInsets previousContentInset = this.contentInset;
@@ -368,6 +376,15 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.scrollViewAnimation = null;
 		}
 
+
+		ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
+
+		if(!this.animationIsSetting && this.animations[type.value] != null) {
+			if(this.changeEndValueForAnimationType(type, contentInset.copy())) {
+				return;
+			}
+		}
+
 		if(timingFunction != null) {
 			View.beginAnimations(null, null);
 			View.setAnimationDuration(animationDuration);
@@ -390,7 +407,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			});
 
-			currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_POINT, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+			currentViewAnimation.addAnimation(this, type, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
 				public void processFrame(Object value) {
 					setContentOffset((Point)value);
 				}
@@ -409,7 +426,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 
 			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimation(this, ViewAnimation.Type.CALLBACK_POINT, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+				currentViewAnimation.addAnimation(this, type, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
 					public void processFrame(Object value) {
 						setContentOffset((Point)value);
 					}
