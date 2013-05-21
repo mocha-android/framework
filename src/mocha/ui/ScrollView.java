@@ -380,7 +380,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
 
 		if(!this.animationIsSetting && this.animations[type.value] != null) {
-			if(this.changeEndValueForAnimationType(type, contentInset.copy())) {
+			if(this.changeEndValueForAnimationType(type, contentOffset.copy())) {
 				return;
 			}
 		}
