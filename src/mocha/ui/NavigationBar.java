@@ -186,6 +186,12 @@ public class NavigationBar extends View {
 	void replaceNavigationItem(NavigationItem oldItem, NavigationItem newItem) {
 		if(this.items.contains(oldItem)) {
 			int index = this.items.indexOf(oldItem);
+
+			if(oldItem.getDelegate() == this.navigationItemDelegate) {
+				oldItem.setDelegate(null);
+			}
+
+			newItem.setDelegate(this.navigationItemDelegate);
 			this.items.set(index, newItem);
 			this.needsReload = true;
 			this.layoutSubviews();
