@@ -29,6 +29,7 @@ class ViewAnimation extends MObject {
 	private long startTime;
 	private boolean hasStarted;
 	private boolean isCancelled;
+	private boolean hasEnded;
 	private boolean hasBeenAddedToActiveAnimations;
 
 	// Debug
@@ -213,7 +214,7 @@ class ViewAnimation extends MObject {
 
 		Set<String> strings = this.animations.keySet();
 		String[] keys = strings.toArray(new String[strings.size()]);
-		ViewAnimationHandler.cancelAnimationsForKeys(keys);
+		ViewAnimationHandler.cancelAnimationsForKeys(keys, this);
 
 		for(Animation animation : this.animations.values()) {
 			animation.view.animations[animation.type.value] = this;
@@ -421,6 +422,8 @@ class ViewAnimation extends MObject {
 	}
 
 	private void onAnimationEnd() {
+		this.hasEnded = true;
+
 		long endTime = android.os.SystemClock.uptimeMillis();
 		long elapsed = endTime-startTime;
 		double mspf = (double)elapsed / (double)frameCount;
@@ -439,6 +442,8 @@ class ViewAnimation extends MObject {
 	}
 
 	private void onAnimationCancel() {
+		this.hasEnded = true;
+
 		this.restoreLayerTypes();
 		this.cleanAnimationReferences();
 
@@ -542,7 +547,7 @@ class ViewAnimation extends MObject {
 			lock.acquireUninterruptibly();
 			{
 				for(ViewAnimation viewAnimation : activeAnimations) {
-					if(viewAnimation.isCancelled) continue;
+					if(viewAnimation.isCancelled || viewAnimation.hasEnded) continue;
 
 					for(Animation animation : viewAnimation.animations.values()) {
 						if(animation.view == view) {
@@ -555,27 +560,27 @@ class ViewAnimation extends MObject {
 			lock.release();
 		}
 
-		static synchronized void cancelAnimationsForKeys(final String[] keys) {
+		static synchronized void cancelAnimationsForKeys(final String[] keys, final ViewAnimation ignoreAnimation) {
 			if(handler == null) return; // Nothings scheduled!
 
 			if(isProcessing) {
 				handler.postAtFrontOfQueue(new Runnable() {
 					public void run() {
-						_cancelAnimationsForKeys(keys);
+						_cancelAnimationsForKeys(keys, ignoreAnimation);
 					}
 				});
 			} else {
-				_cancelAnimationsForKeys(keys);
+				_cancelAnimationsForKeys(keys, ignoreAnimation);
 			}
 		}
 
-		static synchronized void _cancelAnimationsForKeys(String[] keys) {
+		static synchronized void _cancelAnimationsForKeys(String[] keys, ViewAnimation ignoreAnimation) {
 			lock.acquireUninterruptibly();
 			{
 				for(ViewAnimation viewAnimation : activeAnimations) {
-					if(viewAnimation.isCancelled) continue;
+					if(viewAnimation.isCancelled || viewAnimation.hasEnded || viewAnimation == ignoreAnimation) continue;
 
-					for(String key: keys) {
+					for(String key : keys) {
 						if(viewAnimation.animations.containsKey(key)) {
 							viewAnimation.animations.remove(key);
 
