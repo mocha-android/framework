@@ -5,16 +5,16 @@
  */
 package mocha.graphics;
 
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.util.FloatMath;
+import mocha.foundation.Copying;
 import mocha.ui.Screen;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public final class Font {
+public final class Font implements Copying<Font> {
 	private final Typeface typeface;
 	private final float pointSize;
 	private final float lineHeight;
@@ -39,6 +39,16 @@ public final class Font {
 		this.leading = fontMetrics.leading / screenScale;
 
 		this.lineHeight = FloatMath.ceil(this.ascender - this.descender + this.leading);
+	}
+
+	private Font(Font font) {
+		this.typeface = font.typeface;
+		this.pointSize = font.pointSize;
+		this.ascender = font.ascender;
+		this.descender = font.descender;
+		this.leading = font.leading;
+		this.lineHeight = font.lineHeight;
+		this.cachedPaints = new HashMap<Float, TextPaint>();
 	}
 
 	public static Font getSystemFontWithSize(float pointSize) {
@@ -94,4 +104,7 @@ public final class Font {
 		return paint;
 	}
 
+	public Font copy() {
+		return new Font(this);
+	}
 }
