@@ -13,14 +13,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Bundle provides information about the current application.
+ *
+ * @see mocha.ui.Application#getBundle()
+ */
 public class Bundle extends MObject {
 
 	private Application application;
 
+	/**
+	 * Create a bundle for an application
+	 *
+	 * @param application Application
+	 * @hide
+	 */
 	public Bundle(Application application) {
 		this.application = application;
 	}
 
+	/**
+	 * Get's the contents of an asset file as a string
+	 *
+	 * @param assetName Name of the asset to read
+	 * @return Asset contents
+	 */
 	public String getStringFromAssets(String assetName) {
 		try {
 			InputStream is = this.application.getContext().getAssets().open(assetName);
@@ -42,10 +59,18 @@ public class Bundle extends MObject {
 		}
 	}
 
+	/**
+	 * Get's the name of the package
+	 * @return Name
+	 */
 	public String getName() {
 		return this.application.getContext().getPackageName();
 	}
 
+	/**
+	 * Get's the version of the package
+	 * @return Version
+	 */
 	public String getVersion() {
 		try {
 			return this.application.getContext().getPackageManager().getPackageInfo(this.getName(), 0).versionName;
