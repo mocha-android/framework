@@ -115,6 +115,8 @@ abstract public class GestureRecognizer extends MObject {
 	private boolean failureRequirementsSatisfied;
 	private boolean passedPreventionTests;
 	private Runnable resetCallback;
+	private boolean shouldPerformHapticFeedbackOnTransitionToRecognizedState;
+	private boolean shouldPlayClickSoundOnTransitionToRecognizedState;
 
 	public GestureRecognizer() {
 		this.state = State.POSSIBLE;
@@ -226,6 +228,22 @@ abstract public class GestureRecognizer extends MObject {
 		this.enabled = enabled;
 	}
 
+	public boolean getShouldPerformHapticFeedbackOnTransitionToRecognizedState() {
+		return this.shouldPerformHapticFeedbackOnTransitionToRecognizedState;
+	}
+
+	public void setShouldPerformHapticFeedbackOnTransitionToRecognizedState(boolean shouldPerformHapticFeedbackOnTransitionToRecognizedState) {
+		this.shouldPerformHapticFeedbackOnTransitionToRecognizedState = shouldPerformHapticFeedbackOnTransitionToRecognizedState;
+	}
+
+	public boolean getShouldPlayClickSoundOnTransitionToRecognizedState() {
+		return this.shouldPlayClickSoundOnTransitionToRecognizedState;
+	}
+
+	public void setShouldPlayClickSoundOnTransitionToRecognizedState(boolean shouldPlayClickSoundOnTransitionToRecognizedState) {
+		this.shouldPlayClickSoundOnTransitionToRecognizedState = shouldPlayClickSoundOnTransitionToRecognizedState;
+	}
+
 	public State getState() {
 		return state;
 	}
@@ -295,6 +313,16 @@ abstract public class GestureRecognizer extends MObject {
 
 			if(this.state.recognized) {
 				this.cancelTouches();
+			}
+
+			if(this.state == State.BEGAN || this.state == State.RECOGNIZED) {
+				if(this.shouldPerformHapticFeedbackOnTransitionToRecognizedState) {
+					this.view.performHapticFeedback();
+				}
+
+				if(this.shouldPlayClickSoundOnTransitionToRecognizedState) {
+					this.view.playClickSound();
+				}
 			}
 
 			for(GestureHandler gestureHandler : this.registeredGestureHandlers) {

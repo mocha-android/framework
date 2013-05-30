@@ -25,6 +25,9 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 				LongPressGestureRecognizer.this.beginGesture();
 			}
 		};
+
+		this.setShouldPlayClickSoundOnTransitionToRecognizedState(true);
+		this.setShouldPerformHapticFeedbackOnTransitionToRecognizedState(true);
 	}
 
 	public int getNumberOfTapsRequired() {
