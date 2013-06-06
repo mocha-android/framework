@@ -29,6 +29,8 @@ class TableViewRowData {
 	private SparseArray<Rect> cachedGlobalRects;
 	private SparseArray<Rect> cachedSectionRects;
 
+	private Range reuseableRange;
+
 	TableViewRowData(TableView tableView) {
 		this.tableView = tableView;
 		this.tableViewWidthDidChangeToWidth(this.tableView.getFrame().size.width);
@@ -105,30 +107,30 @@ class TableViewRowData {
 			if(this.lastGetGlobalRowsMiddleRow != -1 && visibleRect.intersects(this.getRectForGlobalRow(this.lastGetGlobalRowsMiddleRow))) {
 				startAt = this.lastGetGlobalRowsMiddleRow;
 			} else {
-				int reference = this.numberOfRows / 2;
+				int mid = this.numberOfRows >>> 1;
 
-				while(reference > 0 && reference < this.numberOfRows) {
-					Rect rect = this.getRectForGlobalRow(reference);
+				while(mid > 0 && mid < this.numberOfRows) {
+					Rect rect = this.getRectForGlobalRow(mid);
 
 					if(rect.intersects(visibleRect)) {
-						startAt = reference;
+						startAt = mid;
 						break;
 					} else {
-						int delta;
+						int mid1;
 
 						if(rect.maxY() < visibleRect.origin.y) {
-							minRow = reference;
-							delta = ((maxRow - reference) / 2);
+							minRow = mid;
+							mid1 = (mid + maxRow) >>> 1;
 						} else {
-							maxRow = reference;
-							delta = -((reference - minRow) / 2);
+							maxRow = mid;
+							mid1 = (minRow + mid) >>> 1;
 						}
 
-						if(delta == 0) {
-							startAt = reference;
+						if(mid1 == mid) {
+							startAt = mid;
 							break;
 						} else {
-							reference += delta;
+							mid = mid1;
 						}
 					}
 				}
@@ -155,7 +157,7 @@ class TableViewRowData {
 			}
 		}
 
-		this.lastGetGlobalRowsMiddleRow = minRow + ((maxRow - minRow) / 2);
+		this.lastGetGlobalRowsMiddleRow = (minRow + maxRow) >>> 1;
 
 		return new Range(minRow, (maxRow - minRow) + 1);
 	}
@@ -214,30 +216,30 @@ class TableViewRowData {
 			if(this.lastGetSectionsMiddleSection != -1 && visibleRect.intersects(this.getRectForSection(this.lastGetSectionsMiddleSection))) {
 				startAt = this.lastGetSectionsMiddleSection;
 			} else {
-				int reference = numberOfSections / 2;
+				int mid = numberOfSections >>> 1;
 
-				while(reference > 0 && reference < numberOfSections) {
-					Rect rect = this.getRectForSection(reference);
+				while(mid > 0 && mid < numberOfSections) {
+					Rect rect = this.getRectForSection(mid);
 
 					if(rect.intersects(visibleRect)) {
-						startAt = reference;
+						startAt = mid;
 						break;
 					} else {
-						int delta;
+						int mid1;
 
 						if(rect.maxY() < visibleRect.origin.y) {
-							minSection = reference;
-							delta = ((maxSection - reference) / 2);
+							minSection = mid;
+							mid1 = (mid + maxSection) >>> 1;
 						} else {
-							maxSection = reference;
-							delta = -((reference - minSection) / 2);
+							maxSection = mid;
+							mid1 = (minSection + mid) >>> 1;
 						}
 
-						if(delta == 0) {
-							startAt = reference;
+						if(mid1 == mid) {
+							startAt = mid;
 							break;
 						} else {
-							reference += delta;
+							mid = mid1;
 						}
 					}
 				}
@@ -258,13 +260,14 @@ class TableViewRowData {
 
 		for(int section = startAt; section < numberOfSections; section++) {
 			Rect rect = this.getRectForSection(section);
+
 			if(rect.maxY() > visibleRect.maxY()) {
 				maxSection = section;
 				break;
 			}
 		}
 
-		this.lastGetSectionsMiddleSection = minSection + ((maxSection - minSection) / 2);
+		this.lastGetSectionsMiddleSection = (minSection + maxSection) >>> 1;
 
 		return new Range(minSection, (maxSection - minSection) + 1);
 	}
