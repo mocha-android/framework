@@ -21,15 +21,56 @@ public class NavigationBar extends View {
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
 	public interface Delegate {
+		/**
+		 * Called before a navigation item is pushed onto the stack
+		 *
+		 * @param navigationBar Navigation bar the item is trying to be pushed onto
+		 * @param item Navigation item being pushed
+		 * @return If true, the navigation item will be pushed onto the stack, if false it will be prevented
+		 */
 		public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item);
+
+		/**
+		 * Called after the navigation item has been pushed onto the stack
+		 *
+		 * @param navigationBar Navigation bar the item was pushed onto
+		 * @param item Navigation item just pushed onto the stack
+		 */
 		public void didPushItem(NavigationBar navigationBar, NavigationItem item);
 
+		/**
+		 * Called before a navigation item is popped from the stack
+		 *
+		 * @param navigationBar Navigation bar trying to pop the item
+		 * @param item Navigation item being popped
+		 * @return If true, the navigation item will be popped from the stack, if false it will be prevented
+		 */
 		public boolean shouldPopItem(NavigationBar navigationBar, NavigationItem item);
+
+		/**
+		 * Called after a navigation item has been popped from the stack
+		 *
+		 * @param navigationBar Navigation bar the item was popped from
+		 * @param item Navigation item just popped from the stack
+		 */
 		public void didPopItem(NavigationBar navigationBar, NavigationItem item);
 	}
 
 	public enum TitleAlignment {
-		LEFT, CENTER, RIGHT
+		/**
+		 * Horizontally align title to the left
+		 */
+		LEFT,
+
+		/**
+		 * Center title horizontally
+		 */
+		CENTER,
+
+		/**
+		 * Horizontally align title to the right
+		 */
+		RIGHT
 	}
 
 	private enum Transition {
@@ -60,6 +101,13 @@ public class NavigationBar extends View {
 
 	private static mocha.ui.Appearance.Storage<NavigationBar, Appearance> appearanceStorage;
 
+	/**
+	 * Get the appearance for a specific NavigationBar subclass
+	 *
+	 * @param cls Subclass
+	 * @param <E> Subclass
+	 * @return Appearance
+	 */
 	public static <E extends NavigationBar> Appearance appearance(Class<E> cls) {
 		if(appearanceStorage == null) {
 			appearanceStorage = new mocha.ui.Appearance.Storage<NavigationBar, Appearance>(NavigationBar.class, Appearance.class);
@@ -68,6 +116,11 @@ public class NavigationBar extends View {
 		return appearanceStorage.appearance(cls);
 	}
 
+	/**
+	 * Get the appearance for all NavigationBar classes
+	 *
+	 * @return Appearance
+	 */
 	public static Appearance appearance() {
 		return appearance(NavigationBar.class);
 	}
@@ -75,6 +128,7 @@ public class NavigationBar extends View {
 	public NavigationBar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
 	public NavigationBar(Rect frame) { super(frame); }
 
+	@Override
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
@@ -92,27 +146,48 @@ public class NavigationBar extends View {
 		}
 	}
 
+	@Override
 	public Size sizeThatFits(Size size) {
 		return new Size(size.width, Math.min(size.height, 44.0f));
 	}
 
+	/**
+	 * Get the bar style
+	 * @return Bar style
+	 */
 	public BarStyle getBarStyle() {
 		return barStyle;
 	}
 
+	/**
+	 * Set the bar style
+	 * @param barStyle Bar style
+	 */
 	public void setBarStyle(BarStyle barStyle) {
 		this.barStyle = barStyle;
 	}
 
+	/**
+	 * Get the tint color of the bar
+	 * @return Tint color
+	 */
 	public int getTintColor() {
 		return tintColor;
 	}
 
+	/**
+	 * Set the tint color of the bar
+	 * @param tintColor
+	 */
 	public void setTintColor(int tintColor) {
 		this.tintColor = tintColor;
 		this.setBackgroundColor(tintColor);
 	}
 
+	/**
+	 * Get the edge insets for bar button items
+	 * @return Edge insets
+	 */
 	public EdgeInsets getItemEdgeInsets() {
 		if(this.itemEdgeInsets == DEFAULT_ITEM_EDGE_INSETS) {
 			return null;
@@ -121,6 +196,11 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Set the edge insets for bar button items
+	 *
+	 * @param itemEdgeInsets Edge insets
+	 */
 	public void setItemEdgeInsets(EdgeInsets itemEdgeInsets) {
 		if(itemEdgeInsets == null) {
 			this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
@@ -129,10 +209,18 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Get the horizontal title aligment
+	 * @return Title alignment
+	 */
 	public TitleAlignment getTitleAlignment() {
 		return this.titleAlignment;
 	}
 
+	/**
+	 * Set the horizontal title alignment
+	 * @param titleAlignment Title alignment
+	 */
 	public void setTitleAlignment(TitleAlignment titleAlignment) {
 		if(titleAlignment == null) {
 			this.titleAlignment = TitleAlignment.CENTER;
@@ -141,23 +229,46 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Get the top navigation item in the stack
+	 * @return Top navigation item or null
+	 */
 	public NavigationItem getTopItem() {
 		return this.items.size() > 0 ? this.items.get(this.items.size() - 1) : null;
 	}
 
+	/**
+	 * Get the previous navigation item in the stack
+	 * @return Previous navigation item or null
+	 */
 	public NavigationItem getBackItem() {
 		return this.items.size() > 1 ? this.items.get(this.items.size() - 2) : null;
 	}
 
+	/**
+	 * Get all navigation item's in the stack
+	 * @return All navigation item's in the stack
+	 */
 	public List<NavigationItem> getItems() {
 		return items;
 	}
 
+	/**
+	 * Set the navigation item stack, without any animation
+	 *
+	 * @param items Navigation item stack
+	 */
 	public void setItems(List<NavigationItem> items) {
 		this.setItems(items, false, null, null);
 	}
 
-	void setItems(List<NavigationItem> items, boolean animated) {
+	/**
+	 * Set the navigaiton item stack, optionally animated
+	 *
+	 * @param items Navigation item stack
+	 * @param animated If true, the transition will be animated, if false no animation will occur
+	 */
+	public void setItems(List<NavigationItem> items, boolean animated) {
 		this.setItems(items, animated, null, null);
 	}
 
@@ -170,6 +281,14 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Set the navigaiton item stack, optionally animated
+	 *
+	 * @param items Navigation item stack
+	 * @param animated If true, the transition will be animated, if false no animation will occur
+	 * @param additionalTransitions Additional transitions/animations that need to be performed in the same animation context
+	 * @param transitionCompleteCallback Callback for with the transition has finished
+	 */
 	public void setItems(List<NavigationItem> items, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		if(!this.items.equals(items)) {
 			this.items.clear();
@@ -198,6 +317,12 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Push a navigation item onto the stack
+	 *
+	 * @param navigationItem Navigation item to add to the top of the stack
+	 * @param animated If true, the transition will be animated, if false no animation will occur
+	 */
 	public void pushNavigationItem(NavigationItem navigationItem, boolean animated) {
 		this.pushNavigationItem(navigationItem, animated, null, null);
 	}
@@ -217,6 +342,11 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Remove the top most navigation item from the stack
+	 * @param animated If true, the transition will be animated, if false no animation will occur
+	 * @return The navigation item being removed from the stack
+	 */
 	public NavigationItem popNavigationItemAnimated(boolean animated) {
 		return this.popNavigationItemAnimated(animated, null, null);
 	}
@@ -285,42 +415,90 @@ public class NavigationBar extends View {
 		}
 	}
 
+	/**
+	 * Get the navigation bar delegate
+	 * @return Navigation bar delegate
+	 */
 	public Delegate getDelegate() {
 		return delegate;
 	}
 
+	/**
+	 * Set the navigation bar delegate
+	 * @param delegate Navigation bar delegate
+	 */
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
 	}
 
+	/**
+	 * Get shadow image
+	 *
+	 * @return Shadow image, may be null
+	 */
 	public Image getShadowImage() {
 		return shadowImage;
 	}
 
+	/**
+	 * Set the shadow image
+	 * @param shadowImage Shadow image or null to use the default
+	 */
 	public void setShadowImage(Image shadowImage) {
 		this.shadowImage = shadowImage;
 	}
 
+	/**
+	 * Get a background image for the specified bar metrics
+	 *
+	 * @param barMetrics Bar metrics
+	 * @return Background image, may be null
+	 */
 	public Image getBackgroundImage(BarMetrics barMetrics) {
 		return this.backgroundImages.get(barMetrics);
 	}
 
+	/**
+	 * Set a background image for the specified bar metrics
+	 *
+	 * @param backgroundImage Background image
+	 * @param barMetrics Bar metrics
+	 */
 	public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
 		this.backgroundImages.set(barMetrics, backgroundImage);
 	}
 
+	/**
+	 * Get the vertical title offset for the specified bar metrics
+	 *
+	 * @param barMetrics Bar metrics
+	 * @return Vertical title offset in points
+	 */
 	public float getTitleVerticalPositionAdjustment(BarMetrics barMetrics) {
 		return this.titleVerticalPositionAdjustment.get(barMetrics);
 	}
 
+	/**
+	 * Set the vertical title offset for the specified bar metrics
+	 * @param adjustment Vertical title offset in points
+	 * @param barMetrics Bar metrics
+	 */
 	public void setTitleVerticalPositionAdjustment(float adjustment, BarMetrics barMetrics) {
 		this.titleVerticalPositionAdjustment.set(barMetrics, adjustment);
 	}
 
+	/**
+	 * Get the text attributes for the title label
+	 * @return Text attributes
+	 */
 	public TextAttributes getTitleTextAttributes() {
 		return this.titleTextAttributes;
 	}
 
+	/**
+	 * Set the text attributes for the title label
+	 * @param titleTextAttributes Text attributes
+	 */
 	public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
 		this.titleTextAttributes = titleTextAttributes;
 	}
@@ -605,6 +783,7 @@ public class NavigationBar extends View {
 		this.layoutSubviews();
 	}
 
+	@Override
 	public void setFrame(Rect frame) {
 		if(!this.getFrame().size.equals(frame.size)) {
 			this.needsReload = true;
@@ -613,6 +792,7 @@ public class NavigationBar extends View {
 		super.setFrame(frame);
 	}
 
+	@Override
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
@@ -640,6 +820,7 @@ public class NavigationBar extends View {
 		}
 	}
 
+	@Override
 	public void draw(Context context, Rect rect) {
 		Image image = this.getBackgroundImage(BarMetrics.DEFAULT);
 
@@ -735,22 +916,44 @@ public class NavigationBar extends View {
 			} catch (NoSuchMethodException ignored) { }
 		}
 
+		/**
+		 * @see NavigationBar#setShadowImage(mocha.graphics.Image)
+		 * @param shadowImage Shadow image
+		 */
 		public void setShadowImage(Image shadowImage) {
 			this.store(this.setShadowImage, shadowImage);
 		}
 
+		/**
+		 * @see NavigationBar#setBackgroundImage(mocha.graphics.Image, BarMetrics)
+		 * @param backgroundImage Background image
+		 * @param barMetrics Bar metrics
+		 */
 		public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
 			this.store(this.setBackgroundImage, backgroundImage, barMetrics);
 		}
 
+		/**
+		 * @see NavigationBar#setTitleVerticalPositionAdjustment(float, BarMetrics)
+		 * @param adjustment Adjustment
+		 * @param barMetrics Bar metrics
+		 */
 		public void setTitleVerticalPositionAdjustment(float adjustment, BarMetrics barMetrics) {
 			this.store(this.setTitleVerticalPositionAdjustment, adjustment, barMetrics);
 		}
 
+		/**
+		 * @see NavigationBar#setTitleTextAttributes(TextAttributes)
+		 * @param titleTextAttributes Text attributes
+		 */
 		public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
 			this.store(this.setTitleTextAttributes, titleTextAttributes);
 		}
 
+		/**
+		 * @see NavigationBar#setTitleAlignment(mocha.ui.NavigationBar.TitleAlignment)
+		 * @param titleAlignment Title alignment
+		 */
 		public void setTitleAlignment(TitleAlignment titleAlignment) {
 			this.store(this.setTitleAlignment, titleAlignment);
 		}
