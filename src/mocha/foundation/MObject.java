@@ -25,6 +25,7 @@ public class MObject {
 		MObject.loggingEnabled = loggingEnabled;
 	}
 
+	@Override
 	public String toString() {
 		String extra = this.toStringExtra();
 
@@ -105,7 +106,7 @@ public class MObject {
 	 * @param delayInMillis milliseconds before the callback should be called
 	 * @param callback callback to be called after a delay
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to MObject#cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
 	public static Runnable performAfterDelay(long delayInMillis, Runnable callback) {
 		// If we're on the main looper, there's no sense in creating
@@ -126,7 +127,7 @@ public class MObject {
 	 * @param delayInMillis milliseconds before the callback should be called
 	 * @param callback callback to be called after a delay
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to MObject#cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
 	public static Runnable performOnMainAfterDelay(long delayInMillis, Runnable callback) {
 		getMainHandler().postDelayed(callback, delayInMillis);
@@ -142,7 +143,7 @@ public class MObject {
 	 *                      If false, the callback will be posted to the main thread.
 	 * @param callback Callback to be called on the main thread
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
-	 * anonymous classes.  This callback should be passed to MObject.cancelCallbacks when cancelling.
+	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
 	public static Runnable performOnMain(boolean waitUntilDone, final Runnable callback) {
 		if(waitUntilDone) {
@@ -168,13 +169,13 @@ public class MObject {
 	}
 
 	/**
-	 * Cancel callbacks made with performAfterDelay, performOnMainAfterDelay or performOnMain
+	 * Cancel callbacks made with {@link #performAfterDelay}, {@link #performOnMainAfterDelay} or {@link #performOnMain}
 	 *
 	 * @see MObject#performAfterDelay(long, Runnable)
 	 * @see MObject#performOnMainAfterDelay(long, Runnable)
 	 * @see MObject#performOnMain(boolean, Runnable)
 	 *
-	 * @param runnable Callback passed to performAfterDelay/performOnMainAfterDelay/performOnMain
+	 * @param runnable Callback passed to {@link #performAfterDelay}, {@link #performOnMainAfterDelay} or {@link #performOnMain}
 	 */
 	public static void cancelCallbacks(Runnable runnable) {
 		Handler handler = getHandler(true);

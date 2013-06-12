@@ -170,23 +170,20 @@ public class NotificationCenter extends MObject {
 	 * <li>If notificationSender is null, the observer will receive all notifications
 	 * posted with notificationName as it's name.</li>
 	 * </ul>
-	 * <strong>Important:</strong><br />
-	 * You can not add an anonymous class directly as an observer.  Observers are stored
-	 * with weak references to ensure NotificationCenter doesn't prevent it from being
-	 * GC'd.  Directly adding an anonymous class as an observer will cause it to be GC'd
-	 * on the GC next run. To work around this, you can create the observer as an anonymous
-	 * class and set to to an instance variable on your class:
-	 * <pre>
-	 * {@code
-	 * this.myObserver = new Observer() {
+	 *
+	 * {@important You can not add an anonymous class directly as an observer.  Observers are stored
+	 * with weak references to ensure NotificationCenter doesn't prevent them from being
+	 * GC'd.  Directly adding an anonymous class as an observer will cause it to be recycled the next
+	 * time GC runs, which means your observer will never be called. }
+	 *
+	 * @example
+	 * <pre> this.myObserver = new Observer() {
 	 * 	public void observe(Notification notification) {
 	 *
 	 * 	}
 	 * };
 	 *
-	 * NotificationCenter.defaultCenter().addObserver(this.myObserver, "name", null);
-	 * }
-	 * </pre>
+	 * NotificationCenter.defaultCenter().addObserver(this.myObserver, "name", null);</pre>
 	 *
 	 * @param observer Notification observer
 	 * @param notificationName Notification name to observe or null
@@ -308,6 +305,18 @@ public class NotificationCenter extends MObject {
 	/**
 	 * Add a target/action observer for a notification name and/or sender.
 	 *
+	 * @example
+	 * <pre> class Foo {
+	 *     public Foo() {
+	 *         NotificaitonCenter.addObserver(self, "onImportantEvent", "IMPORTANT_EVENT", null);
+	 *     }
+	 *
+	 *     {@literal @NotificationTarget}
+	 *     public void onImportantEvent(Notification notification) {
+	 *         // Handle event
+	 *     }
+	 * }</pre>
+
 	 * @see NotificationCenter#addObserver(java.lang.Object, java.lang.reflect.Method, String, java.lang.Object)
 	 *
 	 * @param target Notification observer target to send action to
