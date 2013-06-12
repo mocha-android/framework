@@ -13,6 +13,26 @@ import android.widget.RelativeLayout;
 
 import java.util.List;
 
+/**
+ * NativeView allows you to bind "native" Android views into Mocha's view hiearchy.
+ *
+ * <p>Mocha has it's own view hiearchy and touch delivery system, which means Android View's can
+ * not by added to it directly. NativeView helps bridge the gap when working with third party
+ * classes built for Android, but not Mocha.</p>
+ *
+ * {@important While almost all Mocha functionality works as you'd expect any other view inside of Mocha to,
+ * the big exception is {@link GestureRecognizer}. At this time, Mocha does not support attaching a {@link GestureRecognizer}
+ * to a NativeView.}
+ *
+ * @example
+ * <pre> NativeView&lt;com.thirdparty.SomeView&gt; someView = new NativeView&lt;com.thirdparty.SomeView&gt;(new com.thirdparty.SomeView(Application.sharedApplication().getContext()));
+ * someView.getNativeView().setThirdPartyViewProperty(true);
+ * someView.setFrame(new Rect(100.0f, 100.0f, 60.0f, 120.0f));
+ * someView.setAlpha(0.7f);
+ * otherView.addSubview(someView);</pre>
+ *
+ * @param <V> Android view subclass
+ */
 public class NativeView <V extends android.view.View> extends View {
 
 	private V nativeView;
@@ -32,6 +52,7 @@ public class NativeView <V extends android.view.View> extends View {
 		this.setUserInteractionEnabled(true);
 	}
 
+	@Override
 	public void setUserInteractionEnabled(boolean userInteractionEnabled) {
 		super.setUserInteractionEnabled(userInteractionEnabled);
 
@@ -42,6 +63,11 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 	}
 
+	/**
+	 * Replace the underlying nativeView with a new one.
+	 *
+	 * @param nativeView Native view to set
+	 */
 	public void setNativeView(V nativeView) {
 		if(this.nativeView != null) {
 			this.getLayer().getViewGroup().removeView(this.nativeView);
@@ -81,10 +107,15 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 	}
 
+	/**
+	 * Get the underlying native view
+	 * @return Native view
+	 */
 	public V getNativeView() {
 		return nativeView;
 	}
 
+	@Override
 	public void setBackgroundColor(int backgroundColor) {
 		super.setBackgroundColor(backgroundColor);
 
@@ -93,13 +124,10 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 	}
 
+	@Override
 	public void layoutSubviews() {
 		super.layoutSubviews();
 		this.updateNativeViewFrame();
-	}
-
-	public void setHidden(boolean hidden) {
-		super.setHidden(hidden);
 	}
 
 	private void updateNativeViewFrame() {
@@ -124,25 +152,28 @@ public class NativeView <V extends android.view.View> extends View {
 		}
 	}
 
+	@Override
 	public void touchesBegan(List<Touch> touches, Event event) {
 		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent())) {
 			super.touchesBegan(touches, event);
 		}
 	}
 
+	@Override
 	public void touchesMoved(List<Touch> touches, Event event) {
 		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
 			super.touchesMoved(touches, event);
 		}
 	}
 
+	@Override
 	public void touchesEnded(List<Touch> touches, Event event) {
-
 		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
 			super.touchesEnded(touches, event);
 		}
 	}
 
+	@Override
 	public void touchesCancelled(List<Touch> touches, Event event) {
 		if(this.nativeView == null || !this.nativeView.onTouchEvent(event.getMotionEvent()))  {
 			super.touchesEnded(touches, event);
