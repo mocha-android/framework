@@ -17,10 +17,12 @@ import mocha.graphics.Size;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
-public class TableView extends ScrollView {
+public class TableView extends ScrollView implements GestureRecognizer.Delegate {
 	static final float PLAIN_HEADER_HEIGHT = 23.0f;
 	static final float GROUPED_TABLE_Y_MARGIN = 10.0f;
 	private static final float DEFAULT_ROW_HEIGHT = 44.0f;
+	private static final TableViewCell.State DEFAULT_STATE[] = new TableViewCell.State[] { TableViewCell.State.DEFAULT };
+	private static final TableViewCell.State EDIT_CONTROL_STATE[] = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL };
 
 	/**
 	 * DataSource + Delegate Note: A rather odd design pattern here, but without optional methods in Java, I couldn't think
@@ -122,6 +124,7 @@ public class TableView extends ScrollView {
 	private TableViewCell.SeparatorStyle separatorStyle;
 	private int separatorColor;
 	private boolean editing;
+	private boolean fullEditing;
 	private float rowHeight;
 	private boolean allowsSelection;
 	private boolean reloadingData;
@@ -159,6 +162,8 @@ public class TableView extends ScrollView {
 	private boolean tableHeaderAttached;
 	private boolean tableFooterAttached;
 	private boolean hasLoadedData;
+	private boolean showingDeleteConfirmation;
+	private boolean restoreScrollingEnabled;
 
 	private Range visibleRows;
 	private List<TableViewCell> visibleCells;
@@ -170,6 +175,32 @@ public class TableView extends ScrollView {
 	public TableView(Style style) {
 		this(style, new Rect(0.0f, 0.0f, 320.0f, 480.0f));
 	}
+
+//	private class TableSwipe extends SwipeGestureRecognizer {
+//		private TableSwipe(Direction direction, GestureHandler gestureHandler) {
+//			super(direction, gestureHandler);
+//		}
+//
+//		protected void setState(State state) {
+//			State oldState = this.getState();
+//			super.setState(state);
+//
+//			try {
+//				throw new Exception();
+//			} catch (Exception e) {
+//				MWarn(e, "%s setState: %s", this, state);
+//			}
+//
+//			MWarn("%s Transitioning to %s from %s, result: %s", this.getDirection(), state, oldState, this.getState());
+//		}
+//
+//		protected void reset() {
+//			super.reset();
+//
+//			MWarn("%s RESET", this.getDirection());
+//		}
+//
+//	}
 
 	public TableView(Style style, Rect frame) {
 		super(frame);
@@ -193,6 +224,32 @@ public class TableView extends ScrollView {
 		this.viewsToRemove = new ArrayList<TableViewSubview>();
 
 		this.setAlwaysBounceVertical(true);
+
+//		SwipeGestureRecognizer gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.LEFT, new GestureRecognizer.GestureHandler() {
+//			public void handleGesture(GestureRecognizer gestureRecognizer) {
+//				MWarn("SWIPE LEFT");
+//				handleCellSwipe(gestureRecognizer);
+//			}
+//		});
+//		gestureRecognizer.setDelegate(this);
+//		this.addGestureRecognizer(gestureRecognizer);
+//
+//		gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.RIGHT, new GestureRecognizer.GestureHandler() {
+//			public void handleGesture(GestureRecognizer gestureRecognizer) {
+//				MWarn("SWIPE RIGHT");
+//				handleCellSwipe(gestureRecognizer);
+//			}
+//		});
+//		gestureRecognizer.setDelegate(this);
+//		this.addGestureRecognizer(gestureRecognizer);
+
+		LongPressGestureRecognizer longPressGestureRecognizer = new LongPressGestureRecognizer(new GestureRecognizer.GestureHandler() {
+			public void handleGesture(GestureRecognizer gestureRecognizer) {
+				handleCellSwipe(gestureRecognizer);
+			}
+		});
+		longPressGestureRecognizer.setDelegate(this);
+		this.addGestureRecognizer(longPressGestureRecognizer);
 	}
 
 	protected void onCreate(Rect frame) {
@@ -353,18 +410,36 @@ public class TableView extends ScrollView {
 		}
 	}
 
+	public boolean isEditing() {
+		return this.editing || this.fullEditing;
+	}
+
 	public void setEditing(boolean editing) {
-		if (this.editing == editing) {
+		this.setEditing(editing, false);
+	}
+
+	public void setEditing(boolean editing, boolean animated) {
+		if (editing == this.fullEditing) {
 			return;
 		}
 
-		if (!(this.editing = editing)) {
-			this.resetAllEditingCells();
-		}
-	}
+		if(!editing && this.showingDeleteConfirmation) {
+			this.showingDeleteConfirmation = false;
 
-	public boolean isEditing() {
-		return this.editing;
+			if(this.restoreScrollingEnabled) {
+				this.setScrollEnabled(true);
+				this.restoreScrollingEnabled = false;
+			}
+		}
+
+		this.fullEditing = editing;
+		this.editing = editing;
+
+		if(this.fullEditing) {
+			this.transitionCellsToState(this.visibleCells, animated, true, TableViewCell.State.SHOWING_EDIT_CONTROL);
+		} else {
+			this.transitionCellsToState(this.visibleCells, animated, false, TableViewCell.State.DEFAULT);
+		}
 	}
 
 	public void setRowHeight(float rowHeight) {
@@ -490,12 +565,18 @@ public class TableView extends ScrollView {
 				if(subview instanceof TableViewCell) {
 					TableViewCell cell = (TableViewCell)subview;
 
-					if(cell._reuseIdentifier != null) {
-						List<TableViewCell> cells = this.cellsQueuedForReuse.get(cell._reuseIdentifier);
+					if(cell.reuseIdentifier != null) {
+						if(cell.needsTransitionToState(DEFAULT_STATE)) {
+							cell.willTransitionToState(DEFAULT_STATE);
+							cell.didTransitionToState(DEFAULT_STATE);
+							cell.setEditing(false, false);
+						}
+
+						List<TableViewCell> cells = this.cellsQueuedForReuse.get(cell.reuseIdentifier);
 
 						if(cells == null) {
 							cells = new ArrayList<TableViewCell>();
-							this.cellsQueuedForReuse.put(cell._reuseIdentifier, cells);
+							this.cellsQueuedForReuse.put(cell.reuseIdentifier, cells);
 						}
 
 						cells.add(cell);
@@ -635,6 +716,21 @@ public class TableView extends ScrollView {
 					TableViewCell cell = this.createPreparedCellForRowAtIndexPath(indexPath);
 					cell._globalRow = globalRow;
 					cell.setFrame(this.rowData.getRectForGlobalRow(globalRow));
+
+					if(this.fullEditing) {
+						boolean canEdit = this.dataSourceEditing != null && this.dataSourceEditing.canEditRowAtIndexPath(this, indexPath);
+						TableViewCell.State[] state = canEdit ? EDIT_CONTROL_STATE : DEFAULT_STATE;
+
+						if(cell.needsTransitionToState(state)) {
+							cell.willTransitionToState(state);
+							cell.didTransitionToState(state);
+							cell.setEditing(canEdit, false);
+						}
+					} else if(cell.isEditing()) {
+						cell.setEditing(false, false);
+						cell.willTransitionToState(DEFAULT_STATE);
+						cell.didTransitionToState(DEFAULT_STATE);
+					}
 
 					if(this.delegateRowDisplay != null) {
 						this.delegateRowDisplay.willDisplayCell(this, cell, indexPath);
@@ -787,11 +883,11 @@ public class TableView extends ScrollView {
 	}
 
 	private void enqueueCell(TableViewCell cell) {
-		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell._reuseIdentifier);
+		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell.reuseIdentifier);
 
 		if(queuedViews == null) {
 			List<TableViewCell> queuedCells = new ArrayList<TableViewCell>();
-			this.cellsQueuedForReuse.put(cell._reuseIdentifier, queuedCells);
+			this.cellsQueuedForReuse.put(cell.reuseIdentifier, queuedCells);
 			queuedViews = queuedCells;
 		}
 
@@ -920,14 +1016,14 @@ public class TableView extends ScrollView {
 		if(this.dataSource == null) return null; // Should never get here, but may as well check.
 
 		TableViewCell cell = this.dataSource.getCellForRowAtIndexPath(this, indexPath);
-		cell._firstRowInSection = indexPath.row == 0;
-		cell._lastRowInSection = (indexPath.row == this.rowData.getNumberOfRowsInSection(indexPath.section) - 1);
+		cell.isFirstRowInSection = indexPath.row == 0;
+		cell.isLastRowInSection = (indexPath.row == this.rowData.getNumberOfRowsInSection(indexPath.section) - 1);
 		cell._indexPath = indexPath;
 		cell.setTableStyle(this.getTableStyle());
 
 		cell.setSelected(this.isRowAtIndexPathSelected(indexPath));
 
-		if(cell._lastRowInSection && this.tableStyle == Style.GROUPED) {
+		if(cell.isLastRowInSection && this.tableStyle == Style.GROUPED) {
 			cell.setSeparatorStyle(TableViewCell.SeparatorStyle.NONE);
 			cell.setSeparatorColor(Color.TRANSPARENT);
 		} else {
@@ -1124,6 +1220,7 @@ public class TableView extends ScrollView {
 
 		if (isEditing) {
 			TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
+
 			if(this.delegateEditing != null) {
 				CharSequence title = this.delegateEditing.getTitleForDeleteConfirmationButtonForRowAtIndexPath(this, indexPath);
 				if(title != null) {
@@ -1215,8 +1312,14 @@ public class TableView extends ScrollView {
 		super.touchesBegan(touches, event);
 		this.touchesMoved = false;
 
-		ignoreTouches = this.decelerating;
-		if(ignoreTouches) return;
+		this.ignoreTouches = this.decelerating;
+		if(this.ignoreTouches) return;
+
+		if(this.showingDeleteConfirmation) {
+			this.hideDeleteConfirmation();
+			this.ignoreTouches = true;
+			return;
+		}
 
 		if(touches.size() == 1) {
 			final Touch touch = touches.get(0);
@@ -1246,7 +1349,7 @@ public class TableView extends ScrollView {
 
 	public void touchesMoved(List<Touch> touches, Event event) {
 		super.touchesMoved(touches, event);
-		if(ignoreTouches) return;
+		if(this.ignoreTouches) return;
 
 		if(this.panGestureRecognizer.getState() != GestureRecognizer.State.POSSIBLE) {
 			if(this.cellTouchCallback != null) {
@@ -1265,7 +1368,7 @@ public class TableView extends ScrollView {
 
 	public void touchesEnded(List<Touch> touches, Event event) {
 		super.touchesEnded(touches, event);
-		if(ignoreTouches) return;
+		if(this.ignoreTouches) return;
 
 		if(this.cellTouchCallback != null) {
 			cancelCallbacks(this.cellTouchCallback);
@@ -1360,6 +1463,159 @@ public class TableView extends ScrollView {
 			this.touchedCell.setHighlighted(false);
 			this.touchedCell = null;
 		}
+	}
+
+	// - Cell editing
+
+	private void handleCellSwipe(GestureRecognizer gestureRecognizer) {
+		if(gestureRecognizer.getState() != GestureRecognizer.State.RECOGNIZED && gestureRecognizer.getState() != GestureRecognizer.State.BEGAN) {
+			// MWarn("gesture: %s", gestureRecognizer.getState());
+			return;
+		}
+
+		Point location = gestureRecognizer.locationInView(this);
+
+		IndexPath indexPath = this.getIndexPathForRowAtPoint(location);
+		MWarn("Location: %s | IP: %s", location, indexPath);
+		if(indexPath == null) return;
+
+		this.showDeleteConfirmation(indexPath);
+	}
+
+	private void showDeleteConfirmation(final IndexPath indexPath) {
+		if(this.dataSourceEditing == null || !this.dataSourceEditing.canEditRowAtIndexPath(this, indexPath)) {
+			return;
+		}
+
+		final TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
+		if(cell == null) return;
+
+		this.editing = true;
+
+		final TableViewCell.State[] newState;
+
+		if(this.fullEditing) {
+			newState = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL, TableViewCell.State.SHOWING_DELETE_CONFIRMATION };
+		} else {
+			newState = new TableViewCell.State[] { TableViewCell.State.SHOWING_DELETE_CONFIRMATION };
+		}
+
+		this.restoreScrollingEnabled = this.getScrollEnabled();
+		this.setScrollEnabled(false);
+		this.showingDeleteConfirmation = true;
+
+		cell.willTransitionToState(newState);
+
+		final TableViewCell.EditButton deleteConfirmationButton = (TableViewCell.EditButton)cell.getDeleteConfirmationButton();
+		deleteConfirmationButton.layoutSubviews();
+
+		if(this.delegateEditing != null) {
+			cell.setDeleteConfirmationButtonTitle(this.delegateEditing.getTitleForDeleteConfirmationButtonForRowAtIndexPath(this, indexPath));
+		}
+
+		View.animateWithDuration(200, new Animations() {
+			public void performAnimatedChanges() {
+				cell.layoutSubviews();
+			}
+		}, new AnimationCompletion() {
+			public void animationCompletion(boolean finished) {
+				if(finished) {
+					cell.didTransitionToState(newState);
+				}
+			}
+		});
+	}
+
+	void deletionConfirmed(TableViewCell cell) {
+		if(this.dataSourceEditing != null) {
+			this.dataSourceEditing.commitEditingStyleForRowAtIndexPath(this, TableViewCell.EditingStyle.DELETE, cell._indexPath);
+		}
+	}
+
+	void editControlSelected(TableViewCell cell) {
+		this.showDeleteConfirmation(cell._indexPath);
+	}
+
+	private void hideDeleteConfirmation() {
+		final TableViewCell.State[] newState;
+
+		if(this.fullEditing) {
+			newState = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL };
+		} else {
+			newState = new TableViewCell.State[] { TableViewCell.State.DEFAULT };
+		}
+
+		this.editing = this.fullEditing;
+		this.showingDeleteConfirmation = false;
+
+		this.transitionCellsToState(this.visibleCells, true, this.fullEditing, newState);
+
+		if(this.restoreScrollingEnabled) {
+			this.setScrollEnabled(true);
+			this.restoreScrollingEnabled = false;
+		}
+	}
+
+	private void transitionCellsToState(List<TableViewCell> cells, boolean animated, boolean editing, TableViewCell.State... state) {
+		final List<android.util.Pair<TableViewCell,TableViewCell.State[]>> transitions = new ArrayList<android.util.Pair<TableViewCell,TableViewCell.State[]>>();
+
+		for(TableViewCell cell : cells) {
+			TableViewCell.State[] _state;
+			boolean canEdit = this.dataSourceEditing != null && this.dataSourceEditing.canEditRowAtIndexPath(this, cell._indexPath);
+
+			if(canEdit && cell.needsTransitionToState(state)) {
+				_state = state;
+			} else if(!canEdit && cell.needsTransitionToState(DEFAULT_STATE)) {
+				_state = DEFAULT_STATE;
+			} else {
+				continue;
+			}
+
+			cell.willTransitionToState(_state);
+			cell.setEditing(editing, animated);
+			transitions.add(new android.util.Pair<TableViewCell,TableViewCell.State[]>(cell, _state));
+		}
+
+		if(animated) {
+			View.animateWithDuration(300, new Animations() {
+				public void performAnimatedChanges() {
+					for(android.util.Pair<TableViewCell,TableViewCell.State[]> transition : transitions) {
+						transition.first.layoutSubviews();
+					}
+				}
+			}, new AnimationCompletion() {
+				public void animationCompletion(boolean finished) {
+					if(finished) {
+						for(android.util.Pair<TableViewCell,TableViewCell.State[]> transition : transitions) {
+							transition.first.didTransitionToState(transition.second);
+						}
+					}
+				}
+			});
+		} else {
+			for(android.util.Pair<TableViewCell,TableViewCell.State[]> transition : transitions) {
+				transition.first.didTransitionToState(transition.second);
+			}
+		}
+	}
+
+	public boolean shouldBegin(GestureRecognizer gestureRecognizer) {
+		if(!this.showingDeleteConfirmation) {
+			Point location = gestureRecognizer.locationInView(this);
+			IndexPath indexPath = this.getIndexPathForRowAtPoint(location);
+
+			return indexPath != null && !(this.dataSourceEditing == null || !this.dataSourceEditing.canEditRowAtIndexPath(this, indexPath));
+		} else {
+			return false;
+		}
+	}
+
+	public boolean shouldReceiveTouch(GestureRecognizer gestureRecognizer, Touch touch) {
+		return !this.showingDeleteConfirmation;
+	}
+
+	public boolean shouldRecognizeSimultaneously(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer) {
+		return false;
 	}
 
 }

@@ -9,6 +9,8 @@ package mocha.ui;
 import mocha.graphics.Font;
 import mocha.graphics.Rect;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,17 +72,46 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	public enum SeparatorStyle {
-		NONE, SINGLE_LINE, SINGLE_LINE_ETCHED
+		NONE, SINGLE_LINE
 	}
 
 	public enum EditingStyle {
 		NONE, DELETE, INSERT
 	}
 
-	private static class OriginalViewState {
+	public enum State {
+		DEFAULT,
+		SHOWING_EDIT_CONTROL,
+		SHOWING_DELETE_CONFIRMATION
+	}
+
+	private static class UnhighlightedState {
 		boolean highlighted;
-		boolean opaque;
 		int backgroundColor;
+	}
+
+	class EditButton extends Button {
+		boolean confirmationButton;
+
+		EditButton() {
+			this.addActionTarget(new Control.ActionTarget() {
+				public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
+					View tableView = EditButton.this;
+
+					while(tableView != null && !(tableView instanceof TableView)) {
+						tableView = tableView.getSuperview();
+					}
+
+					if(tableView != null && (tableView instanceof TableView)) {
+						if(confirmationButton) {
+							((TableView)tableView).deletionConfirmed(TableViewCell.this);
+						} else {
+							((TableView)tableView).editControlSelected(TableViewCell.this);
+						}
+					}
+				}
+			}, Control.ControlEvent.TOUCH_UP_INSIDE);
+		}
 	}
 
 	private Label textLabel;
@@ -89,15 +120,11 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private SeparatorStyle separatorStyle;
 	private int separatorColor;
 	private SelectionStyle selectionStyle;
-	private AccessoryType accessoryType;
 	private boolean highlighted;
 	private boolean selected;
 	private Style cellStyle;
-	private EditingStyle editingStyle;
-	private boolean editing;
 	private boolean usingDefaultSelectedBackgroundView;
-	private int indentationLevel;
-	private Map<View,OriginalViewState> originalViewStates;
+	private Map<View,UnhighlightedState> unhighlightedStates;
 	private Runnable highlightStateCallback;
 	private Runnable restoreBackgroundCallback;
 	private TableView.Style tableStyle;
@@ -106,16 +133,39 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private View contentView;
 	private View backgroundView;
 	private View selectedBackgroundView;
-	private View accessoryView;
-	private View actualAccessoryView;
 	private ImageView imageView;
 	private View separatorView;
 
+	private AccessoryType accessoryType;
+	private View customAccessoryView;
+	private View accessoryView;
+
+	private AccessoryType editingAccessoryType;
+	private View customEditingAccessoryView;
+	private View editingAccessoryView;
+
 	private TableViewCellLayoutManager layoutManager;
 
-	Object _reuseIdentifier;
-	boolean _firstRowInSection;
-	boolean _lastRowInSection;
+	private int indentationLevel;
+	private float indentationWidth;
+
+	private EditingStyle editingStyle;
+	private boolean editing;
+
+	private boolean showingDeleteConfirmation;
+	private boolean willShowDeleteConfirmation;
+	private boolean showingEditControl;
+	private boolean willShowEditControl;
+	private boolean restoreUserInteractionEnabledOnHideDeleteConfirmation;
+
+	private State[] state;
+
+	private Button deleteConfirmationButton;
+	private Button editControl;
+
+	Object reuseIdentifier;
+	boolean isFirstRowInSection;
+	boolean isLastRowInSection;
 
 	public TableViewCell(Style style, Object reuseIdentifier) {
 		this(new Rect(0.0f, 0.0f, 320.0f, 44.0f), style, reuseIdentifier);
@@ -129,13 +179,17 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.separatorStyle = SeparatorStyle.SINGLE_LINE;
 		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.accessoryType = AccessoryType.NONE;
-		this.editingStyle = EditingStyle.NONE;
+		this.editingStyle = EditingStyle.DELETE;
 		this.selected = false;
 		this.highlighted = false;
-		this._reuseIdentifier = reuseIdentifier != null ? reuseIdentifier : this.getClass().getName();
-		this.originalViewStates = new HashMap<View, OriginalViewState>();
+		this.reuseIdentifier = reuseIdentifier != null ? reuseIdentifier : this.getClass().getName();
+		this.unhighlightedStates = new HashMap<View, UnhighlightedState>();
 		this.layoutManager = TableViewCellLayoutManager.getLayoutManagerForTableViewCellStyle(this.cellStyle);
 		this.playClickSoundOnSelection = true;
+		this.state = new State[] { State.DEFAULT };
+
+		this.indentationLevel = 0;
+		this.indentationWidth = 10.0f;
 
 		this.setBackgroundColor(Color.WHITE);
 		this.getContentView();
@@ -173,13 +227,23 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 			this.setupAccessoryView();
 
-			if(this.actualAccessoryView != null) {
-				this.actualAccessoryView.setFrame(this.layoutManager.getAccessoryViewRectForCell(this, this.tableStyle));
+			View accessoryView = this.customAccessoryView != null ? this.customAccessoryView : this.accessoryView;
+
+			if(accessoryView != null) {
+				accessoryView.setFrame(this.layoutManager.getAccessoryViewRectForCell(this, this.tableStyle));
 			}
 
 			if(this.imageView != null) {
 				this.imageView.setFrame(this.layoutManager.getImageViewRectForCell(this, this.tableStyle));
 			}
+		}
+
+		if(this.deleteConfirmationButton != null) {
+			this.deleteConfirmationButton.setFrame(this.layoutManager.getDeleteConfirmationButtonRectForCell(this, this.tableStyle));
+		}
+
+		if(this.editControl != null) {
+			this.editControl.setFrame(this.layoutManager.getEditControlRectForCell(this, this.tableStyle));
 		}
 
 		this.setupSeparatorView();
@@ -190,17 +254,14 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	private void setupAccessoryView() {
-		if(this.actualAccessoryView != null) return;
-		if(this.accessoryView == null && this.accessoryType == AccessoryType.NONE) return;
+		if(this.accessoryView != null || (this.customAccessoryView == null && this.accessoryType == AccessoryType.NONE)) return;
 
-		if(this.accessoryView != null) {
-			this.actualAccessoryView = this.accessoryView;
-		} else if(this.accessoryType == AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
+		if(this.accessoryType == AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
 			Button button = new Button();
 			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator, Control.State.NORMAL);
 			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator_pressed, Control.State.NORMAL, Control.State.HIGHLIGHTED);
 			button.setBackgroundColor(Color.TRANSPARENT);
-			this.actualAccessoryView = button;
+			this.accessoryView = button;
 		} else {
 			ImageView imageView = new ImageView();
 			imageView.setContentMode(ContentMode.CENTER);
@@ -214,11 +275,11 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 				imageView.setHighlightedImage(R.drawable.mocha_table_view_cell_accessory_checkmark_selected);
 			}
 
-			this.actualAccessoryView = imageView;
+			this.accessoryView = imageView;
 		}
 
-		if(this.actualAccessoryView.getSuperview() != this) {
-			this.addSubview(this.actualAccessoryView);
+		if(this.accessoryView.getSuperview() != this) {
+			this.addSubview(this.accessoryView);
 		}
 	}
 
@@ -259,21 +320,21 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 			return;
 		}
 
-		if(this.accessoryType != accessoryType && this.accessoryView == null) {
+		if(this.accessoryType != accessoryType && this.customAccessoryView == null) {
 			this.accessoryType = accessoryType;
 
-			if(this.actualAccessoryView != null) {
-				this.actualAccessoryView.removeFromSuperview();
-				this.actualAccessoryView = null;
+			if(this.accessoryView != null) {
+				this.accessoryView.removeFromSuperview();
+				this.accessoryView = null;
 			}
 
 			if(this.getSuperview() != null) {
 				this.layoutSubviews();
 
-				if(this.highlighted && this.actualAccessoryView != null) {
-					this.saveViewState(this.actualAccessoryView);
-					this.setViewToTransparent(this.actualAccessoryView);
-					this.setViewToHighlightedState(this.actualAccessoryView);
+				if(this.highlighted && this.accessoryView != null && this.customAccessoryView == null) {
+					this.saveViewState(this.accessoryView);
+					this.setViewToTransparent(this.accessoryView);
+					this.setViewToHighlightedState(this.accessoryView);
 				}
 			}
 		}
@@ -284,32 +345,36 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	public View getAccessoryView() {
-		return accessoryView;
+		return this.customAccessoryView;
 	}
 
 	public void setAccessoryView(View accessoryView) {
-		if(this.accessoryView != accessoryView) {
+		if(this.customAccessoryView != accessoryView) {
+			if(this.customAccessoryView != null) {
+				this.customAccessoryView.removeFromSuperview();
+			}
+
 			if(this.accessoryView != null) {
 				this.accessoryView.removeFromSuperview();
+				this.accessoryView = null;
 			}
 
-			if(this.actualAccessoryView != null) {
-				this.actualAccessoryView.removeFromSuperview();
-			}
+			this.customAccessoryView = accessoryView;
 
-			this.accessoryView = accessoryView;
-			this.actualAccessoryView = accessoryView;
-
-			if(this.accessoryView != null) {
-				this.addSubview(this.actualAccessoryView);
+			if(this.customAccessoryView != null) {
+				this.addSubview(this.customAccessoryView);
 			}
 
 			this.layoutSubviews();
 		}
 	}
 
-	View getActualAccessoryView() {
-		return this.actualAccessoryView;
+	View getActiveAccessoryView() {
+		return this.editingAccessoryView == null ? this.accessoryView : this.editingAccessoryView;
+	}
+
+	View getActiveEditingAccessoryView() {
+		return this.customEditingAccessoryView == null ? this.editingAccessoryView : this.customEditingAccessoryView;
 	}
 
 	void setSeparatorStyle(SeparatorStyle separatorStyle) {
@@ -435,7 +500,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 				this.highlightStateCallback = performAfterDelay(ANIMATED_HIGHLIGHT_DURATION / 2, new Runnable() {
 					public void run() {
 						restoreViewHighlightedState(TableViewCell.this);
-						originalViewStates.clear();
+						unhighlightedStates.clear();
 						highlightStateCallback = null;
 					}
 				});
@@ -450,18 +515,18 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 				this.restoreViewBackgroundState(this);
 				this.selectedBackgroundView.removeFromSuperview();
 				this.restoreViewHighlightedState(this);
-				this.originalViewStates.clear();
+				this.unhighlightedStates.clear();
 			}
 		}
 	}
 
 	private void saveViewState(View view) {
 		if(view != this && view != this.backgroundView && view != this.selectedBackgroundView && view != this.separatorView) {
-			if(!this.originalViewStates.containsKey(view)) {
-				OriginalViewState state = new OriginalViewState();
+			if(!this.unhighlightedStates.containsKey(view)) {
+				UnhighlightedState state = new UnhighlightedState();
 				state.highlighted = (view instanceof Highlightable) && ((Highlightable)view).isHighlighted();
 				state.backgroundColor = view.getBackgroundColor();
-				this.originalViewStates.put(view, state);
+				this.unhighlightedStates.put(view, state);
 			}
 		}
 
@@ -471,7 +536,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	private void restoreViewBackgroundState(View view) {
-		OriginalViewState state = this.originalViewStates.get(view);
+		UnhighlightedState state = this.unhighlightedStates.get(view);
 
 		if(state != null) {
 			view.setBackgroundColor(state.backgroundColor);
@@ -483,7 +548,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	private void restoreViewHighlightedState(View view) {
-		OriginalViewState state = this.originalViewStates.get(view);
+		UnhighlightedState state = this.unhighlightedStates.get(view);
 
 		if(state != null) {
 			if(view instanceof Highlightable) {
@@ -635,12 +700,34 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		}
 	}
 
+	public Button getEditControl() {
+		return this.editControl;
+	}
+
+	public Button getDeleteConfirmationButton() {
+		return this.deleteConfirmationButton;
+	}
+
+	public boolean isShowingDeleteConfirmation() {
+		return this.showingDeleteConfirmation;
+	}
+
 	public int getIndentationLevel() {
 		return this.indentationLevel;
 	}
 
 	public void setIndentationLevel(int indentationLevel) {
 		this.indentationLevel = indentationLevel;
+		this.setNeedsLayout();
+	}
+
+	public float getIndentationWidth() {
+		return indentationWidth;
+	}
+
+	public void setIndentationWidth(float indentationWidth) {
+		this.indentationWidth = indentationWidth;
+		this.setNeedsLayout();
 	}
 
 	public void setEditingStyle(EditingStyle editingStyle) {
@@ -652,6 +739,10 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	public void setEditing(boolean editing) {
+		this.setEditing(editing, false);
+	}
+
+	public void setEditing(boolean editing, boolean animated) {
 		this.editing = editing;
 	}
 
@@ -669,6 +760,82 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public void prepareForReuse() {
 
+	}
+
+	public void willTransitionToState(State... states) {
+		boolean showingDeleteConfirmation = Arrays.binarySearch(states, State.SHOWING_DELETE_CONFIRMATION) >= 0;
+		boolean showingEditControl = Arrays.binarySearch(states, State.SHOWING_EDIT_CONTROL) >= 0;
+
+		if(showingDeleteConfirmation && this.deleteConfirmationButton == null) {
+			this.deleteConfirmationButton = new EditButton();
+			((EditButton)this.deleteConfirmationButton).confirmationButton = true;
+			this.deleteConfirmationButton.setTitle("Delete", Control.State.NORMAL);
+			this.deleteConfirmationButton.setFrame(this.layoutManager.getContentViewRectForCell(this, this.tableStyle));
+			this.deleteConfirmationButton.setBackgroundColor(Color.RED);
+			this.deleteConfirmationButton.setTitleColor(Color.WHITE, Control.State.NORMAL);
+			this.insertSubviewBelowSubview(this.deleteConfirmationButton, this.contentView);
+		}
+
+		if(showingEditControl && this.editControl == null) {
+			this.editControl = new EditButton();
+			((EditButton)this.editControl).confirmationButton = false;
+			this.editControl.setFrame(this.layoutManager.getEditControlRectForCell(this, this.tableStyle));
+			this.insertSubviewBelowSubview(this.editControl, this.contentView);
+		}
+
+		this.willShowDeleteConfirmation = showingDeleteConfirmation;
+		this.willShowEditControl = showingEditControl;
+
+		if(this.showingDeleteConfirmation) {
+			this.restoreUserInteractionEnabledOnHideDeleteConfirmation = this.contentView.isUserInteractionEnabled();
+			this.contentView.setUserInteractionEnabled(false);
+		}
+	}
+
+	void setDeleteConfirmationButtonTitle(CharSequence title) {
+		this.deleteConfirmationButton.setTitle(title, Control.State.NORMAL);
+		this.deleteConfirmationButton.setFrame(this.layoutManager.getDeleteConfirmationButtonRectForCell(this, this.tableStyle));
+		this.deleteConfirmationButton.layoutSubviews();
+	}
+
+	public void didTransitionToState(State... states) {
+		this.showingDeleteConfirmation = Arrays.binarySearch(states, State.SHOWING_DELETE_CONFIRMATION) >= 0;
+		this.showingEditControl = Arrays.binarySearch(states, State.SHOWING_EDIT_CONTROL) >= 0;
+
+		if(!this.showingDeleteConfirmation && this.deleteConfirmationButton != null) {
+			this.deleteConfirmationButton.removeFromSuperview();
+			this.deleteConfirmationButton = null;
+		}
+
+		if(!this.showingDeleteConfirmation && this.restoreUserInteractionEnabledOnHideDeleteConfirmation) {
+			this.contentView.setUserInteractionEnabled(true);
+			this.restoreUserInteractionEnabledOnHideDeleteConfirmation = false;
+		}
+
+		if(!this.showingEditControl && this.editControl != null) {
+			this.editControl.removeFromSuperview();
+			this.editControl = null;
+		}
+
+		this.state = states;
+	}
+
+	boolean getWillShowDeleteConfirmation() {
+		return this.willShowDeleteConfirmation;
+	}
+
+	boolean getWillShowEditControl() {
+		return willShowEditControl;
+	}
+
+	boolean needsTransitionToState(State... state) {
+		if(state.length != this.state.length) {
+			return true;
+		} else if(state.length == 1) {
+			return state[0] != this.state[0];
+		} else {
+			return Arrays.equals(state, this.state);
+		}
 	}
 
 }
