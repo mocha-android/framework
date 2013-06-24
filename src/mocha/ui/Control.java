@@ -158,6 +158,10 @@ public class Control extends View {
 		}
 	}
 
+	void removeAllActionTargets() {
+		this.registeredActions.clear();
+	}
+
 	public ControlEvent[] allControlEvents() {
 		EnumSet<ControlEvent> registeredEvents = EnumSet.noneOf(ControlEvent.class);
 

@@ -23,6 +23,12 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	private Point startLocation;
 	private boolean shouldTrack;
 
+	final static long DEFAULT_MAXIMUM_DURATION = 500;
+	final static float DEFAULT_MINIMUM_PRIMARY_MOVEMENT = 50.0f;
+	final static float DEFAULT_MAXIMUM_PRIMARY_MOVEMENT = Float.MAX_VALUE;
+	final static float DEFAULT_MINIMUM_SECONDARY_MOVEMENT = 0.0f;
+	final static float DEFAULT_MAXIMUM_SECONDARY_MOVEMENT = 5.0f;
+
 	private long maximumDuration;
 	private float minimumPrimaryMovement;
 	private float maximumPrimaryMovement;
@@ -48,11 +54,11 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 
 		this.setDirection(direction);
 
-		this.maximumDuration = 500;
-		this.minimumPrimaryMovement = 50.0f;
-		this.maximumPrimaryMovement = Float.MAX_VALUE;
-		this.minimumSecondaryMovement = 0.0f;
-		this.maximumSecondaryMovement = 50.0f;
+		this.maximumDuration = DEFAULT_MAXIMUM_DURATION;
+		this.minimumPrimaryMovement = DEFAULT_MINIMUM_PRIMARY_MOVEMENT;
+		this.maximumPrimaryMovement = DEFAULT_MAXIMUM_PRIMARY_MOVEMENT;
+		this.minimumSecondaryMovement = DEFAULT_MINIMUM_SECONDARY_MOVEMENT;
+		this.maximumSecondaryMovement = DEFAULT_MAXIMUM_SECONDARY_MOVEMENT;
 	}
 
 	void setView(View view) {
@@ -78,10 +84,6 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 		if(state == State.CANCELLED || state == State.ENDED || state == State.FAILED) {
 			this.shouldTrack = false;
 		}
-	}
-
-	protected boolean shouldNotifyHandlersForState(State state) {
-		return state == State.ENDED;
 	}
 
 	// Properties
@@ -182,7 +184,7 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 				Direction direction = this.findDirection(primaryIsY, velocity > 0);
 
 				if(this.directions.contains(direction)) {
-					this.setState(State.ENDED);
+					this.setState(State.RECOGNIZED);
 				} else {
 					this.setState(State.FAILED);
 				}
@@ -208,6 +210,11 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 				return Direction.LEFT;
 			}
 		}
+	}
+
+	@Override
+	public String toStringExtra() {
+		return "direction = " + directions + "; " + super.toStringExtra();
 	}
 
 }
