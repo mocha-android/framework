@@ -614,8 +614,9 @@ abstract public class GestureRecognizer extends MObject {
 		}
 	}
 
-	public String toString() {
-		return String.format("<%s: 0x%d; state = %s; view = %s>", this.getClass(), this.hashCode(), this.state, this.view.toString());
+	@Override
+	protected String toStringExtra() {
+		return "state = " + this.state + "; view = " + this.view.toString();
 	}
 
 }

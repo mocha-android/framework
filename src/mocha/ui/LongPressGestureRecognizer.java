@@ -70,6 +70,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		}
 	}
 
+	@Override
 	protected void touchesBegan(List<Touch> touches, Event event) {
 		Touch touch = event.getTouchesForGestureRecognizer(this).get(0);
 
@@ -80,6 +81,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		}
 	}
 
+	@Override
 	protected void touchesMoved(List<Touch> touches, Event event) {
 		if (waiting || this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 			if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
@@ -95,6 +97,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		}
 	}
 
+	@Override
 	protected void touchesEnded(List<Touch> touches, Event event) {
 		if (this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 			this.setState(State.ENDED);
@@ -103,6 +106,7 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 		}
 	}
 
+	@Override
 	protected void touchesCancelled(List<Touch> touches, Event event) {
 		if (this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 			this.setState(State.CANCELLED);

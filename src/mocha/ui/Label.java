@@ -10,7 +10,6 @@ import mocha.graphics.*;
 
 public class Label extends View implements Highlightable {
 
-
 	private TextDrawingText text;
 	private Font font;
 	private int textColor;
@@ -29,6 +28,7 @@ public class Label extends View implements Highlightable {
 	public Label() { }
 	public Label(Rect frame) { super(frame); }
 
+	@Override
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
@@ -166,10 +166,12 @@ public class Label extends View implements Highlightable {
 		}
 	}
 
+	@Override
 	public boolean isHighlighted() {
 		return highlighted;
 	}
 
+	@Override
 	public void setHighlighted(boolean highlighted) {
 		if(this.highlighted != highlighted) {
 			this.highlighted = highlighted;
@@ -178,6 +180,7 @@ public class Label extends View implements Highlightable {
 		}
 	}
 
+	@Override
 	public void setFrame(Rect frame) {
 		super.setFrame(frame);
 
@@ -237,6 +240,7 @@ public class Label extends View implements Highlightable {
 		context.restore();
 	}
 
+	@Override
 	public void draw(Context context, Rect rect) {
 		if(this.text == null || this.text.length() == 0) return;
 

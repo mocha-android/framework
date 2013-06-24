@@ -94,6 +94,7 @@ public class NavigationController extends ViewController {
 		this.transitionStyle = transitionStyle;
 	}
 
+	@Override
 	protected void loadView() {
 		super.loadView();
 
@@ -117,6 +118,7 @@ public class NavigationController extends ViewController {
 		view.addSubview(this.navigationBar);
 	}
 
+	@Override
 	protected void viewDidLoad() {
 		super.viewDidLoad();
 
@@ -134,11 +136,13 @@ public class NavigationController extends ViewController {
 		}
 	}
 
+	@Override
 	public void viewDidAppear(boolean animated) {
 		super.viewDidAppear(animated);
 		this.promoteDeepestDefaultFirstResponder();
 	}
 
+	@Override
 	public boolean canBecomeFirstResponder() {
 		return true;
 	}
@@ -156,6 +160,9 @@ public class NavigationController extends ViewController {
 		return Collections.unmodifiableList(viewControllers);
 	}
 
+	/**
+	 * Calls {@link #setViewControllers(java.util.List, boolean)} with animated as false
+	 */
 	public void setViewControllers(List<ViewController> viewControllers) {
 		this.setViewControllers(viewControllers, false);
 	}
