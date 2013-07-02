@@ -227,7 +227,15 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 			this.setupAccessoryView();
 
-			View accessoryView = this.customAccessoryView != null ? this.customAccessoryView : this.accessoryView;
+			View accessoryView = null;
+
+			if(this.isEditing()) {
+				accessoryView = this.getActiveEditingAccessoryView();
+			}
+
+			if(accessoryView == null) {
+				accessoryView = this.getActiveAccessoryView();
+			}
 
 			if(accessoryView != null) {
 				accessoryView.setFrame(this.layoutManager.getAccessoryViewRectForCell(this, this.tableStyle));
@@ -370,7 +378,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	View getActiveAccessoryView() {
-		return this.editingAccessoryView == null ? this.accessoryView : this.editingAccessoryView;
+		return this.customAccessoryView == null ? this.accessoryView : this.customAccessoryView;
 	}
 
 	View getActiveEditingAccessoryView() {
