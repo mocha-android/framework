@@ -196,6 +196,23 @@ public class View extends Responder implements Accessibility {
 		LINEAR
 	}
 
+	public enum TintAdjustmentMode {
+		/**
+		 * Automatically determines the correct tint adjustment mode to use
+		 */
+		AUTOMATIC,
+
+		/**
+		 * Normal tinting
+		 */
+		NORMAL,
+
+		/**
+		 * Dimmed tinting, tintColor will become desaturated
+		 */
+		DIMMED
+	}
+
 	/**
 	 * Callback for when animations start
 	 * @see View#setAnimationWillStartCallback(mocha.ui.View.AnimationWillStart)
@@ -271,6 +288,8 @@ public class View extends Responder implements Accessibility {
 	private boolean onCreatedCalled;
 	private ContentMode contentMode;
 	private boolean multipleTouchEnabled;
+	private int tintColor;
+	private TintAdjustmentMode tintAdjustmentMode;
 	Touch trackingSingleTouch;
 
 	/**
@@ -334,6 +353,8 @@ public class View extends Responder implements Accessibility {
 		this.contentMode = ContentMode.SCALE_TO_FILL;
 		this.multipleTouchEnabled = false;
 		this.needsLayout = true;
+		this.tintColor = 0;
+		this.tintAdjustmentMode = null;
 
 		this.layer.setSupportsDrawing(this.getOverridesDraw());
 
@@ -711,6 +732,69 @@ public class View extends Responder implements Accessibility {
 
 	public float getAlpha() {
 		return this.getLayer().getAlpha();
+	}
+
+	public TintAdjustmentMode getTintAdjustmentMode() {
+		if(this.tintAdjustmentMode == null) {
+			if(this.getSuperview() != null) {
+				return this.getSuperview().getTintAdjustmentMode();
+			} else {
+				return TintAdjustmentMode.AUTOMATIC;
+			}
+		} else {
+			return this.tintAdjustmentMode;
+		}
+	}
+
+	public void setTintAdjustmentMode(TintAdjustmentMode tintAdjustmentMode) {
+		if(this.tintAdjustmentMode != tintAdjustmentMode) {
+			this.tintAdjustmentMode = tintAdjustmentMode;
+			this.notifyTintAdjustmentModeChanged();
+		}
+	}
+
+	public int getTintColor() {
+		// TODO: Desaturate if dimmed
+		if(this.tintColor == 0) {
+			if(this.getSuperview() != null) {
+				return this.getSuperview().getTintColor();
+			} else {
+				return Color.BLUE;
+			}
+		} else {
+			return this.tintColor;
+		}
+	}
+
+	public void setTintColor(int tintColor) {
+		if(this.tintColor != tintColor) {
+			this.tintColor = tintColor;
+			this.notifyTintColorChanged();
+		}
+	}
+
+	private void notifyTintColorChanged() {
+		this.tintColorDidChange();
+
+		for(View subview : this.getSubviews()) {
+			if(subview.tintColor == 0) {
+				subview.notifyTintColorChanged();
+			}
+		}
+	}
+
+	private void notifyTintAdjustmentModeChanged() {
+		this.tintColorDidChange();
+
+		for(View subview : this.getSubviews()) {
+			if(subview.tintAdjustmentMode == null) {
+				subview.notifyTintColorChanged();
+			}
+		}
+	}
+
+	public void tintColorDidChange() {
+
 	}
 
 	public boolean isUserInteractionEnabled() {

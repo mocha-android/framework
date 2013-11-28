@@ -268,17 +268,6 @@ public class SegmentedControl extends Control {
 		this.sendActionsForControlEvents(event, ControlEvent.VALUE_CHANGED);
 	}
 
-	/* Default tintColor is nil. Only used if style is BAR
-	 */
-
-	public int getTintColor() {
-		return 0;
-	}
-
-	public void setTintColor(int tintColor) {
-
-	}
-
 	/* If backgroundImage is an image returned from -[UIImage resizableImageWithCapInsets:] the cap widths will be calculated from that information, otherwise, the cap width will be calculated by subtracting one from the image's width then dividing by 2. The cap widths will also be used as the margins for text placement. To adjust the margin use the margin adjustment methods.
 
 	 In general, you should specify a value for the normal state to be used by other states which don't have a custom value set.

@@ -31,7 +31,7 @@ public class Toolbar extends View {
 	}
 
 	private BarStyle barStyle;
-	private int tintColor;
+	private int barTintColor;
 	private List<BarButtonItem> items;
 	private boolean translucent;
 	private BarMetricsStorage<Map<Position,Image>> backgroundImages;
@@ -46,7 +46,7 @@ public class Toolbar extends View {
 		super.onCreate(frame);
 
 		this.barStyle = BarStyle.DEFAULT;
-		this.tintColor = Color.TRANSPARENT;
+		this.barTintColor = Color.TRANSPARENT;
 		this.items = new ArrayList<BarButtonItem>();
 		this.backgroundImages = new BarMetricsStorage<Map<Position, Image>>();
 		this.shadowImages = new HashMap<Position, Image>();
@@ -85,12 +85,12 @@ public class Toolbar extends View {
 		}
 	}
 
-	public int getTintColor() {
-		return tintColor;
+	public int getBarTintColor() {
+		return this.barTintColor;
 	}
 
-	public void setTintColor(int tintColor) {
-		this.tintColor = tintColor;
+	public void setBarTintColor(int barTintColor) {
+		this.barTintColor = barTintColor;
 		this.setNeedsDisplay();
 	}
 

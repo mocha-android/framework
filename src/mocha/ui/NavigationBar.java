@@ -78,7 +78,7 @@ public class NavigationBar extends View {
 	}
 
 	private BarStyle barStyle;
-	private int tintColor;
+	private int barTintColor;
 	private List<NavigationItem> items;
 	private Delegate delegate;
 	private boolean needsReload;
@@ -171,17 +171,17 @@ public class NavigationBar extends View {
 	 * Get the tint color of the bar
 	 * @return Tint color
 	 */
-	public int getTintColor() {
-		return tintColor;
+	public int getBarTintColor() {
+		return this.barTintColor;
 	}
 
 	/**
 	 * Set the tint color of the bar
-	 * @param tintColor
+	 * @param barTintColor
 	 */
-	public void setTintColor(int tintColor) {
-		this.tintColor = tintColor;
-		this.setBackgroundColor(tintColor);
+	public void setBarTintColor(int barTintColor) {
+		this.barTintColor = barTintColor;
+		this.setBackgroundColor(barTintColor);
 	}
 
 	/**
