@@ -116,6 +116,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.updateAlwaysBounce();
 	}
 
+	public boolean getBounces() {
+		return this.bounces;
+	}
+
 	public void setAlwaysBounceVertical(boolean bounces) {
 		if (this.alwaysBounceVertical == bounces) {
 			return;
