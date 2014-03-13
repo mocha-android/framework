@@ -25,12 +25,17 @@ public class Application extends Responder {
 
 	}
 
+	public enum State {
+		ACTIVE, INACTIVE, BACKGROUND
+	}
+
 	static Application application;
 	private int ignoreInteractionEventsLevel = 0;
 	private Delegate delegate;
 	private Activity activity;
 	private Bundle bundle;
 	private Runnable cancelTouchesCallback;
+	private State state;
 
 	/**
 	 * Returns the singleton application instance
@@ -268,6 +273,13 @@ public class Application extends Responder {
 	Responder getDefaultFirstResponder() {
 		List<Window> windows = this.activity.getWindows();
 		return windows != null && windows.size() > 0 ? windows.get(windows.size() - 1).getDefaultFirstResponder() : this;
+	}
 
+	public State getState() {
+		return state;
+	}
+
+	void setState(State state) {
+		this.state = state;
 	}
 }

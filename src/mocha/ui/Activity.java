@@ -129,11 +129,15 @@ public class Activity extends android.app.Activity {
 		for(Window window : this.windows) {
 			window.onPause();
 		}
+
+		this.application.setState(Application.State.BACKGROUND);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+		this.application.setState(Application.State.ACTIVE);
 
 		for(Window window : this.windows) {
 			window.onResume();
