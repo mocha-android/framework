@@ -9,9 +9,9 @@ import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.util.Log;
 import android.webkit.*;
+import mocha.foundation.WeakReference;
 import mocha.graphics.Rect;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class WebView extends View {
 
 	private android.webkit.WebView webView;
 	private NativeView<android.webkit.WebView> nativeView;
-	private Delegate delegate;
+	private WeakReference<Delegate> delegate;
 	private boolean isLoading;
 	private boolean scalesPageToFit;
 	private EvaluateJavascriptInterface evaluateJavascriptInterface;
@@ -115,7 +115,7 @@ public class WebView extends View {
 	 * @return Delegate
 	 */
 	public Delegate getDelegate() {
-		return delegate;
+		return WeakReference.get(this.delegate);
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class WebView extends View {
 	 * @param delegate Delegate
 	 */
 	public void setDelegate(Delegate delegate) {
-		this.delegate = delegate;
+		this.delegate = WeakReference.replace(this.delegate, delegate);
 	}
 
 	@Override
@@ -464,9 +464,9 @@ public class WebView extends View {
 
 	private class WebViewClient extends android.webkit.WebViewClient {
 
-		public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
+		public boolean shouldOverrideUrlLoading(android.webkit.WebView view, final String url) {
 			if(delegate != null && (url == null || !url.startsWith("javascript:"))) {
-				NavigationType navigationType;
+				final NavigationType navigationType;
 
 				if(lastNavigationType != null) {
 					navigationType = lastNavigationType;
@@ -495,7 +495,15 @@ public class WebView extends View {
 					}
 				}
 
-				return !delegate.shouldStartLoad(WebView.this, url, navigationType);
+				final boolean shouldStart[] = new boolean[] { true };
+
+				delegate.runIf(new WeakReference.HasReference<Delegate>() {
+					public void hasReference(Delegate delegate) {
+						shouldStart[0] = delegate.shouldStartLoad(WebView.this, url, navigationType);
+					}
+				});
+
+				return !shouldStart[0];
 			} else {
 				return super.shouldOverrideUrlLoading(view, url);
 			}
@@ -534,19 +542,27 @@ public class WebView extends View {
 			isLoading = true;
 
 			if(delegate != null) {
-				delegate.didStartLoad(WebView.this);
+				delegate.runIf(new WeakReference.HasReference<Delegate>() {
+					public void hasReference(Delegate delegate) {
+						delegate.didStartLoad(WebView.this);
+					}
+				});
 			}
 		}
 
-		public void loadDidEnd(boolean failed) {
+		public void loadDidEnd(final boolean failed) {
 			isLoading = false;
 
 			if(delegate != null) {
-				if(failed) {
-					delegate.didFailLoad(WebView.this);
-				} else {
-					delegate.didFinishLoad(WebView.this);
-				}
+				delegate.runIf(new WeakReference.HasReference<Delegate>() {
+					public void hasReference(Delegate delegate) {
+						if(failed) {
+							delegate.didFailLoad(WebView.this);
+						} else {
+							delegate.didFinishLoad(WebView.this);
+						}
+					}
+				});
 			}
 
 			lastNavigationType = null;
