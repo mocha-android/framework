@@ -17,6 +17,29 @@ public class MObject {
 	private static String LOG_TAG = "Mocha";
 	private static boolean loggingEnabled = true;
 
+	public enum LogLevel {
+		VERBOSE(android.util.Log.VERBOSE),
+		DEBUG(android.util.Log.DEBUG),
+		INFO(android.util.Log.INFO),
+		WARN(android.util.Log.WARN),
+		ERROR(android.util.Log.ERROR),
+		WTF(android.util.Log.ASSERT);
+
+		private int level;
+
+		private LogLevel(int level) {
+			this.level = level;
+		}
+
+		void log(String message) {
+			android.util.Log.println(this.level, LOG_TAG, message);
+		}
+
+		void log(Throwable throwable, String message) {
+			android.util.Log.println(this.level, LOG_TAG, message + '\n' + android.util.Log.getStackTraceString(throwable));
+		}
+	}
+
 	public static boolean isLoggingEnabled() {
 		return loggingEnabled;
 	}
@@ -191,52 +214,72 @@ public class MObject {
 		}
 	}
 
-	public static void MLog(String message) {
-		if(!loggingEnabled) return;
+	public static void MLog(LogLevel logLevel, String message) {
+		if(loggingEnabled) {
+			if(logLevel == null) {
+				logLevel = LogLevel.VERBOSE;
+			}
 
-		Log.d(LOG_TAG, message);
+			logLevel.log(message);
+		}
+	}
+
+	public static void MLog(LogLevel logLevel, Throwable throwable, String message) {
+		if(loggingEnabled) {
+			if(logLevel == null) {
+				logLevel = LogLevel.DEBUG;
+			}
+
+			logLevel.log(throwable, message);
+		}
+	}
+
+	public static void MLog(String message) {
+		MLog(LogLevel.DEBUG, message);
 	}
 
 	public static void MWarn(String message) {
-		if(!loggingEnabled) return;
-
-		Log.w(LOG_TAG, message);
+		MLog(LogLevel.WARN, message);
 	}
 
 	public static void MLog(Throwable throwable, String message) {
-		if(!loggingEnabled) return;
-
-		Log.d(LOG_TAG, message, throwable);
+		MLog(LogLevel.DEBUG, throwable, message);
 	}
 
 	public static void MWarn(Throwable throwable, String message) {
-		if(!loggingEnabled) return;
+		MLog(LogLevel.WARN, throwable, message);
+	}
 
-		Log.w(LOG_TAG, message, throwable);
+	public static void MLogException(Throwable throwable) {
+		MLogException(throwable, throwable.getMessage());
+	}
+
+	public static void MLogException(Throwable throwable, String message) {
+		MLog(LogLevel.ERROR, throwable, message);
 	}
 
 	public static void MLog(String format, java.lang.Object... args) {
-		if(!loggingEnabled) return;
-
-		MLog(String.format(format, args));
+		if(loggingEnabled) {
+			MLog(String.format(format, args));
+		}
 	}
 
 	public static void MWarn(String format, java.lang.Object... args) {
-		if(!loggingEnabled) return;
-
-		MWarn(String.format(format, args));
+		if(loggingEnabled) {
+			MWarn(String.format(format, args));
+		}
 	}
 
 	public static void MLog(Throwable throwable, String format, java.lang.Object... args) {
-		if(!loggingEnabled) return;
-
-		MLog(throwable, String.format(format, args));
+		if(loggingEnabled) {
+			MLog(throwable, String.format(format, args));
+		}
 	}
 
 	public static void MWarn(Throwable throwable, String format, java.lang.Object... args) {
-		if(!loggingEnabled) return;
-
-		MWarn(throwable, String.format(format, args));
+		if(loggingEnabled) {
+			MWarn(throwable, String.format(format, args));
+		}
 	}
 
 	protected static String MGetCurrentMethodName() {

@@ -7,11 +7,10 @@ package mocha.foundation.dispatch;
 
 import android.os.Handler;
 import android.os.Looper;
-import mocha.foundation.MObject;
 
 import java.util.concurrent.Semaphore;
 
-public class MainQueue extends MObject implements Queue {
+public class MainQueue extends Queue {
 	private Handler handler;
 	private Semaphore lock = new Semaphore(1);
 	private static MainQueue instance;
