@@ -165,10 +165,24 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public void set(Rect rect) {
-		this.origin.x = rect.origin.x;
-		this.origin.y = rect.origin.y;
-		this.size.width = rect.size.width;
-		this.size.height = rect.size.height;
+		if(this != rect) {
+			if(rect == null) {
+				this.origin.x = 0.0f;
+				this.origin.y = 0.0f;
+				this.size.width = 0.0f;
+				this.size.height = 0.0f;
+			} else {
+				if(rect.origin != this.origin) {
+					this.origin.x = rect.origin.x;
+					this.origin.y = rect.origin.y;
+				}
+
+				if(rect.size != this.size) {
+					this.size.width = rect.size.width;
+					this.size.height = rect.size.height;
+				}
+			}
+		}
 	}
 
 	public Rect getScaledRect(float scale) {

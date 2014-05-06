@@ -1,7 +1,7 @@
 /**
  *  @author Shaun
  *  @date 3/15/14
- *  @copyright 2014 TV Guide, Inc. All rights reserved.
+ *  @copyright 2014 Mocha. All rights reserved.
  */
 package mocha.foundation;
 
@@ -11,7 +11,36 @@ import java.util.*;
 
 public class Lists {
 
-	private Lists() { }
+	private Lists() {
+	}
+
+	public static interface Filter<T> {
+		boolean filter(T item);
+	}
+
+	public static <T> List<T> filteredList(Collection<T> list, Filter<T> filter) {
+		List<T> filteredList = new ArrayList<>();
+
+		for (T item : list) {
+			if (filter.filter(item)) {
+				filteredList.add(item);
+			} else {
+				MObject.MWarn("CV_TEST - SKIPPING: " + item);
+			}
+		}
+
+		return filteredList;
+	}
+
+	public static <T> void filter(List<T> list, Filter<T> filter) {
+		Iterator<T> iterator = list.iterator();
+
+		while (iterator.hasNext()) {
+			if (!filter.filter(iterator.next())) {
+				iterator.remove();
+			}
+		}
+	}
 
 	public static <T> List<T> create(T... items) {
 		List<T> list = new ArrayList<T>();
@@ -19,22 +48,106 @@ public class Lists {
 		return list;
 	}
 
+	public static <T> List<T> copy(Collection<T> list) {
+		List<T> copy = new ArrayList<>();
+
+		if(list != null) {
+			copy.addAll(list);
+		}
+
+		return copy;
+	}
+
 	public static <T> T last(List<T> list) {
 		return last(list, null);
 	}
 
 	public static <T> T last(List<T> list, T defaultItemIfNull) {
-		if(list == null) {
+		if (list == null) {
 			return defaultItemIfNull;
 		} else {
 			int size = list.size();
 
-			if(size == 0) {
+			if (size == 0) {
 				return defaultItemIfNull;
 			} else {
 				return list.get(size - 1);
 			}
 		}
+	}
+
+	public static <T> T removeLast(List<T> list) {
+		if(list != null) {
+			int size = list.size();
+
+			if(size > 0) {
+				T item = list.get(size - 1);
+				list.remove(size - 1);
+				return item;
+			}
+		}
+
+		return null;
+	}
+
+	public static <T> T first(List<T> list) {
+		return first(list, null);
+	}
+
+	public static <T> T first(List<T> list, T defaultItemIfNull) {
+		if (list == null || list.isEmpty()) {
+			return defaultItemIfNull;
+		} else {
+			return list.get(0);
+		}
+	}
+
+	public static <T> T removeFirst(List<T> list) {
+		if(list != null) {
+			if(list.size() > 0) {
+				T item = list.get(0);
+				list.remove(0);
+				return item;
+			}
+		}
+
+		return null;
+	}
+
+	public static <T extends Comparable<T>> void sort(List<T> list) {
+		sort(list, true);
+	}
+
+	public static <T extends Comparable<T>> void sort(List<T> list, boolean ascending) {
+		final int modifier = ascending ? 1 : -1;
+
+		Collections.sort(list, new Comparator<T>() {
+			public int compare(T t, T t2) {
+				return t.compareTo(t2).getValue() * modifier;
+			}
+		});
+	}
+
+	public static <T extends Comparable<T>> List<T> sortedList(Collection<T> list) {
+		return sortedList(list, true);
+	}
+
+	public static <T extends Comparable<T>> List<T> sortedList(Collection<T> list, boolean ascending) {
+		List<T> sortedList = new ArrayList<>();
+
+		if(list != null) {
+			int size = list.size();
+
+			if(size > 0) {
+				sortedList.addAll(list);
+
+				if(size == 1) {
+					sort(sortedList, ascending);
+				}
+			}
+		}
+
+		return sortedList;
 	}
 
 	public static <T> void sort(List<T> list, SortDescriptor sortDescriptor) {

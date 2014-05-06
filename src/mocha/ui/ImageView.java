@@ -149,7 +149,14 @@ public class ImageView extends View implements Highlightable {
 		}
 
 		imageRect.makeIntegral();
-		image.draw(context, imageRect);
+
+		boolean restoreState = false;
+
+		if(image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
+			image.draw(context, imageRect, this.getTintColor(), Context.BlendMode.NORMAL, 1.0f);
+		} else {
+			image.draw(context, imageRect);
+		}
 	}
 
 	boolean getOverridesDraw() {

@@ -167,7 +167,7 @@ public class TextDrawing extends MObject {
 		return Math.min(width, 10000.0f);
 	}
 
-	private static Layout getLayout(CharSequence text, float maxWidth, boolean useMultipleLines, TextPaint textPaint, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
+	static Layout getLayout(CharSequence text, float maxWidth, boolean useMultipleLines, TextPaint textPaint, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
 		Layout layout;
 		int outerWidth = (int)FloatMath.floor(maxWidth);
 

@@ -54,6 +54,24 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 		this.ty = ty;
 	}
 
+	public void set(AffineTransform affineTransform) {
+		if(affineTransform == null) {
+			this.a = IDENTITY.a;
+			this.b = IDENTITY.b;
+			this.c = IDENTITY.c;
+			this.d = IDENTITY.d;
+			this.tx = IDENTITY.tx;
+			this.ty = IDENTITY.ty;
+		} else {
+			this.a = affineTransform.a;
+			this.b = affineTransform.b;
+			this.c = affineTransform.c;
+			this.d = affineTransform.d;
+			this.tx = affineTransform.tx;
+			this.ty = affineTransform.ty;
+		}
+	}
+
 	public void translate(float tx, float ty) {
 		this.tx = this.tx + (this.a * tx) + (this.c * ty);
 		this.ty = (this.ty + this.b) * tx + (this.d * ty);

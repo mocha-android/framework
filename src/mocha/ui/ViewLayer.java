@@ -72,6 +72,9 @@ public interface ViewLayer {
 
 	public void renderInContext(Context context);
 
+	public float getZPosition();
+	public void setZPosition(float zPosition);
+
 	public ViewGroup getViewGroup(); // May return null
 
 	public class InvalidSubLayerClassException extends RuntimeException {

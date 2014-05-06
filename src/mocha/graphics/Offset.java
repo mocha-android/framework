@@ -27,6 +27,19 @@ public final class Offset implements mocha.foundation.Copying <Offset> {
 		this(offset.horizontal, offset.vertical);
 	}
 
+
+	public void set(Offset offset) {
+		if(this != offset) {
+			if (offset == null) {
+				this.horizontal = 0.0f;
+				this.vertical = 0.0f;
+			} else {
+				this.horizontal = offset.horizontal;
+				this.vertical = offset.vertical;
+			}
+		}
+	}
+
 	public boolean equals(Offset offset) {
 		return (this == offset) || (this.horizontal == offset.horizontal && this.vertical == offset.vertical);
 	}

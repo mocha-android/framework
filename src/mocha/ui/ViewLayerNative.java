@@ -477,6 +477,14 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 		}
 	}
 
+	public float getZPosition() {
+		return 0;
+	}
+
+	public void setZPosition(float zPosition) {
+
+	}
+
 	private void renderSystemView(mocha.graphics.Context context, android.view.View systemView) {
 		systemView.draw(context.getCanvas());
 	}

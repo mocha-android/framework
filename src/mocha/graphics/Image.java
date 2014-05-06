@@ -8,10 +8,9 @@ package mocha.graphics;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.util.DisplayMetrics;
+import mocha.foundation.Data;
 import mocha.foundation.MObject;
-import mocha.ui.Application;
-import mocha.ui.EdgeInsets;
-import mocha.ui.Screen;
+import mocha.ui.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,6 +21,13 @@ public class Image extends MObject {
 	private Bitmap bitmap;
 	private EdgeInsets capInsets;
 	private NinePatch ninePatch;
+	private RenderingMode renderingMode;
+
+	public enum RenderingMode {
+		AUTOMATIC,
+		ALWAYS_ORIGINAL,
+		ALWAYS_TEMPLATE
+	}
 
 	public static Image imageNamed(int resourceId) {
 		if(resourceId <= 0) return null;
@@ -33,6 +39,14 @@ public class Image extends MObject {
 		} catch (OutOfMemoryError e) {
 			MWarn(e, "Could not decode image.");
 			return null;
+		}
+	}
+
+	public static Image imageWithData(Data data) {
+		if(data == null || data.length() == 0) {
+			return null;
+		} else {
+			return imageWithData(data.getBytes(), 0, data.length());
 		}
 	}
 
@@ -62,12 +76,34 @@ public class Image extends MObject {
 	public Image() {
 		this.scale = Screen.mainScreen().getScale();
 		this.size = Size.zero();
+		this.renderingMode = RenderingMode.AUTOMATIC;
 	}
 
 	public Image(Bitmap bitmap) {
+		this();
+
 		this.bitmap = bitmap;
-		this.size = new Size(bitmap.getScaledWidth(DisplayMetrics.DENSITY_MEDIUM), bitmap.getScaledHeight(DisplayMetrics.DENSITY_MEDIUM));
+		this.size.width = bitmap.getScaledWidth(DisplayMetrics.DENSITY_MEDIUM);
+		this.size.height = bitmap.getScaledHeight(DisplayMetrics.DENSITY_MEDIUM);
+
 		this.scale = (float)bitmap.getDensity() / (float)DisplayMetrics.DENSITY_MEDIUM;
+		this.renderingMode = RenderingMode.AUTOMATIC;
+	}
+
+	private Image(Image image) {
+		this();
+
+		this.bitmap = image.bitmap;
+		this.size.width = image.size.width;
+		this.size.height = image.size.height;
+
+		this.scale = image.scale;
+		this.renderingMode = image.renderingMode;
+
+		if(image.capInsets != null) {
+			this.capInsets = image.capInsets.copy();
+			this.ninePatch = image.ninePatch;
+		}
 	}
 
 	/**
@@ -182,11 +218,25 @@ public class Image extends MObject {
 		return this.capInsets != null ? this.capInsets.top : 0.0f;
 	}
 
+	public Image imageWithRenderingMode(RenderingMode renderingMode) {
+		Image image = new Image(this);
+		image.renderingMode = renderingMode;
+		return image;
+	}
+
+	public RenderingMode getRenderingMode() {
+		return this.renderingMode;
+	}
+
 	public void draw(Context context, Rect rect) {
-		this.draw(context, rect, Context.BlendMode.NORMAL, 1.0f);
+		this.draw(context, rect, 0, Context.BlendMode.NORMAL, 1.0f);
 	}
 
 	public void draw(Context context, Rect rect, Context.BlendMode blendMode, float alpha) {
+		this.draw(context, rect, 0, blendMode, alpha);
+	}
+
+	public void draw(Context context, Rect rect, int tintColor, Context.BlendMode blendMode, float alpha) {
 		if(this.bitmap == null) return;
 
 		Canvas canvas = context.getCanvas();
@@ -196,6 +246,12 @@ public class Image extends MObject {
 		paint.setFlags(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
 		paint.setXfermode(Context.getXferMode(blendMode));
 		paint.setAlpha(Math.round(alpha * 255.0f));
+
+		if(tintColor != 0) {
+			paint.setColorFilter(new PorterDuffColorFilter(tintColor, PorterDuff.Mode.SRC_IN));
+		} else if(this.renderingMode == RenderingMode.ALWAYS_TEMPLATE) {
+			paint.setColorFilter(new PorterDuffColorFilter(context.getPaint().getColor(), PorterDuff.Mode.SRC_IN));
+		}
 
 		if(this.ninePatch != null) {
 			this.ninePatch.draw(canvas, rect.toSystemRect(context.getScale()), paint);

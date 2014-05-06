@@ -7,7 +7,7 @@ package mocha.foundation;
 
 import java.util.Arrays;
 
-public class IndexPath extends MObject implements mocha.foundation.Copying <IndexPath> {
+public final class IndexPath extends MObject implements Copying <IndexPath>, Comparable <IndexPath> {
 	private final int[] indexes;
 	private final int hashCode;
 
@@ -39,7 +39,7 @@ public class IndexPath extends MObject implements mocha.foundation.Copying <Inde
 	 * @return IndexPath
 	 */
 	public static IndexPath withIndex(int index) {
-		return new IndexPath(index);
+		return IndexPath.withIndexes(index);
 	}
 
 	/**
@@ -48,7 +48,9 @@ public class IndexPath extends MObject implements mocha.foundation.Copying <Inde
 	 * @return IndexPath
 	 */
 	public static IndexPath withIndexes(int... indexes) {
-		return new IndexPath(indexes);
+		int hashCode = Arrays.hashCode(indexes);
+		// TODO: Effecient cache/reusing
+		return new IndexPath(hashCode, indexes);
 	}
 
 	public IndexPath(int index) {
@@ -56,8 +58,12 @@ public class IndexPath extends MObject implements mocha.foundation.Copying <Inde
 	}
 
 	public IndexPath(int... index) {
+		this(Arrays.hashCode(index), index);
+	}
+
+	private IndexPath(int hashCode, int... index) {
 		this.indexes = index;
-		this.hashCode = Arrays.hashCode(this.indexes);
+		this.hashCode = hashCode;
 
 		if(this.indexes.length > 0) {
 			this.section = this.indexes[0];
@@ -112,20 +118,52 @@ public class IndexPath extends MObject implements mocha.foundation.Copying <Inde
 		return withIndexes(section, item);
 	}
 
+	/**
+	 * Compare index paths
+	 *
+	 * @param other Other index path to compare
+	 * @return ComparisonResult
+	 */
+	public ComparisonResult compareTo(IndexPath other) {
+		int length = this.indexes.length;
+		int otherLength = other.indexes.length;
+
+		for (int index = 0; index < length; index++) {
+			if(index < otherLength) {
+				if (this.indexes[index] != other.indexes[index]) {
+					return this.indexes[index] < other.indexes[index] ? ComparisonResult.ASCENDING : ComparisonResult.DESCENDING;
+				}
+			} else {
+				return ComparisonResult.DESCENDING;
+			}
+		}
+
+		if(length == otherLength) {
+			return ComparisonResult.SAME;
+		} else {
+			// For loop catches length > otherLength
+			// so if we're here, it means length < otherLength
+			return ComparisonResult.ASCENDING;
+		}
+	}
+
 	@Override
 	public boolean equals(java.lang.Object object) {
-		return object == this || (object instanceof IndexPath && this.hashCode == ((IndexPath)object).hashCode);
+		return object != null && (object == this || (object instanceof IndexPath && this.hashCode == ((IndexPath)object).hashCode));
 	}
 
 	@Override
-	public String toString() {
-		return String.format("<%s 0x%d indexes=%s>", this.getClass(), this.hashCode, Arrays.toString(this.indexes));
+	protected String toStringExtra() {
+		return "indexes=" + Arrays.toString(this.indexes);
 	}
 
-	@Override
 	public IndexPath copy() {
 		int[] indexes = this.indexes.clone();
 		return new IndexPath(indexes);
 	}
 
+	@Override
+	public int hashCode() {
+		return this.hashCode;
+	}
 }

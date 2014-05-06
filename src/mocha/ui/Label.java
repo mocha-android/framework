@@ -11,6 +11,7 @@ import mocha.graphics.*;
 public class Label extends View implements Highlightable {
 
 	private TextDrawingText text;
+	private AttributedString attributedText;
 	private Font font;
 	private int textColor;
 	private int highlightedTextColor;
@@ -36,7 +37,7 @@ public class Label extends View implements Highlightable {
 		this.textAlignment = TextAlignment.LEFT;
 		this.lineBreakMode = LineBreakMode.TRUNCATING_TAIL;
 		this.textColor = Color.BLACK;
-		this.setBackgroundColor(Color.WHITE);
+		this.setBackgroundColor(Color.TRANSPARENT);
 		this.enabled = true;
 		this.numberOfLines = 1;
 		this.setClipsToBounds(true);
@@ -57,6 +58,24 @@ public class Label extends View implements Highlightable {
 
 			this.setTextNeedsMeasuring();
 		}
+	}
+
+	public AttributedString getAttributedText() {
+		if(this.attributedText == null) {
+			return null;
+		} else {
+			return this.attributedText.copy();
+		}
+	}
+
+	public void setAttributedText(AttributedString attributedText) {
+		if(attributedText == null) {
+			this.attributedText = null;
+		} else {
+			this.attributedText = attributedText.copy();
+		}
+
+		this.setTextNeedsMeasuring();
 	}
 
 	public Font getFont() {
@@ -190,7 +209,9 @@ public class Label extends View implements Highlightable {
 	}
 
 	public Rect getTextRectForBound(Rect bounds, int numberOfLines) {
-		if(this.text != null && this.text.length() > 0) {
+		if(this.attributedText != null && this.attributedText.length() > 0) {
+			return new Rect(bounds.origin, this.attributedText.getBoundingRectWithSize(bounds.size, this.textAlignment).size);
+		} else if (this.text != null && this.text.length() > 0) {
 			Size maxSize = new Size(bounds.size);
 
 			if (numberOfLines > 0) {
@@ -204,18 +225,28 @@ public class Label extends View implements Highlightable {
 	}
 
 	public Size sizeThatFits(Size size) {
-		if(this.text == null) {
-			return Size.zero();
-		}
+		Size textSize;
 
-		if(size.width != this.getFrame().size.width) {
-			this.text.invalidate();
+		if(this.attributedText != null && this.attributedText.length() > 0) {
+			textSize = this.attributedText.getBoundingRectWithSize(size, this.textAlignment).size;
+			textSize.width = ceilf(textSize.width);
+			textSize.height = ceilf(textSize.height);
+		} else {
+			if (this.text == null) {
+				return Size.zero();
+			}
+
+			if (size.width != this.getFrame().size.width) {
+				this.text.invalidate();
+			}
+
+			textSize = TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode);
 		}
 
 		// This seems odd, but generally if sizeThatFits is called, it's followed up
 		// with a call to setFrame(), and this allows us to use the cached layout we
 		// just created vs creating a new one.
-		this.lastSize = Size.min(TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode), size);
+		this.lastSize = Size.min(textSize, size);
 		this.setNeedsDisplay();
 
 		return this.lastSize.copy();
@@ -231,30 +262,44 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void drawTextInRect(mocha.graphics.Context context, Rect rect) {
-		if(this.text == null) return;
+		if((this.text == null || this.text.length() == 0) && (this.attributedText == null || this.attributedText.length() == 0)) return;
 
 		context.save();
-		context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
 		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
-		TextDrawing.draw(context, this.text, rect, this.getFont(), this.textAlignment, this.lineBreakMode);
+
+		if(this.attributedText != null && this.attributedText.length() > 0) {
+			MWarn("DRAWING TEXT %s: %s", this.attributedText, rect);
+			this.attributedText.draw(context, rect, this.textAlignment);
+		} else {
+			context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
+			TextDrawing.draw(context, this.text, rect, this.getFont(), this.textAlignment, this.lineBreakMode);
+		}
+
 		context.restore();
 	}
 
 	@Override
 	public void draw(Context context, Rect rect) {
-		if(this.text == null || this.text.length() == 0) return;
+		if((this.attributedText == null || this.attributedText.length() == 0) && (this.text == null || this.text.length() == 0)) return;
 
 		Rect bounds = this.getBounds();
 		Rect drawRect = Rect.zero();
 
-		if(lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
+		if(this.lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
 			Size maxSize = bounds.size.copy();
 
 			if (this.numberOfLines > 0) {
 				maxSize.height = this.getFont().getLineHeight() * this.numberOfLines;
 			}
 
-			this.textSize = TextDrawing.getTextSize(this.text, this.getFont(), maxSize, this.lineBreakMode);
+			if(this.attributedText != null && this.attributedText.length() > 0) {
+				this.textSize = this.attributedText.getBoundingRectWithSize(maxSize, this.textAlignment).size;
+				this.textSize.width = ceilf(textSize.width);
+				this.textSize.height = ceilf(textSize.height);
+			} else {
+				this.textSize = TextDrawing.getTextSize(this.text, this.getFont(), maxSize, this.lineBreakMode);
+			}
+
 			this.lastSize = bounds.size.copy();
 			this.textNeedsMeasuring = false;
 		}

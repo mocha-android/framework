@@ -279,18 +279,25 @@ public class View extends Responder implements Accessibility {
 	private int tag;
 	private boolean needsLayout;
 	private boolean userInteractionEnabled;
-	Rect frame;
-	private Rect bounds;
-	private AffineTransform transform;
+	final Rect frame;
+	private final Rect bounds;
+	private final AffineTransform transform;
 	private List<GestureRecognizer> gestureRecognizers;
 	private boolean clipsToBounds;
 	public final float scale;
 	private boolean onCreatedCalled;
 	private ContentMode contentMode;
 	private boolean multipleTouchEnabled;
-	private int tintColor;
-	private TintAdjustmentMode tintAdjustmentMode;
+
 	Touch trackingSingleTouch;
+
+	private int tintColor;
+	private int dimmedTintColor;
+	private TintAdjustmentMode tintAdjustmentMode;
+
+	private int inheritedTintColor;
+	private int inheritedDimmedTintColor;
+	private TintAdjustmentMode inherritedTintAdjustmentMode;
 
 	/**
 	 * Mapped to {@link ViewAnimation.Type#value}. Each property type can
@@ -340,6 +347,7 @@ public class View extends Responder implements Accessibility {
 
 		this.frame = frame.copy();
 		this.bounds = new Rect(0.0f, 0.0f, frame.size.width, frame.size.height);
+		this.transform = AffineTransform.identity();
 		this.animations = new ViewAnimation[ViewAnimation.Type.values().length];
 
 		this.layer.setView(this);
@@ -354,7 +362,7 @@ public class View extends Responder implements Accessibility {
 		this.multipleTouchEnabled = false;
 		this.needsLayout = true;
 		this.tintColor = 0;
-		this.tintAdjustmentMode = null;
+		this.tintAdjustmentMode = TintAdjustmentMode.AUTOMATIC;
 
 		this.layer.setSupportsDrawing(this.getOverridesDraw());
 
@@ -421,49 +429,51 @@ public class View extends Responder implements Accessibility {
 			frame = Rect.zero();
 		}
 
-		if(!frame.equals(this.frame)) {
-			ViewAnimation.Type animationType = ViewAnimation.Type.FRAME;
+		if(frame.equals(this.frame)) {
+			return;
+		}
 
-			if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-				currentViewAnimation.addAnimation(this, animationType, frame.copy());
+		ViewAnimation.Type animationType = ViewAnimation.Type.FRAME;
+
+		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
+			currentViewAnimation.addAnimation(this, animationType, frame.copy());
+			this.frame.set(frame);
+			return;
+		}
+
+		if(!this.animationIsSetting && this.animations[animationType.value] != null) {
+			if(this.changeEndValueForAnimationType(animationType, frame.copy())) {
 				this.frame.set(frame);
 				return;
 			}
+		}
 
-			if(!this.animationIsSetting && this.animations[animationType.value] != null) {
-				if(this.changeEndValueForAnimationType(animationType, frame.copy())) {
-					this.frame.set(frame);
-					return;
-				}
-			}
+		if(this.superview != null && !this.superview.bounds.contains(this.frame)) {
+			// Fixes a weird bug in Android that leaves artifacts on the screen
+			// if the old frame wasn't fully contained within the bounds.
+			this.superview.setNeedsDisplay(this.frame);
+		}
 
-			if(this.superview != null && !this.superview.bounds.contains(this.frame)) {
-				// Fixes a weird bug in Android that leaves artifacts on the screen
-				// if the old frame wasn't fully contained within the bounds.
-				this.superview.setNeedsDisplay(this.frame);
-			}
+		this.frame.set(frame);
+		boolean boundsChanged;
 
-			this.frame.set(frame);
-			boolean boundsChanged;
+		float oldWidth = this.bounds.size.width;
+		float oldHeight = this.bounds.size.height;
+		float x = this.bounds.origin.x;
+		float y = this.bounds.origin.y;
 
-			float oldWidth = this.bounds.size.width;
-			float oldHeight = this.bounds.size.height;
-			float x = this.bounds.origin.x;
-			float y = this.bounds.origin.y;
+		if(oldWidth != this.frame.size.width || oldHeight != this.frame.size.height) {
+			this.bounds.size.width = this.frame.size.width;
+			this.bounds.size.height = this.frame.size.height;
+			boundsChanged = true;
+		} else {
+			boundsChanged = false;
+		}
 
-			if(oldWidth != this.frame.size.width || oldHeight != this.frame.size.height) {
-				this.bounds.size.width = this.frame.size.width;
-				this.bounds.size.height = this.frame.size.height;
-				boundsChanged = true;
-			} else {
-				boundsChanged = false;
-			}
+		this.layer.setFrame(this.frame, this.bounds);
 
-			this.layer.setFrame(this.frame, this.bounds);
-
-			if(boundsChanged) {
-				this.boundsDidChange(x, y, oldWidth, oldHeight, x, y, this.bounds.size.width, this.bounds.size.height);
-			}
+		if(boundsChanged) {
+			this.boundsDidChange(x, y, oldWidth, oldHeight, x, y, this.bounds.size.width, this.bounds.size.height);
 		}
 	}
 
@@ -490,13 +500,13 @@ public class View extends Responder implements Accessibility {
 
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
 			currentViewAnimation.addAnimation(this, type, bounds);
-			this.bounds = bounds.copy();
+			this.bounds.set(bounds);
 			return;
 		}
 
 		if(!this.animationIsSetting && this.animations[type.value] != null) {
 			if(this.changeEndValueForAnimationType(type, bounds.copy())) {
-				this.bounds = bounds.copy();
+				this.bounds.set(bounds);
 				return;
 			}
 		}
@@ -520,6 +530,18 @@ public class View extends Responder implements Accessibility {
 			this.layer.setBounds(this.bounds);
 			this.boundsDidChange(oldX, oldY, oldWidth, oldHeight, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 		}
+	}
+
+
+	public Point getCenter() {
+		return new Point(this.frame.midX(), this.frame.midY());
+	}
+
+	public void setCenter(Point center) {
+		Rect frame = this.bounds.copy();
+		frame.origin.x = center.x - (frame.size.width / 2.0f);
+		frame.origin.y = center.y - (frame.size.height / 2.0f);
+		this.setFrame(frame);
 	}
 
 	public EnumSet<Autoresizing> getAutoresizing() {
@@ -601,35 +623,33 @@ public class View extends Responder implements Accessibility {
 	 * @param transform Transform value
 	 */
 	public void setTransform(AffineTransform transform) {
+		if(this.transform.equals(transform)) {
+			return;
+		}
+
 		if(transform == null) {
 			transform = AffineTransform.identity();
-		} else {
-			transform = transform.copy();
 		}
 
 		ViewAnimation.Type type = ViewAnimation.Type.TRANSFORM;
 
 		if(areAnimationsEnabled && currentViewAnimation != null && this.superview != null) {
-			currentViewAnimation.addAnimation(this, type, transform);
+			currentViewAnimation.addAnimation(this, type, transform.copy());
 		} else {
 			if(!this.animationIsSetting && this.animations[type.value] != null) {
-				if(this.changeEndValueForAnimationType(type, transform)) {
-					this.transform = transform;
+				if(this.changeEndValueForAnimationType(type, transform.copy())) {
+					this.transform.set(transform);
 					return;
 				}
 			}
 
 			this.layer.setTransform(transform);
-			this.transform = transform;
+			this.transform.set(transform);
 		}
 	}
 
 	public AffineTransform getTransform() {
-		if(this.transform == null) {
-			return AffineTransform.identity();
-		} else {
-			return this.transform.copy();
-		}
+		return this.transform.copy();
 	}
 
 	public boolean doesAutoresizeSubviews() {
@@ -747,58 +767,100 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public void setTintAdjustmentMode(TintAdjustmentMode tintAdjustmentMode) {
-		if(this.tintAdjustmentMode != tintAdjustmentMode) {
-			this.tintAdjustmentMode = tintAdjustmentMode;
-			this.notifyTintAdjustmentModeChanged();
+		this.tintAdjustmentMode = tintAdjustmentMode;
+
+		if(tintAdjustmentMode == TintAdjustmentMode.AUTOMATIC) {
+			this.updateTintInheritence();
 		}
+
+		this.notifyTintChanged();
 	}
 
 	public int getTintColor() {
-		// TODO: Desaturate if dimmed
-		if(this.tintColor == 0) {
-			if(this.getSuperview() != null) {
-				return this.getSuperview().getTintColor();
+		MWarn("DEBUG_TINT, %s %s %d %d", this.getTintAdjustmentMode(), this.tintAdjustmentMode, this.tintColor, this.inheritedTintColor);
+
+		if(this.getTintAdjustmentMode() == TintAdjustmentMode.DIMMED) {
+			if(this.tintColor == 0) {
+				return this.inheritedDimmedTintColor;
 			} else {
-				return Color.BLUE;
+				return this.dimmedTintColor;
 			}
 		} else {
-			return this.tintColor;
+			if(this.tintColor == 0) {
+				return this.inheritedTintColor;
+			} else {
+				return this.tintColor;
+			}
 		}
 	}
 
 	public void setTintColor(int tintColor) {
-		if(this.tintColor != tintColor) {
-			this.tintColor = tintColor;
-			this.notifyTintColorChanged();
+		this.tintColor = tintColor;
+
+		if(tintColor != 0) {
+			// TODO: Desaturate instead of adjusting alpha
+			this.dimmedTintColor = Color.colorWithAlpha(tintColor, 0.5f);
+		} else {
+			this.dimmedTintColor = 0;
+			this.updateTintInheritence();
 		}
+
+		this.notifyTintChanged();
 	}
 
-	private void notifyTintColorChanged() {
-		this.tintColorDidChange();
+	/**
+	 * Updates inherited tint properties
+	 */
+	private void updateTintInheritence() {
+		if(this.superview == null) {
+			this.inheritedTintColor = Color.BLUE;
+			this.inheritedDimmedTintColor = Color.GRAY;
+			this.inherritedTintAdjustmentMode = TintAdjustmentMode.NORMAL;
+		} else {
+			if(this.superview.tintColor == 0) {
+				this.inheritedTintColor = this.superview.inheritedTintColor;
+				this.inheritedDimmedTintColor = this.superview.inheritedDimmedTintColor;
+			} else {
+				this.inheritedTintColor = this.superview.tintColor;
+				this.inheritedDimmedTintColor = this.superview.dimmedTintColor;
+			}
 
-		for(View subview : this.getSubviews()) {
-			if(subview.tintColor == 0) {
-				subview.notifyTintColorChanged();
+			if(this.superview.tintAdjustmentMode == TintAdjustmentMode.AUTOMATIC) {
+				this.inherritedTintAdjustmentMode = this.superview.inherritedTintAdjustmentMode;
+			} else {
+				this.inherritedTintAdjustmentMode = this.superview.tintAdjustmentMode;
 			}
 		}
 	}
 
-	private void notifyTintAdjustmentModeChanged() {
+	/**
+	 * Notifies subviews who inherit tint that their inherited values
+	 * need to be updated.
+	 */
+	private void notifyTintChanged() {
 		this.tintColorDidChange();
 
 		for(View subview : this.getSubviews()) {
-			if(subview.tintAdjustmentMode == null) {
-				subview.notifyTintColorChanged();
+			if(subview.doesInheritTint()) {
+				subview.updateTintInheritence();
+				subview.notifyTintChanged();
 			}
 		}
+	}
+
+	private boolean doesInheritTint() {
+		return this.tintColor == 0 || this.tintAdjustmentMode == TintAdjustmentMode.AUTOMATIC;
 	}
 
 	public void tintColorDidChange() {
 
 	}
 
+	/**
+	 * @return True if this view can receive touches, false otherwise
+	 */
 	public boolean isUserInteractionEnabled() {
-		return userInteractionEnabled;
+		return this.userInteractionEnabled;
 	}
 
 	/**
@@ -1280,6 +1342,11 @@ public class View extends Responder implements Accessibility {
 			view.didMoveWindows(oldWindow, newWindow);
 			view.didMoveToSuperview();
 			this.didAddSubview(view);
+
+			if(view.doesInheritTint()) {
+				view.updateTintInheritence();
+				view.tintColorDidChange();
+			}
 
 			view._layoutSubviews();
 		}
@@ -1868,6 +1935,16 @@ public class View extends Responder implements Accessibility {
 	@Override
 	public void setShouldGroupAccessibilityChildren(boolean shouldGroupAccessibilityChildren) {
 		this.shouldGroupAccessibilityChildren = shouldGroupAccessibilityChildren;
+	}
+
+	// Snapshotting
+
+	public View snapshotView() {
+		return new SnapshotView(this);
+	}
+
+	public View resizableSnapshotView(Rect rect, EdgeInsets capInsets) {
+		return new SnapshotView(this);
 	}
 
 	// Animations

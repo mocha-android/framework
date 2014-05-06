@@ -27,17 +27,24 @@ public final class Size implements mocha.foundation.Copying <Size> {
 		this(size.width, size.height);
 	}
 
+	public void set(Size size) {
+		if(this != size) {
+			if(size == null) {
+				this.width = 0.0f;
+				this.height = 0.0f;
+			} else {
+				this.width = size.width;
+				this.height = size.height;
+			}
+		}
+	}
+
 	public boolean equals(Size size) {
 		return size != null && ((this == size) || (this.width == size.width && this.height == size.height));
 	}
 
 	public String toString() {
-		return String.format("{%s, %s}", ((Float)this.width), ((Float)this.height));
-	}
-
-	public void set(Size size) {
-		this.width = size.width;
-		this.height = size.height;
+		return String.format("{%s, %s}", this.width, this.height);
 	}
 
 	public Size copy() {

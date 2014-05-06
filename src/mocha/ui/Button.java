@@ -445,17 +445,13 @@ public class Button extends Control {
 		Size sizeThatFits = imageSize.copy();
 		CharSequence title = this.getCurrentTitle();
 
-		if(imageSize.width < size.width) {
-			if(title != null && title.length() > 0) {
-				float titleWidth = ceilf(this.titleLabel.sizeThatFits(new Size(size.width - imageSize.width, size.height)).width);
-				sizeThatFits.width = imageSize.width + titleWidth;
-			}
+		if(title != null && title.length() > 0) {
+			float titleWidth = ceilf(this.titleLabel.sizeThatFits(new Size(10000.0f, 10000.0f)).width);
+			sizeThatFits.width = imageSize.width + titleWidth;
 		}
 
-		if(imageSize.height < size.height) {
-			if(title != null && title.length() > 0) {
-				sizeThatFits.height = Math.max(imageSize.height, ceilf(this.titleLabel.getFont().getLineHeight()));
-			}
+		if(title != null && title.length() > 0) {
+			sizeThatFits.height = Math.max(imageSize.height, ceilf(this.titleLabel.getFont().getLineHeight()));
 		}
 
 		sizeThatFits.width += this.contentEdgeInsets.left + this.contentEdgeInsets.right;
@@ -468,9 +464,6 @@ public class Button extends Control {
 			sizeThatFits.width = Math.max(sizeThatFits.width, backgroundSize.width);
 			sizeThatFits.height = Math.max(sizeThatFits.height, backgroundSize.height);
 		}
-
-		sizeThatFits.width = Math.min(sizeThatFits.width, size.width);
-		sizeThatFits.height = Math.min(sizeThatFits.height, size.height);
 
 		return sizeThatFits;
 	}

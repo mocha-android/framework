@@ -37,6 +37,18 @@ public final class Point implements mocha.foundation.Copying <Point> {
 		this(pointF.x, pointF.y);
 	}
 
+	public void set(Point otherPoint) {
+		if(this != otherPoint) {
+			if(otherPoint == null) {
+				this.x = 0.0f;
+				this.y = 0.0f;
+			} else {
+				this.x = otherPoint.x;
+				this.y = otherPoint.y;
+			}
+		}
+	}
+
 	public float distanceBetween(Point point) {
 		if(point == null) return 0.0f;
 

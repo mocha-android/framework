@@ -361,6 +361,14 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 		throw new UnsupportedOperationException();
 	}
 
+	public float getZPosition() {
+		return 0;
+	}
+
+	public void setZPosition(float zPosition) {
+
+	}
+
 	//
 
 	void draw(GL10 gl) {

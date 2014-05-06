@@ -46,7 +46,8 @@ public final class TextInput {
 
 		public enum Appearance {
 			DEFAULT,          // Default apperance for the current input method.
-			ALERT             // Appearance suitable for use in "alert" scenarios.
+			DARK,
+			LIGHT
 		}
 
 		public enum ReturnKeyType {

@@ -27,14 +27,14 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	private Context context;
 	private mocha.graphics.Context drawContext;
 
-	private Rect frame;
-	private Rect bounds;
-	private android.graphics.Rect reuseableRect;
+	private final Rect frame;
+	private final Rect bounds;
+	private final android.graphics.Rect reuseableRect;
 
 	private boolean supportsDrawing;
 	private boolean clipsToBounds;
 	private int backgroundColor;
-	private AffineTransform transform;
+	private final AffineTransform transform;
 	private int shadowColor;
 	private float shadowOpacity;
 	private Size shadowOffset;
@@ -152,14 +152,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	public void setBounds(Rect bounds) {
 		if(!this.bounds.equals(bounds)) {
-			if(bounds == null) {
-				this.bounds.origin.x = 0.0f;
-				this.bounds.origin.y = 0.0f;
-				this.bounds.size.width = 0.0f;
-				this.bounds.size.height = 0.0f;
-			} else {
-				this.bounds.set(bounds);
-			}
+			this.bounds.set(bounds);
 
 			for(ViewLayerNative2 sublayer : this.sublayers) {
 				sublayer.updatePosition();
@@ -242,9 +235,8 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	public void setTransform(AffineTransform transform) {
-		if(transform == null) transform = AffineTransform.identity();
 		if(this.transform.equals(transform)) return;
-		this.transform = transform.copy();
+		this.transform.set(transform);
 
 		if(this.transform.isIdentity()) {
 			this.matrix = null;
@@ -478,6 +470,14 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 				this.renderSystemView(context, child);
 			}
 		}
+	}
+
+	public float getZPosition() {
+		return 0;
+	}
+
+	public void setZPosition(float zPosition) {
+
 	}
 
 	private void renderSystemView(mocha.graphics.Context context, android.view.View systemView) {

@@ -50,7 +50,7 @@ public final class Window extends View {
 		this.visibleViewControllers = new ArrayList<ViewController>();
 
 		this.setTintColor(Color.BLUE);
-		this.setTintAdjustmentMode(TintAdjustmentMode.AUTOMATIC);
+		this.setTintAdjustmentMode(TintAdjustmentMode.NORMAL);
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {

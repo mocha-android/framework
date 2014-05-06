@@ -6,13 +6,15 @@
 package mocha.ui;
 
 import mocha.animation.TimingFunction;
+import mocha.foundation.OptionalInterface;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
 public class ScrollView extends View implements GestureRecognizer.GestureHandler {
 
-	public interface Listener {
+	public interface Listener extends OptionalInterface {
+		@Optional
 		public void didScroll(ScrollView scrollView);
 
 		public interface Dragging extends Listener {
@@ -38,6 +40,17 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public enum IndicatorStyle {
 		DEFAULT, BLACK, WHITE
+	}
+
+	public enum KeyboardDismissMode {
+		// Do not dismiss keyboard
+		NONE,
+
+		// Dismiss when user starts to drag
+		ON_DRAG,
+
+		// Dismisses keyboard with user touch, can be cancelled if touch moves up
+		INTERACTIVE
 	}
 
 	Point contentOffset;
@@ -69,6 +82,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private ScrollIndicator verticalScrollIndicator;
 	private EdgeInsets contentInset;
 	private ScrollViewAnimation scrollViewAnimation;
+	private KeyboardDismissMode keyboardDismissMode;
 
 	public ScrollView() { }
 	public ScrollView(Rect frame) { super(frame); }
@@ -209,6 +223,16 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	public void insertSubview(View subview, int index) {
 		super.insertSubview(subview, index);
 		this.bringScrollIndicatorsToFront();
+	}
+
+	public KeyboardDismissMode getKeyboardDismissMode() {
+		return this.keyboardDismissMode;
+	}
+
+	public void setKeyboardDismissMode(KeyboardDismissMode keyboardDismissMode) {
+		// TODO
+		MWarn("KeyboardDismissMode is not currently implemented.");
+		this.keyboardDismissMode = keyboardDismissMode;
 	}
 
 	public EdgeInsets getContentInset() {
@@ -422,7 +446,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			if(internal || inSimpleAnimation) {
 				this.contentOffset = contentOffset.copy();
 			} else {
-				this.contentOffset = new Point(roundf(contentOffset.x), roundf(contentOffset.y));
+				this.contentOffset = new Point(ScreenMath.round(contentOffset.x), ScreenMath.round(contentOffset.y));
 			}
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
@@ -466,8 +490,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 		if (this.pagingEnabled && animated) {
 			Size a = this.getPageSize();
-			contentOffset.x = roundf(this.contentOffset.x / a.width) * a.width;
-			contentOffset.y = roundf(this.contentOffset.y / a.height) * a.height;
+			contentOffset.x = ScreenMath.round(this.contentOffset.x / a.width) * a.width;
+			contentOffset.y = ScreenMath.round(this.contentOffset.y / a.height) * a.height;
 			commit = true;
 		} else {
 			if (this.bounces) {
@@ -485,8 +509,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			}
 
-			contentOffset.x = roundf(contentOffset.x);
-			contentOffset.y = roundf(contentOffset.y);
+			contentOffset.x = ScreenMath.round(contentOffset.x);
+			contentOffset.y = ScreenMath.round(contentOffset.y);
 
 			commit = (contentOffset.x != this.contentOffset.x || contentOffset.y != this.contentOffset.y);
 		}
@@ -584,20 +608,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		float adjustedWidth = maxX - minX;
-		float width = Math.max(MIN_INDICATOR_LENGTH, roundf((size.width / this.adjustedContentSize.width) * adjustedWidth));
+		float width = Math.max(MIN_INDICATOR_LENGTH, ScreenMath.round((size.width / this.adjustedContentSize.width) * adjustedWidth));
 		float y = size.height - this.horizontalScrollIndicator.getThickness() - this.scrollIndicatorInsets.bottom - 1;
 		float x;
 
 		if (this.contentOffset.x < 0) {
-			width = roundf(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
+			width = ScreenMath.round(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 			x = minX;
 		} else {
 			if (this.contentOffset.x > this.maxPoint.x) {
-				width = roundf(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
+				width = ScreenMath.round(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 				x = maxX - width;
 			} else {
 				float b = (this.contentOffset.x / (this.adjustedContentSize.width - size.width));
-				x = clampf(roundf(b * (adjustedWidth - width) + this.scrollIndicatorInsets.left), minX, maxX - width);
+				x = clampf(ScreenMath.round(b * (adjustedWidth - width) + this.scrollIndicatorInsets.left), minX, maxX - width);
 			}
 		}
 
@@ -616,20 +640,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		float adjustedHeight = maxY - minY;
-		float height = Math.max(MIN_INDICATOR_LENGTH, roundf((size.height / this.adjustedContentSize.height) * adjustedHeight));
+		float height = Math.max(MIN_INDICATOR_LENGTH, ScreenMath.round((size.height / this.adjustedContentSize.height) * adjustedHeight));
 		float x = size.width - this.verticalScrollIndicator.getThickness() - this.scrollIndicatorInsets.right - 1;
 		float y;
 
 		if (this.contentOffset.y < 0) {
-			height = roundf(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
+			height = ScreenMath.round(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 			y = minY;
 		} else {
 			if (this.contentOffset.y > this.maxPoint.y) {
-				height = roundf(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
+				height = ScreenMath.round(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 				y = maxY - height;
 			} else {
 				float c = (this.contentOffset.y / (this.adjustedContentSize.height - size.height));
-				y = clampf(roundf(c * (adjustedHeight - height) + this.scrollIndicatorInsets.top), minY, maxY - height);
+				y = clampf(ScreenMath.round(c * (adjustedHeight - height) + this.scrollIndicatorInsets.top), minY, maxY - height);
 			}
 		}
 
@@ -800,8 +824,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	private void didScroll(boolean fromAnimation) {
 		if(fromAnimation) {
-			this.contentOffset.x = roundf(this.contentOffset.x);
-			this.contentOffset.y = roundf(this.contentOffset.y);
+			this.contentOffset.x = ScreenMath.round(this.contentOffset.x);
+			this.contentOffset.y = ScreenMath.round(this.contentOffset.y);
 			this.updateScrollPositionWithContentOffset();
 
 			if(this.listenerAnimations != null) {
@@ -809,9 +833,29 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
+		this.didScroll();
+
 		if(this.listener != null) {
 			this.listener.didScroll(this);
 		}
+	}
+
+	/**
+	 * Convenience for subclasses, called before listener is notified
+	 */
+	protected void didScroll() {
+
+	}
+
+	/**
+	 * Convenience for subclasses, called before listener is notified
+	 *
+	 * @param velocity Scroll velocity
+	 * @param targetContentOffset Target content offset
+	 * @return true to allow the listener to be called, false to prevent it from being called
+	 */
+	protected boolean willEndDraggingWithVelocityAndTargetContentOffset(Point velocity, Point targetContentOffset) {
+		return true;
 	}
 
 }

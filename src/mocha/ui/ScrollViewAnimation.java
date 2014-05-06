@@ -87,10 +87,10 @@ class ScrollViewAnimation extends MObject {
 
 		if (this.pagingEnabled) {
 			Size pageSize = target.getPageSize();
-			this.minDecelerationPoint.x = Math.max(this.minPoint.x, View.floorf(target.contentOffset.x / pageSize.width) * pageSize.width);
-			this.minDecelerationPoint.y = Math.max(this.minPoint.y, View.floorf(target.contentOffset.y / pageSize.height) * pageSize.height);
-			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, View.ceilf(target.contentOffset.x / pageSize.width) * pageSize.width);
-			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, View.ceilf(target.contentOffset.y / pageSize.height) * pageSize.height);
+			this.minDecelerationPoint.x = Math.max(this.minPoint.x, ScreenMath.floor(target.contentOffset.x / pageSize.width) * pageSize.width);
+			this.minDecelerationPoint.y = Math.max(this.minPoint.y, ScreenMath.floor(target.contentOffset.y / pageSize.height) * pageSize.height);
+			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, ScreenMath.ceil(target.contentOffset.x / pageSize.width) * pageSize.width);
+			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, ScreenMath.ceil(target.contentOffset.y / pageSize.height) * pageSize.height);
 		}
 
 		float minimumVelocity = this.pagingEnabled ? MIN_VELOCITY_FOR_DECELERATION_WITH_PAGING : MIN_VELOCITY_FOR_DECELERATION;
@@ -148,8 +148,10 @@ class ScrollViewAnimation extends MObject {
 
 		Point originalTargetContentOffset = targetContentOffset.copy();
 
-		if(target.listenerDragging != null) {
-			target.listenerDragging.willEndDraggingWithVelocityAndTargetContentOffset(target, velocity, targetContentOffset);
+		if (target.willEndDraggingWithVelocityAndTargetContentOffset(velocity, targetContentOffset)) {
+			if (target.listenerDragging != null) {
+				target.listenerDragging.willEndDraggingWithVelocityAndTargetContentOffset(target, velocity, targetContentOffset);
+			}
 		}
 
 		if (originalTargetContentOffset.equals(targetContentOffset)) {
@@ -226,7 +228,7 @@ class ScrollViewAnimation extends MObject {
 
 		this.animatedContentOffset = offset;
 
-		if (target.contentOffset.x != View.roundf(offset.x) || target.contentOffset.y != View.roundf(offset.y)) {
+		if (target.contentOffset.x != ScreenMath.round(offset.x) || target.contentOffset.y != ScreenMath.round(offset.y)) {
 			target.setContentOffset(offset, null, 0, true);
 		}
 
@@ -289,7 +291,7 @@ class ScrollViewAnimation extends MObject {
 
 		if (this.pagingEnabled) {
 			Size a = target.getPageSize();
-			target.setContentOffset(new Point(View.roundf(target.contentOffset.x / a.width) * a.width, View.roundf(target.contentOffset.y / a.height) * a.height), false);
+			target.setContentOffset(new Point(ScreenMath.round(target.contentOffset.x / a.width) * a.width, ScreenMath.round(target.contentOffset.y / a.height) * a.height), false);
 		}
 
 		target.snapContentOffsetToBounds(false);

@@ -296,6 +296,14 @@ public class ViewLayerCanvas extends MObject implements ViewLayer {
 		this.draw(context.getCanvas());
 	}
 
+	public float getZPosition() {
+		return 0;
+	}
+
+	public void setZPosition(float zPosition) {
+
+	}
+
 	void draw(Canvas canvas) {
 		if(this.hidden) return;
 		if(this.alpha < 0.01f) return;

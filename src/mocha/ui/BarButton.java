@@ -95,7 +95,13 @@ class BarButton extends Button {
 		if(item.getTitle() != null && item.getTitle().length() > 0) {
 			this.setTitle(item.getTitle(), State.NORMAL);
 		} else if(item.getImage() != null) {
-			this.setImage(item.getImage(), State.NORMAL);
+			Image image = item.getImage();
+
+			if(image.getRenderingMode() == Image.RenderingMode.AUTOMATIC) {
+				image = image.imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE);
+			}
+
+			this.setImage(image, State.NORMAL);
 
 			EdgeInsets imageInset = item.getImageInsets();
 
