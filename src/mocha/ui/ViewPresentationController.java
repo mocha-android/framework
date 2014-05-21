@@ -9,7 +9,7 @@ import mocha.foundation.MObject;
 import java.util.List;
 import java.util.Set;
 
-abstract class ViewPresentationController extends MObject {
+abstract public class ViewPresentationController extends MObject {
 
 	private ViewController viewController;
 
@@ -157,5 +157,15 @@ abstract class ViewPresentationController extends MObject {
 		if(revealViewController == viewController) {
 			viewController.presentingFromWindow = null;
 		}
+	}
+
+	// Ugly hack until we adopt iOS 7 style transition controllers
+
+	protected void setViewControllerBeingPresented(ViewController viewController, boolean beingPresented) {
+		viewController.setBeingPresented(beingPresented);
+	}
+
+	protected void setViewControllerBeingDismissed(ViewController viewController, boolean beingDismissed) {
+		viewController.setBeingDismissed(beingDismissed);
 	}
 }

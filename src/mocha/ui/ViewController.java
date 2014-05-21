@@ -7,6 +7,7 @@ package mocha.ui;
 
 import mocha.foundation.NotificationCenter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -18,7 +19,8 @@ public class ViewController extends Responder {
 		ANDROID,
 		FLIP_HORIZONTAL,
 		CROSS_DISOLVE,
-		PARTIAL_CURL
+		PARTIAL_CURL,
+		CUSTOM
 	}
 
 	public enum ModalPresentationStyle {
@@ -41,6 +43,7 @@ public class ViewController extends Responder {
 
 	private ModalTransitionStyle modalTransitionStyle;
 	private ModalPresentationStyle modalPresentationStyle;
+	private Class<? extends ViewPresentationController> customPresentationControllerClass;
 	private List<ViewController> presentedViewControllers;
 	private ViewController presentingViewController;
 
@@ -253,7 +256,7 @@ public class ViewController extends Responder {
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public void setTitle(String title) {
@@ -641,7 +644,7 @@ public class ViewController extends Responder {
 		ViewController hideViewController = stackSize == 0 ? this : this.presentedViewControllers.get(stackSize - 1);
 
 		this.addPresentedViewController(viewController, window);
-		this.getPresentationController(viewController.getModalTransitionStyle()).presentViewController(viewController, hideViewController, animated, window, new Runnable() {
+		this.getPresentationController(viewController.getModalTransitionStyle(), viewController.getCustomPresentationControllerClass()).presentViewController(viewController, hideViewController, animated, window, new Runnable() {
 			public void run() {
 				if(completion != null) {
 					completion.run();
@@ -693,19 +696,33 @@ public class ViewController extends Responder {
 			revealViewController = this.presentedViewControllers.get(index - 1);
 		}
 
-		this.getPresentationController(hideViewController.getModalTransitionStyle()).dismissPresentedViewController(hideViewController, revealViewController, dismissViewControllers, animated, window, new Runnable() {
+		this.getPresentationController(hideViewController.getModalTransitionStyle(), hideViewController.getCustomPresentationControllerClass()).dismissPresentedViewController(hideViewController, revealViewController, dismissViewControllers, animated, window, new Runnable() {
 			public void run() {
 				window.viewControllerOrientationConfigChanged(revealViewController);
 			}
 		});
 	}
 
-	private ViewPresentationController getPresentationController(ModalTransitionStyle transitionStyle) {
-		if(transitionStyle == ModalTransitionStyle.ANDROID) {
+	private ViewPresentationController getPresentationController(ModalTransitionStyle transitionStyle, Class<? extends ViewPresentationController> customPresentationControllerClass) {
+		if(transitionStyle == ModalTransitionStyle.CUSTOM && customPresentationControllerClass != null) {
+			try {
+				return customPresentationControllerClass.getConstructor(ViewController.class).newInstance(this);
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+		} else if(transitionStyle == ModalTransitionStyle.ANDROID) {
 			return new ViewPresentationControllerAndroid(this);
 		} else {
 			return new ViewPresentationControllerCoverVertical(this);
 		}
+	}
+
+	public Class<? extends ViewPresentationController> getCustomPresentationControllerClass() {
+		return this.customPresentationControllerClass;
+	}
+
+	public void setCustomPresentationControllerClass(Class<? extends ViewPresentationController> customPresentationControllerClass) {
+		this.customPresentationControllerClass = customPresentationControllerClass;
 	}
 
 	private ViewController getRootParentViewController() {
