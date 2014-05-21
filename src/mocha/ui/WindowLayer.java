@@ -6,9 +6,9 @@
 
 package mocha.ui;
 
-interface WindowLayer extends ViewLayer {
+public interface WindowLayer extends ViewLayer {
 
-	android.view.View getNativeView();
+	public android.view.View getNativeView();
 
 	void onWindowPause();
 	void onWindowResume();

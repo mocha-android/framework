@@ -46,11 +46,15 @@ public final class Window extends View {
 		this.activity = activity;
 		this.activity.addWindow(this);
 
-		this.windowLayer = (WindowLayer)this.getLayer();
+		this.windowLayer = this.getLayer();
 		this.visibleViewControllers = new ArrayList<ViewController>();
 
 		this.setTintColor(Color.BLUE);
 		this.setTintAdjustmentMode(TintAdjustmentMode.NORMAL);
+	}
+
+	public WindowLayer getLayer() {
+		return (WindowLayer)super.getLayer();
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {
@@ -168,7 +172,7 @@ public final class Window extends View {
 	}
 
 	public void makeKeyWindow() {
-		this.activity.setContentView(this.windowLayer.getNativeView());
+		this.activity.presentKeyWindow(this);
 
 		if(this.rootViewController != null) {
 			this.promoteDeepestDefaultFirstResponder();

@@ -77,13 +77,25 @@ public class Activity extends android.app.Activity {
 		this.setCurrentConfiguration(newConfig);
 	}
 
+	/**
+	 * Default implementation sets this activity's
+	 * content view to the keyWindow's native view.
+	 *
+	 * Most apps should not need to override this method.
+	 *
+	 * @param keyWindow Key window to present
+	 */
+	protected void presentKeyWindow(Window keyWindow) {
+		this.setContentView(keyWindow.getLayer().getNativeView());
+	}
+
 	private void setCurrentConfiguration(Configuration configuration) {
 		this.currentConfiguration = new Configuration(configuration);
 		this.currentOrientation = this.application.getStatusBarOrientation();
 		this.currentRotation = this.getWindowRotation();
 	}
 
-	Configuration getCurrentConfiguration() {
+	protected Configuration getCurrentConfiguration() {
 		return currentConfiguration;
 	}
 
