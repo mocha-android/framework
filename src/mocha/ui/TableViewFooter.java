@@ -6,29 +6,18 @@
 
 package mocha.ui;
 
-import mocha.graphics.Rect;
+class TableViewFooter extends TableViewHeaderFooterView {
 
-class TableViewFooter extends TableViewSubview {
-	private Label label;
-
-	public TableViewFooter() {
-		this(Rect.zero());
-	}
-
-	public TableViewFooter(Rect frame) {
-		super(frame);
-
-		this.label = new Label(this.getBounds());
-		this.label.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
-		this.addSubview(this.label);
+	TableViewFooter(String reuseIdentifier) {
+		super(reuseIdentifier);
 	}
 
 	public void setText(String text) {
-		this.label.setText(text);
+		this.getTextLabel().setText(text);
 	}
 
 	public String getText() {
-		return this.label.getText().toString();
+		return this.getTextLabel().getText().toString();
 	}
 
 	public static float getHeight(CharSequence title, float constrainedToWidth) {

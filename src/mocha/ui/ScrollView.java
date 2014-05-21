@@ -343,7 +343,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		return this.alwaysBounceVertical;
 	}
 
-	public boolean getScrollEnabled() {
+	public boolean isScrollEnabled() {
 		return this.panGestureRecognizer.isEnabled();
 	}
 
@@ -713,7 +713,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public boolean isDragging() {
-		return dragging;
+		return this.dragging;
+	}
+
+	public boolean isDecelerating() {
+		return this.decelerating;
 	}
 
 	public void handleGesture(GestureRecognizer gestureRecognizer) {

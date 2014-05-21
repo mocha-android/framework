@@ -24,6 +24,9 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private static final TableViewCell.State DEFAULT_STATE[] = new TableViewCell.State[] { TableViewCell.State.DEFAULT };
 	private static final TableViewCell.State EDIT_CONTROL_STATE[] = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL };
 
+	private static final String INTERNAL_HEADER_VIEW_IDENTIFIER = "TableViewInternalHeaderView";
+	private static final String INTERNAL_FOOTER_VIEW_IDENTIFIER = "TableViewInternalFooterView";
+
 	/**
 	 * DataSource + Delegate Note: A rather odd design pattern here, but without optional methods in Java, I couldn't think
 	 * think of a better way to implement this without requiring a lot of boilerplate code in every implementation.
@@ -147,9 +150,9 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	private TableViewRowData rowData;
 	private Map<Object,List<TableViewCell>> cellsQueuedForReuse;
-	private Map<Object,Class<? extends TableViewCell>> registeredClasses;
-	private List<TableViewSubview> headersQueuedForReuse;
-	private List<TableViewSubview> footersQueuedForReuse;
+	private Map<String,List<TableViewHeaderFooterView>> headerFooterViewsQueuedForReuse;
+	private Map<Object,Class<? extends TableViewCell>> registeredCellClasses;
+	private Map<String,Class<? extends TableViewHeaderFooterView>> registeredHeaderFooterViewClasses;
 	private Runnable cellTouchCallback;
 	private TableViewCell touchedCell;
 	private boolean touchesMoved;
@@ -208,22 +211,30 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.tableStyle = style == null ? Style.PLAIN : style;
 		this.setAllowsSelection(true);
 		this.rowData = new TableViewRowData(this);
-		this.cellsQueuedForReuse = new HashMap<Object, List<TableViewCell>>();
-		this.registeredClasses = new HashMap<Object, Class<? extends TableViewCell>>();
-		this.headersQueuedForReuse = new ArrayList<TableViewSubview>();
-		this.footersQueuedForReuse = new ArrayList<TableViewSubview>();
+		this.cellsQueuedForReuse = new HashMap<>();
+		this.headerFooterViewsQueuedForReuse = new HashMap<>();
+		this.registeredCellClasses = new HashMap<>();
+		this.registeredHeaderFooterViewClasses = new HashMap<>();
 		this.touchedCell = null;
 		this.selectedRowIndexPath = null;
-		this.selectedRowsIndexPaths = new HashSet<IndexPath>();
+		this.selectedRowsIndexPaths = new HashSet<>();
 		this.editing = false;
-		this.cellsBeingEditedPaths = new ArrayList<IndexPath>();
+		this.cellsBeingEditedPaths = new ArrayList<>();
 
-		this.visibleCells = new ArrayList<TableViewCell>();
-		this.visibleHeaderViews = new SparseArray<TableViewSubview>();
-		this.visibleFooterViews = new SparseArray<TableViewSubview>();
-		this.viewsToRemove = new ArrayList<TableViewSubview>();
+		this.visibleCells = new ArrayList<>();
+		this.visibleHeaderViews = new SparseArray<>();
+		this.visibleFooterViews = new SparseArray<>();
+		this.viewsToRemove = new ArrayList<>();
 
 		this.setAlwaysBounceVertical(true);
+
+		if(style == Style.GROUPED) {
+			this.registerHeaderFooterViewClass(TableViewHeader.Grouped.class, INTERNAL_HEADER_VIEW_IDENTIFIER);
+		} else {
+			this.registerHeaderFooterViewClass(TableViewHeader.Plain.class, INTERNAL_HEADER_VIEW_IDENTIFIER);
+		}
+
+		this.registerHeaderFooterViewClass(TableViewFooter.class, INTERNAL_FOOTER_VIEW_IDENTIFIER);
 
 //		SwipeGestureRecognizer gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.LEFT, new GestureRecognizer.GestureHandler() {
 //			public void handleGesture(GestureRecognizer gestureRecognizer) {
@@ -592,8 +603,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.visibleHeaderViews.clear();
 		this.visibleFooterViews.clear();
 		this.visibleCells.clear();
-		this.headersQueuedForReuse.clear();
-		this.footersQueuedForReuse.clear();
+		this.headerFooterViewsQueuedForReuse.clear();
 		this.viewsToRemove.clear();
 		this.visibleRows = null;
 		View.setAnimationsEnabled(areAnimationsEnabled);
@@ -886,7 +896,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell.reuseIdentifier);
 
 		if(queuedViews == null) {
-			List<TableViewCell> queuedCells = new ArrayList<TableViewCell>();
+			List<TableViewCell> queuedCells = new ArrayList<>();
 			this.cellsQueuedForReuse.put(cell.reuseIdentifier, queuedCells);
 			queuedViews = queuedCells;
 		}
@@ -897,13 +907,29 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private void enqueueHeaderFooterView(TableViewSubview headerFooterView, boolean header) {
 		if(header) {
 			this.visibleHeaderViews.remove(headerFooterView._section);
-			this.enqueueView(this.headersQueuedForReuse, headerFooterView);
 		} else {
 			this.visibleFooterViews.remove(headerFooterView._section);
-			this.enqueueView(this.footersQueuedForReuse, headerFooterView);
 		}
 
-		this.viewsToRemove.add(headerFooterView);
+		if(headerFooterView.createdByTableView && headerFooterView instanceof TableViewHeaderFooterView) {
+			String reuseIdentifier = ((TableViewHeaderFooterView) headerFooterView).getReuseIdentifier();
+
+			if(reuseIdentifier != null) {
+				List<TableViewHeaderFooterView> queuedViews = this.headerFooterViewsQueuedForReuse.get(reuseIdentifier);
+
+				if (queuedViews == null) {
+					List<TableViewHeaderFooterView> queuedHeaderFooterViews = new ArrayList<>();
+					this.headerFooterViewsQueuedForReuse.put(reuseIdentifier, queuedHeaderFooterViews);
+					queuedViews = queuedHeaderFooterViews;
+				}
+
+				this.enqueueView(queuedViews, (TableViewHeaderFooterView)headerFooterView);
+			} else {
+				this.viewsToRemove.add(headerFooterView);
+			}
+		} else {
+			this.viewsToRemove.add(headerFooterView);
+		}
 	}
 
 	public Rect getRectForSection(int section) {
@@ -953,14 +979,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		if(header == null) {
-			header = this.dequeueView(this.headersQueuedForReuse);
-
-			if (header == null) {
-				header = this.tableStyle == Style.GROUPED ? new TableViewHeader.Grouped() : new TableViewHeader.Plain();
-				header.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-				header.setBackgroundColor(Color.TRANSPARENT);
-				header.createdByTableView = true;
-			}
+			header = this.dequeueReusableHeaderFooterViewWithIdentifier(INTERNAL_HEADER_VIEW_IDENTIFIER);
 		}
 
 		header.setFrame(frame);
@@ -993,13 +1012,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		if(footer == null) {
-			footer = this.dequeueView(this.footersQueuedForReuse);
-
-			if (footer == null) {
-				footer = new TableViewFooter();
-				footer.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-				footer.createdByTableView = true;
-			}
+			footer = this.dequeueReusableHeaderFooterViewWithIdentifier(INTERNAL_FOOTER_VIEW_IDENTIFIER);
 		}
 
 		if(footer instanceof TableViewFooter) {
@@ -1034,8 +1047,17 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		return cell;
 	}
 
+	@Deprecated
 	public void registerClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
-		this.registeredClasses.put(reuseIdentifier, cellClass);
+		this.registerCellClass(cellClass, reuseIdentifier);
+	}
+
+	public void registerCellClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
+		this.registeredCellClasses.put(reuseIdentifier, cellClass);
+	}
+
+	public void registerHeaderFooterViewClass(Class<? extends TableViewHeaderFooterView> cellClass, String reuseIdentifier) {
+		this.registeredHeaderFooterViewClasses.put(reuseIdentifier, cellClass);
 	}
 
 	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier) {
@@ -1052,7 +1074,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		TableViewCell cell = this.dequeueReusableCellWithIdentifier(reuseIdentifier);
 
 		if(cell == null) {
-			Class<? extends TableViewCell> cellClass = this.registeredClasses.get(reuseIdentifier);
+			Class<? extends TableViewCell> cellClass = this.registeredCellClasses.get(reuseIdentifier);
 
 			if(cellClass == null) {
 				return null;
@@ -1062,7 +1084,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 				try {
 					constructor = cellClass.getConstructor(TableViewCell.Style.class, Object.class);
 				} catch (NoSuchMethodException e) {
-					MWarn(e, "Could not find construct in registered cell class %s for reuseIdentifier %s", cellClass, reuseIdentifier);
+					MWarn(e, "Could not find constructor in registered cell class %s for reuseIdentifier %s", cellClass, reuseIdentifier);
 					return null;
 				}
 
@@ -1079,9 +1101,42 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		return cell;
 	}
 
-	@SuppressWarnings("unchecked")
-	private void enqueueView(List queuedViews, TableViewSubview view) {
-		if((view instanceof TableViewCell) || view.createdByTableView) {
+	public TableViewHeaderFooterView dequeueReusableHeaderFooterViewWithIdentifier(String reuseIdentifier) {
+		TableViewHeaderFooterView headerFooterView = this.dequeueView(this.headerFooterViewsQueuedForReuse.get(reuseIdentifier));
+
+		if(headerFooterView != null) {
+			headerFooterView.prepareForReuse();
+		} else {
+			Class<? extends TableViewHeaderFooterView> headerFooterViewClass = this.registeredHeaderFooterViewClasses.get(reuseIdentifier);
+
+			if (headerFooterViewClass == null) {
+				return null;
+			} else {
+				Constructor<? extends TableViewHeaderFooterView> constructor;
+
+				try {
+					constructor = headerFooterViewClass.getConstructor(String.class);
+				} catch (NoSuchMethodException e) {
+					MWarn(e, "Could not find constructor in registered header footer view class %s for reuseIdentifier %s", headerFooterViewClass, reuseIdentifier);
+					return null;
+				}
+
+				try {
+					headerFooterView = constructor.newInstance(reuseIdentifier);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+
+				headerFooterView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
+				headerFooterView.createdByTableView = true;
+			}
+		}
+
+		return headerFooterView;
+	}
+
+	private <T extends TableViewSubview> void enqueueView(List<T> queuedViews, T view) {
+		if(view.createdByTableView) {
 			queuedViews.add(view);
 		}
 
@@ -1500,7 +1555,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 			newState = new TableViewCell.State[] { TableViewCell.State.SHOWING_DELETE_CONFIRMATION };
 		}
 
-		this.restoreScrollingEnabled = this.getScrollEnabled();
+		this.restoreScrollingEnabled = this.isScrollEnabled();
 		this.setScrollEnabled(false);
 		this.showingDeleteConfirmation = true;
 

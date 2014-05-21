@@ -8,38 +8,32 @@ package mocha.ui;
 
 import mocha.graphics.*;
 
-abstract class TableViewHeader extends TableViewSubview {
-	protected Label label;
+abstract class TableViewHeader extends TableViewHeaderFooterView {
 
-	TableViewHeader(Rect frame) {
-		super(frame);
-
-		this.label = new Label(this.getBounds());
-		this.label.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
-		this.addSubview(this.label);
+	protected TableViewHeader(String reuseIdentifier) {
+		super(reuseIdentifier);
 	}
 
 	public void setText(String text) {
-		this.label.setText(text);
+		this.getTextLabel().setText(text);
 	}
 
 	public String getText() {
-		return this.label.getText().toString();
+		return this.getTextLabel().getText().toString();
 	}
 
 	static class Plain extends TableViewHeader {
 
-		Plain() { this(new Rect(0.0f, 0.0f, 320.0f, 30.0f)); }
+		Plain(String reuseIdentifier) {
+			super(reuseIdentifier);
 
-		Plain(Rect frame) {
-			super(frame);
+			Label textLabel = this.getTextLabel();
 
-			this.label.setFrame(new Rect(12.0f, -1.0f, frame.size.width - 24.0f, frame.size.height));
-			this.label.setFont(Font.getBoldSystemFontWithSize(18.0f));
-			this.label.setTextColor(Color.WHITE);
-			this.label.setBackgroundColor(Color.TRANSPARENT);
-			this.label.setShadowColor(Color.white(0.0f, 0.5f));
-			this.label.setShadowOffset(new Size(0.0f, 1.0f));
+			textLabel.setFont(Font.getBoldSystemFontWithSize(14.0f));
+			textLabel.setTextColor(Color.WHITE);
+			textLabel.setBackgroundColor(Color.TRANSPARENT);
+			textLabel.setShadowColor(Color.white(0.0f, 0.5f));
+			textLabel.setShadowOffset(new Size(0.0f, 1.0f));
 		}
 
 		public void draw(Context context, Rect rect) {
@@ -49,12 +43,10 @@ abstract class TableViewHeader extends TableViewSubview {
 
 	static class Grouped extends TableViewHeader {
 
-		Grouped() { this(Rect.zero()); }
+		Grouped(String reuseIdentifier) {
+			super(reuseIdentifier);
 
-		Grouped(Rect frame) {
-			super(frame);
-
-			this.label.setTextColor(Color.BLUE);
+			this.getTextLabel().setTextColor(Color.BLUE);
 		}
 
 		public static float getHeight(CharSequence title, float constrainedToWidth) {

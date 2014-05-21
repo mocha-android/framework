@@ -227,12 +227,7 @@ class TableViewCellLayoutManager extends MObject {
 		if(cell.getSeparatorStyle() != TableViewCell.SeparatorStyle.NONE) {
 			Rect bounds  = cell.getBounds();
 			Rect rect =  new Rect(0.0f, bounds.size.height - this.separatorHeight, bounds.size.width, this.separatorHeight);
-
-			if(style == TableView.Style.GROUPED) {
-				rect.inset(GROUPED_INSET, 0.0f);
-			}
-
-			return rect;
+			return cell.separatorInset.inset(rect);
 		} else {
 			return Rect.zero();
 		}
