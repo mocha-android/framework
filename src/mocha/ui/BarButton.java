@@ -47,6 +47,8 @@ class BarButton extends Button {
 
 	private BarButton(BarButtonItem item, boolean back) {
 		this.barButtonItem = item;
+		this.setContentMode(ContentMode.CENTER);
+
 		TextAttributes normalAttributes = item.getTitleTextAttributesForState(State.NORMAL);
 		float fontSize = item.getStyle() == BarButtonItem.Style.PLAIN ? 18.0f : 12.0f;
 

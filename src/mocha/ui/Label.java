@@ -268,7 +268,6 @@ public class Label extends View implements Highlightable {
 		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
 
 		if(this.attributedText != null && this.attributedText.length() > 0) {
-			MWarn("DRAWING TEXT %s: %s", this.attributedText, rect);
 			this.attributedText.draw(context, rect, this.textAlignment);
 		} else {
 			context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);

@@ -5,10 +5,7 @@
  */
 package mocha.foundation;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class Sets {
 
@@ -26,6 +23,16 @@ public class Sets {
 		} else {
 			return set.iterator().next();
 		}
+	}
+
+	public static <T> Set<T> copy(Collection<T> list) {
+		Set<T> copy = new HashSet<>();
+
+		if(list != null) {
+			copy.addAll(list);
+		}
+
+		return copy;
 	}
 
 	/**

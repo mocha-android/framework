@@ -25,6 +25,14 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		this.size = size.copy();
 	}
 
+	public Rect(Point origin) {
+		this(origin.x, origin.y, 0.0f, 0.0f);
+	}
+
+	public Rect(Size size) {
+		this(0.0f, 0.0f, size.width, size.height);
+	}
+
 	public Rect(float x, float y, float width, float height) {
 		this.origin = new Point(x, y);
 		this.size = new Size(width, height);

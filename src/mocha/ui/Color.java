@@ -80,6 +80,10 @@ public class Color extends MObject {
 		return android.graphics.Color.argb(alpha, red, green, blue);
 	}
 
+	public static int white(float white) {
+		return rgb(white, white, white);
+	}
+	
 	public static int white(float white, float alpha) {
 		return rgba(white, white, white, alpha);
 	}
