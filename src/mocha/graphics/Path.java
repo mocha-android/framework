@@ -24,6 +24,10 @@ public class Path extends MObject implements Copying<Path> {
 	private android.graphics.Path cachedScaledPath;
 	private float cachedScaledPathFactor;
 
+	// Used in withRoundedRect
+	private static final float SQRT_OF_2 = 1.41421356237f;
+	private static final float CUBIC_ARC_FACTOR = ((SQRT_OF_2 - 1.0f) * 4.0f / 3.0f);
+
 	public enum LineCap {
 		BUTT,
 		ROUND,
@@ -68,44 +72,59 @@ public class Path extends MObject implements Copying<Path> {
 
 	public static Path withRoundedRect(Rect rect, Size cornerRadii, Corner... byRoundingCorners) {
 		android.graphics.Path path = new android.graphics.Path();
-		EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
 
-		if(byRoundingCorners != null) {
+		if(byRoundingCorners == null || byRoundingCorners.length == 0) {
+			// No rounded corners, just add the rect.
+			path.addRect(rect.toSystemRectF(), android.graphics.Path.Direction.CCW);
+		} else {
+			EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
 			Collections.addAll(corners, byRoundingCorners);
+
+			if (corners.size() == 4) {
+				// All corners are rounded, so it's faster to just pass to Path and let the native C code handle it.
+				path.addRoundRect(rect.toSystemRectF(), cornerRadii.width, cornerRadii.height, android.graphics.Path.Direction.CCW);
+			} else {
+				// Rounded rect code ported from https://code.google.com/p/skia/source/browse/trunk/src/core/SkPath.cpp
+				Point min = rect.origin;
+				Point max = rect.max();
+
+				float radiusX = cornerRadii.width;
+				float radiusY = cornerRadii.height;
+
+				float arcX = radiusX * CUBIC_ARC_FACTOR;
+				float arcY = radiusY * CUBIC_ARC_FACTOR;
+
+				if (corners.contains(Corner.TOP_LEFT)) {
+					path.moveTo(max.x - radiusX, min.y);
+					path.cubicTo(min.x + radiusX - arcX, min.y, min.x, min.y + radiusY - arcY, min.x, min.y + radiusY);
+				} else {
+					path.moveTo(min.x, min.y);
+				}
+
+				if (corners.contains(Corner.BOTTOM_LEFT)) {
+					path.lineTo(min.x, max.y - radiusY);
+					path.cubicTo(min.x, max.y - radiusY + arcY, min.x + radiusX - arcX, max.y, min.x + radiusX, max.y);
+				} else {
+					path.lineTo(min.x, max.y);
+				}
+
+				if (corners.contains(Corner.BOTTOM_RIGHT)) {
+					path.lineTo(max.x - radiusX, max.y);
+					path.cubicTo(max.x - radiusX + arcX, max.y, max.x, max.y - radiusY + arcY, max.x, max.y - radiusY);
+				} else {
+					path.lineTo(max.x, max.y);
+				}
+
+				if (corners.contains(Corner.TOP_RIGHT)) {
+					path.lineTo(max.x, min.y + radiusY);
+					path.cubicTo(max.x, min.y + radiusY - arcY, max.x - radiusX + arcX, min.y, max.x - radiusX, min.y);
+				} else {
+					path.lineTo(max.x, min.y);
+				}
+
+				path.close();
+			}
 		}
-
-		Point min = rect.origin;
-		Point max = rect.max();
-
-		if(corners.contains(Corner.TOP_LEFT)) {
-			path.moveTo(min.x, min.y + cornerRadii.height);
-			path.quadTo(min.x, min.y, min.x + cornerRadii.width, min.y);
-		} else {
-			path.moveTo(rect.origin.x, rect.origin.y);
-		}
-
-		if(corners.contains(Corner.TOP_RIGHT)) {
-			path.lineTo(max.x - cornerRadii.width, min.y);
-			path.quadTo(max.x, min.y, max.x, min.y + cornerRadii.height);
-		} else {
-			path.lineTo(rect.origin.x + rect.size.width, rect.origin.y);
-		}
-
-		if(corners.contains(Corner.BOTTOM_RIGHT)) {
-			path.lineTo(max.x, max.y - cornerRadii.height);
-			path.quadTo(max.x, max.y, max.x - cornerRadii.width, max.y);
-		} else {
-			path.lineTo(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
-		}
-
-		if(corners.contains(Corner.BOTTOM_LEFT)) {
-			path.lineTo(min.x + cornerRadii.width, max.y);
-			path.quadTo(min.x, max.y, min.x, max.y - cornerRadii.height);
-		} else {
-			path.lineTo(rect.origin.x, rect.origin.y + rect.size.height);
-		}
-
-		path.close();
 
 		return new Path(path);
 	}
@@ -350,7 +369,7 @@ public class Path extends MObject implements Copying<Path> {
 		context.setClipPath(this);
 	}
 
-	android.graphics.Path getScaledNativePath(float scale) {
+	public android.graphics.Path getScaledNativePath(float scale) {
 		if(this.cachedScaledPath == null || this.cachedScaledPathFactor != scale) {
 			Matrix matrix = new Matrix();
 			matrix.setScale(scale, scale);
