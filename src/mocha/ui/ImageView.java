@@ -150,8 +150,6 @@ public class ImageView extends View implements Highlightable {
 
 		imageRect.makeIntegral();
 
-		boolean restoreState = false;
-
 		if(image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
 			image.draw(context, imageRect, this.getTintColor(), Context.BlendMode.NORMAL, 1.0f);
 		} else {
@@ -161,6 +159,16 @@ public class ImageView extends View implements Highlightable {
 
 	boolean getOverridesDraw() {
 		return true;
+	}
+
+	public void tintColorDidChange() {
+		super.tintColorDidChange();
+
+		Image image = this.highlighted && this.highlightedImage != null ? this.highlightedImage : this.image;
+
+		if(image != null && image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
+			this.setNeedsDisplay();
+		}
 	}
 
 }
