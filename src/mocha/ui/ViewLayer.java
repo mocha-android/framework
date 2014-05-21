@@ -70,6 +70,9 @@ public interface ViewLayer {
 	public Path getShadowPath();
 	public void setShadowPath(Path shadowPath);
 
+	public float getCornerRadius();
+	public void setCornerRadius(float cornerRadius);
+
 	public void renderInContext(Context context);
 
 	public float getZPosition();

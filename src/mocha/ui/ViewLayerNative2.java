@@ -8,6 +8,7 @@ package mocha.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -40,6 +41,10 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	private Size shadowOffset;
 	private float shadowRadius;
 	private Path shadowPath;
+
+	private Path cornerPath;
+	private android.graphics.Path cornerNativePath;
+	private float cornerRadius;
 
 	private List<ViewLayerNative2> sublayers;
 	private ViewLayerNative2 superlayer;
@@ -100,7 +105,10 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	public void setBackgroundColor(int backgroundColor) {
 		this.backgroundColor = backgroundColor;
-		this.layout.setBackgroundColor(backgroundColor);
+
+		if(this.cornerRadius <= 0.0f) {
+			this.layout.setBackgroundColor(backgroundColor);
+		}
 	}
 
 	public boolean clipsToBounds() {
@@ -172,6 +180,9 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	void updateSize() {
 		this.frame.toSystemRect(this.reuseableRect, this.scale);
 		this.layout.setLayoutParams(new FrameLayout.LayoutParams(this.reuseableRect.width(), this.reuseableRect.height()));
+
+		this.cornerPath = null;
+		this.cornerNativePath = null;
 	}
 
 	void updatePosition() {
@@ -438,13 +449,50 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		this.shadowPath = shadowPath;
 	}
 
+	public float getCornerRadius() {
+		return this.cornerRadius;
+	}
+
+	private Path getCornerPath() {
+		if(this.cornerPath == null) {
+			float cornerRadius = Math.min(Math.min(this.cornerRadius, this.bounds.size.width / 2.0f), this.bounds.size.height / 2.0f);
+			this.cornerPath = Path.withRoundedRect(new Rect(this.bounds.size), cornerRadius);
+		}
+
+		return this.cornerPath;
+	}
+
+	private android.graphics.Path getCornerNativePath() {
+		if(this.cornerNativePath == null) {
+			this.cornerNativePath = this.getCornerPath().getScaledNativePath(this.scale);
+		}
+
+		return this.cornerNativePath;
+	}
+
+	public void setCornerRadius(float cornerRadius) {
+		this.cornerRadius = cornerRadius;
+
+		if(this.cornerRadius > 0.0f) {
+			this.setSupportsDrawing(true);
+			this.layout.setBackgroundColor(Color.TRANSPARENT);
+		} else {
+			this.layout.setBackgroundColor(this.backgroundColor);
+		}
+	}
+
 	public void renderInContext(mocha.graphics.Context context) {
 		Rect bounds = this.view.getBounds();
 		Rect rect = new Rect(0.0f, 0.0f, bounds.size.width, bounds.size.height);
 
 		if(this.backgroundColor != Color.TRANSPARENT) {
 			context.setFillColor(this.backgroundColor);
-			context.fillRect(rect);
+
+			if(this.cornerRadius > 1.0f) {
+				this.getCornerPath().fill(context);
+			} else {
+				context.fillRect(rect);
+			}
 		}
 
 		if(this.supportsDrawing) {
@@ -504,6 +552,8 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	class Layout extends FrameLayout {
+		private Paint cornerPaint;
+
 		Layout(Context context) {
 			super(context);
 		}
@@ -562,6 +612,17 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
+
+			if(cornerRadius > 0.0f) {
+				if(this.cornerPaint == null) {
+					this.cornerPaint = new Paint();
+					this.cornerPaint.setAntiAlias(true);
+					this.cornerPaint.setDither(true);
+				}
+
+				this.cornerPaint.setColor(backgroundColor);
+				canvas.drawPath(getCornerNativePath(), this.cornerPaint);
+			}
 
 			if(supportsDrawing) {
 				if(drawContext != null) {

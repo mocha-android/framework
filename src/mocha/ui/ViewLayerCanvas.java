@@ -40,6 +40,7 @@ public class ViewLayerCanvas extends MObject implements ViewLayer {
 	private Size shadowOffset;
 	private float shadowRadius;
 	private Path shadowPath;
+	private float cornerRadius;
 	final float scale;
 	final int dpi;
 
@@ -427,6 +428,14 @@ public class ViewLayerCanvas extends MObject implements ViewLayer {
 
 	public void setShadowPath(Path shadowPath) {
 		this.shadowPath = shadowPath;
+	}
+
+	public float getCornerRadius() {
+		return this.cornerRadius;
+	}
+
+	public void setCornerRadius(float cornerRadius) {
+		this.cornerRadius = cornerRadius;
 	}
 
 	public ViewGroup getViewGroup() {
