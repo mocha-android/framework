@@ -298,6 +298,7 @@ public class View extends Responder implements Accessibility {
 	private int inheritedTintColor;
 	private int inheritedDimmedTintColor;
 	private TintAdjustmentMode inherritedTintAdjustmentMode;
+	private boolean tintInheritenceValid;
 
 	/**
 	 * Mapped to {@link ViewAnimation.Type#value}. Each property type can
@@ -777,8 +778,6 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public int getTintColor() {
-		MWarn("DEBUG_TINT, %s %s %d %d", this.getTintAdjustmentMode(), this.tintAdjustmentMode, this.tintColor, this.inheritedTintColor);
-
 		if(this.getTintAdjustmentMode() == TintAdjustmentMode.DIMMED) {
 			if(this.tintColor == 0) {
 				return this.inheritedDimmedTintColor;
@@ -816,6 +815,7 @@ public class View extends Responder implements Accessibility {
 			this.inheritedTintColor = Color.BLUE;
 			this.inheritedDimmedTintColor = Color.GRAY;
 			this.inherritedTintAdjustmentMode = TintAdjustmentMode.NORMAL;
+			this.tintInheritenceValid = false;
 		} else {
 			if(this.superview.tintColor == 0) {
 				this.inheritedTintColor = this.superview.inheritedTintColor;
@@ -830,6 +830,8 @@ public class View extends Responder implements Accessibility {
 			} else {
 				this.inherritedTintAdjustmentMode = this.superview.tintAdjustmentMode;
 			}
+
+			this.tintInheritenceValid = this.inheritedTintColor != 0 && this.inherritedTintAdjustmentMode != TintAdjustmentMode.AUTOMATIC;
 		}
 	}
 
@@ -1306,9 +1308,23 @@ public class View extends Responder implements Accessibility {
 			this.layer.removeFromSuperlayer();
 			this.superview.subviews.remove(this);
 			this.superview = null;
+			this.tintInheritenceValid = false;
 			this.didMoveWindows(oldWindow, null);
 			this.didMoveToSuperview();
-			layer.didMoveToSuperlayer();
+			this.layer.didMoveToSuperlayer();
+		}
+	}
+
+	protected void debugTint() {
+		View view = this;
+		String indent = "-";
+
+		MWarn("DEBUG_TINT, TINT TRACE ON WINDOW: %s", this.getWindow());
+
+		while(view != null) {
+			MWarn("DEBUG_TINT, %s valid inheritence: %s, color: %s (%s), mode: %s, view: %s", indent, view.tintInheritenceValid, Color.toString(view.tintColor),Color.toString(view.inheritedTintColor), view.tintAdjustmentMode, view);
+			view = view.superview;
+			indent += "-";
 		}
 	}
 
@@ -1343,9 +1359,9 @@ public class View extends Responder implements Accessibility {
 			view.didMoveToSuperview();
 			this.didAddSubview(view);
 
-			if(view.doesInheritTint()) {
+			if(view.doesInheritTint() && (!this.doesInheritTint() || this.tintInheritenceValid)) {
 				view.updateTintInheritence();
-				view.tintColorDidChange();
+				view.notifyTintChanged();
 			}
 
 			view._layoutSubviews();
@@ -2216,7 +2232,7 @@ public class View extends Responder implements Accessibility {
 		}
 	}
 
-	static void setTimingFunction(TimingFunction timingFunction) {
+	public static void setTimingFunction(TimingFunction timingFunction) {
 		if(currentViewAnimation != null) {
 			currentViewAnimation.timingFunction = timingFunction;
 		}
