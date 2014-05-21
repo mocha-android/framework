@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationBar extends View {
-	private static final EdgeInsets DEFAULT_ITEM_EDGE_INSETS = new EdgeInsets(7.0f, 5.0f, 7.0f, 5.0f);
+	private static final EdgeInsets DEFAULT_ITEM_EDGE_INSETS = new EdgeInsets(0.0f, 5.0f, 0.0f, 5.0f);
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_TITLE_HEIGHT_DEFAULT = 30.0f;
@@ -132,7 +132,7 @@ public class NavigationBar extends View {
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		this.setTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
+		this.setBarTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
 		this.backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_background);
 		this.items = new ArrayList<NavigationItem>();
 		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
@@ -526,7 +526,7 @@ public class NavigationBar extends View {
 			if (this.leftView != null) {
 				Rect frame = this.leftView.getFrame();
 				frame.origin.x = this.itemEdgeInsets.left;
-				frame.origin.y = this.itemEdgeInsets.top;
+				frame.origin.y = this.itemEdgeInsets.top + ScreenMath.floor((bounds.size.height - frame.size.height) / 2.0f);
 				this.leftView.setFrame(frame);
 			}
 
@@ -540,7 +540,7 @@ public class NavigationBar extends View {
 				this.rightView.setAutoresizing(Autoresizing.FLEXIBLE_LEFT_MARGIN);
 				Rect frame = this.rightView.getFrame();
 				frame.origin.x = bounds.size.width - frame.size.width - this.itemEdgeInsets.right;
-				frame.origin.y = this.itemEdgeInsets.top;
+				frame.origin.y = this.itemEdgeInsets.top + ScreenMath.floor((bounds.size.height - frame.size.height) / 2.0f);
 				this.rightView.setFrame(frame);
 			}
 
@@ -905,6 +905,7 @@ public class NavigationBar extends View {
 		private Method setTitleVerticalPositionAdjustment;
 		private Method setTitleTextAttributes;
 		private Method setTitleAlignment;
+		private Method setBarTintColor;
 
 		public Appearance() {
 			try {
@@ -913,6 +914,7 @@ public class NavigationBar extends View {
 				this.setTitleTextAttributes = NavigationBar.class.getMethod("setTitleTextAttributes", TextAttributes.class);
 				this.setTitleVerticalPositionAdjustment = NavigationBar.class.getMethod("setTitleVerticalPositionAdjustment", Float.TYPE, BarMetrics.class);
 				this.setTitleAlignment = NavigationBar.class.getMethod("setTitleAlignment", TitleAlignment.class);
+				this.setBarTintColor = NavigationBar.class.getMethod("setBarTintColor", int.class);
 			} catch (NoSuchMethodException ignored) { }
 		}
 
@@ -956,6 +958,14 @@ public class NavigationBar extends View {
 		 */
 		public void setTitleAlignment(TitleAlignment titleAlignment) {
 			this.store(this.setTitleAlignment, titleAlignment);
+		}
+
+		/**
+		 * Set the tint color of the bar
+		 * @param barTintColor Bar tint color
+		 */
+		public void setBarTintColor(int barTintColor) {
+			this.store(this.setBarTintColor, barTintColor);
 		}
 
 	}
