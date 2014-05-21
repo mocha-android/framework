@@ -13,7 +13,7 @@ class NavigationTransitionControlleriOS extends NavigationTransitionController {
 		super(navigationController);
 	}
 
-	void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
+	public void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
 		final NavigationController navigationController = this.getNavigationController();
 		final NavigationBar navigationBar = navigationController.getNavigationBar();
 		final Rect bounds = navigationController.getTopView() == null ? navigationController.getContentBounds() : navigationController.getTopView().getBounds();

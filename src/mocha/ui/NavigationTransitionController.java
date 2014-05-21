@@ -5,7 +5,9 @@
  */
 package mocha.ui;
 
-abstract class NavigationTransitionController {
+import mocha.graphics.Rect;
+
+abstract public class NavigationTransitionController {
 	private NavigationController navigationController;
 
 	/**
@@ -13,7 +15,7 @@ abstract class NavigationTransitionController {
 	 *
 	 * @param navigationController Navigation Controller
 	 */
-	NavigationTransitionController(NavigationController navigationController) {
+	public NavigationTransitionController(NavigationController navigationController) {
 		this.navigationController = navigationController;
 	}
 
@@ -23,18 +25,50 @@ abstract class NavigationTransitionController {
 	 * always animated if we're at this point.
 	 *
 	 * @param fromViewController View controller transitioning from
-	 * @param toViewController View controller transition to
-	 * @param push Whether or not we're adding the view controller, or removing it
-	 * @param completion Callback to run upon completion, may be null
+	 * @param toViewController   View controller transition to
+	 * @param push               Whether or not we're adding the view controller, or removing it
+	 * @param completion         Callback to run upon completion, may be null
 	 */
-	abstract void transitionFromViewController(ViewController fromViewController, ViewController toViewController, boolean push, Runnable completion);
+	abstract public void transitionFromViewController(ViewController fromViewController, ViewController toViewController, boolean push, Runnable completion);
 
 	/**
 	 * The navigation controller that owns this transition controller
 	 *
 	 * @return Navigation controller
 	 */
-	NavigationController getNavigationController() {
+	public NavigationController getNavigationController() {
 		return this.navigationController;
 	}
+
+
+	protected void pushNavigationItem(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
+		NavigationBar navigationBar = this.navigationController.getNavigationBar();
+
+		NavigationBar.Delegate delegate = navigationBar.getDelegate();
+		navigationBar.setDelegate(null);
+
+		navigationBar.pushNavigationItem(navigationItem, animated, additionalTransitions, transitionCompleteCallback);
+
+		navigationBar.setDelegate(delegate);
+	}
+
+	protected void popToNavigationItemAnimated(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
+		NavigationBar navigationBar = this.navigationController.getNavigationBar();
+
+		NavigationBar.Delegate delegate = navigationBar.getDelegate();
+		navigationBar.setDelegate(null);
+
+		navigationBar.popToNavigationItemAnimated(navigationItem, animated, additionalTransitions, transitionCompleteCallback);
+
+		navigationBar.setDelegate(delegate);
+	}
+
+	protected Rect getContentBounds() {
+		return this.navigationController.getContentBounds();
+	}
+
+	protected void setTopView(View view) {
+		this.navigationController.setTopView(view);
+	}
+
 }

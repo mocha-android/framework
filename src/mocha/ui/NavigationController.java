@@ -7,13 +7,14 @@ package mocha.ui;
 
 import mocha.graphics.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class NavigationController extends ViewController {
 	public enum TransitionStyle {
-		ANDROID, IOS
+		ANDROID, IOS, CUSTOM
 	}
 
 	public static final long HIDE_SHOW_BAR_DURATION = 330;
@@ -26,6 +27,7 @@ public class NavigationController extends ViewController {
 	private boolean showHideNavigationBarDuringTransition;
 	private TransitionStyle transitionStyle;
 	private NavigationTransitionController transitionController;
+	private Class<? extends NavigationTransitionController> transitionControllerClass;
 	private View topView;
 
 	public NavigationController(Class<? extends NavigationBar> navigationBarClass) {
@@ -94,11 +96,27 @@ public class NavigationController extends ViewController {
 		this.transitionStyle = transitionStyle;
 	}
 
+	public Class<? extends NavigationTransitionController> getTransitionControllerClass() {
+		return transitionControllerClass;
+	}
+
+	public void setTransitionControllerClass(Class<? extends NavigationTransitionController> transitionControllerClass) {
+		this.transitionControllerClass = transitionControllerClass;
+	}
+
 	@Override
 	protected void loadView() {
 		super.loadView();
 
-		this.transitionController = this.transitionStyle == TransitionStyle.ANDROID ? new NavigationTransitionControllerAndroid(this) : new NavigationTransitionControlleriOS(this);
+		if(this.transitionStyle == TransitionStyle.CUSTOM && this.transitionControllerClass != null) {
+			try {
+				this.transitionController = this.transitionControllerClass.getConstructor(NavigationController.class).newInstance(this);
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			this.transitionController = this.transitionStyle == TransitionStyle.ANDROID ? new NavigationTransitionControllerAndroid(this) : new NavigationTransitionControlleriOS(this);
+		}
 
 		View view = this.getView();
 		view.setClipsToBounds(true);

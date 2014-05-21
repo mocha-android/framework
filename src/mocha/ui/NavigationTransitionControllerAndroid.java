@@ -19,7 +19,7 @@ class NavigationTransitionControllerAndroid extends NavigationTransitionControll
 		super(navigationController);
 	}
 
-	void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
+	public void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, final boolean push, final Runnable completion) {
 		MObject.performAfterDelay(0, new Runnable() {
 			public void run() {
 				_transitionFromViewController(fromViewController, toViewController, push, completion);
@@ -151,9 +151,9 @@ class NavigationTransitionControllerAndroid extends NavigationTransitionControll
 		navigationBar.setDelegate(null);
 
 		if(push) {
-			navigationBar.pushNavigationItem(navigationItem, false);
+			this.pushNavigationItem(navigationItem, false, null, null);
 		} else {
-			navigationBar.popToNavigationItemAnimated(navigationItem, false, null, null);
+			this.popToNavigationItemAnimated(navigationItem, false, null, null);
 		}
 
 		navigationBar.setDelegate(delegate);
