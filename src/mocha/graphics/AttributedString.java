@@ -10,13 +10,11 @@ import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.StaticLayout;
 import android.text.TextPaint;
-import android.text.style.AlignmentSpan;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.LeadingMarginSpan;
+import android.text.style.*;
 import android.util.FloatMath;
 import mocha.foundation.Copying;
 import mocha.foundation.Range;
+import mocha.ui.Application;
 import mocha.ui.Color;
 import mocha.ui.Screen;
 import mocha.ui.ScreenMath;
@@ -54,7 +52,12 @@ public class AttributedString implements CharSequence, android.text.Spannable, C
 		/**
 		 * Expects value to be {@link mocha.graphics.Shadow}
 		 */
-		SHADOW
+		SHADOW,
+
+		/**
+		 * Expects value to be {@link mocha.graphics.TextAttachment}
+		 */
+		ATTACHMENT
 	}
 
 	private SpannableStringBuilder builder;
@@ -125,6 +128,8 @@ public class AttributedString implements CharSequence, android.text.Spannable, C
 				return new BackgroundColorSpan((Integer)value);
 			case SHADOW:
 				return new ShadowSpan((Shadow)value);
+			case ATTACHMENT:
+				return new TextAttachmentSpan((TextAttachment)value);
 		}
 
 		throw new IllegalArgumentException();
@@ -357,6 +362,10 @@ public class AttributedString implements CharSequence, android.text.Spannable, C
 	 * @return Bounding rect
 	 */
 	public Rect getBoundingRectWithSize(Size size, TextAlignment defaultAlignment) {
+		if(this.length() == 0) {
+			return Rect.zero();
+		}
+
 		this.buildConstrainedLayout(defaultAlignment, size.width, Screen.mainScreen().getScale());
 
 		float width = Float.MIN_VALUE;
