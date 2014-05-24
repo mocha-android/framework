@@ -62,7 +62,7 @@ public class Label extends View implements Highlightable {
 
 	public AttributedString getAttributedText() {
 		if(this.attributedText == null) {
-			return null;
+			return new AttributedString();
 		} else {
 			return this.attributedText.copy();
 		}
