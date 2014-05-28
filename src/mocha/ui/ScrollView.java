@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.util.FloatMath;
 import mocha.animation.TimingFunction;
 import mocha.foundation.OptionalInterface;
 import mocha.graphics.Point;
@@ -53,9 +54,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		INTERACTIVE
 	}
 
-	Point contentOffset;
-	private Size contentSize;
-	private Size adjustedContentSize;
+	final Point contentOffset = Point.zero();
+	private final Size contentSize = Size.zero();
+	private final Size adjustedContentSize = Size.zero();
 	private boolean dragging;
 	boolean decelerating;
 	private boolean inSimpleAnimation;
@@ -64,7 +65,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private boolean showsVerticalScrollIndicator;
 	private EdgeInsets scrollIndicatorInsets;
 	private boolean pagingEnabled;
-	private Size pageSize;
 	private boolean bounces;
 	private boolean alwaysBounceHorizontal;
 	private boolean alwaysBounceVertical;
@@ -80,7 +80,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	boolean canScrollHorizontally;
 	private ScrollIndicator horizontalScrollIndicator;
 	private ScrollIndicator verticalScrollIndicator;
-	private EdgeInsets contentInset;
+	private final EdgeInsets contentInset = EdgeInsets.zero();
 	private ScrollViewAnimation scrollViewAnimation;
 	private KeyboardDismissMode keyboardDismissMode;
 
@@ -90,9 +90,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		this.contentOffset = Point.zero();
-		this.contentSize = Size.zero();
-		this.adjustedContentSize = Size.zero();
 		this.dragging = false;
 		this.decelerating = false;
 		this.indicatorStyle = IndicatorStyle.DEFAULT;
@@ -100,12 +97,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.showsVerticalScrollIndicator = true;
 		this.scrollIndicatorInsets = EdgeInsets.zero();
 		this.pagingEnabled = false;
-		this.pageSize = Size.zero();
 		this.bounces = true;
 		this.alwaysBounceHorizontal = false;
 		this.alwaysBounceVertical = false;
 		this.listener = null;
-		this.contentInset = EdgeInsets.zero();
 		this.panGestureRecognizer = new ScrollViewPanGestureRecognizer(this);
 		this.setUserInteractionEnabled(true);
 		this.addGestureRecognizer(this.panGestureRecognizer);
@@ -281,8 +276,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			}
 
-			EdgeInsets previousContentInset = this.contentInset;
-			this.contentInset = contentInset;
+			EdgeInsets previousContentInset = this.contentInset.copy();
+			this.contentInset.set(contentInset);
 			this.minPoint = new Point(-contentInset.left, -contentInset.top);
 
 			Size size = this.getBounds().size;
@@ -313,10 +308,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 
 		}
-	}
-
-	public Size getPageSize() {
-		return this.pageSize == null || this.pageSize.equals(Size.zero()) ? this.getBounds().size : this.pageSize.copy();
 	}
 
 	public boolean isPagingEnabled() {
@@ -468,9 +459,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.commitAnimations();
 		} else {
 			if(internal || inSimpleAnimation) {
-				this.contentOffset = contentOffset.copy();
+				this.contentOffset.set(contentOffset.copy());
 			} else {
-				this.contentOffset = new Point(ScreenMath.round(contentOffset.x), ScreenMath.round(contentOffset.y));
+				this.contentOffset.x = roundf(contentOffset.x);
+				this.contentOffset.y = roundf(contentOffset.y);
 			}
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
@@ -508,19 +500,18 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	void snapContentOffsetToBounds(boolean animated) {
-		boolean commit;
-
-		Point contentOffset = new Point();
+		Point contentOffset = this.contentOffset.copy();
 
 		if (this.pagingEnabled && animated) {
-			Size a = this.getPageSize();
-			contentOffset.x = ScreenMath.round(this.contentOffset.x / a.width) * a.width;
-			contentOffset.y = ScreenMath.round(this.contentOffset.y / a.height) * a.height;
-			commit = true;
+			float width = this.getBoundsWidth();
+			float height = this.getBoundsHeight();
+
+			contentOffset.x = roundf(contentOffset.x / width) * width;
+			contentOffset.y = roundf(contentOffset.y / height) * height;
 		} else {
 			if (this.bounces) {
-				contentOffset.x = clampf(this.contentOffset.x, this.minPoint.x, this.maxPoint.x);
-				contentOffset.y = clampf(this.contentOffset.y, this.minPoint.y, this.maxPoint.y);
+				contentOffset.x = clampf(contentOffset.x, this.minPoint.x, this.maxPoint.x);
+				contentOffset.y = clampf(contentOffset.y, this.minPoint.y, this.maxPoint.y);
 
 				Rect frame = this.getFrame();
 
@@ -533,13 +524,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			}
 
-			contentOffset.x = ScreenMath.round(contentOffset.x);
-			contentOffset.y = ScreenMath.round(contentOffset.y);
-
-			commit = (contentOffset.x != this.contentOffset.x || contentOffset.y != this.contentOffset.y);
+			contentOffset.x = roundf(contentOffset.x);
+			contentOffset.y = roundf(contentOffset.y);
 		}
 
-		if (commit) {
+		if ((contentOffset.x != this.contentOffset.x || contentOffset.y != this.contentOffset.y)) {
 			if(pagingEnabled && animated) {
 				this.setContentOffset(contentOffset, TimingFunction.EASE_OUT, PAGING_TRANSITION_DURATION, false);
 			} else {
@@ -561,11 +550,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public void setContentSize(Size contentSize) {
-		if (contentSize == null) {
-			return;
-		}
-
-		this.contentSize = contentSize;
+		this.contentSize.set(contentSize);
 		this.adjustContentSize(false);
 		this.updateAlwaysBounce();
 	}
@@ -584,17 +569,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 		}
 
-		Size size = this.getBounds().size;
-		this.adjustedContentSize.width = Math.max(size.width, this.contentSize.width + this.contentInset.right);
-		this.adjustedContentSize.height = Math.max(size.height, this.contentSize.height + this.contentInset.bottom);
-		this.maxPoint = new Point(this.adjustedContentSize.width - size.width, this.adjustedContentSize.height - size.height);
+		float boundsWidth = this.getBoundsWidth();
+		float boundsHeight = this.getBoundsHeight();
+
+		this.adjustedContentSize.width = Math.max(boundsWidth, this.contentSize.width + this.contentInset.right);
+		this.adjustedContentSize.height = Math.max(boundsHeight, this.contentSize.height + this.contentInset.bottom);
+		this.maxPoint = new Point(this.adjustedContentSize.width - boundsWidth, this.adjustedContentSize.height - boundsHeight);
 
 		if (adjustOffset) {
-			this.contentOffset = new Point(Math.min(adjustedOffset.x * this.adjustedContentSize.width, this.maxPoint.x), Math.min(adjustedOffset.y * this.adjustedContentSize.height, this.maxPoint.y));
+			this.contentOffset.x = Math.min(adjustedOffset.x * this.adjustedContentSize.width, this.maxPoint.x);
+			this.contentOffset.y = Math.min(adjustedOffset.y * this.adjustedContentSize.height, this.maxPoint.y);
 		}
 
-		this.canScrollHorizontally = (size.width < this.adjustedContentSize.width);
-		this.canScrollVertically = (size.height < this.adjustedContentSize.height);
+		this.canScrollHorizontally = (boundsWidth < this.adjustedContentSize.width);
+		this.canScrollVertically = (boundsHeight < this.adjustedContentSize.height);
 	}
 
 	public void setIndicatorStyle(IndicatorStyle indicatorStyle) {
@@ -640,20 +628,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		float adjustedWidth = maxX - minX;
-		float width = Math.max(MIN_INDICATOR_LENGTH, ScreenMath.round((size.width / this.adjustedContentSize.width) * adjustedWidth));
+		float width = Math.max(MIN_INDICATOR_LENGTH, roundf((size.width / this.adjustedContentSize.width) * adjustedWidth));
 		float y = size.height - this.horizontalScrollIndicator.getThickness() - this.scrollIndicatorInsets.bottom - 1;
 		float x;
 
 		if (this.contentOffset.x < 0) {
-			width = ScreenMath.round(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
+			width = roundf(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 			x = minX;
 		} else {
 			if (this.contentOffset.x > this.maxPoint.x) {
-				width = ScreenMath.round(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
+				width = roundf(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
 				x = maxX - width;
 			} else {
 				float b = (this.contentOffset.x / (this.adjustedContentSize.width - size.width));
-				x = clampf(ScreenMath.round(b * (adjustedWidth - width) + this.scrollIndicatorInsets.left), minX, maxX - width);
+				x = clampf(roundf(b * (adjustedWidth - width) + this.scrollIndicatorInsets.left), minX, maxX - width);
 			}
 		}
 
@@ -672,20 +660,20 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		float adjustedHeight = maxY - minY;
-		float height = Math.max(MIN_INDICATOR_LENGTH, ScreenMath.round((size.height / this.adjustedContentSize.height) * adjustedHeight));
+		float height = Math.max(MIN_INDICATOR_LENGTH, roundf((size.height / this.adjustedContentSize.height) * adjustedHeight));
 		float x = size.width - this.verticalScrollIndicator.getThickness() - this.scrollIndicatorInsets.right - 1;
 		float y;
 
 		if (this.contentOffset.y < 0) {
-			height = ScreenMath.round(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
+			height = roundf(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 			y = minY;
 		} else {
 			if (this.contentOffset.y > this.maxPoint.y) {
-				height = ScreenMath.round(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
+				height = roundf(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
 				y = maxY - height;
 			} else {
 				float c = (this.contentOffset.y / (this.adjustedContentSize.height - size.height));
-				y = clampf(ScreenMath.round(c * (adjustedHeight - height) + this.scrollIndicatorInsets.top), minY, maxY - height);
+				y = clampf(roundf(c * (adjustedHeight - height) + this.scrollIndicatorInsets.top), minY, maxY - height);
 			}
 		}
 
@@ -779,11 +767,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.scrollViewAnimation = null;
 		}
 
-		this.startContentOffset = this.contentOffset.copy();
-
 		if(this.listenerDragging != null) {
 			this.listenerDragging.willBeginDragging(this);
 		}
+
+		this.startContentOffset = this.contentOffset.copy();
 
 		this.dragging = true;
 		Size size = this.getBounds().size;
@@ -860,8 +848,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	private void didScroll(boolean fromAnimation) {
 		if(fromAnimation) {
-			this.contentOffset.x = ScreenMath.round(this.contentOffset.x);
-			this.contentOffset.y = ScreenMath.round(this.contentOffset.y);
+			this.contentOffset.x = roundf(this.contentOffset.x);
+			this.contentOffset.y = roundf(this.contentOffset.y);
 			this.updateScrollPositionWithContentOffset();
 
 			if(this.listenerAnimations != null) {

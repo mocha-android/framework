@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import android.util.FloatMath;
 import mocha.foundation.MObject;
 import mocha.graphics.Point;
 import mocha.graphics.Size;
@@ -27,7 +28,7 @@ class ScrollViewAnimation extends MObject {
 	private static ThreadLocal<AnimationHandler> animationHandler = new ThreadLocal<AnimationHandler>();
 	private static final ThreadLocal<List<ScrollViewAnimation>> activeAnimations = new ThreadLocal<List<ScrollViewAnimation>>() {
 		protected List<ScrollViewAnimation> initialValue() {
-			return new ArrayList<ScrollViewAnimation>();
+			return new ArrayList<>();
 		}
 	};
 
@@ -86,11 +87,13 @@ class ScrollViewAnimation extends MObject {
 		this.maxDecelerationPoint = this.maxPoint.copy();
 
 		if (this.pagingEnabled) {
-			Size pageSize = target.getPageSize();
-			this.minDecelerationPoint.x = Math.max(this.minPoint.x, ScreenMath.floor(target.contentOffset.x / pageSize.width) * pageSize.width);
-			this.minDecelerationPoint.y = Math.max(this.minPoint.y, ScreenMath.floor(target.contentOffset.y / pageSize.height) * pageSize.height);
-			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, ScreenMath.ceil(target.contentOffset.x / pageSize.width) * pageSize.width);
-			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, ScreenMath.ceil(target.contentOffset.y / pageSize.height) * pageSize.height);
+			float pageWidth = target.getBoundsWidth();
+			float pageHeight = target.getBoundsHeight();
+
+			this.minDecelerationPoint.x = Math.max(this.minPoint.x, FloatMath.floor(target.contentOffset.x / pageWidth) * pageWidth);
+			this.minDecelerationPoint.y = Math.max(this.minPoint.y, FloatMath.floor(target.contentOffset.y / pageHeight) * pageHeight);
+			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, FloatMath.ceil(target.contentOffset.x / pageWidth) * pageWidth);
+			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, FloatMath.ceil(target.contentOffset.y / pageHeight) * pageHeight);
 		}
 
 		float minimumVelocity = this.pagingEnabled ? MIN_VELOCITY_FOR_DECELERATION_WITH_PAGING : MIN_VELOCITY_FOR_DECELERATION;
@@ -228,7 +231,7 @@ class ScrollViewAnimation extends MObject {
 
 		this.animatedContentOffset = offset;
 
-		if (target.contentOffset.x != ScreenMath.round(offset.x) || target.contentOffset.y != ScreenMath.round(offset.y)) {
+		if (target.contentOffset.x != View.roundf(offset.x) || target.contentOffset.y != View.roundf(offset.y)) {
 			target.setContentOffset(offset, null, 0, true);
 		}
 
@@ -290,8 +293,10 @@ class ScrollViewAnimation extends MObject {
 		target.hideScrollIndicators();
 
 		if (this.pagingEnabled) {
-			Size a = target.getPageSize();
-			target.setContentOffset(new Point(ScreenMath.round(target.contentOffset.x / a.width) * a.width, ScreenMath.round(target.contentOffset.y / a.height) * a.height), false);
+			float pageWidth = target.getBoundsWidth();
+			float pageHeight = target.getBoundsHeight();
+
+			target.setContentOffset(new Point(View.roundf(target.contentOffset.x / pageWidth) * pageWidth, View.roundf(target.contentOffset.y / pageHeight) * pageHeight), false);
 		}
 
 		target.snapContentOffsetToBounds(false);
@@ -306,7 +311,7 @@ class ScrollViewAnimation extends MObject {
 		public void handleMessage(android.os.Message message) {
 			if(message.what == PROCESS_FRAME) {
 				long currentTime = android.os.SystemClock.uptimeMillis();
-				ArrayList<ScrollViewAnimation> animations = new ArrayList<ScrollViewAnimation>(activeAnimations.get());
+				List<ScrollViewAnimation> animations = new ArrayList<>(activeAnimations.get());
 
 				for(ScrollViewAnimation animation : animations) {
 					animation.stepThroughDecelerationAnimation();
