@@ -36,6 +36,7 @@ public class ViewController extends Responder {
 	private int appearanceTransitionIsAppearing;
 	private int appearanceTransitionAnimated;
 	private NavigationItem navigationItem;
+	private TabBarItem tabBarItem;
 	private String title;
 	private Responder nextResponder;
 	private boolean willAppear;
@@ -286,6 +287,19 @@ public class ViewController extends Responder {
 
 			this.navigationItem = navigationItem;
 		}
+	}
+
+	public TabBarItem getTabBarItem() {
+		if(this.tabBarItem == null) {
+			this.tabBarItem = new TabBarItem(this.title, null, -1);
+		}
+
+		return tabBarItem;
+	}
+
+	public void setTabBarItem(TabBarItem tabBarItem) {
+		// TODO: Build out logic to update TabBarController once that's built out.
+		this.tabBarItem = tabBarItem;
 	}
 
 	protected List<ViewController> getChildViewControllers() {

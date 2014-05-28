@@ -27,7 +27,7 @@ public class BarItem extends MObject {
 		this.enabled = true;
 		this.imageInsets = EdgeInsets.zero();
 		this.landscapeImagePhoneInsets = EdgeInsets.zero();
-		this.titleTextAttributes = new HashMap<EnumSet<Control.State>, TextAttributes>();
+		this.titleTextAttributes = new HashMap<>();
 	}
 
 	public Image getImage() {

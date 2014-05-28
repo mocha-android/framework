@@ -5,6 +5,8 @@
  */
 package mocha.ui;
 
+import mocha.foundation.OptionalInterface;
+import mocha.foundation.OptionalInterfaceHelper;
 import mocha.graphics.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -15,6 +17,16 @@ import java.util.List;
 public class NavigationController extends ViewController {
 	public enum TransitionStyle {
 		ANDROID, IOS, CUSTOM
+	}
+
+	public interface Delegate extends OptionalInterface {
+
+		@OptionalInterface.Optional
+		void willShowViewController(NavigationController navigationController, ViewController viewController, boolean animated);
+
+		@OptionalInterface.Optional
+		void didShowViewController(NavigationController navigationController, ViewController viewController, boolean animated);
+
 	}
 
 	public static final long HIDE_SHOW_BAR_DURATION = 330;
@@ -29,6 +41,9 @@ public class NavigationController extends ViewController {
 	private NavigationTransitionController transitionController;
 	private Class<? extends NavigationTransitionController> transitionControllerClass;
 	private View topView;
+	private Delegate delegate;
+	private boolean delegateWillShow;
+	private boolean delegateDidShow;
 
 	public NavigationController(Class<? extends NavigationBar> navigationBarClass) {
 		this.viewControllers = new ArrayList<ViewController>();
@@ -165,6 +180,25 @@ public class NavigationController extends ViewController {
 		return true;
 	}
 
+
+	public TabBarItem getTabBarItem() {
+		if(this.viewControllers.size() > 0) {
+			return this.viewControllers.get(0).getTabBarItem();
+		} else {
+			return null;
+		}
+	}
+
+	public Delegate getDelegate() {
+		return this.delegate;
+	}
+
+	public void setDelegate(Delegate delegate) {
+		this.delegate = delegate;
+		this.delegateWillShow = OptionalInterfaceHelper.hasImplemented(delegate, Delegate.class, "willShowViewController", NavigationController.class, ViewController.class, boolean.class);
+		this.delegateDidShow = OptionalInterfaceHelper.hasImplemented(delegate, Delegate.class, "didShowViewController", NavigationController.class, ViewController.class, boolean.class);
+	}
+
 	public NavigationBar getNavigationBar() {
 		return navigationBar;
 	}
@@ -269,13 +303,13 @@ public class NavigationController extends ViewController {
 		if(this.viewControllers.size() > 0) {
 			return this.popToViewController(this.viewControllers.get(0), animated);
 		} else {
-			return new ArrayList<ViewController>();
+			return Collections.emptyList();
 		}
 	}
 
 	public List<ViewController> popToViewController(ViewController toViewController, boolean animated) {
 		if(this.viewControllers.size() == 0 || !this.viewControllers.contains(toViewController) || this.getTopViewController() == toViewController) {
-			return new ArrayList<ViewController>();
+			return Collections.emptyList();
 		}
 
 		final List<ViewController> poppingViewControllers = new ArrayList<ViewController>(this.viewControllers.subList(this.viewControllers.indexOf(toViewController) + 1, this.viewControllers.size()));
@@ -296,12 +330,21 @@ public class NavigationController extends ViewController {
 	private void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, boolean animated, final boolean push, final Runnable completion1) {
 		animated = animated && fromViewController != null && toViewController != null;
 
+		if(this.delegate != null && this.delegateWillShow) {
+			this.delegate.willShowViewController(this, toViewController, animated);
+		}
+
+		final boolean _animated = animated;
 		final Runnable completion = new Runnable() {
 			public void run() {
 				promoteDeepestDefaultFirstResponder();
 
 				if(completion1 != null) {
 					completion1.run();
+				}
+
+				if(delegate != null && delegateWillShow) {
+					delegate.willShowViewController(NavigationController.this, toViewController, _animated);
 				}
 			}
 		};
