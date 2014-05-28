@@ -239,6 +239,22 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		return this.contentInset.copy();
 	}
 
+	public float getContentInsetTop() {
+		return this.contentInset.top;
+	}
+
+	public float getContentInsetLeft() {
+		return this.contentInset.left;
+	}
+
+	public float getContentInsetBottom() {
+		return this.contentInset.bottom;
+	}
+
+	public float getContentInsetRight() {
+		return this.contentInset.right;
+	}
+
 	public void setContentInset(EdgeInsets contentInset) {
 		if(contentInset == null) {
 			contentInset = EdgeInsets.zero();
@@ -329,6 +345,14 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public Point getContentOffset() {
 		return this.contentOffset.copy();
+	}
+
+	public float getContentOffsetX() {
+		return this.contentOffset.x;
+	}
+
+	public float getContentOffsetY() {
+		return this.contentOffset.y;
 	}
 
 	public boolean bounces() {
@@ -526,6 +550,14 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public Size getContentSize() {
 		return this.contentSize.copy();
+	}
+
+	public float getContentSizeWidth() {
+		return this.contentSize.width;
+	}
+
+	public float getContentSizeHeight() {
+		return this.contentSize.height;
 	}
 
 	public void setContentSize(Size contentSize) {

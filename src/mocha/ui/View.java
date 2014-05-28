@@ -419,6 +419,22 @@ public class View extends Responder implements Accessibility {
 		return this.frame.copy();
 	}
 
+	public float getFrameX() {
+		return this.frame.origin.x;
+	}
+
+	public float getFrameY() {
+		return this.frame.origin.y;
+	}
+
+	public float getFrameWidth() {
+		return this.frame.size.width;
+	}
+
+	public float getFrameHeight() {
+		return this.frame.size.height;
+	}
+
 	/**
 	 * Set the frame of the view
 	 *
@@ -482,6 +498,22 @@ public class View extends Responder implements Accessibility {
 		return this.bounds.copy();
 	}
 
+	public float getBoundsX() {
+		return this.bounds.origin.x;
+	}
+
+	public float getBoundsY() {
+		return this.bounds.origin.y;
+	}
+
+	public float getBoundsWidth() {
+		return this.bounds.size.width;
+	}
+
+	public float getBoundsHeight() {
+		return this.bounds.size.height;
+	}
+
 	/**
 	 * Set the bounds of the view
 	 *
@@ -536,6 +568,14 @@ public class View extends Responder implements Accessibility {
 
 	public Point getCenter() {
 		return new Point(this.frame.midX(), this.frame.midY());
+	}
+
+	public float getCenterX() {
+		return this.frame.midX();
+	}
+
+	public float getCenterY() {
+		return this.frame.midY();
 	}
 
 	public void setCenter(Point center) {
