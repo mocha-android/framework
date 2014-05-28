@@ -45,7 +45,11 @@ public class Label extends View implements Highlightable {
 	}
 
 	public CharSequence getText() {
-		return this.text == null || this.text.getText() == null ? "" : this.text.getText();
+		if(this.attributedText != null) {
+			return this.attributedText.toString();
+		} else {
+			return this.text == null || this.text.getText() == null ? "" : this.text.getText();
+		}
 	}
 
 	public void setText(CharSequence text) {
@@ -56,6 +60,7 @@ public class Label extends View implements Highlightable {
 				this.text = new TextDrawingText(text);
 			}
 
+			this.attributedText = null;
 			this.setTextNeedsMeasuring();
 		}
 	}
@@ -73,6 +78,7 @@ public class Label extends View implements Highlightable {
 			this.attributedText = null;
 		} else {
 			this.attributedText = attributedText.copy();
+			this.text = null;
 		}
 
 		this.setTextNeedsMeasuring();
