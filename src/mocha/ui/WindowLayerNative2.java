@@ -8,13 +8,8 @@ package mocha.ui;
 import android.content.Context;
 import android.util.FloatMath;
 import android.view.*;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.RelativeLayout;
 import mocha.foundation.NotificationCenter;
 import mocha.graphics.Rect;
-import mocha.graphics.Size;
-import mocha.ui.View;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -221,6 +216,13 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 						public void run() {
 							NotificationCenter.defaultCenter().post(startNotification, getWindow(), info);
 							NotificationCenter.defaultCenter().post(endNotification, getWindow(), info);
+
+							performOnMainAfterDelay(100, new Runnable() {
+								@Override
+								public void run() {
+									recursiveInvalidate(getWindow());
+								}
+							});
 						}
 					});
 				}
@@ -229,6 +231,18 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 			this.lastProposedHeight = proposedHeight;
 
 			super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(Math.max(largestHeight, proposedHeight), MeasureSpec.EXACTLY));
+		}
+	}
+
+	// Fixes an odd bug on certain devices/os versions
+	// that causes views to randomly go blank on keyboard
+	// changes.
+	private void recursiveInvalidate(View view) {
+		view.setNeedsDisplay();
+		view.setNeedsLayout();
+
+		for(View subview : view.getSubviews()) {
+			this.recursiveInvalidate(subview);
 		}
 	}
 }
