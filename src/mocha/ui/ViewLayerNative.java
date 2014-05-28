@@ -34,6 +34,8 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 	private float shadowRadius;
 	private Path shadowPath;
 	private float cornerRadius;
+	private int borderColor;
+	private float borderWidth;
 	public final float scale;
 	private int backgroundColor;
 	private float tx;
@@ -430,6 +432,22 @@ public class ViewLayerNative extends ViewGroup implements ViewLayer {
 
 	public void setCornerRadius(float cornerRadius) {
 		this.cornerRadius = cornerRadius;
+	}
+
+	public int getBorderColor() {
+		return borderColor;
+	}
+
+	public void setBorderColor(int borderColor) {
+		this.borderColor = borderColor;
+	}
+
+	public float getBorderWidth() {
+		return borderWidth;
+	}
+
+	public void setBorderWidth(float borderWidth) {
+		this.borderWidth = borderWidth;
 	}
 
 	public boolean isHidden() {

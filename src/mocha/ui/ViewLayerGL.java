@@ -43,6 +43,8 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 	private float shadowRadius;
 	private Path shadowPath;
 	private float cornerRadius;
+	private int borderColor;
+	private float borderWidth;
 	private Runnable layoutCallback;
 
 	final float scale;
@@ -257,6 +259,22 @@ public class ViewLayerGL extends MObject implements ViewLayer {
 
 	public void setCornerRadius(float cornerRadius) {
 		this.cornerRadius = cornerRadius;
+	}
+
+	public int getBorderColor() {
+		return borderColor;
+	}
+
+	public void setBorderColor(int borderColor) {
+		this.borderColor = borderColor;
+	}
+
+	public float getBorderWidth() {
+		return borderWidth;
+	}
+
+	public void setBorderWidth(float borderWidth) {
+		this.borderWidth = borderWidth;
 	}
 
 	public boolean isHidden() {

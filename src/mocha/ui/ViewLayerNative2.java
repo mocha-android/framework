@@ -46,6 +46,9 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	private android.graphics.Path cornerNativePath;
 	private float cornerRadius;
 
+	private int borderColor;
+	private float borderWidth;
+
 	private List<ViewLayerNative2> sublayers;
 	private ViewLayerNative2 superlayer;
 
@@ -270,7 +273,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 			float tx = this.transform.getTx() * this.scale;
 			float ty = this.transform.getTy() * this.scale;
 
-			// Check for a simple scale animation
+			// Check for a simple scale/translate animation
 			if(b == 0.0f && c == 0.0f) {
 				if(this.matrix != null) {
 					this.matrix = null;
@@ -307,9 +310,10 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 						values[1], values[3], values[5],
 						0.0f, 0.0f, 1.0f
 				});
+
+				this.resetTranslation();
 			}
 
-			this.resetTranslation();
 			this.setNeedsDisplay();
 
 			if(this.getSuperlayer() != null) {
@@ -481,6 +485,22 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		}
 	}
 
+	public int getBorderColor() {
+		return this.borderColor;
+	}
+
+	public void setBorderColor(int borderColor) {
+		this.borderColor = borderColor;
+	}
+
+	public float getBorderWidth() {
+		return this.borderWidth;
+	}
+
+	public void setBorderWidth(float borderWidth) {
+		this.borderWidth = borderWidth;
+	}
+
 	public void renderInContext(mocha.graphics.Context context) {
 		Rect bounds = this.view.getBounds();
 		Rect rect = new Rect(0.0f, 0.0f, bounds.size.width, bounds.size.height);
@@ -553,6 +573,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	class Layout extends FrameLayout {
 		private Paint cornerPaint;
+		private Paint borderPaint;
 
 		Layout(Context context) {
 			super(context);
@@ -613,6 +634,22 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 
+			if(borderColor > 0.0f && borderColor != 0) {
+				if(this.borderPaint == null) {
+					this.borderPaint = new Paint();
+					this.borderPaint.setAntiAlias(true);
+					this.borderPaint.setDither(true);
+					this.borderPaint.setStyle(Paint.Style.STROKE);
+					this.borderPaint.setStrokeJoin(Paint.Join.MITER);
+					this.borderPaint.setStrokeCap(Paint.Cap.ROUND);
+				}
+
+				this.borderPaint.setStrokeWidth(borderWidth * scale);
+				this.borderPaint.setColor(borderColor);
+			} else {
+				this.borderPaint = null;
+			}
+
 			if(cornerRadius > 0.0f) {
 				if(this.cornerPaint == null) {
 					this.cornerPaint = new Paint();
@@ -622,6 +659,10 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 				this.cornerPaint.setColor(backgroundColor);
 				canvas.drawPath(getCornerNativePath(), this.cornerPaint);
+
+				if(this.borderPaint != null) {
+					canvas.drawPath(getCornerNativePath(), this.borderPaint);
+				}
 			}
 
 			if(supportsDrawing) {

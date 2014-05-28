@@ -73,6 +73,12 @@ public interface ViewLayer {
 	public float getCornerRadius();
 	public void setCornerRadius(float cornerRadius);
 
+	public float getBorderWidth();
+	public void setBorderWidth(float borderWidth);
+
+	public int getBorderColor();
+	public void setBorderColor(int shadowColor);
+
 	public void renderInContext(Context context);
 
 	public float getZPosition();
