@@ -98,6 +98,66 @@ abstract public class GestureRecognizer extends MObject {
 		public void handleGesture(GestureRecognizer gestureRecognizer);
 	}
 
+	private class FailureDependencyMap {
+		private final Set<GestureRecognizer> failureRequirements = new HashSet<>();
+
+		public void build(Touch touch) {
+			for(WeakReference<GestureRecognizer> failureRequirement : GestureRecognizer.this.failureRequirements) {
+				GestureRecognizer gestureRecognizer = failureRequirement.get();
+
+				if(gestureRecognizer != null) {
+					this.failureRequirements.add(gestureRecognizer);
+					gestureRecognizer.failureDependents.add(GestureRecognizer.this);
+				}
+			}
+
+			for(GestureRecognizer gestureRecognizer : touch.getGestureRecognizers()) {
+				if(gestureRecognizer.state != State.POSSIBLE) continue;
+
+				if(gestureRecognizer != GestureRecognizer.this) {
+					if(GestureRecognizer.this.shouldRequireFailureOfGestureRecognizer(gestureRecognizer)) {
+						this.addDynamic(gestureRecognizer);
+					} else if(GestureRecognizer.this.shouldBeRequiredToFailByGestureRecognizer(gestureRecognizer)) {
+						gestureRecognizer.failureDependencyMap.addDynamic(GestureRecognizer.this);
+					}
+
+					// TODO: Add delegate support
+				}
+			}
+		}
+
+		public void reset() {
+			for(GestureRecognizer gestureRecognizer : this.failureRequirements) {
+				gestureRecognizer.failureDependents.remove(GestureRecognizer.this);
+			}
+
+			this.failureRequirements.clear();
+		}
+
+		private void addDynamic(GestureRecognizer gestureRecognizer) {
+			if(gestureRecognizer != null) {
+				this.failureRequirements.add(gestureRecognizer);
+				gestureRecognizer.failureDependents.add(GestureRecognizer.this);
+			}
+		}
+
+		public boolean areFailureRequirementsSatisfied() {
+			if(this.failureRequirements.size() == 0) {
+				return true;
+			}
+
+			for(GestureRecognizer gestureRecognizer : this.failureRequirements) {
+				if(gestureRecognizer.getView() == null) continue;
+
+				if(gestureRecognizer.state != State.FAILED && gestureRecognizer.state != State.CANCELLED) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+	}
+
 	private Delegate delegate;
 	private boolean delaysTouchesBegan;
 	private boolean delaysTouchesEnded;
@@ -105,18 +165,20 @@ abstract public class GestureRecognizer extends MObject {
 	private boolean enabled;
 	private State state;
 	private View view;
-	private List<GestureHandler> registeredGestureHandlers;
-	private List<Touch> trackingTouches;
-	private List<Touch> ignoredTouches;
+	private final List<GestureHandler> registeredGestureHandlers;
+	private final List<Touch> trackingTouches;
+	private final List<Touch> ignoredTouches;
 	private Event lastEvent;
 	private boolean didSetState;
-	private Set<WeakReference<GestureRecognizer>> failureRequirements;
-	private Set<WeakReference<GestureRecognizer>> failureDependents;
+	private final Set<WeakReference<GestureRecognizer>> failureRequirements;
+	private final Set<GestureRecognizer> failureDependents;
+	private final FailureDependencyMap failureDependencyMap;
 	private boolean failureRequirementsSatisfied;
 	private boolean passedPreventionTests;
 	private Runnable resetCallback;
 	private boolean shouldPerformHapticFeedbackOnTransitionToRecognizedState;
 	private boolean shouldPlayClickSoundOnTransitionToRecognizedState;
+	private boolean recognitionDelayed;
 
 	public GestureRecognizer() {
 		this.state = State.POSSIBLE;
@@ -125,12 +187,14 @@ abstract public class GestureRecognizer extends MObject {
 		this.delaysTouchesEnded = true;
 		this.enabled = true;
 
-		this.registeredGestureHandlers = new ArrayList<GestureHandler>();
-		this.trackingTouches = new ArrayList<Touch>();
-		this.ignoredTouches = new ArrayList<Touch>();
+		this.registeredGestureHandlers = new ArrayList<>();
+		this.trackingTouches = new ArrayList<>();
+		this.ignoredTouches = new ArrayList<>();
 
-		this.failureRequirements = new HashSet<WeakReference<GestureRecognizer>>();
-		this.failureDependents = new HashSet<WeakReference<GestureRecognizer>>();
+		this.failureRequirements = new HashSet<>();
+		this.failureDependents = new HashSet<>();
+
+		this.failureDependencyMap = new FailureDependencyMap();
 	}
 
 	public GestureRecognizer(GestureHandler gestureHandler) {
@@ -147,8 +211,7 @@ abstract public class GestureRecognizer extends MObject {
 	}
 
 	public void requireGestureRecognizerToFail(GestureRecognizer gestureRecognizer) {
-		this.failureRequirements.add(new WeakReference<GestureRecognizer>(gestureRecognizer));
-		gestureRecognizer.failureDependents.add(new WeakReference<GestureRecognizer>(this));
+		this.failureRequirements.add(new WeakReference<>(gestureRecognizer));
 	}
 
 	List<Touch> getTrackingTouches() {
@@ -287,7 +350,7 @@ abstract public class GestureRecognizer extends MObject {
 			if(!prevented) {
 				// If the delegate hasn't prevented us, let's hand it over to
 				// the prevention test
-				prevented = !this.didPassPreventionTest(this.lastEvent);
+				prevented = !this.didPassPreventionTest(this.lastEvent, false);
 			}
 
 			// If we've been prevented, fail and then reset
@@ -304,6 +367,7 @@ abstract public class GestureRecognizer extends MObject {
 		this.state = state;
 
 		boolean shouldNotify = this.shouldNotifyHandlersForState(this.state);
+		this.recognitionDelayed = this.state.recognized && !shouldNotify;
 
 		// Notify handlers if the state wants it AND we're allowed to.
 		if (shouldNotify) {
@@ -393,6 +457,7 @@ abstract public class GestureRecognizer extends MObject {
 		for(Touch touch : this.trackingTouches) {
 			switch (touch.getPhase()) {
 				case BEGAN:
+					this.failureDependencyMap.build(touch);
 					this.touchesBegan(this.trackingTouches, event);
 					break;
 				case MOVED:
@@ -401,9 +466,11 @@ abstract public class GestureRecognizer extends MObject {
 				case STATIONARY:
 					break;
 				case ENDED:
+					this.failureDependencyMap.reset();
 					this.touchesEnded(this.trackingTouches, event);
 					break;
 				case CANCELLED:
+					this.failureDependencyMap.reset();
 					this.touchesCancelled(this.trackingTouches, event);
 					break;
 				case GESTURE_BEGAN:
@@ -451,11 +518,14 @@ abstract public class GestureRecognizer extends MObject {
 		this.ignoredTouches.clear();
 		this.failureRequirementsSatisfied = false;
 		this.passedPreventionTests = false;
+		this.recognitionDelayed = false;
 
 		if(this.resetCallback != null) {
 			cancelCallbacks(this.resetCallback);
 			this.resetCallback = null;
 		}
+
+		this.failureDependencyMap.reset();
 	}
 
 	protected void ignoreTouch(Touch touch, Event event) {
@@ -470,6 +540,14 @@ abstract public class GestureRecognizer extends MObject {
 		return true;
 	}
 
+	protected boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer otherGestureRecognizer) {
+		return false;
+	}
+
+	protected boolean shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer otherGestureRecognizer) {
+		return false;
+	}
+
 	abstract protected void touchesBegan(List<Touch> touches, Event event);
 	abstract protected void touchesMoved(List<Touch> touches, Event event);
 	abstract protected void touchesEnded(List<Touch> touches, Event event);
@@ -477,35 +555,20 @@ abstract public class GestureRecognizer extends MObject {
 
 	private boolean shouldNotifyHandlersForState(State state) {
 		// iOS always notifies for CANCELLED, regardless of failure requirements
-		return state == State.CANCELLED || state.notifyHandlers && this.areFailureRequirementsSatisfied();
+		return state == State.CANCELLED || (state.notifyHandlers && this.areFailureRequirementsSatisfied());
 	}
 
 	private boolean areFailureRequirementsSatisfied() {
-		if(this.failureRequirementsSatisfied) {
-			return this.failureRequirementsSatisfied;
-		}
+		return this.failureRequirementsSatisfied || (this.failureRequirementsSatisfied = this.failureDependencyMap.areFailureRequirementsSatisfied());
 
-		if(this.failureRequirements.size() == 0) {
-			return true;
-		}
-
-		for(WeakReference<GestureRecognizer> reference : this.failureRequirements) {
-			GestureRecognizer gestureRecognizer = reference.get();
-			if(gestureRecognizer == null || gestureRecognizer.getView() == null) continue;
-
-			if(gestureRecognizer.state != State.FAILED && gestureRecognizer.state != State.CANCELLED) {
-				return false;
-			}
-		}
-
-		this.failureRequirementsSatisfied = true;
-		return true;
 	}
 
 	private void failureRequirementDidFail(GestureRecognizer gestureRecognizer, Event event) {
 		if(!this.state.recognized || !this.state.notifyHandlers) return;
 
-		if(this.didPassPreventionTest(event)) {
+		if(this.didPassPreventionTest(event, true)) {
+			this.recognitionDelayed = false;
+
 			if(this.state == State.CHANGED || this.state == State.BEGAN) {
 				this.notifyHandlersWithTemporaryState(State.BEGAN);
 			} else {
@@ -536,22 +599,14 @@ abstract public class GestureRecognizer extends MObject {
 	}
 
 	private void notifyDependentsOfFailure() {
-		for(WeakReference<GestureRecognizer> reference : this.failureDependents) {
-			GestureRecognizer gestureRecognizer = reference.get();
-
-			if(gestureRecognizer != null) {
-				gestureRecognizer.failureRequirementDidFail(this, this.lastEvent);
-			}
+		for(GestureRecognizer gestureRecognizer : this.failureDependents) {
+			gestureRecognizer.failureRequirementDidFail(this, this.lastEvent);
 		}
 	}
 
 	private void notifyDependentsOfRecognition() {
-		for(WeakReference<GestureRecognizer> reference : this.failureDependents) {
-			GestureRecognizer gestureRecognizer = reference.get();
-
-			if(gestureRecognizer != null) {
-				gestureRecognizer.failureRequirementWasRecognized(this);
-			}
+		for(GestureRecognizer gestureRecognizer : this.failureDependents) {
+			gestureRecognizer.failureRequirementWasRecognized(this);
 		}
 	}
 
@@ -559,9 +614,9 @@ abstract public class GestureRecognizer extends MObject {
 		return (this.enabled && this.state != State.FAILED && this.state != State.CANCELLED && this.state != State.ENDED);
 	}
 
-	private boolean didPassPreventionTest(Event event) {
+	private boolean didPassPreventionTest(Event event, boolean requiresFailureRequirementsToBeSatisfied) {
 		if(!this.areFailureRequirementsSatisfied()) {
-			return true;
+			return !requiresFailureRequirementsToBeSatisfied;
 		}
 
 		if(this.passedPreventionTests) {
@@ -580,7 +635,7 @@ abstract public class GestureRecognizer extends MObject {
 		gestureRecognizers.remove(this);
 
 		for(GestureRecognizer otherGestureRecognizer : gestureRecognizers) {
-			if(!otherGestureRecognizer.state.recognized) continue;
+			if(!otherGestureRecognizer.state.recognized || otherGestureRecognizer.recognitionDelayed) continue;
 
 			if(otherGestureRecognizer.canPreventGestureRecognizer(this) && this.canBePreventedByGestureRecognizer(otherGestureRecognizer)) {
 				boolean should = this.delegate != null && this.delegate.shouldRecognizeSimultaneously(this, otherGestureRecognizer);

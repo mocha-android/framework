@@ -20,11 +20,15 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	private boolean directionalLockEnabled;
 	private ScrollDirection scrollDirection;
 	private ScrollDirection lastScrollDirection;
-	private Point startLocation;
-	private Point lastLocation;
+	private final Point startLocation;
+	private final Point lastLocation;
 
 	ScrollViewPanGestureRecognizer(GestureHandler gestureHandler) {
 		super(gestureHandler);
+
+
+		this.lastLocation = Point.zero();
+		this.startLocation = Point.zero();
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {
@@ -32,6 +36,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 		Touch touch = this.findTouch(event);
 
+		// If our scroll view is decelerating, begin immediately to halt touching
 		if(!this.tracking && !this.panning && (scrollView = this.getScrollView()) != null && scrollView.decelerating) {
 			if(touch != null) {
 				this.startTouchPosition = touch.location.copy();
@@ -50,8 +55,8 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		}
 
 		if(touch != null) {
-			this.startLocation = touch.location.copy();
-			this.lastLocation = this.startLocation.copy();
+			this.startLocation.set(touch.location);
+			this.lastLocation.set(this.startLocation);
 		}
 
 		super.touchesBegan(touches, event);
@@ -62,7 +67,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 			Touch touch = this.findTouch(event);
 
 			if(touch != null) {
-				this.lastLocation = touch.location.copy();
+				this.lastLocation.set(touch.location);
 			}
 		}
 
@@ -87,11 +92,11 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 			if(scrollView != null) {
 				if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
-					if(scrollView.getContentSize().width <= scrollView.getFrame().size.width) {
+					if(!scrollView.canScrollHorizontally) {
 						state = State.FAILED;
 					}
 				} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
-					if(scrollView.getContentSize().height <= scrollView.getFrame().size.height) {
+					if(!scrollView.canScrollVertically) {
 						state = State.FAILED;
 					}
 				}
@@ -200,6 +205,31 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 				if(((ScrollView) superview).decelerating) {
 					return true;
 				}
+			}
+		}
+
+		return false;
+	}
+
+	protected boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer otherGestureRecognizer) {
+		if(otherGestureRecognizer instanceof PanGestureRecognizer) {
+			if (this.isDescedent((PanGestureRecognizer) otherGestureRecognizer)) {
+				return true;
+			}
+		}
+
+		return super.shouldRequireFailureOfGestureRecognizer(otherGestureRecognizer);
+	}
+
+	protected boolean isDescedent(PanGestureRecognizer otherGestureRecognizer) {
+		View view = this.getView();
+		View otherView = otherGestureRecognizer.getView();
+
+		while (otherView != null) {
+			if(view == otherView) {
+				return true;
+			} else {
+				otherView = otherView.getSuperview();
 			}
 		}
 

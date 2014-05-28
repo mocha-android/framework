@@ -37,7 +37,7 @@ public class PanGestureRecognizer extends GestureRecognizer {
 		this.translation = new Point();
 		this.tracking = false;
 		this.panning = false;
-		this.trackingDataPoints = new ArrayList<TrackingDataPoint>();
+		this.trackingDataPoints = new ArrayList<>();
 	}
 
 	public Point translationInView(View view) {

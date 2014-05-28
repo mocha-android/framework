@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import mocha.foundation.Lists;
 import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
@@ -86,7 +87,7 @@ public final class Touch extends MObject {
 	}
 
 	public List<GestureRecognizer>getGestureRecognizers() {
-		return new ArrayList<GestureRecognizer>(this.gestureRecognizers);
+		return Lists.copy(this.gestureRecognizers);
 	}
 
 	/// Internal methods
