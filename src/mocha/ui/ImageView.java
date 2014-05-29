@@ -5,10 +5,7 @@
  */
 package mocha.ui;
 
-import mocha.graphics.Context;
-import mocha.graphics.Image;
-import mocha.graphics.Point;
-import mocha.graphics.Rect;
+import mocha.graphics.*;
 
 public class ImageView extends View implements Highlightable {
 	private Image image;
@@ -171,4 +168,7 @@ public class ImageView extends View implements Highlightable {
 		}
 	}
 
+	public Size sizeThatFits(Size size) {
+		return this.image == null ? size : this.image.getSize();
+	}
 }

@@ -26,7 +26,7 @@ public class Button extends Control {
 	private Map<EnumSet<State>, HashMap<ContentType, Object>> content;
 
 	private enum ContentType {
-		TITLE, TITLE_COLOR, TITLE_SHADOW_COLOR, BACKGROUND_IMAGE, IMAGE
+		TITLE, TITLE_COLOR, TITLE_SHADOW_COLOR, ATTRIBUTED_TITLE, BACKGROUND_IMAGE, IMAGE
 	}
 
 	public Button() { this(Rect.zero()); }
@@ -34,7 +34,7 @@ public class Button extends Control {
 	public Button(Rect frame) {
 		super(frame);
 
-		this.content = new HashMap<EnumSet<State>, HashMap<ContentType, Object>>();
+		this.content = new HashMap<>();
 
 		this.contentEdgeInsets = EdgeInsets.zero();
 		this.titleEdgeInsets = EdgeInsets.zero();
@@ -59,6 +59,10 @@ public class Button extends Control {
 
 	public void setTitle(CharSequence title, State... states) {
 		this.setContent(ContentType.TITLE, states, title);
+	}
+
+	public void setAttributedTitle(AttributedString title, State... states) {
+		this.setContent(ContentType.ATTRIBUTED_TITLE, states, title);
 	}
 
 	public void setTitleColor(int titleColor, State... states) {
@@ -86,12 +90,12 @@ public class Button extends Control {
 	}
 
 	private void setContent(ContentType type, State[] states, Object value) {
-		EnumSet<State> set = Control.getStateSet(states);
+		EnumSet<State> set = State.toSet(states);
 
 		HashMap<ContentType, Object> content = this.content.get(set);
 
 		if(content == null) {
-			content = new HashMap<ContentType, Object>();
+			content = new HashMap<>();
 			this.content.put(set, content);
 		}
 
@@ -111,6 +115,14 @@ public class Button extends Control {
 
 	private CharSequence getTitleForState(EnumSet<State> stateSet) {
 		return (CharSequence)this.getContent(ContentType.TITLE, stateSet);
+	}
+
+	public AttributedString getAttributedTitleForState(State... states) {
+		return (AttributedString)this.getContent(ContentType.TITLE, states);
+	}
+
+	private AttributedString getAttributedTitleForState(EnumSet<State> stateSet) {
+		return (AttributedString)this.getContent(ContentType.ATTRIBUTED_TITLE, stateSet);
 	}
 
 	public int getTitleColor(State... states) {
@@ -244,6 +256,10 @@ public class Button extends Control {
 		return this.titleLabel != null ? this.titleLabel.getText() : null;
 	}
 
+	public AttributedString getCurrentAttributedTitle() {
+		return this.titleLabel != null ? this.titleLabel.getAttributedText() : null;
+	}
+
 	public int getCurrentTitleColor() {
 		return this.titleLabel != null ? this.titleLabel.getTextColor() : 0;
 	}
@@ -272,6 +288,11 @@ public class Button extends Control {
 
 			int newTextLength = newText == null ? 0 : newText.length();
 			needsLayout = oldTextLength == 0 && newTextLength > 0 || oldTextLength > 0 && newTextLength == 0;
+		}
+
+		if(changedContent == null || changedContent == ContentType.ATTRIBUTED_TITLE) {
+			this.titleLabel.setAttributedText(this.getAttributedTitleForState(states));
+			needsLayout = true;
 		}
 
 		if(changedContent == null || changedContent == ContentType.TITLE_COLOR) {
@@ -328,23 +349,47 @@ public class Button extends Control {
 	}
 
 	public Rect getTitleRectForContentRect(Rect contentRect) {
-		CharSequence title = this.getCurrentTitle();
-		if(title == null || title.length() == 0) return Rect.zero();
+		Image image = this.getCurrentImage();
+		float imageWidth = image == null ? 0.0f : image.getSize().width;
 
-		if(this.titleEdgeInsets != null) {
+		if(this.getCurrentAttributedTitle().length() > 0) {
+			return this.getAttributedTitleRectForContentRect(contentRect, imageWidth);
+		} else {
+			return this.getPlainTitleRectForContentRect(contentRect, imageWidth);
+		}
+	}
+
+	private Rect getPlainTitleRectForContentRect(Rect contentRect, float imageWidth) {
+		CharSequence title = this.getCurrentTitle();
+		if (title == null || title.length() == 0) return Rect.zero();
+
+		if (this.titleEdgeInsets != null) {
 			contentRect = this.titleEdgeInsets.inset(contentRect);
 		}
 
 		Font font = this.titleLabel.getFont();
 
-		Image image = this.getCurrentImage();
-		float imageWidth = image == null ? 0.0f : image.getSize().width;
 		float availableWidth = contentRect.size.width - imageWidth;
 
 		Rect rect = contentRect.copy();
 		rect.size.width = Math.min(ceilf(TextDrawing.getTextWidth(title, font, availableWidth)), availableWidth);
 		rect.size.height = Math.min(ceilf(font.getLineHeight()), contentRect.size.height);
 
+		return this.getTitleRectForContentRect(contentRect, rect, imageWidth);
+	}
+
+	private Rect getAttributedTitleRectForContentRect(Rect contentRect, float imageWidth) {
+		float availableWidth = contentRect.size.width - imageWidth;
+
+		Size textSize = this.getCurrentAttributedTitle().getBoundingRectWithSize(new Size(availableWidth, contentRect.size.height)).size;
+		Rect rect = contentRect.copy();
+		rect.size.width = Math.min(ceilf(textSize.width), availableWidth);
+		rect.size.height = Math.min(ceilf(textSize.height), contentRect.size.height);
+
+		return this.getTitleRectForContentRect(contentRect, rect, imageWidth);
+	}
+
+	private Rect getTitleRectForContentRect(Rect contentRect, Rect rect, float imageWidth) {
 		switch (this.getContentVerticalAlignment()) {
 			case CENTER:
 				rect.origin.y += floorf((contentRect.size.height - rect.size.height) / 2.0f);

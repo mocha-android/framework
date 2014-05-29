@@ -31,15 +31,6 @@ public class TextAttachmentSpan extends ReplacementSpan {
 
 	public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
 		Rect bounds = this.textAttachment.bounds;
-
-		if (fm != null) {
-			fm.ascent = -(int)FloatMath.ceil(bounds.maxY() * this.scale);
-			fm.descent = 0;
-
-			fm.top = fm.ascent;
-			fm.bottom = 0;
-		}
-
 		return (int)FloatMath.ceil(bounds.maxX() * this.scale);
 	}
 
@@ -52,11 +43,11 @@ public class TextAttachmentSpan extends ReplacementSpan {
 		canvas.save();
 
 		RectF rectF = this.textAttachment.bounds.toSystemRectF(this.scale);
-		float transY = bottom;
+		float transY = top;
 
-		if (this.verticalAligment == VerticalAligment.BASELINE) {
-			transY -= paint.getFontMetricsInt().descent;
-		}
+//		if (this.verticalAligment == VerticalAligment.BASELINE) {
+//			transY -= paint.getFontMetricsInt().descent;
+//		}
 
 		canvas.translate(x, transY);
 		canvas.drawBitmap(bitmap, new android.graphics.Rect(0, 0, (int)FloatMath.ceil(rectF.width()), (int)FloatMath.ceil(rectF.height())), rectF, paint);
