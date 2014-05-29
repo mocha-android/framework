@@ -91,6 +91,7 @@ public class Toolbar extends View {
 
 	public void setBarTintColor(int barTintColor) {
 		this.barTintColor = barTintColor;
+		this.setBackgroundColor(barTintColor);
 		this.setNeedsDisplay();
 	}
 
@@ -329,11 +330,13 @@ public class Toolbar extends View {
 	public static class Appearance extends mocha.ui.Appearance <Toolbar> {
 		private Method setShadowImage;
 		private Method setBackgroundImage;
+		private Method setBarTintColor;
 
 		public Appearance() {
 			try {
 				this.setShadowImage = Toolbar.class.getMethod("setShadowImage", Image.class, Position.class);
 				this.setBackgroundImage = Toolbar.class.getMethod("setBackgroundImage", Image.class, Position.class, BarMetrics.class);
+				this.setBarTintColor = Toolbar.class.getMethod("setBarTintColor", int.class);
 			} catch (NoSuchMethodException ignored) { }
 		}
 
@@ -343,6 +346,14 @@ public class Toolbar extends View {
 
 		public void setBackgroundImage(Image backgroundImage, Position position, BarMetrics barMetrics) {
 			this.store(this.setBackgroundImage, backgroundImage, position, barMetrics);
+		}
+
+		/**
+		 * Set the tint color of the bar
+		 * @param barTintColor Bar tint color
+		 */
+		public void setBarTintColor(int barTintColor) {
+			this.store(this.setBarTintColor, barTintColor);
 		}
 
 	}

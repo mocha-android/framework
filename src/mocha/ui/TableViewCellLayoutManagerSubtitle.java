@@ -40,36 +40,25 @@ class TableViewCellLayoutManagerSubtitle extends TableViewCellLayoutManager {
 			return Rect.zero();
 		}
 
-		// RULES
-		// =======
-		// 10 pixel padding from the image rect or if no image rect, 10 pixel in
-		// origin.x, unlike default, has no max, but is inf if past the accessory view frame edge
-
-		// size.height always == original height
-		// origin.y always == (cv.height - (tv.height + dv.height)) / 2
-
-		// The allowable width is always from the right side of the content rect - 10 (padding)
-		// to the greater of the end of the content rect OR the final bounds of the image view - 10 (padding)
-
 		Size originalSize = new Size();
 		Size combinedSize = this._combinedLabelsSizeForCell(cell, originalSize, null);
 
 		Rect contentRect = this.getContentViewRectForCell(cell, style);
 		Rect imageRect = this.getImageViewRectForCell(cell, style);
 
-		float originX = 0.0f;
-		float width = 0.0f;
+		float originX;
+		float width;
 
 		//float maxXOrigin = contentRect.size.width - 10.0f;
-		float imageRectLastX = imageRect.origin.x + imageRect.size.width + 20.0f;
+		float imageRectLastX = imageRect.origin.x + imageRect.size.width + BASE_INSET;
 
 		if (imageRectLastX > contentRect.size.width) {
 			originX = Float.MAX_VALUE;
 			width = 0.0f;
 		} else {
-			originX = imageRectLastX - 10.0f;
+			originX = Math.max(imageRectLastX, cell.separatorInset.left);
 
-			float maxWidth = contentRect.size.width - originX - 10.0f;
+			float maxWidth = contentRect.size.width - originX - BASE_INSET;
 			width = maxWidth <= originalSize.width ? maxWidth : originalSize.width;
 		}
 
@@ -83,36 +72,24 @@ class TableViewCellLayoutManagerSubtitle extends TableViewCellLayoutManager {
 			return Rect.zero();
 		}
 
-		// RULES
-		// =======
-		// 10 pixel padding from the image rect or if no image rect, 10 pixel in
-		// origin.x, unlike default, has no max, but is inf if past the accessory view frame edge
-
-		// size.height always == original height
-		// origin.y always == (cv.height - (tv.height + dv.height)) / 2
-
-		// The allowable width is always from the right side of the content rect - 10 (padding)
-		// to the greater of the end of the content rect OR the final bounds of the image view - 10 (padding)
-
 		Size originalSize = new Size();
 		Size combinedSize = this._combinedLabelsSizeForCell(cell, null, originalSize);
 
 		Rect contentRect = this.getContentViewRectForCell(cell, style);
 		Rect imageRect = this.getImageViewRectForCell(cell, style);
 
-		float originX = 0.0f;
-		float width = 0.0f;
+		float originX;
+		float width;
 
-		//float maxXOrigin = contentRect.size.width - 10.0f;
-		float imageRectLastX = imageRect.origin.x + imageRect.size.width + 20.0f;
+		float imageRectLastX = imageRect.origin.x + imageRect.size.width + BASE_INSET;
 
 		if (imageRectLastX > contentRect.size.width) {
 			originX = Float.MAX_VALUE;
 			width = 0.0f;
 		} else {
-			originX = imageRectLastX - 10.0f;
+			originX = Math.max(imageRectLastX, cell.separatorInset.left);
 
-			float maxWidth = contentRect.size.width - originX - 10.0f;
+			float maxWidth = contentRect.size.width - originX - BASE_INSET;
 			width = maxWidth <= originalSize.width ? maxWidth : originalSize.width;
 		}
 

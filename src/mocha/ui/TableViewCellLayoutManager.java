@@ -35,6 +35,7 @@ class TableViewCellLayoutManager extends MObject {
 
 	protected static final float GROUPED_INSET = 10.0f;
 	protected static final float EDIT_CONTROL_SIZE = 34.0f;
+	protected static final float BASE_INSET = 15.0f; // Used for left/right edges and imageView+label spacing
 
 	protected final float separatorHeight;
 	protected final float scale;
@@ -272,32 +273,21 @@ class TableViewCellLayoutManager extends MObject {
 			return Rect.zero();
 		}
 
-		// RULES
-		// =======
-		// 10 pixel padding from the image rect or if no image rect, 10 pixel in
-		// origin.x is at max 10 pixels less than the content frame right bound
-
-		// origin.y always == 0
-		// size.height always == contentRect.size.height
-
-		// The allowable width is always from the right side of the content rect - 10 (padding)
-		// to the greater of the end of the content rect OR the final bounds of the image view - 10 (padding)
-
 		Rect contentRect = this.getContentViewRectForCell(cell, style);
 		Rect imageRect = this.getImageViewRectForCell(cell, style);
 
 		float originX;
 		float width;
 
-		float maxXOrigin = contentRect.size.width - 10.0f;
-		float imageRectLastX = imageRect.origin.x + imageRect.size.width + 10.0f;
+		float maxXOrigin = contentRect.size.width - BASE_INSET;
+		float imageRectLastX = imageRect.origin.x + imageRect.size.width + BASE_INSET;
 
 		if (imageRectLastX > maxXOrigin) {
 			originX = maxXOrigin;
 			width = imageRectLastX - maxXOrigin;
 		} else {
-			originX = imageRectLastX;
-			width = contentRect.size.width - originX - 10.0f;
+			originX = Math.max(imageRectLastX, cell.separatorInset.left);
+			width = contentRect.size.width - originX - BASE_INSET;
 		}
 
 		return new Rect(originX, 0.0f, width, contentRect.size.height);

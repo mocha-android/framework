@@ -238,15 +238,15 @@ public class Label extends View implements Highlightable {
 			textSize.width = ceilf(textSize.width);
 			textSize.height = ceilf(textSize.height);
 		} else {
-			if (this.text == null) {
-				return Size.zero();
-			}
+			if (this.text == null || this.text.length() == 0) {
+				textSize = Size.zero();
+			} else {
+				if (size.width != this.getFrame().size.width) {
+					this.text.invalidate();
+				}
 
-			if (size.width != this.getFrame().size.width) {
-				this.text.invalidate();
+				textSize = TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode);
 			}
-
-			textSize = TextDrawing.getTextSize(this.text, this.getFont(), size, this.lineBreakMode);
 		}
 
 		// This seems odd, but generally if sizeThatFits is called, it's followed up

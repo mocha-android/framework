@@ -166,7 +166,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private Button deleteConfirmationButton;
 	private Button editControl;
 
-	Object reuseIdentifier;
+	final Object reuseIdentifier;
 	boolean isFirstRowInSection;
 	boolean isLastRowInSection;
 
@@ -187,7 +187,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.selected = false;
 		this.highlighted = false;
 		this.reuseIdentifier = reuseIdentifier != null ? reuseIdentifier : this.getClass().getName();
-		this.unhighlightedStates = new HashMap<View, UnhighlightedState>();
+		this.unhighlightedStates = new HashMap<>();
 		this.layoutManager = TableViewCellLayoutManager.getLayoutManagerForTableViewCellStyle(this.cellStyle);
 		this.playClickSoundOnSelection = true;
 		this.state = new State[] { State.DEFAULT };
