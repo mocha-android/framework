@@ -92,11 +92,11 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 			if(scrollView != null) {
 				if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
-					if(!scrollView.canScrollHorizontally) {
+					if(!scrollView.canScrollHorizontally && !scrollView.alwaysBounceHorizontal()) {
 						state = State.FAILED;
 					}
 				} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
-					if(!scrollView.canScrollVertically) {
+					if(!scrollView.canScrollVertically && !scrollView.alwaysBounceVertical()) {
 						state = State.FAILED;
 					}
 				}
