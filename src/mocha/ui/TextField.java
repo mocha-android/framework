@@ -408,6 +408,8 @@ public class TextField extends Control implements TextInput.Traits {
 						if (delegateShouldClear == null || delegateShouldClear.shouldClear(TextField.this)) {
 							setText("");
 
+							sendActionsForControlEvents(ControlEvent.VALUE_CHANGED);
+
 							if(!isFirstResponder()) {
 								becomeFirstResponder();
 							}
