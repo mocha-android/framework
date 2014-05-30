@@ -24,8 +24,6 @@ public class Lists {
 		for (T item : list) {
 			if (filter.filter(item)) {
 				filteredList.add(item);
-			} else {
-				MObject.MWarn("CV_TEST - SKIPPING: " + item);
 			}
 		}
 
