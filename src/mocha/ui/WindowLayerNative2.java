@@ -69,6 +69,9 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 		private Runnable orientationChangeCallback;
 		private int orientationChangeWidth;
 
+		private int measuredWidth;
+		private int measuredHeight;
+
 		public WindowLayout(Context context) {
 			super(context);
 		}
@@ -101,26 +104,29 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 			super.onLayout(changed, left, top, right, bottom);
 
 			if(changed) {
-				Rect oldFrame = getWindow().getFrame();
-				Rect newFrame = new Rect(0.0f, 0.0f, (right - left) / scale, (bottom - top) / scale);
+				MLog("[WINDOW SIZE] onLayout changed, new height: %d, top: %d, left: %d | using: %dx%d", bottom - top, top, left, measuredWidth, measuredHeight);
+
+				// Rect oldFrame = getWindow().getFrame();
+				Rect newFrame = new Rect(0.0f, 0.0f, this.measuredWidth / scale, this.measuredHeight / scale);
 				newFrame.size.height = FloatMath.ceil(newFrame.size.height);
 				newFrame.size.width = FloatMath.ceil(newFrame.size.width);
 
 				getWindow().superSetFrame(newFrame);
 
-				if(newFrame.size.width > newFrame.size.height != oldFrame.size.width > oldFrame.size.height) {
-					performOnMainAfterDelay(0, new Runnable() {
-						public void run() {
-							recursiveLayout(WindowLayerNative2.this);
-						}
-					});
-				}
+				performOnMainAfterDelay(0, new Runnable() {
+					public void run() {
+						recursiveLayout(WindowLayerNative2.this);
+					}
+				});
 			}
 		}
 
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 			final int proposedWidth = MeasureSpec.getSize(widthMeasureSpec);
 			final int proposedHeight = MeasureSpec.getSize(heightMeasureSpec);
+
+			this.measuredWidth = proposedWidth;
+			this.measuredHeight = proposedHeight;
 
 			if(this.orientationChangeCallback != null) {
 				if(proposedWidth == this.orientationChangeWidth) {
@@ -217,12 +223,12 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 							NotificationCenter.defaultCenter().post(startNotification, getWindow(), info);
 							NotificationCenter.defaultCenter().post(endNotification, getWindow(), info);
 
-							performOnMainAfterDelay(100, new Runnable() {
+							/*performOnMainAfterDelay(100, new Runnable() {
 								@Override
 								public void run() {
-									recursiveInvalidate(getWindow());
+									recursiveLayout(WindowLayerNative2.this);
 								}
-							});
+							});*/
 						}
 					});
 				}
@@ -230,19 +236,8 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 
 			this.lastProposedHeight = proposedHeight;
 
+			this.measuredHeight = Math.max(largestHeight, proposedHeight);
 			super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(Math.max(largestHeight, proposedHeight), MeasureSpec.EXACTLY));
-		}
-	}
-
-	// Fixes an odd bug on certain devices/os versions
-	// that causes views to randomly go blank on keyboard
-	// changes.
-	private void recursiveInvalidate(View view) {
-		view.setNeedsDisplay();
-		view.setNeedsLayout();
-
-		for(View subview : view.getSubviews()) {
-			this.recursiveInvalidate(subview);
 		}
 	}
 }

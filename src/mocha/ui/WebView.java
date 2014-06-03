@@ -110,6 +110,33 @@ public class WebView extends View {
 		}
 	}
 
+	public void didMoveToWindow() {
+		super.didMoveToWindow();
+
+		this.recursiveFix();
+	}
+
+	private void recursiveLayout(ViewLayerNative2 layer) {
+		layer.updateSize();
+		layer.getView()._layoutSubviews();
+		layer.setNeedsDisplay();
+
+		for(ViewLayer sublayer : layer.getSublayers()) {
+			this.recursiveLayout((ViewLayerNative2)sublayer);
+		}
+	}
+
+	private void recursiveFix() {
+		Window window = getWindow();
+		if(window != null) {
+			recursiveLayout((ViewLayerNative2) window.getLayer());
+
+			this.webView.postInvalidate();
+			this.webView.forceLayout();
+		}
+	}
+
+
 	/**
 	 * Get the delegate for this web view
 	 * @return Delegate
@@ -548,10 +575,14 @@ public class WebView extends View {
 					}
 				});
 			}
+
+			recursiveFix();
 		}
 
 		public void loadDidEnd(final boolean failed) {
 			isLoading = false;
+
+			recursiveFix();
 
 			if(delegate != null) {
 				delegate.runIf(new WeakReference.HasReference<Delegate>() {
