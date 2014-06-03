@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.view.WindowManager;
+import mocha.foundation.Lists;
 import mocha.foundation.MObject;
 import mocha.foundation.NotificationCenter;
 
@@ -49,10 +50,11 @@ public class Activity extends android.app.Activity {
 	public void onConfigurationChanged(Configuration newConfig) {
 		if(this.currentConfiguration.orientation != newConfig.orientation || this.currentRotation != this.getWindowRotation()) {
 			final InterfaceOrientation fromInterfaceOrientation = this.currentOrientation;
-			final Window keyWindow = this.windows != null && this.windows.size() > 0 ? this.windows.get(this.windows.size() - 1) : null;
+			final List<Window> windows = Lists.copy(this.windows);
+			final Window keyWindow = Lists.last(windows);
 
-			if(keyWindow != null) {
-				keyWindow.willRotateToInterfaceOrientation(this.application.getStatusBarOrientation());
+			for(Window window : windows) {
+				window.willRotateToInterfaceOrientation(this.application.getStatusBarOrientation());
 			}
 
 			super.onConfigurationChanged(newConfig);
@@ -62,13 +64,13 @@ public class Activity extends android.app.Activity {
 			}
 
 			if(this.currentConfiguration.orientation != newConfig.orientation) {
-				if(keyWindow != null) {
-					MObject.performOnMainAfterDelay(0, new Runnable() {
-						public void run() {
-							keyWindow.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
+				MObject.performOnMainAfterDelay(0, new Runnable() {
+					public void run() {
+						for(Window window : windows) {
+							window.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
 						}
-					});
-				}
+					}
+				});
 			}
 		} else {
 			super.onConfigurationChanged(newConfig);
