@@ -65,4 +65,20 @@ public class Screen extends MObject {
 		return new mocha.graphics.Rect(this.bounds);
 	}
 
+	public float getBoundsWidth() {
+		return this.bounds.size.width;
+	}
+
+	public float getBoundsHeight() {
+		return this.bounds.size.height;
+	}
+
+	public float getWidth(InterfaceOrientation interfaceOrientation) {
+		return interfaceOrientation.isLandscape() ? this.bounds.size.height : this.bounds.size.width;
+	}
+
+	public float getHeight(InterfaceOrientation interfaceOrientation) {
+		return interfaceOrientation.isLandscape() ? this.bounds.size.width : this.bounds.size.height;
+	}
+
 }
