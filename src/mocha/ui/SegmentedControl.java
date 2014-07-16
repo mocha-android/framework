@@ -401,7 +401,7 @@ public class SegmentedControl extends Control {
 
 		Rect bounds = this.getBounds();
 
-		float autosizingSegmentWidth = Math.max((totalAutosizingSegments > 0) ? floorf(((bounds.size.width - totalWidth) / totalAutosizingSegments)) : 0.0f, 0.0f);
+		float autosizingSegmentWidth = Math.max((totalAutosizingSegments > 0) ? ScreenMath.floor(((bounds.size.width - totalWidth) / totalAutosizingSegments)) : 0.0f, 0.0f);
 
 		Font font;
 		Offset shadowOffset;
@@ -469,7 +469,6 @@ public class SegmentedControl extends Control {
 		Segment last = count > 0 ? this.segments.get(count - 1) : null;
 
 		for (Segment segment : this.segments) {
-
 			if(segment == last) {
 				frame.size.width = ceilf(bounds.size.width - frame.origin.x);
 			} else {
@@ -635,6 +634,10 @@ public class SegmentedControl extends Control {
 			Button() {
 				this.setClipsToBounds(true);
 				setupContent();
+
+				if(leftState != null) {
+					updateDivider();
+				}
 			}
 
 			void setupContent() {
