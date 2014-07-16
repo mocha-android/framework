@@ -759,7 +759,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 	}
 
-	private Point startContentOffset;
+	private final Point startContentOffset = Point.zero();
 
 	private void panningDidStart(PanGestureRecognizer gestureRecognizer) {
 		if(this.scrollViewAnimation != null) {
@@ -771,20 +771,19 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.listenerDragging.willBeginDragging(this);
 		}
 
-		this.startContentOffset = this.contentOffset.copy();
+		this.startContentOffset.set(this.contentOffset);
 
 		this.dragging = true;
-		Size size = this.getBounds().size;
 
 		this.horizontalScrollIndicator.cancelAnimations();
 		this.verticalScrollIndicator.cancelAnimations();
 		View.beginAnimations(null, null);
 		View.setAnimationDuration(100);
 		View.setAnimationCurve(AnimationCurve.LINEAR);
-		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator && (this.adjustedContentSize.width > size.width)) {
+		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator && (this.adjustedContentSize.width > this.getBoundsWidth())) {
 			this.horizontalScrollIndicator.setVisible(true);
 		}
-		if (this.canScrollVertically && this.showsVerticalScrollIndicator && (this.adjustedContentSize.height > size.height)) {
+		if (this.canScrollVertically && this.showsVerticalScrollIndicator && (this.adjustedContentSize.height > this.getBoundsHeight())) {
 			this.verticalScrollIndicator.setVisible(true);
 		}
 		View.commitAnimations();
