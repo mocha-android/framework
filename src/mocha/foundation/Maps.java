@@ -5,8 +5,7 @@
  */
 package mocha.foundation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Maps {
 
@@ -56,4 +55,15 @@ public class Maps {
 
 		return map;
 	}
+
+	public static <K,V> Map<K,V> copy(Map<K,V> map) {
+		Map<K,V> copy = new HashMap<>();
+
+		if(map != null) {
+			copy.putAll(map);
+		}
+
+		return copy;
+	}
+
 }
