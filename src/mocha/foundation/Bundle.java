@@ -6,6 +6,10 @@
 package mocha.foundation;
 
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.DisplayMetrics;
+import mocha.graphics.Image;
 import mocha.ui.Application;
 
 import java.io.BufferedReader;
@@ -33,7 +37,7 @@ public class Bundle extends MObject {
 	}
 
 	/**
-	 * Get's the contents of an asset file as a string
+	 * Gets the contents of an asset file as a string
 	 *
 	 * @param assetName Name of the asset to read
 	 * @return Asset contents
@@ -60,7 +64,50 @@ public class Bundle extends MObject {
 	}
 
 	/**
-	 * Get's the name of the package
+	 * Gets the contents of an asset file as an image
+	 *
+	 * @param assetName Name of the asset to read
+	 * @param scale Scale of the image
+	 * @return Asset contents
+	 */
+	public Image getImageFromAssets(String assetName, float scale) {
+		try {
+			InputStream is = this.application.getContext().getAssets().open(assetName);
+			Bitmap bitmap = BitmapFactory.decodeStream(is);
+			is.close();
+
+			if(bitmap != null) {
+				int density;
+
+				if(scale >= 1.5) {
+					if (scale >= 2.0f) {
+						if (scale >= 3.0f) {
+							density = DisplayMetrics.DENSITY_XXHIGH;
+						} else {
+							density = DisplayMetrics.DENSITY_XHIGH;
+						}
+					} else {
+						density = DisplayMetrics.DENSITY_HIGH;
+					}
+				} else if(scale < 1.0f) {
+					density = DisplayMetrics.DENSITY_LOW;
+				} else {
+					density = DisplayMetrics.DENSITY_MEDIUM;
+				}
+
+				bitmap.setDensity(density);
+				return new Image(bitmap);
+			} else {
+				return null;
+			}
+		} catch (IOException e) {
+			MWarn(e, "Couldn't read asset " + assetName);
+			return null;
+		}
+	}
+
+	/**
+	 * Gets the name of the package
 	 * @return Name
 	 */
 	public String getName() {
@@ -68,7 +115,7 @@ public class Bundle extends MObject {
 	}
 
 	/**
-	 * Get's the version of the package
+	 * Gets the version of the package
 	 * @return Version
 	 */
 	public String getVersion() {
