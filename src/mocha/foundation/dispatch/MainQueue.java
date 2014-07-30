@@ -10,7 +10,7 @@ import android.os.Looper;
 
 import java.util.concurrent.Semaphore;
 
-public class MainQueue extends Queue {
+public class MainQueue extends ScheduledQueue {
 	private Handler handler;
 	private Semaphore lock = new Semaphore(1);
 	private static MainQueue instance;

@@ -1,16 +1,18 @@
 /**
  *  @author Shaun
- *  @date 2/18/13
- *  @copyright 2013 Mocha. All rights reserved.
+ *  @date 7/30/14
+ *  @copyright 2014 Mocha. All rights reserved.
  */
 package mocha.foundation.dispatch;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
-public final class SerialQueue extends ExecutorServiceQueue {
-	private static Map<Priority,SerialQueue> globalQueues = new HashMap<Priority, SerialQueue>();
+public class SerialQueue extends BackgroundQueue {
+	private static Map<Priority,SerialQueue> globalQueues = new HashMap<>();
 
 	/**
 	 * Get a global queue based on the priority you request
@@ -25,9 +27,7 @@ public final class SerialQueue extends ExecutorServiceQueue {
 		SerialQueue globalQueue = globalQueues.get(priority);
 
 		if(globalQueue == null) {
-			globalQueue = new SerialQueue("mocha.foundation.global." + priority);
-			globalQueue.global = true;
-			globalQueue.priority = priority;
+			globalQueue = new SerialQueue("mocha.foundation.global." + priority, priority);
 			globalQueues.put(priority, globalQueue);
 		}
 
@@ -49,35 +49,35 @@ public final class SerialQueue extends ExecutorServiceQueue {
 	 * @param label label for the queue, may be null
 	 * @param priority Priority for the queue
 	 */
-	public SerialQueue(String label, Priority priority) {
-		this.label = label;
-		this.priority = priority == null ? Priority.DEFAULT : priority;
-	}
+	public SerialQueue(final String label, final Priority priority) {
+		super(new Executor() {
+			final ArrayDeque<Runnable> tasks = new ArrayDeque<Runnable>();
+			final ThreadPoolExecutor threadPoolExecutor = createThreadPoolExecutor(label, priority);
+			Runnable active;
 
-	/**
-	 * Create a new queue
-	 *
-	 * @param label label for the queue, may be null
-	 * @param targetQueue target queue for this queue
-	 */
-	public SerialQueue(String label, SerialQueue targetQueue) {
-		this(label);
-		this.setTargetQueue(targetQueue);
-	}
+			@SuppressWarnings("NullableProblems")
+			public synchronized void execute(final Runnable runnable) {
+				this.tasks.offer(new Runnable() {
+					public void run() {
+						try {
+							runnable.run();
+						} finally {
+							scheduleNext();
+						}
+					}
+				});
 
-	/**
-	 * @inheritDoc
-	 */
-	public void setTargetQueue(SerialQueue queue) {
-		super.setTargetQueue(queue);
-	}
+				if (active == null) {
+					scheduleNext();
+				}
+			}
 
-	synchronized ExecutorService getExecutorService() {
-		if(this.executorService == null) {
-			this.executorService = QueueExecutors.serialQueue(this.priority, this.label, 60, TimeUnit.SECONDS);
-		}
-
-		return this.executorService;
+			protected synchronized void scheduleNext() {
+				if ((this.active = this.tasks.poll()) != null) {
+					this.threadPoolExecutor.execute(this.active);
+				}
+			}
+		}, label);
 	}
 
 }
