@@ -3,7 +3,7 @@
  *  @date 7/30/14
  *  @copyright 2014 Mocha. All rights reserved.
  */
-package mocha.foundation.dispatch;
+package mocha.foundation.concurrent;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -4,7 +4,7 @@
  *
  * @see https://github.com/kimchy/kimchy.github.com/blob/master/_posts/2008-11-23-juc-executorservice-gotcha.textile
  */
-package mocha.foundation.dispatch;
+package mocha.foundation.concurrent;
 
 import java.util.concurrent.*;
 

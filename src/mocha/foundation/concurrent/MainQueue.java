@@ -3,7 +3,7 @@
  *  @date 2/18/13
  *  @copyright 2013 Mocha. All rights reserved.
  */
-package mocha.foundation.dispatch;
+package mocha.foundation.concurrent;
 
 import android.os.Handler;
 import android.os.Looper;

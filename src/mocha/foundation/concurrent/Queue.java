@@ -4,11 +4,9 @@
  *  @copyright 2013 Mocha. All rights reserved.
  */
 
-package mocha.foundation.dispatch;
+package mocha.foundation.concurrent;
 
 import mocha.foundation.MObject;
-
-import java.util.concurrent.FutureTask;
 
 public abstract class Queue extends MObject {
 	private static ExceptionHandler defaultExceptionHandler;
@@ -24,7 +22,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get the main queue
-	 * @see mocha.foundation.dispatch.MainQueue#get()
+	 * @see mocha.foundation.concurrent.MainQueue#get()
 	 *
 	 * @return Main queue
 	 */
@@ -34,7 +32,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global serial queue
-	 * @see SerialQueue#getGlobalQueue(mocha.foundation.dispatch.Queue.Priority)
+	 * @see SerialQueue#getGlobalQueue(mocha.foundation.concurrent.Queue.Priority)
 	 *
 	 * @param priority queue priority
 	 * @return Global serial queue
@@ -45,7 +43,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global concurrent queue
-	 * @see ConcurrentQueue#getGlobalQueue(mocha.foundation.dispatch.Queue.Priority)
+	 * @see ConcurrentQueue#getGlobalQueue(mocha.foundation.concurrent.Queue.Priority)
 	 *
 	 * @param priority queue priority
 	 * @return Global serial queue
