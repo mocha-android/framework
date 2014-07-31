@@ -12,10 +12,6 @@ public abstract class Queue extends MObject {
 	private static ExceptionHandler defaultExceptionHandler;
 	private ExceptionHandler exceptionHandler;
 
-	public enum Priority {
-		DEFAULT, HIGH, LOW
-	}
-
 	protected Queue() {
 		this.exceptionHandler = defaultExceptionHandler;
 	}
@@ -32,7 +28,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global serial queue
-	 * @see SerialQueue#getGlobalQueue(mocha.foundation.concurrent.Queue.Priority)
+	 * @see SerialQueue#getGlobalQueue(Priority)
 	 *
 	 * @param priority queue priority
 	 * @return Global serial queue
@@ -43,7 +39,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global concurrent queue
-	 * @see ConcurrentQueue#getGlobalQueue(mocha.foundation.concurrent.Queue.Priority)
+	 * @see ConcurrentQueue#getGlobalQueue(Priority)
 	 *
 	 * @param priority queue priority
 	 * @return Global serial queue

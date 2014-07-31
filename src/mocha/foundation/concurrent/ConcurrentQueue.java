@@ -38,7 +38,7 @@ public class ConcurrentQueue extends BackgroundQueue {
 	 * @param label label for the queue, may be null
 	 */
 	public ConcurrentQueue(String label) {
-		this(label, Priority.DEFAULT);
+		this(label, Priority.DEFAULT, false);
 	}
 
 	/**
@@ -48,7 +48,18 @@ public class ConcurrentQueue extends BackgroundQueue {
 	 * @param priority Priority for the queue
 	 */
 	public ConcurrentQueue(String label, Priority priority) {
-		super(createThreadPoolExecutor(label, priority), label);
+		this(label, priority, false);
+	}
+
+	/**
+	 * Create a new queue
+	 *
+	 * @param label label for the queue, may be null
+	 * @param priority Priority for the queue
+	 * @param global Whether or not this is a global queue
+	 */
+	private ConcurrentQueue(String label, Priority priority, boolean global) {
+		super(createConcurrentThreadPoolExecutor(label, priority, global), label);
 	}
 
 }

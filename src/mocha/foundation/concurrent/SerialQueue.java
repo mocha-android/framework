@@ -27,7 +27,7 @@ public class SerialQueue extends BackgroundQueue {
 		SerialQueue globalQueue = globalQueues.get(priority);
 
 		if(globalQueue == null) {
-			globalQueue = new SerialQueue("mocha.foundation.global." + priority, priority);
+			globalQueue = new SerialQueue("mocha.foundation.global." + priority, priority, true);
 			globalQueues.put(priority, globalQueue);
 		}
 
@@ -40,7 +40,7 @@ public class SerialQueue extends BackgroundQueue {
 	 * @param label label for the queue, may be null
 	 */
 	public SerialQueue(String label) {
-		this(label, Priority.DEFAULT);
+		this(label, Priority.DEFAULT, false);
 	}
 
 	/**
@@ -49,10 +49,21 @@ public class SerialQueue extends BackgroundQueue {
 	 * @param label label for the queue, may be null
 	 * @param priority Priority for the queue
 	 */
-	public SerialQueue(final String label, final Priority priority) {
+	public SerialQueue(String label, Priority priority) {
+		this(label, priority, false);
+	}
+
+
+	/**
+	 * Create a new queue
+	 *
+	 * @param label label for the queue, may be null
+	 * @param priority Priority for the queue
+	 */
+	private SerialQueue(final String label, final Priority priority, final boolean global) {
 		super(new Executor() {
 			final ArrayDeque<Runnable> tasks = new ArrayDeque<Runnable>();
-			final ThreadPoolExecutor threadPoolExecutor = createThreadPoolExecutor(label, priority);
+			final ThreadPoolExecutor threadPoolExecutor = createSerialThreadPoolExecutor(label, priority, global);
 			Runnable active;
 
 			@SuppressWarnings("NullableProblems")

@@ -6,7 +6,6 @@
 package mocha.foundation.concurrent;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 abstract class BackgroundQueue extends Queue {
 	private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
@@ -17,42 +16,12 @@ abstract class BackgroundQueue extends Queue {
 	private final Executor executor;
 	private final String label;
 
-	private static class BackgroundQueueThreadFactory implements ThreadFactory {
-		private final String label;
-		private final int threadPriority;
-		private final AtomicInteger count = new AtomicInteger(1);
-
-		private BackgroundQueueThreadFactory(String label, Priority priority) {
-			this.label = label;
-
-			switch (priority) {
-				case HIGH:
-					this.threadPriority = Thread.MAX_PRIORITY;
-					break;
-				case LOW:
-					this.threadPriority = Thread.MIN_PRIORITY;
-					break;
-				case DEFAULT:
-				default:
-					this.threadPriority = Thread.NORM_PRIORITY;
-					break;
-			}
-		}
-
-		@SuppressWarnings("NullableProblems")
-		public Thread newThread(Runnable r) {
-			Thread thread = new Thread(r, this.label + " #" + this.count.getAndIncrement());
-
-			if (thread.getPriority() != this.threadPriority) {
-				thread.setPriority(this.threadPriority);
-			}
-
-			return thread;
-		}
+	static ThreadPoolExecutor createConcurrentThreadPoolExecutor(String label, Priority priority, boolean global) {
+		return new ScalingThreadPoolExecutor(global ? CORE_POOL_SIZE : 0, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, new PriorityThreadFactory(label, priority));
 	}
 
-	static ThreadPoolExecutor createThreadPoolExecutor(String label, Priority priority) {
-		return new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128), new BackgroundQueueThreadFactory(label, priority));
+	static ThreadPoolExecutor createSerialThreadPoolExecutor(String label, Priority priority, boolean global) {
+		return new ScalingThreadPoolExecutor(global ? 1 : 0, 1, KEEP_ALIVE, TimeUnit.SECONDS, new PriorityThreadFactory(label, priority));
 	}
 
 	protected BackgroundQueue(Executor executor, String label) {
