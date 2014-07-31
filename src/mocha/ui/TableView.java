@@ -893,6 +893,8 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	private void enqueueCell(TableViewCell cell) {
+		cell.createdByTableView = cell.reuseIdentifier != null; // Unlike header/footers, as long as a cell has a reuse identiifer, it's queued
+
 		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell.reuseIdentifier);
 
 		if(queuedViews == null) {
