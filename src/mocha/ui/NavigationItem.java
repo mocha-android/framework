@@ -221,7 +221,10 @@ public class NavigationItem extends MObject {
 
 	public void setLeftBarButtonItem(BarButtonItem leftBarButtonItem) {
 		this.leftBarButtonItems.clear();
-		this.leftBarButtonItems.add(leftBarButtonItem);
+
+		if(leftBarButtonItem != null) {
+			this.leftBarButtonItems.add(leftBarButtonItem);
+		}
 
 		if(this.delegate != null) {
 			this.delegate.leftBarButtonItemChanged(this, false);
