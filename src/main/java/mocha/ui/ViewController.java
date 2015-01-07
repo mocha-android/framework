@@ -83,6 +83,10 @@ public class ViewController extends Responder {
 		NotificationCenter.defaultCenter().addObserver(this, didReceiveMemoryWarningMethod, Application.DID_RECEIVE_MEMORY_WARNING_NOTIFICATION, null);
 	}
 
+	protected final android.content.Context getContext() {
+		return Application.sharedApplication().getContext();
+	}
+
 	/**
 	 * Called by getView if no view has been loaded. Should never be called directly.
 	 */
