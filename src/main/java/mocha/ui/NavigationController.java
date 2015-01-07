@@ -90,7 +90,7 @@ public class NavigationController extends ViewController {
 	public NavigationController(ViewController rootViewController, Class<? extends NavigationBar> navigationBarClass) {
 		this(navigationBarClass);
 
-		this.transitionStyle = TransitionStyle.IOS;
+		this.transitionStyle = TransitionStyle.ANDROID;
 
 		if(rootViewController != null) {
 			this.addChildViewController(rootViewController);
