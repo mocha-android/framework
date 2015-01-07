@@ -160,6 +160,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private IndexPath selectedRowIndexPath;
 	private Set<IndexPath> selectedRowsIndexPaths;
 	private List<IndexPath> cellsBeingEditedPaths;
+	private View backgroundView;
 	private View tableHeaderView;
 	private View tableFooterView;
 	private boolean tableHeaderAttached;
@@ -469,6 +470,24 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		return this.allowsSelection;
 	}
 
+	public View getBackgroundView() {
+		return this.backgroundView;
+	}
+
+	public void setBackgroundView(View backgroundView) {
+		if(this.backgroundView != null) {
+			this.backgroundView.removeFromSuperview();
+			this.backgroundView = null;
+		}
+
+		this.backgroundView = backgroundView;
+
+		if(this.backgroundView != null) {
+			this.insertSubview(this.backgroundView, 0);
+			this.setNeedsLayout();
+		}
+	}
+
 	public View getTableHeaderView() {
 		return this.tableHeaderView;
 	}
@@ -675,6 +694,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
+		if(this.backgroundView != null) {
+			this.backgroundView.setFrame(this.getBounds());
+		}
+
 		if (this.rowData.getNumberOfSections() == 0) {
 			return;
 		}
@@ -748,7 +771,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 					if (cell.getSuperview() != this) {
 						cell.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-						this.insertSubview(cell, 0);
+						this.insertSubview(cell, this.backgroundView == null ? 0 : 1);
 					}
 
 					cell.layoutSubviews();
@@ -771,7 +794,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 				if(!this.tableHeaderAttached) {
 					this.tableHeaderView.setFrame(this.rowData.getRectForTableHeaderView());
 					this.tableHeaderView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-					this.insertSubview(this.tableHeaderView, 0);
+					this.insertSubview(this.tableHeaderView, this.backgroundView == null ? 0 : 1);
 					this.tableHeaderAttached = true;
 				}
 			} else if(this.tableHeaderAttached) {
@@ -786,7 +809,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 				if(!this.tableFooterAttached) {
 					this.tableFooterView.setFrame(this.rowData.getRectForTableFooterView());
 					this.tableFooterView.setAutoresizing(Autoresizing.FLEXIBLE_WIDTH);
-					this.insertSubview(this.tableFooterView, 0);
+					this.insertSubview(this.tableFooterView, this.backgroundView == null ? 0 : 1);
 					this.tableFooterAttached = true;
 				} else if(this.tableFooterView.getFrame().origin.y < offset) {
 					this.tableFooterView.setFrame(this.rowData.getRectForTableFooterView());
