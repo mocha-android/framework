@@ -2059,7 +2059,7 @@ public class View extends Responder implements Accessibility {
 	static boolean areAnimationsEnabled = true;
 
 	/**
-	 * Check whether or not you're in an animation tranaction
+	 * Check whether or not you're in an animation transaction
 	 *
 	 * @return If true, setting animatable properties will cause them to animate the change
 	 */
@@ -2068,7 +2068,17 @@ public class View extends Responder implements Accessibility {
 	}
 
 	/**
-	 * Setup an animation with the specied duration and group of animations
+	 * Setup an animation with the specified duration and group of animations
+	 *
+	 * @param duration Length of the animation in seconds
+	 * @param animations Changes to be animated
+	 */
+	public static void animateWithDuration(double duration, Animations animations) {
+		animateWithDuration((long)(duration * 1000.0), animations, null);
+	}
+
+	/**
+	 * Setup an animation with the specified duration and group of animations
 	 *
 	 * @param duration Length of the animation in milliseconds
 	 * @param animations Changes to be animated
@@ -2078,7 +2088,18 @@ public class View extends Responder implements Accessibility {
 	}
 
 	/**
-	 * Setup an animation with the specied duration and group of animations
+	 * Setup an animation with the specified duration and group of animations
+	 *
+	 * @param duration Length of the animation in seconds
+	 * @param animations Changes to be animated
+	 * @param completion Callback for when the animation ends
+	 */
+	public static void animateWithDuration(double duration, Animations animations, final AnimationCompletion completion) {
+		animateWithDuration((long)(duration * 1000.0), 0, animations, completion);
+	}
+
+	/**
+	 * Setup an animation with the specified duration and group of animations
 	 *
 	 * @param duration Length of the animation in milliseconds
 	 * @param animations Changes to be animated
