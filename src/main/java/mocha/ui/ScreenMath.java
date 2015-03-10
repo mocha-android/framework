@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import android.util.FloatMath;
+import mocha.graphics.Size;
 
 public final class ScreenMath {
 	private static float scaleF = Screen.mainScreen().getScale();
@@ -33,6 +34,19 @@ public final class ScreenMath {
 
 	public static double round(double v) {
 		return Math.round(v * scaleD) / scaleD;
+	}
+
+
+	public static Size floor(Size v) {
+		return new Size(floor(v.width), floor(v.height));
+	}
+
+	public static Size ceil(Size v) {
+		return new Size(ceil(v.width), ceil(v.height));
+	}
+
+	public static Size round(Size v) {
+		return new Size(round(v.width), round(v.height));
 	}
 
 }
