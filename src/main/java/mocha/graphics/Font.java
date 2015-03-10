@@ -9,6 +9,7 @@ import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.util.FloatMath;
 import mocha.foundation.Copying;
+import mocha.ui.Application;
 import mocha.ui.Screen;
 
 import java.util.HashMap;
@@ -39,6 +40,18 @@ public final class Font implements Copying<Font> {
 		this.leading = fontMetrics.leading / screenScale;
 
 		this.lineHeight = FloatMath.ceil(this.ascender - this.descender + this.leading);
+	}
+
+	public Font(String assetName, float pointSize) {
+		this(Typeface.createFromAsset(Application.sharedApplication().getContext().getAssets(), assetName), 12.0f);
+	}
+
+	public static Font withAssetName(String assetName, float pointSize) {
+		if(!assetName.contains(".")) {
+			assetName += ".ttf";
+		}
+
+		return new Font(assetName, pointSize);
 	}
 
 	private Font(Font font) {
