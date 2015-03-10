@@ -2356,6 +2356,15 @@ public class View extends Responder implements Accessibility {
 	}
 
 	/**
+	 * Performs changes with animations disabled
+	 *
+	 * @param runnable logic to run during session
+	 */
+	public static void performWithoutAnimation(Runnable runnable) {
+		setAnimationsEnabled(false, runnable);
+	}
+
+	/**
 	 * On by default, turning off will disable any animations, including if you're in an animation block.
 	 *
 	 * @param enabled whether or not animations should be enabled
