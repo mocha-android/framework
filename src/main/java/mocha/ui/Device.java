@@ -6,6 +6,8 @@
 package mocha.ui;
 
 import android.content.res.Configuration;
+import android.os.Build;
+import android.provider.Settings;
 import mocha.foundation.MObject;
 
 import java.io.File;
@@ -26,6 +28,7 @@ public final class Device extends MObject {
 
 	private UserInterfaceIdiom userInterfaceIdiom;
 	private int numberOfCores = -1;
+	private String uniqueIdentifier;
 
 	public static Device get() {
 		return INSTANCE;
@@ -71,5 +74,29 @@ public final class Device extends MObject {
 
 		return this.numberOfCores;
 	}
+
+	public String getUniqueIdentifier() {
+		if(this.uniqueIdentifier == null) {
+			this.uniqueIdentifier = Settings.Secure.getString(Application.sharedApplication().getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+		}
+
+		return this.uniqueIdentifier;
+	}
+
+	public String getSystemVersion() {
+		return Build.VERSION.RELEASE;
+	}
+
+	public String getModel() {
+		String manufacturer = Build.MANUFACTURER;
+		String model = Build.MODEL;
+
+		if (model.startsWith(manufacturer)) {
+			return model;
+		} else {
+			return manufacturer + " " + model;
+		}
+	}
+
 
 }
