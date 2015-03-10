@@ -40,6 +40,10 @@ public final class Window extends View {
 	public static final String KEYBOARD_ANIMATION_CURVE_USER_INFO_KEY = "KEYBOARD_ANIMATION_CURVE_USER_INFO_KEY"; // View.AnimationCurve
 
 
+	public Window(Application application) {
+		this(application.getActivity());
+	}
+
 	public Window(Activity activity) {
 		super(activity, Screen.mainScreen().getBounds());
 		this.getLayer().setBackgroundColor(Color.BLACK);
