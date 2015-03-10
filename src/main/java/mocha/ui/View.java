@@ -282,6 +282,8 @@ public class View extends Responder implements Accessibility {
 	final Rect frame;
 	private final Rect bounds;
 	private final AffineTransform transform;
+	private final EdgeInsets layoutMargins;
+	private boolean preservesSuperviewLayoutMargins;
 	private List<GestureRecognizer> gestureRecognizers;
 	private boolean clipsToBounds;
 	public final float scale;
@@ -350,6 +352,7 @@ public class View extends Responder implements Accessibility {
 		this.bounds = new Rect(0.0f, 0.0f, frame.size.width, frame.size.height);
 		this.transform = AffineTransform.identity();
 		this.animations = new ViewAnimation[ViewAnimation.Type.values().length];
+		this.layoutMargins = new EdgeInsets();
 
 		this.layer.setView(this);
 		this.layer.setFrame(this.frame, this.bounds);
@@ -584,6 +587,39 @@ public class View extends Responder implements Accessibility {
 		frame.origin.y = center.y - (frame.size.height / 2.0f);
 		this.setFrame(frame);
 	}
+
+	public void setLayoutMargins(EdgeInsets layoutMargins) {
+		this.layoutMargins.set(layoutMargins);
+		this.notifyLayoutMarginsChanged();
+	}
+
+	public EdgeInsets getLayoutMargins() {
+		return this.layoutMargins.copy();
+	}
+
+	public boolean getPreservesSuperviewLayoutMargins() {
+		return this.preservesSuperviewLayoutMargins;
+	}
+
+	public void setPreservesSuperviewLayoutMargins(boolean preservesSuperviewLayoutMargins) {
+		this.preservesSuperviewLayoutMargins = preservesSuperviewLayoutMargins;
+		this.notifyLayoutMarginsChanged();
+	}
+
+	public void layoutMarginsDidChange() {
+
+	}
+
+	private void notifyLayoutMarginsChanged() {
+		this.layoutMarginsDidChange();
+
+		for(View subview : this.getSubviews()) {
+			if(subview.getPreservesSuperviewLayoutMargins()) {
+				subview.notifyLayoutMarginsChanged();
+			}
+		}
+	}
+
 
 	public EnumSet<Autoresizing> getAutoresizing() {
 		EnumSet<Autoresizing> autoresizingMask = EnumSet.noneOf(Autoresizing.class);
@@ -1402,6 +1438,10 @@ public class View extends Responder implements Accessibility {
 			if(view.doesInheritTint() && (!this.doesInheritTint() || this.tintInheritenceValid)) {
 				view.updateTintInheritence();
 				view.notifyTintChanged();
+			}
+
+			if(view.getPreservesSuperviewLayoutMargins()) {
+				view.setLayoutMargins(this.layoutMargins);
 			}
 
 			view._layoutSubviews();
