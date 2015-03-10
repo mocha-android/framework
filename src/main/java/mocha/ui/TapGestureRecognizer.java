@@ -7,6 +7,7 @@ package mocha.ui;
 
 import mocha.graphics.Point;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 // TODO: Support multiple tap counts and multiple touches
@@ -18,12 +19,20 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	private long startTime;
 	private int taps;
 
-	private float allowableMovement;
-	private long maximumSingleTapDuration;
-	private long maximumIntervalBetweenSuccessiveTaps;
+	private float allowableMovement = 45.0f;
+	private long maximumSingleTapDuration = 750;
+	private long maximumIntervalBetweenSuccessiveTaps = 350;
 
 	public TapGestureRecognizer(GestureHandler gestureHandler) {
 		this(1, 1, gestureHandler);
+	}
+
+	public TapGestureRecognizer(Object target, String actionMethodName) {
+		this(1, 1, target, actionMethodName);
+	}
+
+	public TapGestureRecognizer(Object target, Method actionMethod) {
+		this(1, 1, target, actionMethod);
 	}
 
 	public TapGestureRecognizer(int numberOfTapsRequired, int numberOfTouchesRequired, GestureHandler gestureHandler) {
@@ -31,9 +40,20 @@ public class TapGestureRecognizer extends GestureRecognizer {
 
 		this.numberOfTapsRequired = numberOfTapsRequired;
 		this.numberOfTouchesRequired = numberOfTouchesRequired;
-		this.allowableMovement = 45.0f;
-		this.maximumSingleTapDuration = 750;
-		this.maximumIntervalBetweenSuccessiveTaps = 350;
+	}
+
+	public TapGestureRecognizer(int numberOfTapsRequired, int numberOfTouchesRequired, Object target, String actionMethodName) {
+		super(target, actionMethodName);
+
+		this.numberOfTapsRequired = numberOfTapsRequired;
+		this.numberOfTouchesRequired = numberOfTouchesRequired;
+	}
+
+	public TapGestureRecognizer(int numberOfTapsRequired, int numberOfTouchesRequired, Object target, Method actionMethod) {
+		super(target, actionMethod);
+
+		this.numberOfTapsRequired = numberOfTapsRequired;
+		this.numberOfTouchesRequired = numberOfTouchesRequired;
 	}
 
 	public int getNumberOfTapsRequired() {

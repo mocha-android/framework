@@ -9,6 +9,7 @@ import mocha.foundation.MObject;
 import mocha.graphics.Point;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -202,8 +203,26 @@ abstract public class GestureRecognizer extends MObject {
 		this.addHandler(gestureHandler);
 	}
 
+	public GestureRecognizer(Object target, String actionMethodName) {
+		this();
+		this.addHandler(target, actionMethodName);
+	}
+
+	public GestureRecognizer(Object target, Method actionMethod) {
+		this();
+		this.addHandler(target, actionMethod);
+	}
+
 	public void addHandler(GestureHandler gestureHandler) {
 		this.registeredGestureHandlers.add(gestureHandler);
+	}
+
+	public void addHandler(Object target, String actionMethodName) {
+		this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethodName));
+	}
+
+	public void addHandler(Object target, Method actionMethod) {
+		this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethod));
 	}
 
 	public void removeHandler(GestureHandler gestureHandler) {
@@ -672,6 +691,22 @@ abstract public class GestureRecognizer extends MObject {
 	@Override
 	protected String toStringExtra() {
 		return "state = " + this.state + "; view = " + this.view.toString();
+	}
+
+	static class RuntimeTargetAction extends mocha.ui.RuntimeTargetAction <GestureRecognizer> implements GestureHandler {
+
+		RuntimeTargetAction(Object target, String actionMethodName) {
+			super(target, actionMethodName, GestureRecognizer.class);
+		}
+
+		RuntimeTargetAction(Object target, Method action) {
+			super(target, action, GestureRecognizer.class);
+		}
+
+		public void handleGesture(GestureRecognizer gestureRecognizer) {
+			this.invoke(gestureRecognizer);
+		}
+
 	}
 
 }
