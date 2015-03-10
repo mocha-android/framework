@@ -129,6 +129,13 @@ public class Path extends MObject implements Copying<Path> {
 		return new Path(path);
 	}
 
+	public static Path withOvalInRect(Rect rect) {
+		android.graphics.Path path = new android.graphics.Path();
+		path.addOval(rect.toSystemRectF(), android.graphics.Path.Direction.CCW);
+
+		return new Path(path);
+	}
+
 	public void moveToPoint(Point point) {
 		this.moveTo(point.x, point.y);
 	}
