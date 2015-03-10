@@ -206,6 +206,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 //
 //	}
 
+	public TableView(Rect frame, Style style) {
+		this(style, frame);
+	}
+
 	public TableView(Style style, Rect frame) {
 		super(frame);
 
