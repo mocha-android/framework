@@ -72,27 +72,29 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 		}
 	}
 
-	public void translate(float tx, float ty) {
+	public AffineTransform translate(float tx, float ty) {
 		this.tx = this.tx + (this.a * tx) + (this.c * ty);
 		this.ty = (this.ty + this.b) * tx + (this.d * ty);
+		return this;
 	}
 
-	public void scale(float sx, float sy) {
+	public AffineTransform scale(float sx, float sy) {
 		this.a *= sx;
 		this.b *= sx;
 		this.c *= sy;
 		this.d *= sy;
+		return this;
 	}
 
-	public void rotate(float value, AngleUnit angleUnit) {
+	public AffineTransform rotate(float value, AngleUnit angleUnit) {
 		if(angleUnit == AngleUnit.DEGREES) {
-			this.rotate((float)Math.toRadians(value));
+			return this.rotate((float)Math.toRadians(value));
 		} else {
-			this.rotate(value);
+			return this.rotate(value);
 		}
 	}
 
-	public void rotate(float radians) {
+	public AffineTransform rotate(float radians) {
 		float sin = FloatMath.sin(radians);
 		float cos = FloatMath.cos(radians);
 
@@ -106,6 +108,7 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 
 		this.b = (cos * b) + (sin * d);
 		this.d = (-sin * b) + (cos * d);
+		return this;
 	}
 
 	public void concat(AffineTransform transform) {
