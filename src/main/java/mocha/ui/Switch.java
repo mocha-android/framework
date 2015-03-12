@@ -46,6 +46,11 @@ public class Switch extends Control {
 	}
 
 	public void setOn(boolean on) {
+		this.setOn(on, false);
+	}
+
+	public void setOn(boolean on, boolean animated) {
+		// TODO: Animation
 		this.nativeView.getNativeView().setChecked(on);
 	}
 
