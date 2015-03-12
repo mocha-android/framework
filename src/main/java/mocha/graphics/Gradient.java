@@ -6,6 +6,7 @@
 package mocha.graphics;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class Gradient {
 	public final int[] colors;
@@ -25,6 +26,28 @@ public class Gradient {
 
 		if(locations != null) {
 			this.locations = Arrays.copyOf(locations, locations.length);
+		} else {
+			this.locations = null;
+		}
+	}
+
+	public Gradient(List<Integer> colors, List<Float> locations) {
+		if(colors != null) {
+			this.colors = new int[colors.size()];
+
+			for(int i = 0; i < this.colors.length; i++) {
+				this.colors[i] = colors.get(i);
+			}
+		} else {
+			this.colors = null;
+		}
+
+		if(locations != null) {
+			this.locations = new float[locations.size()];
+
+			for(int i = 0; i < this.locations.length; i++) {
+				this.locations[i] = locations.get(i);
+			}
 		} else {
 			this.locations = null;
 		}
