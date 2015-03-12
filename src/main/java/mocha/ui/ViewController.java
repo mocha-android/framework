@@ -42,6 +42,9 @@ public class ViewController extends Responder {
 	private boolean willAppear;
 	private boolean didAppear;
 
+	private final LayoutSupport topLayoutGuide;
+	private final LayoutSupport bottomLayoutGuide;
+
 	private ModalTransitionStyle modalTransitionStyle;
 	private ModalPresentationStyle modalPresentationStyle;
 	private Class<? extends ViewPresentationController> customPresentationControllerClass;
@@ -61,10 +64,13 @@ public class ViewController extends Responder {
 	private InterfaceOrientation interfaceOrientation;
 
 	public ViewController() {
-		this.childViewControllers = new ArrayList<ViewController>();
+		this.childViewControllers = new ArrayList<>();
 		this.modalPresentationStyle = ModalPresentationStyle.FULL_SCREEN;
 		this.modalTransitionStyle = ModalTransitionStyle.COVER_VERTICAL;
 		this.shouldAutorotate = true;
+
+		this.topLayoutGuide = new LayoutSupport();
+		this.bottomLayoutGuide = new LayoutSupport();
 
 		if(Device.get().getUserInterfaceIdiom() == Device.UserInterfaceIdiom.PHONE) {
 			this.supportedInterfaceOrientations = EnumSet.copyOf(InterfaceOrientation.SET_ALL_BUT_UPSIDE_DOWN);
@@ -242,6 +248,14 @@ public class ViewController extends Responder {
 	 */
 	public void viewDidLayoutSubviews() {
 
+	}
+
+	public LayoutSupport getTopLayoutGuide() {
+		return this.topLayoutGuide;
+	}
+
+	public LayoutSupport getBottomLayoutGuide() {
+		return this.bottomLayoutGuide;
 	}
 
 	/**
