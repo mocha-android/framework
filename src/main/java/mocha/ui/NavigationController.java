@@ -99,6 +99,11 @@ public class NavigationController extends ViewController {
 		}
 	}
 
+	public NavigationController(Class<? extends NavigationBar> navigationBarClass, Class<? extends Toolbar> toolbarClass) {
+		// Toolbar not currently supported, this constructor exists purely for compatibility with the UIKit APIs
+		this(null, navigationBarClass);
+	}
+
 	public TransitionStyle getTransitionStyle() {
 		return transitionStyle;
 	}
