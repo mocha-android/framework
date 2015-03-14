@@ -226,11 +226,15 @@ abstract public class GestureRecognizer extends MObject {
 	}
 
 	public void addHandler(Object target, String actionMethodName) {
-		this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethodName));
+		if(target != null && actionMethodName != null) {
+			this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethodName));
+		}
 	}
 
 	public void addHandler(Object target, Method actionMethod) {
-		this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethod));
+		if(target != null && actionMethod != null) {
+			this.registeredGestureHandlers.add(new RuntimeTargetAction(target, actionMethod));
+		}
 	}
 
 	public void removeHandler(GestureHandler gestureHandler) {
