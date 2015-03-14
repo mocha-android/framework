@@ -422,6 +422,10 @@ public class View extends Responder implements Accessibility {
 		return this.frame.copy();
 	}
 
+	public Size getFrameSize() {
+		return this.frame.size.copy();
+	}
+
 	public float getFrameX() {
 		return this.frame.origin.x;
 	}
@@ -499,6 +503,10 @@ public class View extends Responder implements Accessibility {
 
 	public Rect getBounds() {
 		return this.bounds.copy();
+	}
+
+	public Size getBoundsSize() {
+		return this.bounds.size.copy();
 	}
 
 	public float getBoundsX() {
