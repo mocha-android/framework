@@ -63,7 +63,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private IndicatorStyle indicatorStyle;
 	private boolean showsHorizontalScrollIndicator;
 	private boolean showsVerticalScrollIndicator;
-	private EdgeInsets scrollIndicatorInsets;
+	private final EdgeInsets scrollIndicatorInsets = EdgeInsets.zero();
 	private boolean pagingEnabled;
 	private boolean bounces;
 	private boolean alwaysBounceHorizontal;
@@ -95,7 +95,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.indicatorStyle = IndicatorStyle.DEFAULT;
 		this.showsHorizontalScrollIndicator = true;
 		this.showsVerticalScrollIndicator = true;
-		this.scrollIndicatorInsets = EdgeInsets.zero();
 		this.pagingEnabled = false;
 		this.bounces = true;
 		this.alwaysBounceHorizontal = false;
@@ -184,6 +183,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.listenerDecelerating = null;
 			this.listenerAnimations = null;
 		}
+	}
+
+	public PanGestureRecognizer getPanGestureRecognizer() {
+		return this.panGestureRecognizer;
 	}
 
 	public void setFrame(Rect frame) {
@@ -592,7 +595,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	public void setScrollIndicatorInsets(EdgeInsets edgeInsets) {
-		this.scrollIndicatorInsets = edgeInsets;
+		this.scrollIndicatorInsets.set(edgeInsets);
 
 		if (this.horizontalScrollIndicator.isVisible()) {
 			this.updateHorizontalScrollIndicator();
@@ -601,6 +604,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		if (this.verticalScrollIndicator.isVisible()) {
 			this.updateVerticalScrollIndicator();
 		}
+	}
+
+	public EdgeInsets getScrollIndicatorInsets() {
+		return this.scrollIndicatorInsets.copy();
 	}
 
 	private void createScrollIndicators() {
