@@ -67,7 +67,7 @@ abstract public class GestureRecognizer extends MObject {
 		 *
 		 * Default is true
 		 *
-		 * @param gestureRecognizer gesture recognizer checking to see if it can recieve
+		 * @param gestureRecognizer gesture recognizer checking to see if it can receive
 		 *                          the touch
 		 * @param touch Touch to be received by the gesture recognizer
 		 * @return whether or not a gesture recognizer can receive the touch
@@ -93,6 +93,12 @@ abstract public class GestureRecognizer extends MObject {
 		 * simultaneously.
 		 */
 		public boolean shouldRecognizeSimultaneously(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
+
+		// Default: false
+		public boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
+
+		// Default: false
+		public boolean shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer);
 	}
 
 	public interface GestureHandler {
@@ -120,9 +126,11 @@ abstract public class GestureRecognizer extends MObject {
 						this.addDynamic(gestureRecognizer);
 					} else if(GestureRecognizer.this.shouldBeRequiredToFailByGestureRecognizer(gestureRecognizer)) {
 						gestureRecognizer.failureDependencyMap.addDynamic(GestureRecognizer.this);
+					} else if(GestureRecognizer.this.delegate != null && GestureRecognizer.this.delegate.shouldRequireFailureOfGestureRecognizer(GestureRecognizer.this, gestureRecognizer)) {
+						this.addDynamic(gestureRecognizer);
+					} else if(GestureRecognizer.this.delegate != null && GestureRecognizer.this.delegate.shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer.this, gestureRecognizer)) {
+						gestureRecognizer.failureDependencyMap.addDynamic(GestureRecognizer.this);
 					}
-
-					// TODO: Add delegate support
 				}
 			}
 		}

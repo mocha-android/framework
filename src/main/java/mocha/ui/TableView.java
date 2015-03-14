@@ -1710,4 +1710,11 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		return false;
 	}
 
+	public boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer) {
+		return false;
+	}
+
+	public boolean shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer) {
+		return false;
+	}
 }
