@@ -88,14 +88,13 @@ public class NavigationBar extends View {
 	private View leftView;
 	private View centerView;
 	private View rightView;
-	private Image backgroundImage;
 	private boolean leftIsBackButton;
 
 	private TextAttributes titleTextAttributes;
 	private BarMetricsStorage<Float> titleVerticalPositionAdjustment;
-	private BarMetricsStorage<Image> backgroundImages;
 	private Image shadowImage;
 	private ImageView shadowImageView;
+	private BarBackgroundView backgroundImageView;
 
 	private NavigationItemDelegate navigationItemDelegate = new NavigationItemDelegate();
 
@@ -125,7 +124,7 @@ public class NavigationBar extends View {
 		return appearance(NavigationBar.class);
 	}
 
-	public NavigationBar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
+	public NavigationBar() { this(INITIAL_RECT); }
 	public NavigationBar(Rect frame) { super(frame); }
 
 	@Override
@@ -133,12 +132,11 @@ public class NavigationBar extends View {
 		super.onCreate(frame);
 
 		this.setBarTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
-		this.backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_background);
 		this.items = new ArrayList<>();
 		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
 
-		this.titleVerticalPositionAdjustment = new BarMetricsStorage<Float>();
-		this.backgroundImages = new BarMetricsStorage<Image>();
+		this.titleVerticalPositionAdjustment = new BarMetricsStorage<>();
+		this.backgroundImageView = new BarBackgroundView(this.getBounds());
 		this.titleAlignment = TitleAlignment.LEFT;
 
 		if(appearanceStorage != null) {
@@ -455,7 +453,7 @@ public class NavigationBar extends View {
 	 * @return Background image, may be null
 	 */
 	public Image getBackgroundImage(BarMetrics barMetrics) {
-		return this.backgroundImages.get(barMetrics);
+		return this.backgroundImageView.getImages().get(barMetrics);
 	}
 
 	/**
@@ -465,7 +463,8 @@ public class NavigationBar extends View {
 	 * @param barMetrics Bar metrics
 	 */
 	public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
-		this.backgroundImages.set(barMetrics, backgroundImage);
+		this.backgroundImageView.getImages().set(barMetrics, backgroundImage);
+		this.backgroundImageView.update(BarMetrics.DEFAULT);
 	}
 
 	/**
@@ -796,6 +795,8 @@ public class NavigationBar extends View {
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
+		this.backgroundImageView.setFrame(this.getBounds());
+
 		if(this.needsReload) {
 			this.needsReload = false;
 			this.updateItemsWithTransition(Transition.RELOAD, false, null, null);
@@ -818,17 +819,6 @@ public class NavigationBar extends View {
 			this.shadowImageView.removeFromSuperview();
 			this.shadowImageView = null;
 		}
-	}
-
-	@Override
-	public void draw(Context context, Rect rect) {
-		Image image = this.getBackgroundImage(BarMetrics.DEFAULT);
-
-		if(image == null) {
-			image = this.backgroundImage;
-		}
-
-		image.draw(context, rect);
 	}
 
 	private void setBarButtonSize(View view, boolean bordered) {

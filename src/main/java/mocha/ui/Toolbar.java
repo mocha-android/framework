@@ -316,15 +316,9 @@ public class Toolbar extends View {
 			backgroundImage = this.getBackgroundImageForToolbarPosition(Position.ANY, BarMetrics.DEFAULT);
 		}
 
-		if(backgroundImage == null) {
-			if(this.position == Position.TOP) {
-				backgroundImage = Image.imageNamed(R.drawable.mocha_toolbar_default_background_top);
-			} else {
-				backgroundImage = Image.imageNamed(R.drawable.mocha_toolbar_default_background);
-			}
+		if(backgroundImage != null) {
+			backgroundImage.draw(context, rect);
 		}
-
-		backgroundImage.draw(context, rect);
 	}
 
 	public static class Appearance extends mocha.ui.Appearance <Toolbar> {
