@@ -413,18 +413,18 @@ public class Control extends View {
 	}
 
 
-	static class RuntimeTargetAction extends mocha.ui.RuntimeTargetAction <ControlEvent> implements ActionTarget {
+	static class RuntimeTargetAction extends mocha.ui.RuntimeTargetAction <Event> implements ActionTarget {
 
 		RuntimeTargetAction(Object target, String actionMethodName) {
-			super(target, actionMethodName, ControlEvent.class);
+			super(target, actionMethodName, Event.class);
 		}
 
 		RuntimeTargetAction(Object target, Method action) {
-			super(target, action, ControlEvent.class);
+			super(target, action, Event.class);
 		}
 
 		public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
-			this.invoke(controlEvent);
+			this.invoke(event);
 		}
 	}
 
