@@ -25,6 +25,16 @@ public class Range extends MObject implements Copying<Range> {
 		return location >= this.location && location < this.location + this.length;
 	}
 
+	public static boolean equals(Range a, Range b) {
+		if(a == b) {
+			return true;
+		} else if(a == null || b == null) {
+			return false;
+		} else {
+			return a.equals(b);
+		}
+	}
+
 	public boolean equals(Object o) {
 		if(o == this) {
 			return true;
