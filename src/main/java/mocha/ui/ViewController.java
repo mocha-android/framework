@@ -6,6 +6,7 @@
 package mocha.ui;
 
 import mocha.foundation.NotificationCenter;
+import mocha.foundation.Sets;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,16 +68,13 @@ public class ViewController extends Responder {
 		this.childViewControllers = new ArrayList<>();
 		this.modalPresentationStyle = ModalPresentationStyle.FULL_SCREEN;
 		this.modalTransitionStyle = ModalTransitionStyle.COVER_VERTICAL;
-		this.shouldAutorotate = true;
+		this.shouldAutorotate = this.getInitialShouldAutorotate();
+		this.preferredInterfaceOrientationForPresentation = this.getInitialPreferredInterfaceOrientationForPresentation();
 
 		this.topLayoutGuide = new LayoutSupport();
 		this.bottomLayoutGuide = new LayoutSupport();
 
-		if(Device.get().getUserInterfaceIdiom() == Device.UserInterfaceIdiom.PHONE) {
-			this.supportedInterfaceOrientations = EnumSet.copyOf(InterfaceOrientation.SET_ALL_BUT_UPSIDE_DOWN);
-		} else {
-			this.supportedInterfaceOrientations = EnumSet.copyOf(InterfaceOrientation.SET_ALL);
-		}
+		this.supportedInterfaceOrientations = Sets.copy(this.getInitialSupportedInterfaceOrientations());
 
 		if(didReceiveMemoryWarningMethod == null) {
 			try {
@@ -404,7 +402,11 @@ public class ViewController extends Responder {
 	}
 
 	public final boolean getShouldAutorotate() {
-		return shouldAutorotate;
+		return this.shouldAutorotate;
+	}
+
+	public boolean getInitialShouldAutorotate() {
+		return this.shouldAutorotate;
 	}
 
 	public void setShouldAutorotate(boolean shouldAutorotate) {
@@ -413,8 +415,13 @@ public class ViewController extends Responder {
 	}
 
 	public final InterfaceOrientation getPreferredInterfaceOrientationForPresentation() {
-		return preferredInterfaceOrientationForPresentation;
+		return this.preferredInterfaceOrientationForPresentation;
 	}
+
+	public InterfaceOrientation getInitialPreferredInterfaceOrientationForPresentation() {
+		return this.preferredInterfaceOrientationForPresentation;
+	}
+
 
 	public void setPreferredInterfaceOrientationForPresentation(InterfaceOrientation preferredInterfaceOrientationForPresentation) {
 		this.preferredInterfaceOrientationForPresentation = preferredInterfaceOrientationForPresentation;
@@ -422,6 +429,14 @@ public class ViewController extends Responder {
 
 	public final Set<InterfaceOrientation> getSupportedInterfaceOrientations() {
 		return EnumSet.copyOf(this.supportedInterfaceOrientations);
+	}
+
+	public Set<InterfaceOrientation> getInitialSupportedInterfaceOrientations() {
+		if(Device.get().getUserInterfaceIdiom() == Device.UserInterfaceIdiom.PHONE) {
+			return InterfaceOrientation.SET_ALL_BUT_UPSIDE_DOWN;
+		} else {
+			return InterfaceOrientation.SET_ALL;
+		}
 	}
 
 	public void setSupportedInterfaceOrientations(InterfaceOrientation... supportedInterfaceOrientations) {
