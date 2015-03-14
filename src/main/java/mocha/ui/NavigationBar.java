@@ -17,6 +17,7 @@ public class NavigationBar extends View {
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_TITLE_HEIGHT_DEFAULT = 30.0f;
 	private static final float MAX_TITLE_HEIGHT_LANDSCAPE_PHONE = 24.0f;
+	static final Rect INITIAL_RECT = new Rect(0.0f, 0.0f, 320.0f, 44.0f);
 	static final long ANIMATION_DURATION = 330;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 

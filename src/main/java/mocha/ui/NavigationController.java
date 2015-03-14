@@ -68,12 +68,18 @@ public class NavigationController extends ViewController {
 
 		if(navigationBarClass != null) {
 			try {
-				this.navigationBar = navigationBarClass.newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+				this.navigationBar = navigationBarClass.getConstructor(Rect.class).newInstance(NavigationBar.INITIAL_RECT);
+			} catch (NoSuchMethodException e) {
+				try {
+					this.navigationBar = navigationBarClass.newInstance();
+				} catch (Exception e2) {
+					throw new RuntimeException(e);
+				}
+			} catch(IllegalAccessException | InstantiationException | InvocationTargetException e2) {
+				throw new RuntimeException(e2);
 			}
 		} else {
-			this.navigationBar = new NavigationBar();
+			this.navigationBar = new NavigationBar(NavigationBar.INITIAL_RECT);
 		}
 
 		this.navigationBar.setDelegate(this.navigationBarDelegate);
