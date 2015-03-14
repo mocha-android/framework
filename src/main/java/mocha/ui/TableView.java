@@ -151,8 +151,8 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private TableViewRowData rowData;
 	private Map<Object,List<TableViewCell>> cellsQueuedForReuse;
 	private Map<String,List<TableViewHeaderFooterView>> headerFooterViewsQueuedForReuse;
-	private Map<Object,Class<? extends TableViewCell>> registeredCellClasses;
-	private Map<String,Class<? extends TableViewHeaderFooterView>> registeredHeaderFooterViewClasses;
+	private Map<Object,Constructor<? extends TableViewCell>> registeredCellClasses;
+	private Map<String,Constructor<? extends TableViewHeaderFooterView>> registeredHeaderFooterViewClasses;
 	private Runnable cellTouchCallback;
 	private TableViewCell touchedCell;
 	private boolean touchesMoved;
@@ -1082,11 +1082,37 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	public void registerCellClass(Class<? extends TableViewCell> cellClass, String reuseIdentifier) {
-		this.registeredCellClasses.put(reuseIdentifier, cellClass);
+		Constructor<? extends TableViewCell> constructor = null;
+
+		try {
+			constructor = cellClass.getConstructor(TableViewCell.Style.class, Object.class);
+		} catch (NoSuchMethodException e) {
+			try {
+				constructor = cellClass.getConstructor(TableViewCell.Style.class, String.class);
+			} catch (NoSuchMethodException ignore) { }
+		}
+
+		if(constructor != null) {
+			this.registeredCellClasses.put(reuseIdentifier, constructor);
+		} else {
+			throw new RuntimeException(String.format("Could not find constructor in registered cell class %s for reuseIdentifier %s", cellClass, reuseIdentifier));
+		}
 	}
 
-	public void registerHeaderFooterViewClass(Class<? extends TableViewHeaderFooterView> cellClass, String reuseIdentifier) {
-		this.registeredHeaderFooterViewClasses.put(reuseIdentifier, cellClass);
+	public void registerHeaderFooterViewClass(Class<? extends TableViewHeaderFooterView> headerFooterViewClass, String reuseIdentifier) {
+		Constructor<? extends TableViewHeaderFooterView> constructor;
+
+		try {
+			constructor = headerFooterViewClass.getConstructor(String.class);
+		} catch (NoSuchMethodException e) {
+			constructor = null;
+		}
+
+		if(constructor != null) {
+			this.registeredHeaderFooterViewClasses.put(reuseIdentifier, constructor);
+		} else {
+			throw new RuntimeException(String.format("Could not find constructor in registered header footer view class %s for reuseIdentifier %s", headerFooterViewClass, reuseIdentifier));
+		}
 	}
 
 	public TableViewCell dequeueReusableCellWithIdentifier(Object reuseIdentifier) {
@@ -1103,20 +1129,11 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		TableViewCell cell = this.dequeueReusableCellWithIdentifier(reuseIdentifier);
 
 		if(cell == null) {
-			Class<? extends TableViewCell> cellClass = this.registeredCellClasses.get(reuseIdentifier);
+			Constructor<? extends TableViewCell> constructor = this.registeredCellClasses.get(reuseIdentifier);
 
-			if(cellClass == null) {
+			if(constructor == null) {
 				return null;
 			} else {
-				Constructor<? extends TableViewCell> constructor;
-
-				try {
-					constructor = cellClass.getConstructor(TableViewCell.Style.class, Object.class);
-				} catch (NoSuchMethodException e) {
-					MWarn(e, "Could not find constructor in registered cell class %s for reuseIdentifier %s", cellClass, reuseIdentifier);
-					return null;
-				}
-
 				try {
 					cell = constructor.newInstance(TableViewCell.Style.DEFAULT, reuseIdentifier);
 				} catch (Exception e) {
@@ -1136,20 +1153,11 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		if(headerFooterView != null) {
 			headerFooterView.prepareForReuse();
 		} else {
-			Class<? extends TableViewHeaderFooterView> headerFooterViewClass = this.registeredHeaderFooterViewClasses.get(reuseIdentifier);
+			Constructor<? extends TableViewHeaderFooterView> constructor = this.registeredHeaderFooterViewClasses.get(reuseIdentifier);
 
-			if (headerFooterViewClass == null) {
+			if (constructor == null) {
 				return null;
 			} else {
-				Constructor<? extends TableViewHeaderFooterView> constructor;
-
-				try {
-					constructor = headerFooterViewClass.getConstructor(String.class);
-				} catch (NoSuchMethodException e) {
-					MWarn(e, "Could not find constructor in registered header footer view class %s for reuseIdentifier %s", headerFooterViewClass, reuseIdentifier);
-					return null;
-				}
-
 				try {
 					headerFooterView = constructor.newInstance(reuseIdentifier);
 				} catch (Exception e) {
