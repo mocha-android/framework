@@ -103,6 +103,11 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		return this;
 	}
 
+	public static Rect inset(Rect rect, float dx, float dy) {
+		Rect r = rect.copy();
+		return r.inset(dx, dy);
+	}
+
 	public Rect offset(float dx, float dy) {
 		this.origin.x += dx;
 		this.origin.y += dy;
@@ -119,6 +124,21 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 		this.origin.x += delta.x;
 		this.origin.y += delta.y;
 		return this;
+	}
+
+	public static Rect offset(Rect rect, float dx, float dy) {
+		Rect r = rect.copy();
+		return r.offset(dx, dy);
+	}
+
+	public static Rect offset(Rect rect, Offset offset) {
+		Rect r = rect.copy();
+		return r.offset(offset);
+	}
+
+	public static Rect offset(Rect rect, Point delta) {
+		Rect r = rect.copy();
+		return r.offset(delta);
 	}
 
 	public boolean contains(Point point) {
