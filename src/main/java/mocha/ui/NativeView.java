@@ -137,19 +137,7 @@ public class NativeView <V extends android.view.View> extends View {
 		int width = frame.width();
 		int height = frame.height();
 
-		if(this.getLayer().getViewGroup() instanceof ViewLayerNative) {
-			this.nativeView.setMinimumWidth(width);
-			this.nativeView.setMinimumHeight(height);
-			this.nativeView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
-			this.nativeView.measure(
-					android.view.View.MeasureSpec.makeMeasureSpec(width, android.view.View.MeasureSpec.EXACTLY),
-					android.view.View.MeasureSpec.makeMeasureSpec(height, android.view.View.MeasureSpec.EXACTLY)
-			);
-			this.nativeView.forceLayout();
-			this.nativeView.layout(0, 0, width, height);
-		} else {
-			this.nativeView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
-		}
+		this.nativeView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
 	}
 
 	@Override
