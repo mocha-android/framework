@@ -19,8 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class View extends Responder implements Accessibility {
-	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative2.class;
-	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative2.class;
+	static final Class<? extends ViewLayer> VIEW_LAYER_CLASS = ViewLayerNative.class;
+	static final Class<? extends WindowLayer> WINDOW_LAYER_CLASS = WindowLayerNative.class;
 
 	/**
 	 * Set to true to make all animations take 10x longer than normal

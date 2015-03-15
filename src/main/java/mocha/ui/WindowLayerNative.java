@@ -14,9 +14,9 @@ import mocha.graphics.Rect;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer {
+public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 
-	public WindowLayerNative2(Context context) {
+	public WindowLayerNative(Context context) {
 		super(context);
 
 		this.getLayout().setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -46,13 +46,13 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 
 	}
 
-	private void recursiveLayout(ViewLayerNative2 layer) {
+	private void recursiveLayout(ViewLayerNative layer) {
 		layer.updateSize();
 		layer.getView()._layoutSubviews();
 		layer.setNeedsDisplay();
 
 		for(ViewLayer sublayer : layer.getSublayers()) {
-			this.recursiveLayout((ViewLayerNative2)sublayer);
+			this.recursiveLayout((ViewLayerNative)sublayer);
 		}
 	}
 
@@ -115,7 +115,7 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 
 				performOnMainAfterDelay(0, new Runnable() {
 					public void run() {
-						recursiveLayout(WindowLayerNative2.this);
+						recursiveLayout(WindowLayerNative.this);
 					}
 				});
 			}
@@ -168,7 +168,7 @@ public class WindowLayerNative2 extends ViewLayerNative2 implements WindowLayer 
 						largestHeight = 0;
 						orientationChangeWidth = 0;
 						orientationChangeCallback = null;
-						recursiveLayout(WindowLayerNative2.this);
+						recursiveLayout(WindowLayerNative.this);
 					}
 				});
 

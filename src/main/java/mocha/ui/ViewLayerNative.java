@@ -22,7 +22,7 @@ import mocha.graphics.Size;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewLayerNative2 extends MObject implements ViewLayer {
+public class ViewLayerNative extends MObject implements ViewLayer {
 
 	private FrameLayout layout;
 	private Context context;
@@ -49,8 +49,8 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	private int borderColor;
 	private float borderWidth;
 
-	private List<ViewLayerNative2> sublayers;
-	private ViewLayerNative2 superlayer;
+	private List<ViewLayerNative> sublayers;
+	private ViewLayerNative superlayer;
 
 	private View view;
 	private Runnable scheduledLayoutCallback;
@@ -63,7 +63,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 
 	final float scale;
 
-	public ViewLayerNative2(Context context) {
+	public ViewLayerNative(Context context) {
 		this.context = context;
 
 		this.layout = this.createLayout(context);
@@ -71,7 +71,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		this.layout.setClipChildren(false);
 		this.layout.setWillNotDraw(false);
 
-		this.sublayers = new ArrayList<ViewLayerNative2>();
+		this.sublayers = new ArrayList<>();
 
 		this.frame = Rect.zero();
 		this.bounds = Rect.zero();
@@ -127,7 +127,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	private void updateHierarchyClips() {
-		for(ViewLayerNative2 sublayer : this.sublayers) {
+		for(ViewLayerNative sublayer : this.sublayers) {
 			if(this.clipsToBounds) {
 				sublayer.setClipToView(this.getView());
 			} else {
@@ -165,7 +165,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		if(!this.bounds.equals(bounds)) {
 			this.bounds.set(bounds);
 
-			for(ViewLayerNative2 sublayer : this.sublayers) {
+			for(ViewLayerNative sublayer : this.sublayers) {
 				sublayer.updatePosition();
 			}
 		}
@@ -336,7 +336,7 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	public void insertSublayerAtIndex(ViewLayer layer, int index) {
-		ViewLayerNative2 layer1 = this.assertLayerType(layer);
+		ViewLayerNative layer1 = this.assertLayerType(layer);
 		ViewLayer superlayer = layer1.getSuperlayer();
 
 		if(superlayer != null && superlayer != this) {
@@ -372,13 +372,13 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 	}
 
 	public void insertSublayerBelow(ViewLayer layer, ViewLayer sibling) {
-		ViewLayerNative2 sibling1 = this.assertLayerType(sibling);
+		ViewLayerNative sibling1 = this.assertLayerType(sibling);
 		int index = this.sublayers.indexOf(sibling1);
 		this.insertSublayerAtIndex(layer, index > 0 ? index - 1 : 0);
 	}
 
 	public void insertSublayerAbove(ViewLayer layer, ViewLayer sibling) {
-		ViewLayerNative2 sibling1 = this.assertLayerType(sibling);
+		ViewLayerNative sibling1 = this.assertLayerType(sibling);
 		int index = this.sublayers.indexOf(sibling1);
 		this.insertSublayerAtIndex(layer, index == -1 ? Integer.MAX_VALUE : index + 1);
 	}
@@ -405,9 +405,9 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 		}
 	}
 
-	private ViewLayerNative2 assertLayerType(ViewLayer layer) {
-		if(layer instanceof ViewLayerNative2) {
-			return (ViewLayerNative2) layer;
+	private ViewLayerNative assertLayerType(ViewLayer layer) {
+		if(layer instanceof ViewLayerNative) {
+			return (ViewLayerNative) layer;
 		} else {
 			throw new InvalidSubLayerClassException(this, layer);
 		}
@@ -579,8 +579,8 @@ public class ViewLayerNative2 extends MObject implements ViewLayer {
 			super(context);
 		}
 
-		private ViewLayerNative2 getLayer() {
-			return ViewLayerNative2.this;
+		private ViewLayerNative getLayer() {
+			return ViewLayerNative.this;
 		}
 
 		private boolean updateClippingRect(Canvas canvas) {

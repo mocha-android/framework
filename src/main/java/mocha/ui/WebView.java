@@ -116,20 +116,20 @@ public class WebView extends View {
 		this.recursiveFix();
 	}
 
-	private void recursiveLayout(ViewLayerNative2 layer) {
+	private void recursiveLayout(ViewLayerNative layer) {
 		layer.updateSize();
 		layer.getView()._layoutSubviews();
 		layer.setNeedsDisplay();
 
 		for(ViewLayer sublayer : layer.getSublayers()) {
-			this.recursiveLayout((ViewLayerNative2)sublayer);
+			this.recursiveLayout((ViewLayerNative)sublayer);
 		}
 	}
 
 	private void recursiveFix() {
 		Window window = getWindow();
 		if(window != null) {
-			recursiveLayout((ViewLayerNative2) window.getLayer());
+			recursiveLayout((ViewLayerNative) window.getLayer());
 
 			this.webView.postInvalidate();
 			this.webView.forceLayout();
