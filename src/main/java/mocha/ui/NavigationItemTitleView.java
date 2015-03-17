@@ -49,9 +49,6 @@ class NavigationItemTitleView extends View {
 		if(textAttributes != null && textAttributes.shadowOffset != null) {
 			this.label.setShadowOffset(textAttributes.shadowOffset);
 			this.label.setShadowColor(textAttributes.shadowColor);
-		} else {
-			this.label.setShadowOffset(new Size(0.0f, -1.0f));
-			this.label.setShadowColor(Color.white(0.0f, 0.5f));
 		}
 
 		this.addSubview(this.label);
