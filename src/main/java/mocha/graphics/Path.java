@@ -280,8 +280,8 @@ public class Path extends MObject implements Copying<Path> {
 		this.flatness = flatness;
 	}
 
-	public boolean isUsesEvenOddFillRule() {
-		return usesEvenOddFillRule;
+	public boolean getUsesEvenOddFillRule() {
+		return this.usesEvenOddFillRule;
 	}
 
 	public void setUsesEvenOddFillRule(boolean usesEvenOddFillRule) {
@@ -291,6 +291,10 @@ public class Path extends MObject implements Copying<Path> {
 			this.nativePath.setFillType(android.graphics.Path.FillType.EVEN_ODD);
 		} else {
 			this.nativePath.setFillType(android.graphics.Path.FillType.WINDING);
+		}
+
+		if(this.cachedScaledPath != null) {
+			this.cachedScaledPath.setFillType(this.nativePath.getFillType());
 		}
 	}
 
@@ -383,6 +387,7 @@ public class Path extends MObject implements Copying<Path> {
 
 			this.cachedScaledPath = new android.graphics.Path();
 			this.cachedScaledPath.addPath(this.nativePath, matrix);
+			this.cachedScaledPath.setFillType(this.nativePath.getFillType());
 			this.cachedScaledPathFactor = scale;
 		}
 
