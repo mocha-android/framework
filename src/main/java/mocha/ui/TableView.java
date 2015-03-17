@@ -709,6 +709,14 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.reloadData();
 	}
 
+	public void didMoveToWindow() {
+		super.didMoveToWindow();
+
+		if(this.isEmpty() && this.getWindow() != null) {
+			this.reloadData();
+		}
+	}
+
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
