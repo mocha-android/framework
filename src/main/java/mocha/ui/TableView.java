@@ -10,6 +10,7 @@ import android.util.SparseArray;
 import android.view.ViewGroup;
 import mocha.foundation.IndexPath;
 import mocha.foundation.Range;
+import mocha.foundation.Sets;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
@@ -23,9 +24,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private static final float DEFAULT_ROW_HEIGHT = 44.0f;
 	private static final TableViewCell.State DEFAULT_STATE[] = new TableViewCell.State[] { TableViewCell.State.DEFAULT };
 	private static final TableViewCell.State EDIT_CONTROL_STATE[] = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL };
-
-	private static final String INTERNAL_HEADER_VIEW_IDENTIFIER = "TableViewInternalHeaderView";
-	private static final String INTERNAL_FOOTER_VIEW_IDENTIFIER = "TableViewInternalFooterView";
 
 	/**
 	 * DataSource + Delegate Note: A rather odd design pattern here, but without optional methods in Java, I couldn't think
@@ -234,12 +232,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.setAlwaysBounceVertical(true);
 
 		if(style == Style.GROUPED) {
-			this.registerHeaderFooterViewClass(TableViewHeader.Grouped.class, INTERNAL_HEADER_VIEW_IDENTIFIER);
+			this.registerHeaderFooterViewClass(TableViewHeaderFooterGroupedView.class, TableViewHeaderFooterGroupedView.REUSE_IDENTIFIER);
 		} else {
-			this.registerHeaderFooterViewClass(TableViewHeader.Plain.class, INTERNAL_HEADER_VIEW_IDENTIFIER);
+			this.registerHeaderFooterViewClass(TableViewHeaderFooterPlainView.class, TableViewHeaderFooterPlainView.REUSE_IDENTIFIER);
 		}
-
-		this.registerHeaderFooterViewClass(TableViewFooter.class, INTERNAL_FOOTER_VIEW_IDENTIFIER);
 
 //		SwipeGestureRecognizer gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.LEFT, new GestureRecognizer.GestureHandler() {
 //			public void handleGesture(GestureRecognizer gestureRecognizer) {
@@ -1008,14 +1004,18 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		if(header == null) {
-			header = this.dequeueReusableHeaderFooterViewWithIdentifier(INTERNAL_HEADER_VIEW_IDENTIFIER);
+			if(this.tableStyle == Style.GROUPED) {
+				header = this.dequeueReusableHeaderFooterViewWithIdentifier(TableViewHeaderFooterGroupedView.REUSE_IDENTIFIER);
+			} else {
+				header = this.dequeueReusableHeaderFooterViewWithIdentifier(TableViewHeaderFooterPlainView.REUSE_IDENTIFIER);
+			}
 		}
 
 		header.setFrame(frame);
 
-		if(header instanceof TableViewHeader) {
+		if(header instanceof TableViewHeaderFooterView) {
 			String text = this.dataSourceHeaders != null ? this.dataSourceHeaders.getTitleForHeaderInSection(this, section) : null;
-			((TableViewHeader) header).setText(text);
+			((TableViewHeaderFooterView) header).getTextLabel().setText(text);
 		}
 
 		header._isQueued = false;
@@ -1041,11 +1041,15 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		if(footer == null) {
-			footer = this.dequeueReusableHeaderFooterViewWithIdentifier(INTERNAL_FOOTER_VIEW_IDENTIFIER);
+			if(this.tableStyle == Style.GROUPED) {
+				footer = this.dequeueReusableHeaderFooterViewWithIdentifier(TableViewHeaderFooterGroupedView.REUSE_IDENTIFIER);
+			} else {
+				footer = this.dequeueReusableHeaderFooterViewWithIdentifier(TableViewHeaderFooterPlainView.REUSE_IDENTIFIER);
+			}
 		}
 
-		if(footer instanceof TableViewFooter) {
-			((TableViewFooter) footer).setText(this.dataSourceFooters != null ? this.dataSourceFooters.getTitleForFooterInSection(this, section) : null);
+		if(footer instanceof TableViewHeaderFooterPlainView) {
+			((TableViewHeaderFooterPlainView) footer).getTextLabel().setText(this.dataSourceFooters != null ? this.dataSourceFooters.getTitleForFooterInSection(this, section) : null);
 		}
 
 		footer._isQueued = false;
@@ -1212,7 +1216,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	public Set<IndexPath> getIndexPathsForSelectedRows() {
-		return Collections.unmodifiableSet(this.selectedRowsIndexPaths);
+		return Sets.copy(this.selectedRowsIndexPaths);
 	}
 
 	private void selectionDidChangeForRowAtIndexPath(IndexPath indexPath, boolean selected) {

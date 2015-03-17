@@ -7,17 +7,10 @@
 package mocha.ui;
 
 class TableViewFooter extends TableViewHeaderFooterView {
+	public static final String REUSE_IDENTIFIER = "TableViewHeaderFooterPlainViewIdentifier";
 
 	TableViewFooter(String reuseIdentifier) {
 		super(reuseIdentifier);
-	}
-
-	public void setText(String text) {
-		this.getTextLabel().setText(text);
-	}
-
-	public String getText() {
-		return this.getTextLabel().getText().toString();
 	}
 
 	public static float getHeight(CharSequence title, float constrainedToWidth) {

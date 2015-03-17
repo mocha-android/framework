@@ -58,7 +58,7 @@ class TableViewSectionRowData {
 					if(plainStyle) {
 						this.headerHeight = TableView.PLAIN_HEADER_HEIGHT;
 					} else {
-						this.headerHeight = TableViewHeader.Grouped.getHeight(title, tableView.getFrame().size.width);
+						this.headerHeight = TableViewHeaderFooterGroupedView.getHeight(title, tableView.getFrame().size.width);
 					}
 				} else {
 					if(tableView.getTableStyle() == TableView.Style.GROUPED) {
