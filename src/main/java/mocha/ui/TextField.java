@@ -163,6 +163,7 @@ public class TextField extends Control implements TextInput.Traits {
 				this.delegateBeginEditing.didBeginEditing(this);
 			}
 
+			sendActionsForControlEvents(ControlEvent.EDITING_DID_BEGIN);
 			NotificationCenter.defaultCenter().post(DID_BEGIN_EDITING_NOTIFICATION, this);
 			this.forceEndEditing = false;
 
@@ -187,6 +188,7 @@ public class TextField extends Control implements TextInput.Traits {
 				this.delegateEndEditing.didEndEditing(this);
 			}
 
+			sendActionsForControlEvents(ControlEvent.EDITING_DID_END);
 			NotificationCenter.defaultCenter().post(DID_END_EDITING_NOTIFICATION, this);
 
 			return true;
@@ -461,7 +463,7 @@ public class TextField extends Control implements TextInput.Traits {
 		this.setNeedsLayout();
 	}
 
-	protected Rect getTextRectForBounds(Rect bounds) {
+	private Rect _getTextRectForBounds(Rect bounds) {
 		Rect rect = bounds.copy();
 
 		rect.origin.y += floorf((rect.size.height - this.font.getLineHeight()) / 2.0f);
@@ -496,12 +498,16 @@ public class TextField extends Control implements TextInput.Traits {
 		return rect;
 	}
 
+	protected Rect getTextRectForBounds(Rect bounds) {
+		return this._getTextRectForBounds(bounds);
+	}
+
 	protected Rect getPlaceholderRectForBounds(Rect bounds) {
 		return this.getTextRectForBounds(bounds);
 	}
 
 	protected Rect getEditingRectForBounds(Rect bounds) {
-		return this.getTextRectForBounds(bounds);
+		return this._getTextRectForBounds(bounds);
 	}
 
 	protected Rect getClearButtonRectForBounds(Rect bounds) {
@@ -804,7 +810,7 @@ public class TextField extends Control implements TextInput.Traits {
 				wasEmpty = isEmpty;
 			}
 
-			sendActionsForControlEvents(ControlEvent.VALUE_CHANGED);
+			sendActionsForControlEvents(ControlEvent.EDITING_CHANGED);
 			NotificationCenter.defaultCenter().post(TEXT_DID_CHANGE_NOTIFICATION, TextField.this);
 		}
 
