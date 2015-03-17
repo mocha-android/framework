@@ -141,6 +141,7 @@ class TableViewCellLayoutManager extends MObject {
 
 	private float getAccessoryViewPaddingForCell(TableViewCell cell, TableView.Style style) {
 		View accessoryView = cell.getActiveAccessoryView();
+
 		if (null == accessoryView) {
 			return 0.0f;
 		}
@@ -156,7 +157,9 @@ class TableViewCellLayoutManager extends MObject {
 		// on the right, top, and bottom
 		float heightDifference = (float)Math.floor((cellBounds.size.height - separatorRect.size.height - accessorySize.height) / 2.0);
 
-		return heightDifference < 10.0f ? heightDifference : 10.0f;
+		float padding = heightDifference < 10.0f ? heightDifference : 10.0f;
+
+		return Math.max(padding, cell.getLayoutMargins().right);
 	}
 
 	Rect getAccessoryViewRectForCell(TableViewCell cell, TableView.Style style) {
@@ -238,8 +241,10 @@ class TableViewCellLayoutManager extends MObject {
 		ImageView imageView = cell.getImageView(false);
 		Image image;
 
+		float left = cell.getLayoutMargins().left;
+
 		if(imageView == null || (image = imageView.getImage()) == null) {
-			return Rect.zero();
+			return new Rect(left - BASE_INSET, 0.0f, 0.0f, 0.0f);
 		}
 
 		// Allows a maximum height of (cell.getBounds().height - 1) pixels.
@@ -253,16 +258,16 @@ class TableViewCellLayoutManager extends MObject {
 		if (imageSize.height < maxHeight) {
 			// Image is not as tall as the cell
 			float padding = (float)Math.floor((maxHeight - imageSize.height) / 2.0);
-			return new Rect(padding < 0 ? 0 : padding, padding, imageSize.width, imageSize.height);
+			return new Rect(Math.max(left, padding < 0.0f ? 0.0f : padding), padding, imageSize.width, imageSize.height);
 		} else if (imageSize.height == maxHeight) {
 			// Image height == cell height
-			return new Rect(0.0f, 0.0f, imageSize.width, imageSize.height);
+			return new Rect(left, 0.0f, imageSize.width, imageSize.height);
 		} else {
 			// Image is taller than the cell
 			float differencePercent = (maxHeight / imageSize.height);
 			float width = (float)Math.round(imageSize.width * differencePercent);
 			float height = (float)Math.round(imageSize.height * differencePercent);
-			return new Rect(0.0f, 0.0f, width, height);
+			return new Rect(left, 0.0f, width, height);
 		}
 	}
 
