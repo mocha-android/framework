@@ -123,6 +123,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	private Style tableStyle;
 	private TableViewCell.SeparatorStyle separatorStyle;
+	private final EdgeInsets separatorInset = EdgeInsets.zero();
 	private int separatorColor;
 	private boolean editing;
 	private boolean fullEditing;
@@ -284,6 +285,14 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	public void setSeparatorStyle(TableViewCell.SeparatorStyle separatorStyle) {
 		this.separatorStyle = separatorStyle;
+	}
+
+	public EdgeInsets getSeparatorInset() {
+		return this.separatorInset.copy();
+	}
+
+	public void setSeparatorInset(EdgeInsets separatorInsets) {
+		this.separatorInset.set(separatorInsets);
 	}
 
 	public int getSeparatorColor() {
