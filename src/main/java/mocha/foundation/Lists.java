@@ -46,6 +46,30 @@ public class Lists {
 		return list;
 	}
 
+	public static List<Integer> createFromPrimitives(int... items) {
+		List<Integer> list = new ArrayList<>(items.length);
+		for(int i : list) list.add(i);
+		return list;
+	}
+
+	public static List<Float> createFromPrimitives(float... items) {
+		List<Float> list = new ArrayList<>(items.length);
+		for(float i : list) list.add(i);
+		return list;
+	}
+
+	public static List<Double> createFromPrimitives(double... items) {
+		List<Double> list = new ArrayList<>(items.length);
+		for(double i : list) list.add(i);
+		return list;
+	}
+
+	public static List<Boolean> createFromPrimitives(boolean... items) {
+		List<Boolean> list = new ArrayList<>(items.length);
+		for(boolean i : list) list.add(i);
+		return list;
+	}
+
 	public static <T> List<T> copy(Collection<T> list) {
 		List<T> copy = new ArrayList<>();
 
