@@ -612,7 +612,6 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	public View getContentView() {
 		if (this.contentView == null) {
 			this.contentView = new View();
-			this.contentView.setBackgroundColor(this.getBackgroundColor());
 			this.contentView.setFrame(this.layoutManager.getContentViewRectForCell(this, this.tableStyle));
 			this.addSubview(this.contentView);
 		}
@@ -625,7 +624,6 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 		if (this.textLabel == null && autoCreate) {
 			this.textLabel = new Label();
-			this.textLabel.setBackgroundColor(this.getBackgroundColor());
 			this.textLabel.setTextColor(Color.BLACK);
 			this.textLabel.setHighlightedTextColor(Color.WHITE);
 			this.textLabel.setFont(Font.getBoldSystemFontWithSize(20.0f));
@@ -644,7 +642,6 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 		if (this.detailTextLabel == null && autoCreate) {
 			this.detailTextLabel = new Label();
-			this.detailTextLabel.setBackgroundColor(this.getBackgroundColor());
 			this.detailTextLabel.setTextColor(Color.GRAY);
 			this.detailTextLabel.setHighlightedTextColor(Color.WHITE);
 			this.detailTextLabel.setFont(Font.getBoldSystemFontWithSize(14.0f));
