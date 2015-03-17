@@ -419,27 +419,27 @@ public class View extends Responder implements Accessibility {
 	}
 
 	public Rect getFrame() {
-		return this.frame.copy();
+		return this.transform.apply(this.frame);
 	}
 
 	public Size getFrameSize() {
-		return this.frame.size.copy();
+		return this.transform.apply(this.frame).size;
 	}
 
 	public float getFrameX() {
-		return this.frame.origin.x;
+		return this.transform.apply(this.frame).origin.x;
 	}
 
 	public float getFrameY() {
-		return this.frame.origin.y;
+		return this.transform.apply(this.frame).origin.y;
 	}
 
 	public float getFrameWidth() {
-		return this.frame.size.width;
+		return this.transform.apply(this.frame).size.width;
 	}
 
 	public float getFrameHeight() {
-		return this.frame.size.height;
+		return this.transform.apply(this.frame).size.height;
 	}
 
 	/**
