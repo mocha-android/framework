@@ -128,6 +128,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private boolean fullEditing;
 	private float rowHeight;
 	private boolean allowsSelection;
+	private boolean allowsMultipleSelection;
 	private boolean reloadingData;
 
 	DataSource dataSource;
@@ -468,6 +469,14 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	public boolean allowsSelection() {
 		return this.allowsSelection;
+	}
+
+	public boolean getAllowsMultipleSelection() {
+		return allowsMultipleSelection;
+	}
+
+	public void setAllowsMultipleSelection(boolean allowsMultipleSelection) {
+		this.allowsMultipleSelection = allowsMultipleSelection;
 	}
 
 	public View getBackgroundView() {
@@ -1261,6 +1270,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	public void selectRowAtIndexPath(IndexPath indexPath, boolean animated) {
+		this.selectRowAtIndexPath(indexPath, animated, ScrollPosition.NONE);
+	}
+
+	public void selectRowAtIndexPath(IndexPath indexPath, boolean animated, ScrollPosition scrollPosition) {
 		if (!this.rowData.isValidIndexPath(indexPath)) {
 			throw new RuntimeException("Tried to select row with invalid index path: " + indexPath);
 		}
@@ -1292,6 +1305,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 		if(animated) {
 			View.commitAnimations();
+		}
+
+		if(scrollPosition != ScrollPosition.NONE) {
+			this.scrollToRowAtIndexPath(indexPath, scrollPosition, animated);
 		}
 	}
 
@@ -1500,10 +1517,17 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 			}
 		}
 
-		if(this.selectedRowsIndexPaths.size() > 0) {
+		if(this.selectedRowsIndexPaths.size() > 0 && !this.allowsMultipleSelection) {
 			for(IndexPath selectedRowIndexPath : this.selectedRowsIndexPaths) {
-				// TODO: Handle delegate call
+				if(this.delegateDeselection != null) {
+					this.delegateDeselection.willDeselectRowAtIndexPath(this, selectedRowIndexPath);
+				}
+
 				this.deselectRowAtIndexPath(selectedRowIndexPath, animated, animated);
+
+				if(this.delegateDeselection != null) {
+					this.delegateDeselection.didDeselectRowAtIndexPath(this, selectedRowIndexPath);
+				}
 			}
 		}
 
