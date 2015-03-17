@@ -705,7 +705,7 @@ abstract public class GestureRecognizer extends MObject {
 		return "state = " + this.state + "; view = " + this.view.toString();
 	}
 
-	static class RuntimeTargetAction extends mocha.ui.RuntimeTargetAction <GestureRecognizer> implements GestureHandler {
+	static class RuntimeTargetAction extends mocha.ui.RuntimeTargetAction implements GestureHandler {
 
 		RuntimeTargetAction(Object target, String actionMethodName) {
 			super(target, actionMethodName, GestureRecognizer.class);
