@@ -596,12 +596,21 @@ public class View extends Responder implements Accessibility {
 		this.setFrame(frame);
 	}
 
-	public void setLayoutMargins(EdgeInsets layoutMargins) {
+	public final void setLayoutMargins(EdgeInsets layoutMargins) {
 		this.layoutMargins.set(layoutMargins);
 		this.notifyLayoutMarginsChanged();
 	}
 
-	public EdgeInsets getLayoutMargins() {
+	public final void setLayoutMargins(float top, float left, float bottom, float right) {
+		this.layoutMargins.top = top;
+		this.layoutMargins.left = left;
+		this.layoutMargins.bottom = bottom;
+		this.layoutMargins.right = right;
+
+		this.notifyLayoutMarginsChanged();
+	}
+
+	public final EdgeInsets getLayoutMargins() {
 		return this.layoutMargins.copy();
 	}
 
@@ -619,11 +628,12 @@ public class View extends Responder implements Accessibility {
 	}
 
 	private void notifyLayoutMarginsChanged() {
+		this.setNeedsLayout();
 		this.layoutMarginsDidChange();
 
 		for(View subview : this.getSubviews()) {
 			if(subview.getPreservesSuperviewLayoutMargins()) {
-				subview.notifyLayoutMarginsChanged();
+				subview.setLayoutMargins(this.layoutMargins);
 			}
 		}
 	}
