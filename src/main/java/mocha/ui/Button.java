@@ -282,12 +282,9 @@ public class Button extends Control {
 		boolean needsLayout = false;
 
 		if(changedContent == null || changedContent == ContentType.TITLE) {
-			int oldTextLength = this.titleLabel.getText().length();
 			CharSequence newText = this.getTitleForState(states);
 			this.titleLabel.setText(newText);
-
-			int newTextLength = newText == null ? 0 : newText.length();
-			needsLayout = oldTextLength == 0 && newTextLength > 0 || oldTextLength > 0 && newTextLength == 0;
+			needsLayout = true;
 		}
 
 		if(changedContent == null || changedContent == ContentType.ATTRIBUTED_TITLE) {
