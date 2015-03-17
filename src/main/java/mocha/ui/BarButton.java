@@ -117,8 +117,8 @@ class BarButton extends Button {
 			this.bordered = true;
 
 			EdgeInsets capInsets;
-			Image backgroundImage;
-			Image highlightedBackgroundImage;
+			Image backgroundImage = null;
+			Image highlightedBackgroundImage = null;
 
 			if(!back) {
 				backgroundImage = item.getBackgroundImage(BarMetrics.DEFAULT, State.NORMAL);
@@ -127,9 +127,6 @@ class BarButton extends Button {
 				if(backgroundImage != null) {
 					highlightedBackgroundImage = item.getBackgroundImage(BarMetrics.DEFAULT, highlightedStates);
 					this.backgroundImageVerticalAdjustment = item.getBackgroundVerticalPositionAdjustmentForBarMetrics(BarMetrics.DEFAULT);
-				} else {
-					backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_button);
-					highlightedBackgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_button_pressed);
 				}
 
 				this.setContentEdgeInsets(new EdgeInsets(0.0f, 9.0f, 0.0f, 9.0f));
@@ -140,15 +137,12 @@ class BarButton extends Button {
 				if(backgroundImage != null) {
 					highlightedBackgroundImage = item.getBackButtonBackgroundImage(BarMetrics.DEFAULT, highlightedStates);
 					this.backgroundImageVerticalAdjustment = item.getBackButtonBackgroundVerticalPositionAdjustment(BarMetrics.DEFAULT);
-				} else {
-					backgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_back);
-					highlightedBackgroundImage = Image.imageNamed(R.drawable.mocha_navigation_bar_default_back_pressed);
 				}
 
 				this.setContentEdgeInsets(new EdgeInsets(0.0f, 14.0f, 0.0f, 9.0f));
 			}
 
-			if(backgroundImage.getCapInsets() == null) {
+			if(backgroundImage != null && backgroundImage.getCapInsets() == null) {
 				backgroundImage = backgroundImage.resizableImageWithCapInsets(capInsets);
 			}
 

@@ -20,7 +20,12 @@ public class BarButtonItem extends BarItem implements Accessibility {
 	}
 
 	public enum Style {
-		PLAIN, BORDERED, DONE
+		PLAIN,
+
+		@Deprecated
+		BORDERED,
+
+		DONE
 	}
 
 	public interface Action {
@@ -78,7 +83,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 	}
 
 	public BarButtonItem(SystemItem systemItem, Action action) {
-		this(systemItem, Style.BORDERED, action);
+		this(systemItem, Style.PLAIN, action);
 	}
 
 	public BarButtonItem(SystemItem systemItem, Style style, Action action) {
