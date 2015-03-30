@@ -9,11 +9,14 @@ import android.content.SharedPreferences;
 import mocha.ui.Application;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserDefaults {
 	private static UserDefaults standardUserDefaults = new UserDefaults("UserDefaults");
 	private SharedPreferences sharedPreferences;
 	private SharedPreferences.Editor editor;
+	private Map<String,Object> defaults;
 
 	public static UserDefaults standardUserDefaults() {
 		return standardUserDefaults;
@@ -23,8 +26,16 @@ public class UserDefaults {
 		this.sharedPreferences = Application.sharedApplication().getContext().getSharedPreferences(name, 0);
 	}
 
+	public void registerDefaults(Map<String,Object> defaults) {
+		if(this.defaults == null) {
+			this.defaults = new HashMap<>();
+		}
+
+		this.defaults.putAll(defaults);
+	}
+
 	public boolean contains(String name) {
-		return this.sharedPreferences.contains(name);
+		return this.sharedPreferences.contains(name) || (this.defaults != null && this.defaults.containsKey(name));
 	}
 
 	public void put(String name, Object value) {
@@ -50,7 +61,11 @@ public class UserDefaults {
 	}
 
 	public String getString(String name, String defaultValue) {
-		return this.sharedPreferences.getString(name, defaultValue);
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (String)this.defaults.get(name);
+		} else {
+			return this.sharedPreferences.getString(name, defaultValue);
+		}
 	}
 
 	public String optString(String name) {
@@ -62,10 +77,14 @@ public class UserDefaults {
 	}
 
 	public boolean getBoolean(String name, boolean defaultValue) {
-		return this.sharedPreferences.getBoolean(name, defaultValue);
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Boolean)this.defaults.get(name);
+		} else {
+			return this.sharedPreferences.getBoolean(name, defaultValue);
+		}
 	}
 
-	public boolean optBoolean(String name, boolean defaultValue) {
+	public boolean optBoolean(String name) {
 		return this.getBoolean(name, false);
 	}
 
@@ -74,7 +93,11 @@ public class UserDefaults {
 	}
 
 	public int getInt(String name, int defaultValue) {
-		return this.sharedPreferences.getInt(name, defaultValue);
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Integer)this.defaults.get(name);
+		} else {
+			return this.sharedPreferences.getInt(name, defaultValue);
+		}
 	}
 
 	public int optInt(String name) {
@@ -86,7 +109,11 @@ public class UserDefaults {
 	}
 
 	public long getLong(String name, long defaultValue) {
-		return this.sharedPreferences.getLong(name, defaultValue);
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Long)this.defaults.get(name);
+		} else {
+			return this.sharedPreferences.getLong(name, defaultValue);
+		}
 	}
 
 	public long optLong(String name) {
@@ -98,7 +125,11 @@ public class UserDefaults {
 	}
 
 	public float getFloat(String name, float defaultValue) {
-		return this.sharedPreferences.getFloat(name, defaultValue);
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Float)this.defaults.get(name);
+		} else {
+			return this.sharedPreferences.getFloat(name, defaultValue);
+		}
 	}
 
 	public float optFloat(String name) {
@@ -110,15 +141,19 @@ public class UserDefaults {
 	}
 
 	public Date getDate(String name, Date defaultValue) {
-		long time = getLong(name, -1);
-		if(time == -1) {
-			if(defaultValue != null) {
-				return defaultValue;
-			} else {
-				return null;
-			}
+		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Date)this.defaults.get(name);
 		} else {
-			return new Date(time);
+			long time = getLong(name, -1);
+			if (time == -1) {
+				if (defaultValue != null) {
+					return defaultValue;
+				} else {
+					return null;
+				}
+			} else {
+				return new Date(time);
+			}
 		}
 	}
 
