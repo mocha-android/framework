@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import mocha.foundation.Bundle;
 
 import java.util.List;
+import java.util.Map;
 
 public class Application extends Responder {
 	public static final String DID_RECEIVE_MEMORY_WARNING_NOTIFICATION = "APPLICATION_DID_RECEIVE_MEMORY_WARNING";
@@ -22,7 +23,8 @@ public class Application extends Responder {
 	public static final String WILL_TERMINATE_NOTIFICATION = "APPLICATION_WILL_TERMINATE_NOTIFICATION";
 
 	public interface Delegate {
-
+		boolean didFinishLaunchingWithOptions(Application application, Map<String,Object> options);
+		boolean handleOpenUri(Application application, Uri uri, String sourceApplication, Object annotation);
 	}
 
 	public enum State {

@@ -6,8 +6,11 @@
 package mocha.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.Bundle;
 import android.view.WindowManager;
 import mocha.foundation.Lists;
 import mocha.foundation.MObject;
@@ -34,7 +37,7 @@ public class Activity extends android.app.Activity {
 			this.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
 			getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-			this.windows = new ArrayList<Window>();
+			this.windows = new ArrayList<>();
 			Screen.setupMainScreen(this);
 
 			this.application = new Application(this);
@@ -44,6 +47,30 @@ public class Activity extends android.app.Activity {
 		}
 
 		this.setCurrentConfiguration(this.getResources().getConfiguration());
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+
+		Application.Delegate appDelegate = this.application.getDelegate();
+
+		if(appDelegate != null) {
+			appDelegate.didFinishLaunchingWithOptions(this.application, null);
+		}
+	}
+
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+
+		Uri uri = intent.getData();
+		if(uri != null) {
+			Application.Delegate delegate = this.application.getDelegate();
+
+			if (delegate != null) {
+				delegate.handleOpenUri(this.application, uri, null, null);
+			}
+		}
 	}
 
 	@Override
