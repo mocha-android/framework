@@ -18,6 +18,7 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	private Point startPoint;
 	private long startTime;
 	private int taps;
+	private Runnable failCallback;
 
 	private float allowableMovement = 45.0f;
 	private long maximumSingleTapDuration = 750;
@@ -93,7 +94,15 @@ public class TapGestureRecognizer extends GestureRecognizer {
 		this.tracking = true;
 		this.startPoint = touches.get(0).location;
 		this.startTime = android.os.SystemClock.uptimeMillis();
-		MWarn("TOUCHES BEGAN!");
+
+		if(this.failCallback == null) {
+			this.failCallback = performAfterDelay(this.maximumIntervalBetweenSuccessiveTaps, new Runnable() {
+				@Override
+				public void run() {
+					setState(State.FAILED);
+				}
+			});
+		}
 	}
 
 	protected void touchesMoved(List<Touch> touches, Event event) {
@@ -105,7 +114,6 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	protected void touchesEnded(List<Touch> touches, Event event) {
 		if (this.tracking) {
 			if(this.verifyTouch(touches.get(0))) {
-				MWarn("TOUCHES RECOGNIZED!");
 				this.setState(State.RECOGNIZED);
 			} else {
 				this.setState(State.FAILED);
@@ -130,6 +138,12 @@ public class TapGestureRecognizer extends GestureRecognizer {
 
 	protected void reset() {
 		this.tracking = false;
+
+		if(this.failCallback != null) {
+			cancelCallbacks(this.failCallback);
+			this.failCallback = null;
+		}
+
 		super.reset();
 	}
 }
