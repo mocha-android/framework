@@ -806,8 +806,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		float y = canScrollVertically ? (this.startContentOffset.y - translation.y) : this.contentOffset.y;
 
 		if (this.bounces) {
-			x -= ((x > this.maxPoint.x) ? (x - this.maxPoint.x) : ((x < this.minPoint.x) ? x : this.minPoint.x)) / 2;
-			y -= ((y > this.maxPoint.y) ? (y - this.maxPoint.y) : ((y < this.minPoint.y) ? y : this.minPoint.y)) / 2;
+			x -= ((x > this.maxPoint.x) ? (x - this.maxPoint.x) : ((x < this.minPoint.x) ? x - this.minPoint.x : 0)) / 2;
+			y -= ((y > this.maxPoint.y) ? (y - this.maxPoint.y) : ((y < this.minPoint.y) ? y - this.minPoint.y : 0)) / 2;
 		} else {
 			x = clampf(x, this.minPoint.x, this.maxPoint.x);
 			y = clampf(y, this.minPoint.y, this.maxPoint.y);
