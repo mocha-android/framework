@@ -250,9 +250,8 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 			offsetX = 0;
 			offsetY = 0;
 		}
-
-		this.layout.setX(frame.origin.x - offsetX + this.tx);
-		this.layout.setY(frame.origin.y - offsetY + this.ty);
+		this.layout.setTranslationX((int)(frame.origin.x - offsetX + this.tx));
+		this.layout.setTranslationY((int)(frame.origin.y - offsetY + this.ty));
 	}
 
 	protected void onUpdateSize(float nativeWidth, float nativeHeight) {
