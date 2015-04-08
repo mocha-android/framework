@@ -83,6 +83,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private final EdgeInsets contentInset = EdgeInsets.zero();
 	private ScrollViewAnimation scrollViewAnimation;
 	private KeyboardDismissMode keyboardDismissMode;
+	private final Point reuseablePoint = new Point();
 
 	public ScrollView() { }
 	public ScrollView(Rect frame) { super(frame); }
@@ -462,7 +463,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			View.commitAnimations();
 		} else {
 			if(internal || inSimpleAnimation) {
-				this.contentOffset.set(contentOffset.copy());
+				this.contentOffset.set(contentOffset);
 			} else {
 				this.contentOffset.x = roundf(contentOffset.x);
 				this.contentOffset.y = roundf(contentOffset.y);
@@ -473,7 +474,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 
 			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimation(this, type, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+				currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
 					public void processFrame(Object value) {
 						setContentOffset((Point)value);
 					}
@@ -812,7 +813,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			y = clampf(y, this.minPoint.y, this.maxPoint.y);
 		}
 
-		this.setContentOffset(new Point(x, y));
+		this.reuseablePoint.x = x;
+		this.reuseablePoint.y = y;
+		this.setContentOffset(this.reuseablePoint);
 	}
 
 	private void panningDidEnd(PanGestureRecognizer gestureRecognizer) {
