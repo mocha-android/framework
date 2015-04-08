@@ -24,6 +24,7 @@ import java.util.List;
 
 public class ViewLayerNative extends MObject implements ViewLayer {
 
+	private FrameLayout.LayoutParams layoutParams;
 	private FrameLayout layout;
 	private Context context;
 	private mocha.graphics.Context drawContext;
@@ -218,7 +219,14 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		float width = this.reuseableRect.width();
 		float height = this.reuseableRect.height();
 
-		this.layout.setLayoutParams(new FrameLayout.LayoutParams(this.reuseableRect.width(), this.reuseableRect.height()));
+		if(this.layoutParams == null) {
+			this.layoutParams = new FrameLayout.LayoutParams(this.reuseableRect.width(), this.reuseableRect.height());
+		} else {
+			this.layoutParams.width = this.reuseableRect.width();
+			this.layoutParams.height = this.reuseableRect.height();
+		}
+
+		this.layout.setLayoutParams(this.layoutParams);
 		this.onUpdateSize(width, height);
 
 		this.cornerPath = null;
