@@ -560,16 +560,17 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private void adjustContentSize(boolean adjustOffset) {
-		Point adjustedOffset = null;
-
 		if (adjustOffset) {
-			adjustedOffset = new Point();
-
 			if (this.adjustedContentSize.width != 0) {
-				adjustedOffset.x = this.contentOffset.x / this.adjustedContentSize.width;
+				this.reuseablePoint.x = this.contentOffset.x / this.adjustedContentSize.width;
+			} else {
+				this.reuseablePoint.x = 0.0f;
 			}
+
 			if (this.adjustedContentSize.height != 0) {
-				adjustedOffset.y = this.contentOffset.y / this.adjustedContentSize.height;
+				this.reuseablePoint.y = this.contentOffset.y / this.adjustedContentSize.height;
+			} else {
+				this.reuseablePoint.y = 0.0f;
 			}
 		}
 
@@ -581,8 +582,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.maxPoint = new Point(this.adjustedContentSize.width - boundsWidth, this.adjustedContentSize.height - boundsHeight);
 
 		if (adjustOffset) {
-			this.contentOffset.x = Math.min(adjustedOffset.x * this.adjustedContentSize.width, this.maxPoint.x);
-			this.contentOffset.y = Math.min(adjustedOffset.y * this.adjustedContentSize.height, this.maxPoint.y);
+			this.contentOffset.x = Math.min(this.reuseablePoint.x * this.adjustedContentSize.width, this.maxPoint.x);
+			this.contentOffset.y = Math.min(this.reuseablePoint.y * this.adjustedContentSize.height, this.maxPoint.y);
 		}
 
 		this.canScrollHorizontally = (boundsWidth < this.adjustedContentSize.width);
