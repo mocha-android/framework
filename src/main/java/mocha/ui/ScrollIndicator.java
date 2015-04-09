@@ -8,7 +8,7 @@ package mocha.ui;
 import mocha.graphics.Image;
 import mocha.graphics.Rect;
 
-class ScrollIndicator extends ImageView {
+class ScrollIndicator extends View {
 
 	private boolean visible;
 	private ScrollView.IndicatorStyle indicatorStyle;
@@ -16,6 +16,8 @@ class ScrollIndicator extends ImageView {
 
 	public ScrollIndicator() {
 		this.setUserInteractionEnabled(false);
+
+		this.thickness = 4.0f;
 	}
 
 	public void setVisible(boolean visible) {
@@ -29,27 +31,16 @@ class ScrollIndicator extends ImageView {
 		if(indicatorStyle != this.indicatorStyle) {
 			this.indicatorStyle = indicatorStyle;
 
-			int resourceId;
-			int capSize;
-
 			switch (indicatorStyle) {
-				case BLACK:
-					resourceId = R.drawable.mocha_scroll_indicator_black;
-					capSize = 2;
-					break;
 				case WHITE:
-					resourceId = R.drawable.mocha_scroll_indicator_white;
-					capSize = 2;
+					this.setBackgroundColor(0x84ffffff);
 					break;
 				case DEFAULT:
+				case BLACK:
 				default:
-					resourceId = R.drawable.mocha_scroll_indicator_default;
-					capSize = 3;
+					this.setBackgroundColor(0x84000000);
 					break;
 			}
-
-			this.thickness = (capSize * 2) + 1.0f;
-			this.setImage(Image.imageNamed(resourceId).stretchableImage(capSize, capSize));
 		}
 	}
 
