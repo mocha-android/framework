@@ -262,48 +262,39 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		if(!this.contentInset.equals(contentInset)) {
-			ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_EDGE_INSETS;
-
-			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimation(this, type, this.contentInset, contentInset, new ViewAnimation.ProcessFrameCallback() {
-					public void processFrame(Object value) {
-						setContentInset((EdgeInsets)value);
-					}
-				});
-
-				return;
-			}
-
-			if(!this.animationIsSetting && this.animations[type.value] != null) {
-				if(this.changeEndValueForAnimationType(type, contentInset.copy())) {
-					return;
-				}
-			}
-
 			EdgeInsets previousContentInset = this.contentInset.copy();
 			this.contentInset.set(contentInset);
 			this.minPoint = new Point(-contentInset.left, -contentInset.top);
 
-			Size size = this.getBounds().size;
+			float width = this.getBoundsWidth();
+			float height = this.getBoundsHeight();
 
 			this.adjustedContentSize.width -= previousContentInset.right;
 			this.adjustedContentSize.width += this.contentInset.right;
 
 			this.adjustedContentSize.height -= previousContentInset.bottom;
 			this.adjustedContentSize.height += this.contentInset.bottom;
-			this.maxPoint = new Point(this.adjustedContentSize.width - size.width, this.adjustedContentSize.height - size.height);
+			this.maxPoint = new Point(this.adjustedContentSize.width - width, this.adjustedContentSize.height - height);
 
 			if(!this.hasLaidOut) {
 				this.setContentOffset(this.minPoint);
 			} else {
 				Point contentOffset = this.contentOffset.copy();
 
-				if(this.contentInset.left < previousContentInset.left) {
-					contentOffset.x += previousContentInset.left - this.contentInset.left;
+				if(contentOffset.x == -previousContentInset.left) {
+					contentOffset.x = -this.contentInset.left;
+				} else {
+					if (this.contentInset.left < previousContentInset.left) {
+						contentOffset.x += previousContentInset.left - this.contentInset.left;
+					}
 				}
 
-				if(this.contentInset.top < previousContentInset.top) {
-					contentOffset.y += previousContentInset.top - this.contentInset.top;
+				if(contentOffset.y == -previousContentInset.top) {
+					contentOffset.y = -this.contentInset.top;
+				} else {
+					if (this.contentInset.top < previousContentInset.top) {
+						contentOffset.y += previousContentInset.top - this.contentInset.top;
+					}
 				}
 
 				if(!contentOffset.equals(this.contentOffset)) {
