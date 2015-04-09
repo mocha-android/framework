@@ -54,12 +54,15 @@ class ScrollViewAnimation extends MObject {
 	}
 
 	void startDecelerationAnimation() {
-		this.pagingEnabled = target.isPagingEnabled();
-		this.bounces = target.bounces();
-		this.maxPoint = target.maxPoint.copy();
-		this.minPoint = target.minPoint.copy();
+		this.pagingEnabled = this.target.isPagingEnabled();
+		this.bounces = this.target.bounces();
+		this.maxPoint = this.target.maxPoint.copy();
+		this.minPoint = this.target.minPoint.copy();
 
-		if (this.bounces && (target.contentOffset.x > this.maxPoint.x || target.contentOffset.x < this.minPoint.x) && (target.contentOffset.y > this.maxPoint.y || target.contentOffset.y < this.minPoint.y)) {
+		if (this.bounces &&
+			(this.target.contentOffset.x > this.maxPoint.x || this.target.contentOffset.x < this.minPoint.x) &&
+			(this.target.contentOffset.y > this.maxPoint.y || this.target.contentOffset.y < this.minPoint.y)
+		) {
 			return;
 		}
 
@@ -75,11 +78,11 @@ class ScrollViewAnimation extends MObject {
 			MLog("Detected a valid velocity: %s", this.decelerationVelocity);
 		}
 
-		if (!target.canScrollVertically) {
+		if (!this.target.canScrollVertically) {
 			this.decelerationVelocity.y = 0;
 		}
 
-		if (!target.canScrollHorizontally) {
+		if (!this.target.canScrollHorizontally) {
 			this.decelerationVelocity.x = 0;
 		}
 
@@ -87,13 +90,13 @@ class ScrollViewAnimation extends MObject {
 		this.maxDecelerationPoint = this.maxPoint.copy();
 
 		if (this.pagingEnabled) {
-			float pageWidth = target.getBoundsWidth();
-			float pageHeight = target.getBoundsHeight();
+			float pageWidth = this.target.getBoundsWidth();
+			float pageHeight = this.target.getBoundsHeight();
 
-			this.minDecelerationPoint.x = Math.max(this.minPoint.x, FloatMath.floor(target.contentOffset.x / pageWidth) * pageWidth);
-			this.minDecelerationPoint.y = Math.max(this.minPoint.y, FloatMath.floor(target.contentOffset.y / pageHeight) * pageHeight);
-			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, FloatMath.ceil(target.contentOffset.x / pageWidth) * pageWidth);
-			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, FloatMath.ceil(target.contentOffset.y / pageHeight) * pageHeight);
+			this.minDecelerationPoint.x = Math.max(this.minPoint.x, FloatMath.floor(this.target.contentOffset.x / pageWidth) * pageWidth);
+			this.minDecelerationPoint.y = Math.max(this.minPoint.y, FloatMath.floor(this.target.contentOffset.y / pageHeight) * pageHeight);
+			this.maxDecelerationPoint.x = Math.min(this.maxPoint.x, FloatMath.ceil(this.target.contentOffset.x / pageWidth) * pageWidth);
+			this.maxDecelerationPoint.y = Math.min(this.maxPoint.y, FloatMath.ceil(this.target.contentOffset.y / pageHeight) * pageHeight);
 		}
 
 		float minimumVelocity = this.pagingEnabled ? MIN_VELOCITY_FOR_DECELERATION_WITH_PAGING : MIN_VELOCITY_FOR_DECELERATION;
@@ -108,11 +111,11 @@ class ScrollViewAnimation extends MObject {
 				}
 			}
 
-			this.animatedContentOffset = target.contentOffset.copy();
+			this.animatedContentOffset = this.target.contentOffset.copy();
 			this.previousDecelerationFrame = android.os.SystemClock.uptimeMillis();
 
-			if(target.listenerDecelerating != null) {
-				target.listenerDecelerating.willBeginDecelerating(target);
+			if(this.target.listenerDecelerating != null) {
+				this.target.listenerDecelerating.willBeginDecelerating(target);
 			}
 
 			for(ScrollViewAnimation animation : activeAnimations.get()) {

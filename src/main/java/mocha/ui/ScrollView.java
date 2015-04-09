@@ -5,7 +5,6 @@
  */
 package mocha.ui;
 
-import android.util.FloatMath;
 import mocha.animation.TimingFunction;
 import mocha.foundation.OptionalInterface;
 import mocha.graphics.Point;
@@ -36,6 +35,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private static float MIN_INDICATOR_LENGTH = 34.0f;
+	private static float INHERENT_INDICATOR_INSET = 1.0f;
 	private static long DEFAULT_TRANSITION_DURATION = 330;
 	private static long PAGING_TRANSITION_DURATION = 250;
 
@@ -56,7 +56,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	final Point contentOffset = Point.zero();
 	private final Size contentSize = Size.zero();
-	private final Size adjustedContentSize = Size.zero();
 	private boolean dragging;
 	boolean decelerating;
 	private boolean inSimpleAnimation;
@@ -74,8 +73,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	Listener.Decelerating listenerDecelerating;
 	Listener.Animations listenerAnimations;
 	ScrollViewPanGestureRecognizer panGestureRecognizer;
-	Point maxPoint;
-	Point minPoint;
+	final Point maxPoint = Point.zero();
+	final Point minPoint = Point.zero();
 	boolean canScrollVertically;
 	boolean canScrollHorizontally;
 	private ScrollIndicator horizontalScrollIndicator;
@@ -107,8 +106,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.setClipsToBounds(true);
 		this.createScrollIndicators();
 		this.updateAlwaysBounce();
-		this.minPoint = Point.zero();
-		this.maxPoint = Point.zero();
 	}
 
 	public void layoutSubviews() {
@@ -195,7 +192,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		super.setFrame(frame);
 
 		if(!oldSize.equals(frame.size)) {
-			this.adjustContentSize(true);
+			this.updateConfinementMetrics(true);
 		}
 	}
 
@@ -264,17 +261,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		if(!this.contentInset.equals(contentInset)) {
 			EdgeInsets previousContentInset = this.contentInset.copy();
 			this.contentInset.set(contentInset);
-			this.minPoint = new Point(-contentInset.left, -contentInset.top);
+			this.minPoint.x = -contentInset.left;
+			this.minPoint.y = -contentInset.top;
 
-			float width = this.getBoundsWidth();
-			float height = this.getBoundsHeight();
-
-			this.adjustedContentSize.width -= previousContentInset.right;
-			this.adjustedContentSize.width += this.contentInset.right;
-
-			this.adjustedContentSize.height -= previousContentInset.bottom;
-			this.adjustedContentSize.height += this.contentInset.bottom;
-			this.maxPoint = new Point(this.adjustedContentSize.width - width, this.adjustedContentSize.height - height);
+			this.updateConfinementMetrics(false);
 
 			if(!this.hasLaidOut) {
 				this.setContentOffset(this.minPoint);
@@ -466,7 +456,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			}
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
-				this.adjustContentSize(false);
+				this.updateConfinementMetrics(false);
 			}
 
 			this.updateScrollPositionWithContentOffset();
@@ -504,16 +494,6 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			if (this.bounces) {
 				contentOffset.x = clampf(contentOffset.x, this.minPoint.x, this.maxPoint.x);
 				contentOffset.y = clampf(contentOffset.y, this.minPoint.y, this.maxPoint.y);
-
-				Rect frame = this.getFrame();
-
-				if(this.contentOffset.x > this.minPoint.x && (this.contentSize.width + this.contentInset.right) < frame.size.width) {
-					contentOffset.x = this.minPoint.x;
-				}
-
-				if(this.contentOffset.y > this.minPoint.y && (this.contentSize.height + this.contentInset.bottom) < frame.size.height) {
-					contentOffset.y = this.minPoint.y;
-				}
 			}
 
 			contentOffset.x = roundf(contentOffset.x);
@@ -543,39 +523,30 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public void setContentSize(Size contentSize) {
 		this.contentSize.set(contentSize);
-		this.adjustContentSize(false);
+		this.updateConfinementMetrics(false);
 		this.updateAlwaysBounce();
 	}
 
-	private void adjustContentSize(boolean adjustOffset) {
-		if (adjustOffset) {
-			if (this.adjustedContentSize.width != 0) {
-				this.reuseablePoint.x = this.contentOffset.x / this.adjustedContentSize.width;
-			} else {
-				this.reuseablePoint.x = 0.0f;
-			}
-
-			if (this.adjustedContentSize.height != 0) {
-				this.reuseablePoint.y = this.contentOffset.y / this.adjustedContentSize.height;
-			} else {
-				this.reuseablePoint.y = 0.0f;
-			}
-		}
-
+	private void updateConfinementMetrics(boolean adjustOffset) {
 		float boundsWidth = this.getBoundsWidth();
 		float boundsHeight = this.getBoundsHeight();
 
-		this.adjustedContentSize.width = Math.max(boundsWidth, this.contentSize.width + this.contentInset.right);
-		this.adjustedContentSize.height = Math.max(boundsHeight, this.contentSize.height + this.contentInset.bottom);
-		this.maxPoint = new Point(this.adjustedContentSize.width - boundsWidth, this.adjustedContentSize.height - boundsHeight);
+		float totalContentWidth = this.contentInset.left + this.contentSize.width + this.contentInset.right;
+		float totalContentHeight = this.contentInset.top + this.contentSize.height + this.contentInset.bottom;
+
+		this.minPoint.x = -this.contentInset.left;
+		this.minPoint.y = -this.contentInset.top;
+
+		this.maxPoint.x = Math.max(this.minPoint.x, totalContentWidth - boundsWidth - this.contentInset.left);
+		this.maxPoint.y = Math.max(this.minPoint.y, totalContentHeight - boundsHeight - this.contentInset.top);
 
 		if (adjustOffset) {
-			this.contentOffset.x = Math.min(this.reuseablePoint.x * this.adjustedContentSize.width, this.maxPoint.x);
-			this.contentOffset.y = Math.min(this.reuseablePoint.y * this.adjustedContentSize.height, this.maxPoint.y);
+			this.contentOffset.x = clampf(this.contentOffset.x, this.minPoint.x, this.maxPoint.x);
+			this.contentOffset.y = clampf(this.contentOffset.y, this.minPoint.y, this.maxPoint.y);
 		}
 
-		this.canScrollHorizontally = (boundsWidth < this.adjustedContentSize.width);
-		this.canScrollVertically = (boundsHeight < this.adjustedContentSize.height);
+		this.canScrollHorizontally = totalContentWidth > boundsWidth;
+		this.canScrollVertically = totalContentHeight > boundsHeight;
 	}
 
 	public void setIndicatorStyle(IndicatorStyle indicatorStyle) {
@@ -614,72 +585,73 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private void updateHorizontalScrollIndicator() {
-		Rect bounds = this.getBounds();
-		Size size = this.getBounds().size;
+		float thickness = this.horizontalScrollIndicator.getThickness();
+		final float totalContentWidth = this.contentSize.width + this.contentInset.left + this.contentInset.right;
+		final float relativeContentOffset = this.contentOffset.x + this.contentInset.left;
+		final float boundsWidth = this.getBoundsWidth();
 
-		float minX = this.scrollIndicatorInsets.left + 1;
-		float maxX = size.width - this.scrollIndicatorInsets.right - 1;
+		float minX = this.scrollIndicatorInsets.left + INHERENT_INDICATOR_INSET;
+		float trackWidth = boundsWidth - this.scrollIndicatorInsets.right - INHERENT_INDICATOR_INSET;
 
-		if (this.canScrollVertically && this.showsVerticalScrollIndicator) {
-			maxX -= this.verticalScrollIndicator.getThickness() - 1.0f;
+		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
+			trackWidth -= this.verticalScrollIndicator.getThickness() - INHERENT_INDICATOR_INSET;
 		}
 
-		float adjustedWidth = maxX - minX;
-		float width = Math.max(MIN_INDICATOR_LENGTH, roundf((size.width / this.adjustedContentSize.width) * adjustedWidth));
-		float y = size.height - this.horizontalScrollIndicator.getThickness() - this.scrollIndicatorInsets.bottom - 1;
+		float maxX = trackWidth - minX;
+		float length = Math.max(MIN_INDICATOR_LENGTH, Math.round((boundsWidth / totalContentWidth) * maxX));
+		float y = this.getBoundsHeight() - thickness - this.scrollIndicatorInsets.bottom - INHERENT_INDICATOR_INSET;
 		float x;
 
-		if (this.contentOffset.x < 0) {
-			width = roundf(Math.max(width + this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
+		if (relativeContentOffset < 0.0f) {
+			length = Math.round(Math.max(length + relativeContentOffset, thickness));
 			x = minX;
+		} else if ((relativeContentOffset + boundsWidth) > totalContentWidth) {
+			length = Math.round(Math.max(length + totalContentWidth - boundsWidth - relativeContentOffset, thickness));
+			x = trackWidth - length;
 		} else {
-			if (this.contentOffset.x > this.maxPoint.x) {
-				width = roundf(Math.max(width + this.adjustedContentSize.width - size.width - this.contentOffset.x, this.horizontalScrollIndicator.getThickness()));
-				x = maxX - width;
-			} else {
-				float b = (this.contentOffset.x / (this.adjustedContentSize.width - size.width));
-				x = clampf(roundf(b * (adjustedWidth - width) + this.scrollIndicatorInsets.left), minX, maxX - width);
-			}
+			float ratio = relativeContentOffset / (totalContentWidth - boundsWidth);
+			x = clampf(Math.round(ratio * (maxX - length) + this.scrollIndicatorInsets.left), minX, trackWidth - length);
 		}
 
-		this.horizontalScrollIndicator.setFrame(new Rect(bounds.origin.x + x, y, width, this.horizontalScrollIndicator.getThickness()));
+		this.horizontalScrollIndicator.setFrame(new Rect(this.getBoundsX() + x, this.getBoundsY() + y, length, thickness));
 	}
 
 	private void updateVerticalScrollIndicator() {
-		Rect bounds = this.getBounds();
-		Size size = bounds.size;
+		float thickness = this.verticalScrollIndicator.getThickness();
+		final float totalContentHeight = this.contentSize.height + this.contentInset.top + this.contentInset.bottom;
+		final float relativeContentOffset = this.contentOffset.y + this.contentInset.top;
+		final float boundsHeight = this.getBoundsHeight();
 
-		float minY = this.scrollIndicatorInsets.top + 1;
-		float maxY = size.height - this.scrollIndicatorInsets.bottom - 1;
+		float minY = this.scrollIndicatorInsets.top + INHERENT_INDICATOR_INSET;
+		float trackHeight = boundsHeight - this.scrollIndicatorInsets.bottom - INHERENT_INDICATOR_INSET;
 
 		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
-			maxY -= this.horizontalScrollIndicator.getThickness() - 1;
+			trackHeight -= this.horizontalScrollIndicator.getThickness() - INHERENT_INDICATOR_INSET;
 		}
 
-		float adjustedHeight = maxY - minY;
-		float height = Math.max(MIN_INDICATOR_LENGTH, roundf((size.height / this.adjustedContentSize.height) * adjustedHeight));
-		float x = size.width - this.verticalScrollIndicator.getThickness() - this.scrollIndicatorInsets.right - 1;
+		float maxY = trackHeight - minY;
+		float length = Math.max(MIN_INDICATOR_LENGTH, Math.round((boundsHeight / totalContentHeight) * maxY));
+		float x = this.getBoundsWidth() - thickness - this.scrollIndicatorInsets.right - INHERENT_INDICATOR_INSET;
 		float y;
 
-		if (this.contentOffset.y < 0) {
-			height = roundf(Math.max(height + this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
+		if (relativeContentOffset < 0.0f) {
+			length = Math.round(Math.max(length + relativeContentOffset, thickness));
 			y = minY;
+		} else if ((relativeContentOffset + boundsHeight) > totalContentHeight) {
+			length = Math.round(Math.max(length + totalContentHeight - boundsHeight - relativeContentOffset, thickness));
+			y = trackHeight - length;
 		} else {
-			if (this.contentOffset.y > this.maxPoint.y) {
-				height = roundf(Math.max(height + this.adjustedContentSize.height - size.height - this.contentOffset.y, this.verticalScrollIndicator.getThickness()));
-				y = maxY - height;
-			} else {
-				float c = (this.contentOffset.y / (this.adjustedContentSize.height - size.height));
-				y = clampf(roundf(c * (adjustedHeight - height) + this.scrollIndicatorInsets.top), minY, maxY - height);
-			}
+			float ratio = relativeContentOffset / (totalContentHeight - boundsHeight);
+			y = clampf(Math.round(ratio * (maxY - length) + this.scrollIndicatorInsets.top), minY, trackHeight - length);
 		}
 
-		this.verticalScrollIndicator.setFrame(new Rect(x, bounds.origin.y + y, this.verticalScrollIndicator.getThickness(), height));
+		this.verticalScrollIndicator.setFrame(new Rect(this.getBoundsX() + x, this.getBoundsY() + y, thickness, length));
 	}
 
+
 	public void flashScrollIndicators() {
-		final boolean showHorizontal = this.canScrollHorizontally && this.showsHorizontalScrollIndicator && (this.adjustedContentSize.width > this.getBounds().size.width);
-		final boolean showVertical = this.canScrollVertically && this.showsVerticalScrollIndicator && (this.adjustedContentSize.height > this.getBounds().size.height);
+		final boolean showHorizontal = this.canScrollHorizontally && this.showsHorizontalScrollIndicator;
+		final boolean showVertical = this.canScrollVertically && this.showsVerticalScrollIndicator;
 
 		if (showHorizontal) {
 			this.updateHorizontalScrollIndicator();
@@ -777,12 +749,15 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		View.beginAnimations(null, null);
 		View.setAnimationDuration(100);
 		View.setAnimationCurve(AnimationCurve.LINEAR);
-		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator && (this.adjustedContentSize.width > this.getBoundsWidth())) {
+
+		if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
 			this.horizontalScrollIndicator.setVisible(true);
 		}
-		if (this.canScrollVertically && this.showsVerticalScrollIndicator && (this.adjustedContentSize.height > this.getBoundsHeight())) {
+
+		if (this.canScrollVertically && this.showsVerticalScrollIndicator) {
 			this.verticalScrollIndicator.setVisible(true);
 		}
+
 		View.commitAnimations();
 	}
 

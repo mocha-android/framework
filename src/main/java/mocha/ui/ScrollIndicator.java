@@ -45,7 +45,7 @@ class ScrollIndicator extends View {
 	}
 
 	public float getThickness() {
-		return thickness;
+		return this.thickness;
 	}
 
 	public boolean isVisible() {
