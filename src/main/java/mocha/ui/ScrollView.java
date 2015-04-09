@@ -423,8 +423,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			this.scrollViewAnimation = null;
 		}
 
-
-		ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
+		final ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
 
 		if(!this.animationIsSetting && this.animations[type.value] != null) {
 			if(this.changeEndValueForAnimationType(type, contentOffset.copy())) {
@@ -454,13 +453,19 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				}
 			});
 
-			currentViewAnimation.addAnimation(this, type, this.contentOffset, contentOffset, new ViewAnimation.ProcessFrameCallback() {
+			currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
 				public void processFrame(Object value) {
 					setContentOffset((Point)value);
 				}
 			});
 
 			View.commitAnimations();
+		} else if(View.isInAnimationContext()) {
+			currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
+				public void processFrame(Object value) {
+					setContentOffset((Point)value);
+				}
+			});
 		} else {
 			if(internal || inSimpleAnimation) {
 				this.contentOffset.set(contentOffset);
@@ -473,16 +478,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				this.adjustContentSize(false);
 			}
 
-			if(View.isInAnimationContext()) {
-				currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
-					public void processFrame(Object value) {
-						setContentOffset((Point)value);
-					}
-				});
-			} else {
-				this.updateScrollPositionWithContentOffset();
-				this.didScroll(false);
-			}
+			this.updateScrollPositionWithContentOffset();
+			this.didScroll(false);
 		}
 
 		if (timingFunction == null) {
