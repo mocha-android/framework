@@ -182,6 +182,7 @@ public class ViewController extends Responder {
 		this.willAppear = false;
 		this.didAppear = true;
 		this.notifyChildrenAppearanceTransitionEnded();
+		this.becomeFirstResponder();
 	}
 
 	/**
