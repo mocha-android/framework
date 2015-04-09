@@ -55,17 +55,20 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		}
 	}
 
-	public void clearFocus() {
+	@Deprecated
+	public void clearFocus() { }
+
+	public void forceClearFocus() {
 		super.clearFocus();
 		this.hideKeyboard();
 	}
 
-	public void _clearFocus() {
+	private void _clearFocus() {
 		boolean allowFocusChange = this.allowFocusChange;
 		this.allowFocusChange = true;
 		boolean isFocusable = this.isFocusable();
 		if(isFocusable) this.setFocusable(false);
-		this.clearFocus();
+		this.forceClearFocus();
 		if(isFocusable) this.setFocusable(true);
 		this.allowFocusChange = allowFocusChange;
 	}

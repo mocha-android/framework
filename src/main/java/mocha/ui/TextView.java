@@ -132,7 +132,7 @@ public class TextView extends View implements TextInput.Traits {
 		}
 
 		if(super.resignFirstResponder()) {
-			this.editText.clearFocus();
+			this.editText.forceClearFocus();
 			this.ignoreTextChanges = true;
 
 			if(this.delegateEndEditing != null) {
