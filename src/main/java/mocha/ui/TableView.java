@@ -173,7 +173,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private List<TableViewCell> visibleCells;
 	private SparseArray<TableViewSubview> visibleHeaderViews;
 	private SparseArray<TableViewSubview> visibleFooterViews;
-	private List<TableViewSubview> viewsToRemove;
+	private List<TableViewSubview> viewsToHideForReuseOrRemove;
 	private boolean shouldUpdateVisibleViewFrames;
 
 	public TableView(Style style) {
@@ -229,7 +229,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.visibleCells = new ArrayList<>();
 		this.visibleHeaderViews = new SparseArray<>();
 		this.visibleFooterViews = new SparseArray<>();
-		this.viewsToRemove = new ArrayList<>();
+		this.viewsToHideForReuseOrRemove = new ArrayList<>();
 
 		this.setAlwaysBounceVertical(true);
 
@@ -641,7 +641,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.visibleFooterViews.clear();
 		this.visibleCells.clear();
 		this.headerFooterViewsQueuedForReuse.clear();
-		this.viewsToRemove.clear();
+		this.viewsToHideForReuseOrRemove.clear();
 		this.visibleRows = null;
 		View.setAnimationsEnabled(areAnimationsEnabled);
 	}
@@ -734,11 +734,15 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 		this.updateVisibleCells();
 
-		for(TableViewSubview view : this.viewsToRemove) {
-			view.removeFromSuperview();
+		for(TableViewSubview view : this.viewsToHideForReuseOrRemove) {
+			if(view.createdByTableView) {
+				view.getLayer().setHidden(true);
+			} else {
+				view.removeFromSuperview();
+			}
 		}
 
-		this.viewsToRemove.clear();
+		this.viewsToHideForReuseOrRemove.clear();
 	}
 
 	private void updateVisibleCells() {
@@ -976,10 +980,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 				this.enqueueView(queuedViews, (TableViewHeaderFooterView)headerFooterView);
 			} else {
-				this.viewsToRemove.add(headerFooterView);
+				this.viewsToHideForReuseOrRemove.add(headerFooterView);
 			}
 		} else {
-			this.viewsToRemove.add(headerFooterView);
+			this.viewsToHideForReuseOrRemove.add(headerFooterView);
 		}
 	}
 
@@ -1208,7 +1212,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		view._isQueued = true;
-		this.viewsToRemove.add(view);
+		this.viewsToHideForReuseOrRemove.add(view);
 	}
 
 	private <T extends TableViewSubview> T dequeueView(List<T> queuedViews) {
@@ -1218,7 +1222,8 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 		T view = queuedViews.remove(queuedViews.size() - 1);
 		view._isQueued = false;
-		this.viewsToRemove.remove(view);
+		view.getLayer().setHidden(false);
+		this.viewsToHideForReuseOrRemove.remove(view);
 
 		return view;
 	}
