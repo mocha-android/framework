@@ -96,6 +96,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 
 	public boolean _requestFocus() {
 		this.reenableFocusable();
+		this.setSelection(this.getText().length());
 		this.allowFocusChange = true;
 		boolean result = this.requestFocus();
 
