@@ -302,11 +302,7 @@ class ScrollViewAnimation extends MObject {
 			target.setContentOffset(new Point(View.roundf(target.contentOffset.x / pageWidth) * pageWidth, View.roundf(target.contentOffset.y / pageHeight) * pageHeight), false);
 		}
 
-		target.snapContentOffsetToBounds(false);
-
-		if(target.listenerDecelerating != null) {
-			target.listenerDecelerating.didEndDecelerating(target);
-		}
+		target.didEndDecelerating();
 	}
 
 	private static class AnimationHandler extends android.os.Handler {

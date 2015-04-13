@@ -451,8 +451,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			if(internal || inSimpleAnimation) {
 				this.contentOffset.set(contentOffset);
 			} else {
-				this.contentOffset.x = roundf(contentOffset.x);
-				this.contentOffset.y = roundf(contentOffset.y);
+				this.contentOffset.x = ScreenMath.round(contentOffset.x);
+				this.contentOffset.y = ScreenMath.round(contentOffset.y);
 			}
 
 			if (!internal && !this.dragging && !this.decelerating && !inSimpleAnimation) {
@@ -464,11 +464,11 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		if (timingFunction == null) {
-			if (this.canScrollHorizontally && this.showsHorizontalScrollIndicator) {
+			if ((this.canScrollHorizontally && this.showsHorizontalScrollIndicator) || this.horizontalScrollIndicator.isVisible()) {
 				this.updateHorizontalScrollIndicator();
 			}
 
-			if (this.canScrollVertically && this.showsVerticalScrollIndicator) {
+			if ((this.canScrollVertically && this.showsVerticalScrollIndicator) || this.verticalScrollIndicator.isVisible()) {
 				this.updateVerticalScrollIndicator();
 			}
 		}
@@ -506,6 +506,15 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			} else {
 				this.setContentOffset(contentOffset, new TimingFunction.CubicBezierCurveTimingFunction(0.390f, 0.575f, 0.565f, 1.000f), 400, false);
 			}
+		}
+	}
+
+	void didEndDecelerating() {
+		this.snapContentOffsetToBounds(false);
+		this.hideScrollIndicators(false);
+
+		if(this.listenerDecelerating != null) {
+			this.listenerDecelerating.didEndDecelerating(this);
 		}
 	}
 
@@ -690,8 +699,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	void hideScrollIndicators(boolean fromFlash) {
 		if(!this.horizontalScrollIndicator.isVisible() && !this.verticalScrollIndicator.isVisible()) return;
 
-		horizontalScrollIndicator.cancelAnimations();
-		verticalScrollIndicator.cancelAnimations();
+		this.horizontalScrollIndicator.cancelAnimations();
+		this.verticalScrollIndicator.cancelAnimations();
 
 		View.beginAnimations(null, null);
 		View.setAnimationCurve(AnimationCurve.EASE_OUT);
@@ -821,8 +830,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	private void didScroll(boolean fromAnimation) {
 		if(fromAnimation) {
-			this.contentOffset.x = roundf(this.contentOffset.x);
-			this.contentOffset.y = roundf(this.contentOffset.y);
+			this.contentOffset.x = ScreenMath.round(this.contentOffset.x);
+			this.contentOffset.y = ScreenMath.round(this.contentOffset.y);
 			this.updateScrollPositionWithContentOffset();
 
 			if(this.listenerAnimations != null) {
