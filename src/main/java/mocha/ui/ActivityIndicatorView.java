@@ -115,7 +115,7 @@ public class ActivityIndicatorView extends View {
 			}
 
 
-			this.progressBar = new NativeView<ProgressBar>(new ProgressBar(Application.sharedApplication().getContext(), null, nativeStyle));
+			this.progressBar = new NativeView<>(new ProgressBar(Application.sharedApplication().getContext(), null, nativeStyle));
 			this.progressBar.getNativeView().setIndeterminate(true);
 			this.progressBar.getNativeView().setPadding(0, 0, 0, 0);
 			this.progressBar.getNativeView().setInterpolator(this.animating ? this.animatingInterpolator : this.stoppedInterpolator);
@@ -168,12 +168,14 @@ public class ActivityIndicatorView extends View {
 	public void startAnimating() {
 		if(this.animating) return;
 
-		this.progressBar.getNativeView().setInterpolator(this.animatingInterpolator);
-		this.animating = true;
-
 		if(this.hidesWhenStopped) {
 			this.setHidden(false);
 		}
+
+		this.progressBar.getNativeView().setInterpolator(this.animatingInterpolator);
+		this.progressBar.getNativeView().setVisibility(android.view.View.GONE);
+		this.progressBar.getNativeView().setVisibility(android.view.View.VISIBLE);
+		this.animating = true;
 	}
 
 	/**
@@ -183,10 +185,14 @@ public class ActivityIndicatorView extends View {
 		if(!this.animating) return;
 
 		this.progressBar.getNativeView().setInterpolator(this.stoppedInterpolator);
+		this.progressBar.getNativeView().setVisibility(android.view.View.GONE);
+		this.progressBar.getNativeView().setVisibility(android.view.View.VISIBLE);
 
 		if(this.hidesWhenStopped) {
 			this.setHidden(true);
 		}
+
+		this.animating = false;
 	}
 
 	/**
