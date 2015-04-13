@@ -8,6 +8,7 @@ package mocha.ui;
 import android.R;
 import android.content.Context;
 import android.text.InputType;
+import android.text.method.MovementMethod;
 import android.view.DragEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+import mocha.foundation.MObject;
 
 class EditText extends android.widget.EditText implements View.OnFocusChangeListener, View.OnClickListener {
 
@@ -22,10 +24,12 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	private mocha.ui.View containerView;
 	private boolean allowFocusChange;
 	private boolean hasSetFocusable;
+	private boolean showingKeyboard;
 
 	private boolean didTryToFocus;
 
 	static boolean LEAVE_KEYBOARD;
+	private static int keyboardLevel;
 
 	EditText(Context context, mocha.ui.View containerView, boolean allowMultipleLines) {
 		super(context, null, R.style.Theme_Holo_Light);
@@ -43,15 +47,50 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.setPadding(0, 0, 0, 0);
 	}
 
+	@Override
+	public MovementMethod getDefaultMovementMethod() {
+		return super.getDefaultMovementMethod();
+	}
+
 	private void showKeyboard() {
-		InputMethodManager imm = (InputMethodManager)this.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.showSoftInput(this, 0);
+		if(!this.showingKeyboard) {
+			this.showingKeyboard = true;
+			showKeyboard(this);
+		}
 	}
 
 	private void hideKeyboard() {
+		if(!this.showingKeyboard) {
+			return;
+		} else {
+			this.showingKeyboard = false;
+		}
+
 		if(!LEAVE_KEYBOARD) {
-			InputMethodManager imm = (InputMethodManager)this.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-			imm.hideSoftInputFromWindow(this.getWindowToken(), 0);
+			hideKeyboard(this);
+		}
+	}
+
+	private static void showKeyboard(EditText text) {
+		if(keyboardLevel == 0) {
+			keyboardLevel++;
+
+			InputMethodManager imm = (InputMethodManager)text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.showSoftInput(text, 0);
+
+		}
+	}
+
+	private static void hideKeyboard(EditText text) {
+		--keyboardLevel;
+
+		if(keyboardLevel < 0) {
+			MObject.MWarn("WARNING: Unbalanced calls to show/hideKeyboard");
+		}
+
+		if(keyboardLevel == 0) {
+			InputMethodManager imm = (InputMethodManager)text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(text.getWindowToken(), 0);
 		}
 	}
 

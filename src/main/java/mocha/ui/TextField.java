@@ -116,7 +116,7 @@ public class TextField extends Control implements TextInput.Traits {
 		this.editText.addTextChangedListener(this.textWatcher);
 		TextInput.setupDefaultTraits(this);
 
-		this.nativeView = new NativeView<EditText>(this.editText);
+		this.nativeView = new NativeView<>(this.editText);
 		this.addSubview(this.nativeView);
 
 		this.setTextColor(Color.BLACK);

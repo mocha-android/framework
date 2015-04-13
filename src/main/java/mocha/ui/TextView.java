@@ -282,6 +282,22 @@ public class TextView extends View implements TextInput.Traits {
 		}
 	}
 
+	public void setScrollEnabled(boolean scrollEnabled) {
+		if(scrollEnabled) {
+			if(this.editText.getMovementMethod() == null) {
+				this.editText.setMovementMethod(this.editText.getDefaultMovementMethod());
+			}
+		} else {
+			if(this.editText.getMovementMethod() != null) {
+				this.editText.setMovementMethod(null);
+			}
+		}
+	}
+
+	public boolean isScrollEnabled() {
+		return this.editText.getMovementMethod() != null;
+	}
+
 	// - TextInput.Traits
 
 	public TextInput.AutocapitalizationType getAutocapitalizationType() {
