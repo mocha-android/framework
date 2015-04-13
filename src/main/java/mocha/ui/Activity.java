@@ -145,10 +145,16 @@ public class Activity extends android.app.Activity {
 		if(this.application.isIgnoringInteractionEvents()) return;
 
 		if(this.windows.size() > 0) {
-			Responder responder = this.windows.get(0).getFirstResponder();
+			final ViewController rootViewController = this.windows.get(0).getRootViewController();
 
-			if(responder != null) {
-				responder.backKeyPressed(Event.systemEvent(this.windows.get(0)));
+			if(rootViewController != null) {
+				ViewController viewController = rootViewController;
+
+				while(viewController.getPresentedViewController() != null) {
+					viewController = viewController.getPresentedViewController();
+				}
+
+				viewController.dispatchBackKeyPressed(Event.systemEvent(this.windows.get(0)));
 				return;
 			}
 		}

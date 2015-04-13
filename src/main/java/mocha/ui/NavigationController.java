@@ -5,6 +5,7 @@
  */
 package mocha.ui;
 
+import mocha.foundation.Lists;
 import mocha.foundation.OptionalInterface;
 import mocha.foundation.OptionalInterfaceHelper;
 import mocha.graphics.*;
@@ -453,6 +454,11 @@ public class NavigationController extends ViewController {
 		}
 	}
 
+	@Override
+	public ViewController getChildViewControllerForBackKeyPressed() {
+		return Lists.last(this.viewControllers);
+	}
+
 	Responder getDefaultFirstResponder() {
 		if(this.viewControllers != null && this.viewControllers.size() > 0) {
 			Responder responder = this.getTopViewController().getDefaultFirstResponder();
@@ -466,7 +472,7 @@ public class NavigationController extends ViewController {
 	}
 
 	/**
-	 * @return Navigation bar visiblity
+	 * @return Navigation bar visibility
 	 */
 	public boolean isNavigationBarHidden() {
 		return navigationBarHidden;
@@ -475,7 +481,7 @@ public class NavigationController extends ViewController {
 	/**
 	 * Change navigation bar visibility without animation
 	 *
-	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 * @param hidden Set to true to hide the navigation bar, or false to show it.
 	 */
 	public void setNavigationBarHidden(boolean hidden) {
 		this.setNavigationBarHidden(hidden, false);
@@ -484,7 +490,7 @@ public class NavigationController extends ViewController {
 	/**
 	 * Change navigation bar visibility
 	 *
-	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 * @param hidden Set to true to hide the navigation bar, or false to show it.
 	 * @param animated Set true to animate the changes, or false to change without animations.
 	 */
 	public void setNavigationBarHidden(boolean hidden, boolean animated) {
@@ -495,9 +501,9 @@ public class NavigationController extends ViewController {
 	 * Change navigation bar visibility
 	 *
 	 * NOTE: The animations and completion callbacks are called regardless of whether or
-	 * not the animated propery is true.
+	 * not the animated property is true.
 	 *
-	 * @param hidden Set to true to hide the navgation bar, or false to show it.
+	 * @param hidden Set to true to hide the navigation bar, or false to show it.
 	 * @param animated Set true to animate the changes, or false to change without animations.
 	 * @param animations Callback to be called from within the animation block
 	 * @param completion Completion to be called after animations have ended.

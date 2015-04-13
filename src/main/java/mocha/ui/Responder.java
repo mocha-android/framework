@@ -182,14 +182,6 @@ public class Responder extends MObject {
 		}
 	}
 
-	public void backKeyPressed(Event event) {
-		Responder nextResponder = this.nextResponder();
-
-		if(nextResponder != null) {
-			nextResponder.backKeyPressed(event);
-		}
-	}
-
 	private Window findWindow() {
 		if(this instanceof View) {
 			return ((View)this).getWindow();

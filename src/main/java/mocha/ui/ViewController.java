@@ -182,7 +182,6 @@ public class ViewController extends Responder {
 		this.willAppear = false;
 		this.didAppear = true;
 		this.notifyChildrenAppearanceTransitionEnded();
-		this.becomeFirstResponder();
 	}
 
 	/**
@@ -918,9 +917,25 @@ public class ViewController extends Responder {
 	public void backKeyPressed(Event event) {
 		if(this.parentViewController == null && this.presentingViewController != null) {
 			this.dismissViewController(true);
+		} else if(this.parentViewController != null) {
+			this.parentViewController.backKeyPressed(event);
 		} else {
-			super.backKeyPressed(event);
+			Application.sharedApplication().getActivity().backKeyPressed(event);
 		}
+	}
+
+	void dispatchBackKeyPressed(Event event) {
+		ViewController viewController = this;
+
+		while(viewController.getChildViewControllerForBackKeyPressed() != null) {
+			viewController = viewController.getChildViewControllerForBackKeyPressed();
+		}
+
+		viewController.backKeyPressed(event);
+	}
+
+	public ViewController getChildViewControllerForBackKeyPressed() {
+		return null;
 	}
 
 }
