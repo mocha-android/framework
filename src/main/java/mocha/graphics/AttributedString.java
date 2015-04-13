@@ -13,6 +13,7 @@ import android.text.TextPaint;
 import android.text.style.*;
 import android.util.FloatMath;
 import mocha.foundation.Copying;
+import mocha.foundation.Maps;
 import mocha.foundation.Range;
 import mocha.ui.Application;
 import mocha.ui.Color;
@@ -70,8 +71,17 @@ public class AttributedString implements CharSequence, android.text.Spannable, C
 	private float constrainedLayoutWidth;
 	private TextAlignment constrainedLayoutAlignment;
 
+	public static AttributedString attributedStringWithAttachment(TextAttachment attachment) {
+		return new AttributedString("a", Maps.create(Attribute.ATTACHMENT, attachment));
+	}
+
+
 	public AttributedString() {
 		this.builder = new SpannableStringBuilder();
+	}
+
+	public AttributedString(String source) {
+		this.builder = new SpannableStringBuilder(source);
 	}
 
 	public AttributedString(String source, Map<Attribute,?> attributes) {
@@ -165,6 +175,10 @@ public class AttributedString implements CharSequence, android.text.Spannable, C
 
 	public void setAttributes(Map<Attribute,?> attributes, Range range) {
 		// TODO
+	}
+
+	public void append(AttributedString attributedString) {
+		this.builder.append(attributedString.builder);
 	}
 
 	public void append(String string, Map<Attribute,?> attributes) {
