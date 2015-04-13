@@ -658,20 +658,17 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 			this.clearAllViews();
 		}
 
-		Size contentSize = this.getContentSize();
-		Point contentOffset = this.getContentOffset();
-		Rect bounds = this.getBounds();
+		final EdgeInsets contentInset = this.getContentInset();
+		final float contentSizeHeight = this.getContentSizeHeight();
+		final Point contentOffset = this.getContentOffset();
+		final float boundsHeight = this.getBoundsHeight();
+		final float totalContentHeight = contentInset.top + contentSizeHeight + contentInset.bottom;
+		final float maxOffsetY = ScreenMath.round(Math.max(-contentInset.top, totalContentHeight - boundsHeight - contentInset.top));
 
-		if(contentOffset.y + bounds.size.height > contentSize.height) {
-			float offsetY;
-
-			if(contentSize.height < bounds.size.height) {
-				offsetY = -this.getContentInset().top;
-			} else {
-				offsetY = contentSize.height - bounds.size.height;
+		if(maxOffsetY < contentOffset.y) {
+			if(!this.isDragging() && !this.isDecelerating()) {
+				this.setContentOffset(new Point(contentOffset.x, maxOffsetY));
 			}
-
-			this.setContentOffset(new Point(contentOffset.x, offsetY));
 		}
 
 		this.layoutSubviews();
