@@ -126,4 +126,16 @@ public class Bundle extends MObject {
 		}
 	}
 
+	/**
+	 * Gets the version code of the package
+	 * @return Version code
+	 */
+	public int getVersionCode() {
+		try {
+			return this.application.getContext().getPackageManager().getPackageInfo(this.getName(), 0).versionCode;
+		} catch (PackageManager.NameNotFoundException e) {
+			return 0;
+		}
+	}
+
 }
