@@ -361,7 +361,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 	public void scrollRectToVisible(Rect rect, boolean animated) {
 		Rect contentRect = new Rect(0.0f, 0.0f, this.contentSize.width, this.contentSize.height);
-		Rect visibleRect = new Rect(this.getBounds());
+		Rect visibleRect = new Rect(this.contentInset.inset(this.getBounds()));
 		Rect goalRect = rect.intersection(contentRect);
 
 		if (goalRect != null && !visibleRect.contains(goalRect)) {
