@@ -193,19 +193,33 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	}
 
 	public Point apply(Point point) {
-		Point transformed = new Point();
+		return this.apply(point, false);
+	}
 
-		transformed.x = (point.x * this.a) + (point.y * this.c) + this.tx;
-		transformed.y = (point.x * this.b) + (point.y * this.d) + this.ty;
+	public Point apply(Point point, boolean reuse) {
+		float x = point.x;
+		float y = point.y;
+
+		Point transformed = reuse ? point : new Point();
+
+		transformed.x = (x * this.a) + (y * this.c) + this.tx;
+		transformed.y = (x * this.b) + (y * this.d) + this.ty;
 
 		return transformed;
 	}
 
 	public Size apply(Size size) {
-		Size transformed = new Size();
+		return this.apply(size, false);
+	}
 
-		transformed.width = (size.width * this.a) + (size.height * this.c);
-		transformed.height = (size.width * this.b) + (size.height * this.d);
+	public Size apply(Size size, boolean reuse) {
+		float width = size.width;
+		float height = size.height;
+
+		Size transformed = reuse ? size : new Size();
+
+		transformed.width = (width * this.a) + (height * this.c);
+		transformed.height = (width * this.b) + (height * this.d);
 
 		return transformed;
 	}
