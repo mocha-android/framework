@@ -706,6 +706,18 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.reloadData();
 	}
 
+	@Deprecated
+	/** This will only exist until begin/endUpdates do this properly */
+	public void updateRowSizes() {
+		this.reloadingData = true;
+		this.rowData.reloadData();
+		this.setContentSize(new Size(this.getBounds().size.width, this.rowData.getTableHeight()));
+		this.shouldUpdateVisibleViewFrames = true;
+		this.reloadAllViews(false);
+		this.shouldUpdateVisibleViewFrames = false;
+		this.reloadingData = false;
+	}
+
 	public void didMoveToWindow() {
 		super.didMoveToWindow();
 
