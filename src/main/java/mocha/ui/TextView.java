@@ -6,14 +6,12 @@
 package mocha.ui;
 
 import android.text.Editable;
-import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
-import mocha.foundation.NotificationCenter;
 import mocha.foundation.Range;
 import mocha.graphics.*;
 
-public class TextView extends View implements TextInput.Traits {
+public class TextView extends View implements TextInput, TextInput.Traits {
 
 	public interface Delegate {
 		public void didChange(TextView textView);
@@ -80,7 +78,7 @@ public class TextView extends View implements TextInput.Traits {
 		};
 
 		this.editText.addTextChangedListener(this.textWatcher);
-		TextInput.setupDefaultTraits(this);
+		TraitsHelper.setupDefaultTraits(this);
 
 		this.nativeView = new NativeView<EditText>(this.editText);
 		this.nativeView.setFrame(this.getBounds());
@@ -296,6 +294,28 @@ public class TextView extends View implements TextInput.Traits {
 
 	public boolean isScrollEnabled() {
 		return this.editText.getMovementMethod() != null;
+	}
+
+	// - TextInput
+
+	@Override
+	public Rect getCaretRectForPosition(int position) {
+		if(position >= 0) {
+			android.text.Layout layout = this.editText.getLayout();
+			int line = layout.getLineForOffset(position);
+
+			float x = layout.getPrimaryHorizontal(position);
+			float y = layout.getLineBaseline(line) + layout.getLineAscent(line);
+
+			return new Rect(this.contentInset.left + (x / this.scale), this.contentInset.top + (y / this.scale), 1.0f, (layout.getLineBottom(line) - layout.getLineTop(line)) / this.scale);
+		} else {
+			return Rect.zero();
+		}
+	}
+
+	@Override
+	public TextRange getSelectedTextRange() {
+		return new TextRange(this.editText.getSelectionStart(), this.editText.getSelectionEnd());
 	}
 
 	// - TextInput.Traits
