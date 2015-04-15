@@ -1159,12 +1159,22 @@ public class View extends Responder implements Accessibility {
 	// Geometry
 
 	Point convertPointToWindow(Point point) {
+		// TODO: Deltas between views should be cached so the full hierarchy
+		// doesn't need to be walked every time
+
 		View view = this;
 		Point convertedPoint = point == null ? new Point() : point.copy();
+		final Point origin = new Point();
 
 		while(view != null) {
-			convertedPoint.x += view.frame.origin.x - view.bounds.origin.x;
-			convertedPoint.y += view.frame.origin.y - view.bounds.origin.y;
+			origin.set(view.frame.origin);
+
+			if(view.transform != null && !view.transform.isIdentity()) {
+				view.transform.apply(origin, true);
+			}
+
+			convertedPoint.x += origin.x - view.bounds.origin.x;
+			convertedPoint.y += origin.y - view.bounds.origin.y;
 			view = view.superview;
 		}
 
@@ -1280,7 +1290,7 @@ public class View extends Responder implements Accessibility {
 	 *
 	 * {@note The view returned by this method is not guaranteed to be within this views hierarchy.
 	 * Subclasses can override this method to redirect touches to an entirely different view, so do not make
-	 * any assumptions based on the returned view and the view hiearchy.}
+	 * any assumptions based on the returned view and the view hierarchy.}
 	 *
 	 * @param point Point relative to the bounds of this view
 	 * @param event If triggered by a touch event, that event will be provided, otherwise this will be null.
@@ -1312,11 +1322,7 @@ public class View extends Responder implements Accessibility {
 	 * @return Whether or not this view contains the point
 	 */
 	public boolean pointInside(Point point, Event event) {
-		if(this.transform == null || this.transform.isIdentity()) {
-			return this.bounds.contains(point);
-		} else {
-			return this.transform.apply(this.bounds).contains(point);
-		}
+		return this.bounds.contains(point);
 	}
 
 	/**
