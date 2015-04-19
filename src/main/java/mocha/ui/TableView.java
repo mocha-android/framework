@@ -20,7 +20,7 @@ import java.util.*;
 public class TableView extends ScrollView implements GestureRecognizer.Delegate {
 	static final float PLAIN_HEADER_HEIGHT = 23.0f;
 	static final float GROUPED_TABLE_Y_MARGIN = 10.0f;
-	private static final float DEFAULT_ROW_HEIGHT = 44.0f;
+	private static final float DEFAULT_ROW_HEIGHT = 49.0f;
 	private static final TableViewCell.State DEFAULT_STATE[] = new TableViewCell.State[] { TableViewCell.State.DEFAULT };
 	private static final TableViewCell.State EDIT_CONTROL_STATE[] = new TableViewCell.State[] { TableViewCell.State.SHOWING_EDIT_CONTROL };
 
@@ -122,7 +122,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	private Style tableStyle;
 	private TableViewCell.SeparatorStyle separatorStyle;
-	private final EdgeInsets separatorInset = EdgeInsets.zero();
+	private final EdgeInsets separatorInset;
 	private int separatorColor;
 	private boolean separatorInsetShouldInsetBackgroundViews;
 	private boolean editing;
@@ -188,6 +188,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		super(frame);
 
 		this.tableStyle = style == null ? Style.PLAIN : style;
+		this.separatorInset = new EdgeInsets(0.0f, 16.0f, 0.0f, 16.0f);
 		this.separatorInsetShouldInsetBackgroundViews = true;
 		this.setAllowsSelection(true);
 		this.rowData = new TableViewRowData(this);
