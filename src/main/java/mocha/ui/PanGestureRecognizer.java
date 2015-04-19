@@ -1,64 +1,67 @@
-/*
- *  @author Shaun
+/**
+ *	@author Shaun
  *	@date 11/23/12
- *	@copyright	2012 Mocha. All rights reserved.
+ *	@copyright	2015 Mocha. All rights reserved.
  */
 package mocha.ui;
 
+import mocha.foundation.Lists;
 import mocha.graphics.Point;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class PanGestureRecognizer extends GestureRecognizer {
-	Point translation;
-	boolean tracking;
-	boolean panning;
-	private List<TrackingDataPoint> trackingDataPoints;
-	Point startTouchPosition;
-	Point lastTouchPosition;
+	private static final float MINIMUM_MOVEMENT = 10.0f;
+	private static final long MAXIMUM_ELAPSED_TIME_IN_TOUCH_HISTORY = 100;
 
-	private static final float MINIMUM_TRACKING_FOR_PAN = 10.0f;
-	private static final long MAX_TIME_FOR_TRACKING_DATA_POINTS = 100;
+	final Point movementAmount = new Point();
+	final Point start = new Point();
+	final Point current = new Point();
+	final private List<HistoricTouch> touchHistory = new ArrayList<>();
 
-	private static class TrackingDataPoint {
-		long time;
-		Point point;
+	Touch trackingTouch = null;
 
-		private TrackingDataPoint(long time, Point point) {
-			this.time = time;
+	private static class HistoricTouch {
+		final long timeInMillis;
+		final Point point;
+
+		private HistoricTouch(long timeInMillis, Point point) {
+			this.timeInMillis = timeInMillis;
 			this.point = point;
 		}
 	}
 
 	public PanGestureRecognizer(GestureHandler gestureHandler) {
 		super(gestureHandler);
-
-		this.translation = new Point();
-		this.tracking = false;
-		this.panning = false;
-		this.trackingDataPoints = new ArrayList<>();
 	}
 
 	public Point translationInView(View view) {
-		return this.lastTouchPosition.delta(this.startTouchPosition);
+		return this.current.delta(this.start);
 	}
 
 	public Point velocityInView(View view) {
-		this.purgeTrackingDataPointsWithTime(android.os.SystemClock.uptimeMillis());
+		this.truncateTouchHistory(android.os.SystemClock.uptimeMillis());
 
-		if (this.trackingDataPoints.size() < 2) {
+		final HistoricTouch firstPoint = Lists.first(this.touchHistory);
+		final HistoricTouch lastPoint = Lists.last(this.touchHistory);
+
+		if(firstPoint == null || lastPoint == null || firstPoint == lastPoint || lastPoint.timeInMillis == firstPoint.timeInMillis) {
 			return Point.zero();
 		}
 
-		TrackingDataPoint firstPoint = this.trackingDataPoints.get(0);
-		TrackingDataPoint lastPoint = this.trackingDataPoints.get(this.trackingDataPoints.size() - 1);
-		float timeDelta = (float)(lastPoint.time - firstPoint.time) / 1000.0f;
+		final float elapsedTime = (float) (lastPoint.timeInMillis - firstPoint.timeInMillis) / 1000.0f;
+		return new Point((lastPoint.point.x - firstPoint.point.x) / elapsedTime, (lastPoint.point.y - firstPoint.point.y) / elapsedTime);
+	}
 
-		if(timeDelta == 0) {
-			return Point.zero();
-		} else {
-			return new Point((lastPoint.point.x - firstPoint.point.x) / timeDelta, (lastPoint.point.y - firstPoint.point.y) / timeDelta);
+	private void truncateTouchHistory(long currentTimeInMillis) {
+		Iterator<HistoricTouch> iterator = this.touchHistory.iterator();
+
+		while(iterator.hasNext()) {
+			if(currentTimeInMillis - iterator.next().timeInMillis > MAXIMUM_ELAPSED_TIME_IN_TOUCH_HISTORY) {
+				iterator.remove();
+			}
 		}
 	}
 
@@ -68,118 +71,86 @@ public class PanGestureRecognizer extends GestureRecognizer {
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {
-		if(this.tracking) return;
+		if (this.trackingTouch != null) return;
 
-		Touch touch = this.findTouch(event);
+		this.trackingTouch = this.findTouch(event);
 
-		if(touch != null) {
-			this.startTouchPosition = touch.location.copy();
-			this.tracking = true;
-			this.addTrackingDataPoint(this.startTouchPosition, event);
+		if (this.trackingTouch != null) {
+			this.addTouchToHistory(this.trackingTouch);
+			this.start.set(this.trackingTouch.location);
 		}
 	}
 
 	protected void touchesMoved(List<Touch> touches, Event event) {
-		if(!this.tracking) return;
+		if (this.trackingTouch == null || !touches.contains(this.trackingTouch)) return;
 
-		Touch touch = this.findTouch(event);
+		this.current.set(this.trackingTouch.location);
 
-		if(touch != null) {
-			this.lastTouchPosition = touch.location.copy();
+		this.movementAmount.x = this.trackingTouch.location.x - this.start.x;
+		this.movementAmount.y = this.trackingTouch.location.y - this.start.y;
 
-			Point location = touch.location;
-			this.translation = new Point(location.x - this.startTouchPosition.x, location.y - this.startTouchPosition.y);
+		final State state = this.getState();
 
-			if (this.panning) {
-				this.setState(State.CHANGED);
+		if (state == State.BEGAN || state == State.CHANGED) {
+			this.setState(State.CHANGED);
+		} else {
+			if (Math.abs(this.movementAmount.x) >= MINIMUM_MOVEMENT || Math.abs(this.movementAmount.y) >= MINIMUM_MOVEMENT) {
+				this.start.set(this.trackingTouch.location);
+				this.touchHistory.clear();
+				this.movementAmount.x = 0.0f;
+				this.movementAmount.y = 0.0f;
+
+				this.setState(State.BEGAN);
 			} else {
-				if (Math.abs(this.translation.x) >= MINIMUM_TRACKING_FOR_PAN || Math.abs(this.translation.y) >= MINIMUM_TRACKING_FOR_PAN) {
-					this.startTouchPosition = touch.location.copy();
-					this.trackingDataPoints.clear();
-					this.translation.x = 0.0f;
-					this.translation.y = 0.0f;
-
-					this.panning = true;
-					this.setState(State.BEGAN);
-				} else {
-					return;
-				}
+				return;
 			}
-
-			this.addTrackingDataPoint(this.lastTouchPosition, event);
-		} else if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
-			this.setState(State.CANCELLED);
-			this.tracking = false;
 		}
+
+		this.addTouchToHistory(this.trackingTouch);
 	}
 
 	protected void touchesEnded(List<Touch> touches, Event event) {
-		if(!this.tracking) return;
-		this.tracking = false;
+		if (this.trackingTouch == null || !touches.contains(this.trackingTouch)) return;
 
-		if(this.panning) {
+		this.trackingTouch = null;
+		final State state = this.getState();
+
+		if (state.recognized && !state.finished) {
 			this.setState(State.ENDED);
-		} else if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
-			this.setState(State.CANCELLED);
 		}
 	}
 
 	protected void touchesCancelled(List<Touch> touches, Event event) {
-		if(!this.tracking) return;
-		this.tracking = false;
+		if (this.trackingTouch == null || !touches.contains(this.trackingTouch)) return;
+		this.trackingTouch = null;
 
-		if (this.panning) {
+		final State state = this.getState();
+
+		if (state.recognized && !state.finished) {
 			this.setState(State.CANCELLED);
 		}
 	}
 
-	private void purgeTrackingDataPointsWithTime(long timestamp) {
-		while (this.trackingDataPoints.size() > 0) {
-			if (timestamp - this.trackingDataPoints.get(0).time <= MAX_TIME_FOR_TRACKING_DATA_POINTS) {
-				break;
-			}
-
-			this.trackingDataPoints.remove(0);
-		}
-	}
-
-	void addTrackingDataPoint(Point point, Event event) {
-		if(point == null) return;
-
-		long timestamp = event.getTimestamp();
-		this.purgeTrackingDataPointsWithTime(timestamp);
-		this.trackingDataPoints.add(new TrackingDataPoint(timestamp, point.copy()));
-	}
-
-	void cancel() {
-		if(this.tracking || this.panning) {
-			this.tracking = false;
-			this.panning = false;
-			this.trackingDataPoints.clear();
-			this.startTouchPosition = null;
-			this.lastTouchPosition = null;
-		}
+	void addTouchToHistory(Touch touch) {
+		long timestamp = touch.getTimestamp();
+		this.truncateTouchHistory(timestamp);
+		this.touchHistory.add(new HistoricTouch(timestamp, touch.location.copy()));
 	}
 
 	protected void setState(State state) {
 		super.setState(state);
 
-		if(state == State.FAILED) {
-			this.cancel();
+		if (state == State.FAILED) {
+			this.trackingTouch = null;
+			this.touchHistory.clear();
 		}
 	}
 
 	protected void reset() {
 		super.reset();
-		this._reset();
-	}
 
-	private void _reset() {
-		this.tracking = false;
-		this.panning = false;
-		this.trackingDataPoints.clear();
-		this.startTouchPosition = null;
-		this.lastTouchPosition = null;
+		this.trackingTouch = null;
+		this.touchHistory.clear();
 	}
 
 }

@@ -28,10 +28,10 @@ abstract public class GestureRecognizer extends MObject {
 		// Only used for discrete gestures like Tap and Swipe
 		RECOGNIZED	(true,			true,		true,		true);
 
-		boolean recognized;
-		boolean needsReset;
-		boolean notifyHandlers;
-		boolean finished;
+		final boolean recognized;
+		final boolean needsReset;
+		final boolean notifyHandlers;
+		final boolean finished;
 
 		State(boolean recognized, boolean needsReset, boolean notifyHandlers, boolean finished) {
 			this.recognized = recognized;

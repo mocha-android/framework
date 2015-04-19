@@ -20,33 +20,32 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	private boolean directionalLockEnabled;
 	private ScrollDirection scrollDirection;
 	private ScrollDirection lastScrollDirection;
-	private final Point startLocation;
-	private final Point lastLocation;
+	private final Point startLocation = new Point();
+	private final Point lastLocation = new Point();
 
 	ScrollViewPanGestureRecognizer(GestureHandler gestureHandler) {
 		super(gestureHandler);
-
-
-		this.lastLocation = Point.zero();
-		this.startLocation = Point.zero();
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {
-		ScrollView scrollView;
+		if (this.trackingTouch != null) return;
 
-		Touch touch = this.findTouch(event);
+		final ScrollView scrollView = this.getScrollView();
 
-		// If our scroll view is decelerating, begin immediately to halt touching
-		if(!this.tracking && !this.panning && (scrollView = this.getScrollView()) != null && scrollView.decelerating) {
+		final Touch touch = this.findTouch(event);
+		final State state = this.getState();
+
+		// If our scroll view is decelerating, begin gesture immediately to halt deceleration
+		if(!state.recognized && !state.finished && scrollView != null && scrollView.decelerating) {
 			if(touch != null) {
-				this.startTouchPosition = touch.location.copy();
-				this.tracking = true;
-				this.lastTouchPosition = touch.location.copy();
-				this.addTrackingDataPoint(this.lastTouchPosition, event);
+				this.start.set(touch.location);
+				this.trackingTouch = touch;
+				this.current.set(touch.location);
+				this.addTouchToHistory(touch);
 
 				Point location = touch.location;
-				this.translation = new Point(location.x - this.startTouchPosition.x, location.y - this.startTouchPosition.y);
-				this.panning = true;
+				this.movementAmount.x = location.x - this.start.x;
+				this.movementAmount.y = location.y - this.start.y;
 				this.scrollDirection = this.lastScrollDirection;
 				this.setState(State.BEGAN, true);
 
@@ -63,12 +62,10 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	protected void touchesMoved(List<Touch> touches, Event event) {
-		if(this.directionalLockEnabled && this.scrollDirection == null) {
-			Touch touch = this.findTouch(event);
+		if (this.trackingTouch == null || !touches.contains(this.trackingTouch)) return;
 
-			if(touch != null) {
-				this.lastLocation.set(touch.location);
-			}
+		if(this.directionalLockEnabled && this.scrollDirection == null) {
+			this.lastLocation.set(this.trackingTouch.location);
 		}
 
 		super.touchesMoved(touches, event);
@@ -145,7 +142,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	boolean isDirectionalLockEnabled() {
-		return directionalLockEnabled;
+		return this.directionalLockEnabled;
 	}
 
 	void setDirectionalLockEnabled(boolean directionalLockEnabled) {
@@ -158,40 +155,6 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		} else {
 			return null;
 		}
-	}
-
-	private ScrollView getEnclosingScrollView() {
-		ScrollView scrollView = this.getScrollView();
-		if(scrollView == null) return null;
-
-		View superview = scrollView;
-
-		while((superview = superview.getSuperview()) != null) {
-			if(superview instanceof ScrollView) {
-				return (ScrollView)superview;
-			}
-		}
-
-		return null;
-	}
-
-	private boolean areAnyEnclosingScrollViewsScrolling() {
-		ScrollView enclosingScrollView = this.getEnclosingScrollView();
-
-		if(enclosingScrollView == null) {
-			return false;
-		}
-
-		do {
-			ScrollViewPanGestureRecognizer recognizer = enclosingScrollView.panGestureRecognizer;
-			if(recognizer.panning) return true;
-			ScrollView scrollView = recognizer.getScrollView();
-			if(scrollView == null) return false;
-			if(scrollView.decelerating) return true;
-			enclosingScrollView = recognizer.getEnclosingScrollView();
-		} while(enclosingScrollView != null);
-
-		return false;
 	}
 
 	private boolean areAnyEnclosingScrollViewsDecelerating() {
@@ -213,7 +176,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 	protected boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer otherGestureRecognizer) {
 		if(otherGestureRecognizer instanceof PanGestureRecognizer) {
-			if (this.isDescedent((PanGestureRecognizer) otherGestureRecognizer)) {
+			if (this.isDescendant((PanGestureRecognizer) otherGestureRecognizer)) {
 				return true;
 			}
 		}
@@ -221,7 +184,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		return super.shouldRequireFailureOfGestureRecognizer(otherGestureRecognizer);
 	}
 
-	protected boolean isDescedent(PanGestureRecognizer otherGestureRecognizer) {
+	protected boolean isDescendant(PanGestureRecognizer otherGestureRecognizer) {
 		View view = this.getView();
 		View otherView = otherGestureRecognizer.getView();
 
