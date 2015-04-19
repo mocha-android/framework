@@ -13,17 +13,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Touch extends MObject {
-	Point location;
-	Point previousLocation;
+	final Point location = new Point();
+	final Point previousLocation = new Point();
 	private View view;
 	private long timestamp;
 	private int tapCount;
-	private Phase phase;
-	private Gesture gesture;
-	private Point delta;
+	private Phase phase = Phase.CANCELLED;
+	private Gesture gesture = Gesture.UNKNOWN;
+	private final Point delta = new Point();
 	private float rotation;
 	private float magnification;
-	private List<GestureRecognizer> gestureRecognizers;
+	private final List<GestureRecognizer> gestureRecognizers = new ArrayList<>();
 
 	public enum Phase {
 		BEGAN,
@@ -31,11 +31,6 @@ public final class Touch extends MObject {
 		STATIONARY,
 		ENDED,
 		CANCELLED,
-
-		// Internal phases
-		GESTURE_BEGAN,
-		GESTURE_CHANGED,
-		GESTURE_ENDED
 	}
 
 	enum Gesture {
@@ -46,11 +41,7 @@ public final class Touch extends MObject {
 		SWIPE
 	}
 
-	Touch() {
-		this.phase = Phase.CANCELLED;
-		this.gesture = Gesture.UNKNOWN;
-		this.gestureRecognizers = new ArrayList<GestureRecognizer>();
-	}
+	Touch() { }
 
 	public View getView() {
 		return this.view;
@@ -86,7 +77,7 @@ public final class Touch extends MObject {
 		return phase;
 	}
 
-	public List<GestureRecognizer>getGestureRecognizers() {
+	public List<GestureRecognizer> getGestureRecognizers() {
 		return Lists.copy(this.gestureRecognizers);
 	}
 
@@ -95,7 +86,8 @@ public final class Touch extends MObject {
 	void setPhase(Phase phase, Point screenLocation, int tapCount, long timestamp) {
 		this.phase = phase;
 		this.gesture = Gesture.UNKNOWN;
-		this.previousLocation = this.location = screenLocation;
+		this.previousLocation.set(screenLocation);
+		this.location.set(screenLocation);
 		this.tapCount = tapCount;
 		this.timestamp = timestamp;
 		this.rotation = 0.0f;
@@ -108,25 +100,11 @@ public final class Touch extends MObject {
 
 	void updatePhase(Phase phase, Point screenLocation, long timestamp) {
 		if(!screenLocation.equals(this.location)) {
-			this.previousLocation = this.location;
-			this.location = screenLocation;
+			this.previousLocation.set(this.location);
+			this.location.set(screenLocation);
 		}
 
 		this.phase = phase;
-		this.timestamp = timestamp;
-	}
-
-	void updateGesture(Gesture gesture, Point screenLocation, Point delta, float rotation, float magnification, long timestamp) {
-		if(!screenLocation.equals(this.location)) {
-			this.previousLocation = this.location;
-			this.location = screenLocation;
-		}
-
-		this.phase = Phase.GESTURE_CHANGED;
-		this.gesture = gesture;
-		this.delta = delta;
-		this.rotation = rotation;
-		this.magnification = magnification;
 		this.timestamp = timestamp;
 	}
 
@@ -137,25 +115,6 @@ public final class Touch extends MObject {
 			this.gestureRecognizers.clear();
 			this.gestureRecognizers.addAll(gestureRecognizersForView(view));
 		}
-	}
-
-	// sets the initial view to nil, but leaves window and gesture recognizers alone - used when a view is removed while touch is active
-	void removeFromView() {
-		ArrayList<GestureRecognizer> remainingRecognizers = new ArrayList<GestureRecognizer>(this.gestureRecognizers);
-
-		for(GestureRecognizer recognizer : this.gestureRecognizers) {
-			if(recognizer.getView() == this.view) {
-				if (recognizer.getState() == GestureRecognizer.State.BEGAN || recognizer.getState() == GestureRecognizer.State.CHANGED) {
-					recognizer.setState(GestureRecognizer.State.CANCELLED);
-				}
-
-				remainingRecognizers.remove(recognizer);
-			}
-		}
-
-		this.gestureRecognizers.clear();
-		this.gestureRecognizers.addAll(remainingRecognizers);
-		this.view = null;
 	}
 
 	void removeGestureRecognizer(GestureRecognizer gestureRecognizer) {

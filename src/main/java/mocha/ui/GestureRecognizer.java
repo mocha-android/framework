@@ -504,12 +504,6 @@ abstract public class GestureRecognizer extends MObject {
 					this.failureDependencyMap.reset();
 					this.touchesCancelled(this.trackingTouches, event);
 					break;
-				case GESTURE_BEGAN:
-					break;
-				case GESTURE_CHANGED:
-					break;
-				case GESTURE_ENDED:
-					break;
 			}
 		}
 
