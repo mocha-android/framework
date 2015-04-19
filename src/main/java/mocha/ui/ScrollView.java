@@ -39,6 +39,10 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private static long DEFAULT_TRANSITION_DURATION = 330;
 	private static long PAGING_TRANSITION_DURATION = 250;
 
+	public static final float DECELERATION_RATE_NORMAL = 0.998f;
+	public static final float DECELERATION_RATE_FAST = 0.99f;
+	private static final float DECELERATION_RATE_PAGING = 0.9668f;
+
 	public enum IndicatorStyle {
 		DEFAULT, BLACK, WHITE
 	}
@@ -58,6 +62,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private final Size contentSize = Size.zero();
 	private boolean dragging;
 	boolean decelerating;
+	private float decelerationRate;
 	private boolean inSimpleAnimation;
 	private IndicatorStyle indicatorStyle;
 	private boolean showsHorizontalScrollIndicator;
@@ -80,7 +85,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private ScrollIndicator horizontalScrollIndicator;
 	private ScrollIndicator verticalScrollIndicator;
 	private final EdgeInsets contentInset = EdgeInsets.zero();
-	private ScrollViewAnimation scrollViewAnimation;
+	private ScrollViewDeceleration scrollViewDeceleration;
 	private KeyboardDismissMode keyboardDismissMode;
 	private final Point reuseablePoint = new Point();
 
@@ -92,6 +97,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 
 		this.dragging = false;
 		this.decelerating = false;
+		this.decelerationRate = DECELERATION_RATE_NORMAL;
 		this.indicatorStyle = IndicatorStyle.DEFAULT;
 		this.showsHorizontalScrollIndicator = true;
 		this.showsVerticalScrollIndicator = true;
@@ -399,9 +405,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 			return;
 		}
 
-		if(this.scrollViewAnimation != null && !internal && !inSimpleAnimation) {
-			this.scrollViewAnimation.cancelAnimations();
-			this.scrollViewAnimation = null;
+		if(this.scrollViewDeceleration != null && !internal && !inSimpleAnimation) {
+			this.scrollViewDeceleration.cancel();
+			this.scrollViewDeceleration = null;
 		}
 
 		final ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
@@ -481,7 +487,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.setBounds(bounds);
 	}
 
-	void snapContentOffsetToBounds(boolean animated) {
+	void snapToBounds(boolean animated) {
 		Point contentOffset = this.contentOffset.copy();
 
 		if (this.pagingEnabled && animated) {
@@ -496,8 +502,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 				contentOffset.y = clampf(contentOffset.y, this.minPoint.y, this.maxPoint.y);
 			}
 
-			contentOffset.x = roundf(contentOffset.x);
-			contentOffset.y = roundf(contentOffset.y);
+			contentOffset.x = ScreenMath.round(contentOffset.x);
+			contentOffset.y = ScreenMath.round(contentOffset.y);
 		}
 
 		if ((contentOffset.x != this.contentOffset.x || contentOffset.y != this.contentOffset.y)) {
@@ -510,7 +516,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	void didEndDecelerating() {
-		this.snapContentOffsetToBounds(false);
+		this.snapToBounds(false);
 		this.hideScrollIndicators(false);
 
 		if(this.listenerDecelerating != null) {
@@ -718,6 +724,22 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		return this.decelerating;
 	}
 
+	public float getDecelerationRate() {
+		return this.decelerationRate;
+	}
+
+	float getEffectiveDecelerationRate() {
+		if(this.pagingEnabled) {
+			return DECELERATION_RATE_PAGING; // UIScrollView ignores deceleration rate when paging is enabled
+		} else {
+			return this.decelerationRate;
+		}
+	}
+
+	public void setDecelerationRate(float decelerationRate) {
+		this.decelerationRate = decelerationRate;
+	}
+
 	public void handleGesture(GestureRecognizer gestureRecognizer) {
 		if(gestureRecognizer != this.panGestureRecognizer) return;
 
@@ -740,9 +762,9 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	private final Point startContentOffset = Point.zero();
 
 	private void panningDidStart(PanGestureRecognizer gestureRecognizer) {
-		if(this.scrollViewAnimation != null) {
-			this.scrollViewAnimation.cancelAnimations();
-			this.scrollViewAnimation = null;
+		if(this.scrollViewDeceleration != null) {
+			this.scrollViewDeceleration.cancel();
+			this.scrollViewDeceleration = null;
 		}
 
 		if(this.listenerDragging != null) {
@@ -792,23 +814,23 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 	}
 
 	private void panningDidEnd(PanGestureRecognizer gestureRecognizer) {
-		if(!this.dragging) return;
+		if (!this.dragging) return;
 
 		this.dragging = false;
 
-		if(this.scrollViewAnimation != null) {
-			this.scrollViewAnimation.cancelAnimations();
+		if(this.scrollViewDeceleration != null) {
+			this.scrollViewDeceleration.cancel();
 		}
 
-		this.scrollViewAnimation = new ScrollViewAnimation(this);
-		this.scrollViewAnimation.startDecelerationAnimation();
+		this.scrollViewDeceleration = new ScrollViewDeceleration(this);
+		this.scrollViewDeceleration.begin();
 
-		if(this.listenerDragging != null) {
+		if (this.listenerDragging != null) {
 			this.listenerDragging.didEndDragging(this, this.decelerating);
 		}
 
 		if (!this.decelerating) {
-			this.snapContentOffsetToBounds(true);
+			this.snapToBounds(true);
 			this.hideScrollIndicators();
 		}
 	}
@@ -819,7 +841,7 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		}
 
 		this.dragging = false;
-		this.snapContentOffsetToBounds(true);
+		this.snapToBounds(true);
 
 		if(this.listenerDragging != null) {
 			this.listenerDragging.didEndDragging(this, false);
