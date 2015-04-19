@@ -16,7 +16,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 		DONE, CANCEL, EDIT, SAVE, ADD, FLEXIBLE_SPACE, FIXED_SPACE,
 		COMPOSE, REPLY, ACTION, ORGANIZE, BOOKMARKS, SEARCH, REFRESH,
 		STOP, CAMERA, TRASH, PLAY, PAUSE, REWIND, FAST_FORWARD, UNDO,
-		REDO, PAGE_CURL
+		REDO
 	}
 
 	public enum Style {
@@ -51,7 +51,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 
 	public static <E extends BarButtonItem> Appearance appearance(Class<E> cls) {
 		if(appearanceStorage == null) {
-			appearanceStorage = new mocha.ui.Appearance.Storage<BarButtonItem, Appearance>(BarButtonItem.class, Appearance.class);
+			appearanceStorage = new mocha.ui.Appearance.Storage<>(BarButtonItem.class, Appearance.class);
 		}
 
 		return appearanceStorage.appearance(cls);
@@ -63,12 +63,12 @@ public class BarButtonItem extends BarItem implements Accessibility {
 
 	private BarButtonItem() {
 		this.style = Style.PLAIN;
-		this.backgroundVerticalPositionAdjustments = new BarMetricsStorage<Float>();
-		this.titlePositionAdjustments = new BarMetricsStorage<Offset>();
-		this.backgroundImages = new BarMetricsStorage<Map<EnumSet<Control.State>, Image>>();
+		this.backgroundVerticalPositionAdjustments = new BarMetricsStorage<>();
+		this.titlePositionAdjustments = new BarMetricsStorage<>();
+		this.backgroundImages = new BarMetricsStorage<>();
 		this.backButtonBackgroundVerticalPositionAdjustments = new BarMetricsStorage<Float>();
-		this.backButtonTitlePositionAdjustments = new BarMetricsStorage<Offset>();
-		this.backButtonBackgroundImages = new BarMetricsStorage<Map<EnumSet<Control.State>, Image>>();
+		this.backButtonTitlePositionAdjustments = new BarMetricsStorage<>();
+		this.backButtonBackgroundImages = new BarMetricsStorage<>();
 
 		if(appearanceStorage != null) {
 			appearanceStorage.apply(this);
@@ -221,11 +221,11 @@ public class BarButtonItem extends BarItem implements Accessibility {
 		Map<EnumSet<Control.State>, Image> backgroundImages = this.backButtonBackgroundImages.get(barMetrics);
 
 		if(backgroundImages == null) {
-			backgroundImages = new HashMap<EnumSet<Control.State>, Image>();
+			backgroundImages = new HashMap<>();
 			this.backButtonBackgroundImages.set(barMetrics, backgroundImages);
 		}
 
-		EnumSet<Control.State> stateSet = Control.getStateSet(state);
+		EnumSet<Control.State> stateSet = Control.State.toSet(state);
 
 		if(backgroundImage == null) {
 			backgroundImages.remove(stateSet);
@@ -236,7 +236,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 
 	public Image getBackButtonBackgroundImage(BarMetrics barMetrics, Control.State... state) {
 		Map<EnumSet<Control.State>, Image> backgroundImages = this.backButtonBackgroundImages.get(barMetrics);
-		return backgroundImages == null ? null :  backgroundImages.get(Control.getStateSet(state));
+		return backgroundImages == null ? null :  backgroundImages.get(Control.State.toSet(state));
 	}
 
 

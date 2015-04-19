@@ -12,12 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationBar extends View {
-	private static final EdgeInsets DEFAULT_ITEM_EDGE_INSETS = new EdgeInsets(0.0f, 5.0f, 0.0f, 5.0f);
+	private static final EdgeInsets DEFAULT_ITEM_EDGE_INSET = new EdgeInsets(0.0f, 16.0f, 0.0f, 16.0f);
+	private static final EdgeInsets DEFAULT_BACK_INDICATOR_CONTENT_INSET = new EdgeInsets(0.0f, 16.0f, 0.0f, 28.0f);
+	private static final EdgeInsets DEFAULT_BACK_INDICATOR_MARGINS = new EdgeInsets(0.0f, 0.0f, 0.0f, 4.0f);
 	private static final float MIN_BUTTON_WIDTH = 33.0f;
 	private static final float MAX_BUTTON_WIDTH = 200.0f;
 	private static final float MAX_TITLE_HEIGHT_DEFAULT = 30.0f;
 	private static final float MAX_TITLE_HEIGHT_LANDSCAPE_PHONE = 24.0f;
-	static final Rect INITIAL_RECT = new Rect(0.0f, 0.0f, 320.0f, 44.0f);
+	static final Rect INITIAL_RECT = new Rect(0.0f, 0.0f, 320.0f, 56.0f);
 	static final long ANIMATION_DURATION = 330;
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
@@ -84,6 +86,8 @@ public class NavigationBar extends View {
 	private Delegate delegate;
 	private boolean needsReload;
 	private EdgeInsets itemEdgeInsets;
+	private EdgeInsets backIndicatorContentInset;
+	private EdgeInsets backIndicatorMargins;
 	private TitleAlignment titleAlignment;
 
 	private View leftView;
@@ -96,6 +100,7 @@ public class NavigationBar extends View {
 	private Image shadowImage;
 	private ImageView shadowImageView;
 	private BarBackgroundView backgroundImageView;
+	private Image backIndicatorImage;
 
 	private NavigationItemDelegate navigationItemDelegate = new NavigationItemDelegate();
 
@@ -110,7 +115,7 @@ public class NavigationBar extends View {
 	 */
 	public static <E extends NavigationBar> Appearance appearance(Class<E> cls) {
 		if(appearanceStorage == null) {
-			appearanceStorage = new mocha.ui.Appearance.Storage<NavigationBar, Appearance>(NavigationBar.class, Appearance.class);
+			appearanceStorage = new mocha.ui.Appearance.Storage<>(NavigationBar.class, Appearance.class);
 		}
 
 		return appearanceStorage.appearance(cls);
@@ -134,7 +139,9 @@ public class NavigationBar extends View {
 
 		this.setBarTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
 		this.items = new ArrayList<>();
-		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
+		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSET.copy();
+		this.backIndicatorContentInset = DEFAULT_BACK_INDICATOR_CONTENT_INSET.copy();
+		this.backIndicatorMargins = DEFAULT_BACK_INDICATOR_MARGINS.copy();
 
 		this.titleVerticalPositionAdjustment = new BarMetricsStorage<>();
 		this.backgroundImageView = new BarBackgroundView(this.getBounds());
@@ -147,7 +154,7 @@ public class NavigationBar extends View {
 
 	@Override
 	public Size sizeThatFits(Size size) {
-		return new Size(size.width, Math.min(size.height, 44.0f));
+		return new Size(size.width, Math.min(size.height, INITIAL_RECT.size.height));
 	}
 
 	/**
@@ -188,11 +195,7 @@ public class NavigationBar extends View {
 	 * @return Edge insets
 	 */
 	public EdgeInsets getItemEdgeInsets() {
-		if(this.itemEdgeInsets == DEFAULT_ITEM_EDGE_INSETS) {
-			return null;
-		} else {
-			return this.itemEdgeInsets.copy();
-		}
+		return this.itemEdgeInsets.copy();
 	}
 
 	/**
@@ -202,14 +205,58 @@ public class NavigationBar extends View {
 	 */
 	public void setItemEdgeInsets(EdgeInsets itemEdgeInsets) {
 		if(itemEdgeInsets == null) {
-			this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSETS;
+			this.itemEdgeInsets.set(DEFAULT_ITEM_EDGE_INSET);
 		} else {
-			this.itemEdgeInsets = itemEdgeInsets;
+			this.itemEdgeInsets.set(itemEdgeInsets);
 		}
 	}
 
 	/**
-	 * Get the horizontal title aligment
+	 * Get the content inset for back indicator
+	 *
+	 * @return Content inset
+	 */
+	public EdgeInsets getBackIndicatorContentInset() {
+		return this.backIndicatorContentInset.copy();
+	}
+
+	/**
+	 * Set the content inset for back indicator
+	 *
+	 * @param backIndicatorContentInset Content inset
+	 */
+	public void setBackIndicatorContentInset(EdgeInsets backIndicatorContentInset) {
+		if(backIndicatorContentInset == null) {
+			this.backIndicatorContentInset.set(DEFAULT_BACK_INDICATOR_CONTENT_INSET);
+		} else {
+			this.backIndicatorContentInset.set(backIndicatorContentInset);
+		}
+	}
+
+	/**
+	 * Get margins for the back indicator button
+	 *
+	 * @return Margins
+	 */
+	public EdgeInsets getBackIndicatorMargins() {
+		return this.backIndicatorMargins.copy();
+	}
+
+	/**
+	 * Set margins for the back indicator button
+	 *
+	 * @param backIndicatorMargins Margins
+	 */
+	public void setBackIndicatorMargins(EdgeInsets backIndicatorMargins) {
+		if(backIndicatorMargins == null) {
+			this.backIndicatorMargins.set(DEFAULT_BACK_INDICATOR_MARGINS);
+		} else {
+			this.backIndicatorMargins.set(backIndicatorMargins);
+		}
+	}
+
+	/**
+	 * Get the horizontal title alignment
 	 * @return Title alignment
 	 */
 	public TitleAlignment getTitleAlignment() {
@@ -262,7 +309,7 @@ public class NavigationBar extends View {
 	}
 
 	/**
-	 * Set the navigaiton item stack, optionally animated
+	 * Set the navigation item stack, optionally animated
 	 *
 	 * @param items Navigation item stack
 	 * @param animated If true, the transition will be animated, if false no animation will occur
@@ -281,7 +328,7 @@ public class NavigationBar extends View {
 	}
 
 	/**
-	 * Set the navigaiton item stack, optionally animated
+	 * Set the navigation item stack, optionally animated
 	 *
 	 * @param items Navigation item stack
 	 * @param animated If true, the transition will be animated, if false no animation will occur
@@ -469,6 +516,24 @@ public class NavigationBar extends View {
 	}
 
 	/**
+	 * Get the back indicator image
+	 *
+	 * @return Back indicator image, may be null
+	 */
+	public Image getBackIndicatorImage() {
+		return backIndicatorImage;
+	}
+
+	/**
+	 * Set the back indicator image
+	 *
+	 * @param backIndicatorImage Back indicator image
+	 */
+	public void setBackIndicatorImage(Image backIndicatorImage) {
+		this.backIndicatorImage = backIndicatorImage;
+	}
+
+	/**
 	 * Get the vertical title offset for the specified bar metrics
 	 *
 	 * @param barMetrics Bar metrics
@@ -516,17 +581,25 @@ public class NavigationBar extends View {
 			NavigationItem backItem = this.getBackItem();
 
 			if (backItem != null && topItem.getLeftBarButtonItem() == null && !topItem.hidesBackButton()) {
-				this.leftView = getBackItemButton(backItem);
-				leftIsBackButton = true;
+				this.leftView = this.getBackItemButton(backItem);
+				this.leftIsBackButton = true;
 			} else {
-				this.leftView = getItemView(topItem.getLeftBarButtonItem());
-				leftIsBackButton = false;
+				this.leftView = this.getItemView(topItem.getLeftBarButtonItem());
+				this.leftIsBackButton = false;
 			}
 
 			if (this.leftView != null) {
 				Rect frame = this.leftView.getFrame();
-				frame.origin.x = this.itemEdgeInsets.left;
-				frame.origin.y = this.itemEdgeInsets.top + ScreenMath.floor((bounds.size.height - frame.size.height) / 2.0f);
+
+				if(this.leftIsBackButton) {
+					frame.origin.x = this.backIndicatorMargins.left;
+					frame.origin.y = 0.0f;
+					frame.size.set(this.leftView.sizeThatFits(new Size(0.0f, bounds.size.height)));
+				} else {
+					frame.origin.x = this.itemEdgeInsets.left;
+					frame.origin.y = this.itemEdgeInsets.top + ScreenMath.floor((bounds.size.height - frame.size.height) / 2.0f);
+				}
+
 				this.leftView.setFrame(frame);
 			}
 
@@ -534,7 +607,7 @@ public class NavigationBar extends View {
 				previousLeftView = null;
 			}
 
-			this.rightView = getItemView(topItem.getRightBarButtonItem());
+			this.rightView = this.getItemView(topItem.getRightBarButtonItem());
 
 			if (this.rightView != null) {
 				this.rightView.setAutoresizing(Autoresizing.FLEXIBLE_LEFT_MARGIN);
@@ -551,13 +624,12 @@ public class NavigationBar extends View {
 			float titleMinX = this.itemEdgeInsets.left;
 			float titleMaxX = bounds.size.width - this.itemEdgeInsets.right;
 
-
 			if(this.leftView != null) {
-				titleMinX += this.leftView.getFrame().size.width + this.itemEdgeInsets.right;
+				titleMinX = this.leftView.getFrameX() + this.leftView.getFrameWidth() + this.backIndicatorMargins.right;
 			}
 
 			if(this.rightView != null) {
-				titleMaxX -= this.rightView.getFrame().size.width + this.itemEdgeInsets.left;
+				titleMaxX -= this.rightView.getFrameWidth() + this.itemEdgeInsets.left;
 			}
 
 			this.centerView = topItem.getTitleView();
@@ -573,7 +645,7 @@ public class NavigationBar extends View {
 				this.centerView = new NavigationItemTitleView(titleFrame, topItem, this.titleTextAttributes, adjustment);
 			}
 
-			titleFrame.size = this.centerView.sizeThatFits(titleFrame.size);
+			titleFrame.size.set(this.centerView.sizeThatFits(titleFrame.size));
 			titleFrame.origin.y = floorf((bounds.size.height - titleFrame.size.height) / 2.0f);
 			titleFrame.origin.x = floorf((bounds.size.width - titleFrame.size.width) / 2.0f);
 
@@ -834,24 +906,16 @@ public class NavigationBar extends View {
 		view.setFrame(frame);
 	}
 
-	private Button getBackItemButton(NavigationItem navigationItem) {
+	private Control getBackItemButton(NavigationItem navigationItem) {
 		if(navigationItem == null) return null;
 
-		Button button = navigationItem.getBackBarButton();
+		BarBackButton button = new BarBackButton(this, navigationItem);
 
-		if(button == null) {
-			button = BarButton.backButton(navigationItem);
-
-			button.addActionTarget(new Control.ActionTarget() {
-				public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
-					NavigationBar.this.popNavigationItemAnimated(true);
-				}
-			}, Control.ControlEvent.TOUCH_UP_INSIDE);
-		} else {
-			// TODO: Should replace old target action
-		}
-
-		this.setBarButtonSize(button, button instanceof BarButton && ((BarButton) button).isBordered());
+		button.addActionTarget(new Control.ActionTarget() {
+			public void onControlEvent(Control control, Control.ControlEvent controlEvent, Event event) {
+				NavigationBar.this.popNavigationItemAnimated(true);
+			}
+		}, Control.ControlEvent.TOUCH_UP_INSIDE);
 
 		return button;
 	}
@@ -874,19 +938,23 @@ public class NavigationBar extends View {
 
 	class NavigationItemDelegate implements NavigationItem.Delegate {
 		public void titleChanged(NavigationItem navigationItem) {
-			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+			updateItemsWithTransition(NavigationBar.Transition.RELOAD, false, null, null);
 		}
 
 		public void titleViewChanged(NavigationItem navigationItem) {
-			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+			updateItemsWithTransition(NavigationBar.Transition.RELOAD, false, null, null);
 		}
 
 		public void leftBarButtonItemChanged(NavigationItem navigationItem, boolean animated) {
-			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+			updateItemsWithTransition(NavigationBar.Transition.RELOAD, false, null, null);
 		}
 
 		public void rightBarButtonItemChanged(NavigationItem navigationItem, boolean animated) {
-			updateItemsWithTransition(Transition.RELOAD, false, null, null);
+			updateItemsWithTransition(NavigationBar.Transition.RELOAD, false, null, null);
+		}
+
+		public void titleIconChanged(NavigationItem navigationItem, boolean animated) {
+			updateItemsWithTransition(NavigationBar.Transition.RELOAD, false, null, null);
 		}
 	}
 

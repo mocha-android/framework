@@ -294,10 +294,10 @@ public class ViewController extends Responder {
 	}
 
 	public void setNavigationItem(NavigationItem navigationItem) {
-		if(this.navigationItem != navigationItem) {
+		if (this.navigationItem != navigationItem) {
 			NavigationController navigationController = this.getNavigationController();
 
-			if(navigationController != null && this.navigationItem != null) {
+			if (navigationController != null && this.navigationItem != null) {
 				navigationController.getNavigationBar().replaceNavigationItem(this.navigationItem, navigationItem);
 			}
 

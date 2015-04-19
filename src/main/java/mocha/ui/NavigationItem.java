@@ -29,7 +29,6 @@ import java.util.List;
 public class NavigationItem extends MObject {
 	private String title;
 	private BarButtonItem backBarButtonItem;
-	private Button backBarButton;
 	private boolean hidesBackButton;
 	private boolean leftItemsSupplementBackButton;
 	private List<BarButtonItem> leftBarButtonItems;
@@ -45,8 +44,8 @@ public class NavigationItem extends MObject {
 	}
 
 	public NavigationItem() {
-		this.leftBarButtonItems = new ArrayList<BarButtonItem>();
-		this.rightBarButtonItems = new ArrayList<BarButtonItem>();
+		this.leftBarButtonItems = new ArrayList<>();
+		this.rightBarButtonItems = new ArrayList<>();
 	}
 
 	/**
@@ -62,7 +61,7 @@ public class NavigationItem extends MObject {
 	}
 
 	/**
-	 * The navigation item’s title displayed in the center of the navigation bar
+	 * The navigation item’s title displayed in the left of the navigation bar
 	 *
 	 * When the receiver is on the navigation item stack and is second from the top—in
 	 * other words, its view controller manages the views that the user would navigate back
@@ -77,7 +76,7 @@ public class NavigationItem extends MObject {
 	}
 
 	/**
-	 * Set the title displayed in the center of the navigation bar
+	 * Set the title displayed in the left of the navigation bar
 	 *
 	 * @param title The string to set as the navigation item’s title displayed in the center
 	 *                 of the navigation bar.
@@ -88,7 +87,7 @@ public class NavigationItem extends MObject {
 
 
 		if(this.delegate != null) {
-			this.delegate.titleViewChanged(this);
+			this.delegate.titleChanged(this);
 		}
 	}
 
@@ -118,15 +117,6 @@ public class NavigationItem extends MObject {
 	 */
 	public void setBackBarButtonItem(BarButtonItem backBarButtonItem) {
 		this.backBarButtonItem = backBarButtonItem;
-		this.backBarButton = null;
-	}
-
-	Button getBackBarButton() {
-		return backBarButton;
-	}
-
-	void setBackBarButton(Button backBarButton) {
-		this.backBarButton = backBarButton;
 	}
 
 	/**
