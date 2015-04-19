@@ -149,6 +149,9 @@ class BarButton extends Button {
 					case REDO:
 						imageId = R.drawable.mocha_bar_button_system_item_redo;
 						break;
+					case MORE:
+						imageId = R.drawable.mocha_bar_button_system_item_more;
+						break;
 				}
 
 				if(imageId != -1) {

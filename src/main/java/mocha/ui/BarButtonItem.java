@@ -16,7 +16,7 @@ public class BarButtonItem extends BarItem implements Accessibility {
 		DONE, CANCEL, EDIT, SAVE, ADD, FLEXIBLE_SPACE, FIXED_SPACE,
 		COMPOSE, REPLY, ACTION, ORGANIZE, BOOKMARKS, SEARCH, REFRESH,
 		STOP, CAMERA, TRASH, PLAY, PAUSE, REWIND, FAST_FORWARD, UNDO,
-		REDO
+		REDO, MORE
 	}
 
 	public enum Style {
