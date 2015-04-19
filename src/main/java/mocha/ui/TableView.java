@@ -7,7 +7,6 @@
 package mocha.ui;
 
 import android.util.SparseArray;
-import android.view.ViewGroup;
 import mocha.foundation.IndexPath;
 import mocha.foundation.Range;
 import mocha.foundation.Sets;
@@ -125,6 +124,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	private TableViewCell.SeparatorStyle separatorStyle;
 	private final EdgeInsets separatorInset = EdgeInsets.zero();
 	private int separatorColor;
+	private boolean separatorInsetShouldInsetBackgroundViews;
 	private boolean editing;
 	private boolean fullEditing;
 	private float rowHeight;
@@ -188,6 +188,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		super(frame);
 
 		this.tableStyle = style == null ? Style.PLAIN : style;
+		this.separatorInsetShouldInsetBackgroundViews = true;
 		this.setAllowsSelection(true);
 		this.rowData = new TableViewRowData(this);
 		this.cellsQueuedForReuse = new HashMap<>();
@@ -268,6 +269,18 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 		for(TableViewCell cell : this.visibleCells) {
 			cell.setSeparatorColor(separatorColor);
+		}
+	}
+
+	public boolean getSeparatorInsetShouldInsetBackgroundViews() {
+		return this.separatorInsetShouldInsetBackgroundViews;
+	}
+
+	public void setSeparatorInsetShouldInsetBackgroundViews(boolean separatorInsetShouldInsetBackgroundViews) {
+		this.separatorInsetShouldInsetBackgroundViews = separatorInsetShouldInsetBackgroundViews;
+
+		for(TableViewCell cell : this.visibleCells) {
+			cell.setInheritedSeparatorInsetShouldInsetBackgroundViews(separatorInsetShouldInsetBackgroundViews);
 		}
 	}
 
@@ -1058,6 +1071,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		}
 
 		cell.setInheritedSeparatorInset(this.separatorInset);
+		cell.setInheritedSeparatorInsetShouldInsetBackgroundViews(this.separatorInsetShouldInsetBackgroundViews);
 
 		return cell;
 	}

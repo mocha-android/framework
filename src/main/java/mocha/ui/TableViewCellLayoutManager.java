@@ -222,6 +222,9 @@ class TableViewCellLayoutManager extends MObject {
 		if(style == TableView.Style.GROUPED) {
 			x += GROUPED_INSET;
 			width -= GROUPED_INSET + GROUPED_INSET;
+		} else if(cell.getSeparatorInsetShouldInsetBackgroundViews()) {
+			x += cell.separatorInset.left;
+			width -= cell.separatorInset.left + cell.separatorInset.right;
 		}
 
 		return new Rect(x, 0.0f, width, cell.getBounds().size.height - separatorRect.size.height);

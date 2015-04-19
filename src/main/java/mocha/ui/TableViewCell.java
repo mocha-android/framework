@@ -10,7 +10,6 @@ import mocha.graphics.Font;
 import mocha.graphics.Rect;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -137,8 +136,10 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	private View separatorView;
 	final EdgeInsets separatorInset;
-	private boolean usingInheritedSeparatorInset;
+	private boolean inheritsSeparatorInset;
 	private boolean changedSeparatorInset;
+	private boolean separatorInsetShouldInsetBackgroundViews;
+	private boolean inheritsSeparatorInsetShouldInsetBackgroundViews;
 
 	private AccessoryType accessoryType;
 	private View customAccessoryView;
@@ -183,7 +184,8 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.separatorStyle = SeparatorStyle.SINGLE_LINE;
 		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.separatorInset = EdgeInsets.zero();
-		this.usingInheritedSeparatorInset = true;
+		this.inheritsSeparatorInset = true;
+		this.inheritsSeparatorInsetShouldInsetBackgroundViews = true;
 		this.accessoryType = AccessoryType.NONE;
 		this.editingStyle = EditingStyle.DELETE;
 		this.selected = false;
@@ -309,7 +311,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	public void setSelectionStyle(SelectionStyle selectionStyle) {
 		this.selectionStyle = selectionStyle;
 
-		if(usingDefaultSelectedBackgroundView) {
+		if(this.usingDefaultSelectedBackgroundView) {
 			this.selectedBackgroundView.removeFromSuperview();
 			this.selectedBackgroundView = null;
 
@@ -431,15 +433,34 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public void setSeparatorInset(EdgeInsets separatorInset) {
 		this.separatorInset.set(separatorInset);
-		this.usingInheritedSeparatorInset = false;
+		this.inheritsSeparatorInset = false;
 		this.changedSeparatorInset = true;
 		this.setNeedsLayout();
 	}
 
 	final void setInheritedSeparatorInset(EdgeInsets separatorInset) {
-		if(this.usingInheritedSeparatorInset) {
+		if(this.inheritsSeparatorInset) {
 			this.separatorInset.set(separatorInset);
 			this.changedSeparatorInset = true;
+			this.setNeedsLayout();
+		}
+	}
+
+	public boolean getSeparatorInsetShouldInsetBackgroundViews() {
+		return this.separatorInsetShouldInsetBackgroundViews;
+	}
+
+	public void setSeparatorInsetShouldInsetBackgroundViews(boolean separatorInsetShouldInsetBackgroundViews) {
+		if(this.separatorInsetShouldInsetBackgroundViews != separatorInsetShouldInsetBackgroundViews) {
+			this.separatorInsetShouldInsetBackgroundViews = separatorInsetShouldInsetBackgroundViews;
+			this.inheritsSeparatorInsetShouldInsetBackgroundViews = false;
+			this.setNeedsLayout();
+		}
+	}
+
+	void setInheritedSeparatorInsetShouldInsetBackgroundViews(boolean separatorInsetShouldInsetBackgroundViews) {
+		if(this.inheritsSeparatorInsetShouldInsetBackgroundViews && this.separatorInsetShouldInsetBackgroundViews != separatorInsetShouldInsetBackgroundViews) {
+			this.separatorInsetShouldInsetBackgroundViews = separatorInsetShouldInsetBackgroundViews;
 			this.setNeedsLayout();
 		}
 	}
