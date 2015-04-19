@@ -137,6 +137,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	private View separatorView;
 	final EdgeInsets separatorInset;
+	private boolean usingInheritedSeparatorInset;
 	private boolean changedSeparatorInset;
 
 	private AccessoryType accessoryType;
@@ -182,6 +183,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		this.separatorStyle = SeparatorStyle.SINGLE_LINE;
 		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.separatorInset = EdgeInsets.zero();
+		this.usingInheritedSeparatorInset = true;
 		this.accessoryType = AccessoryType.NONE;
 		this.editingStyle = EditingStyle.DELETE;
 		this.selected = false;
@@ -201,10 +203,6 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	void setTableStyle(TableView.Style tableStyle) {
 		this.tableStyle = tableStyle;
-
-		if(!this.changedSeparatorInset && tableStyle == TableView.Style.GROUPED) {
-			this.separatorInset.left = TableViewCellLayoutManager.GROUPED_INSET;
-		}
 	}
 
 	public void layoutSubviews() {
@@ -433,8 +431,17 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 	public void setSeparatorInset(EdgeInsets separatorInset) {
 		this.separatorInset.set(separatorInset);
+		this.usingInheritedSeparatorInset = false;
 		this.changedSeparatorInset = true;
 		this.setNeedsLayout();
+	}
+
+	final void setInheritedSeparatorInset(EdgeInsets separatorInset) {
+		if(this.usingInheritedSeparatorInset) {
+			this.separatorInset.set(separatorInset);
+			this.changedSeparatorInset = true;
+			this.setNeedsLayout();
+		}
 	}
 
 	public void setHighlighted(boolean highlighted) {

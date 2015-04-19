@@ -1045,6 +1045,8 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 			cell.setSeparatorColor(this.separatorColor);
 		}
 
+		cell.setInheritedSeparatorInset(this.separatorInset);
+
 		return cell;
 	}
 
@@ -1705,5 +1707,5 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	public boolean shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer) {
 		return false;
 	}
-	
+
 }
