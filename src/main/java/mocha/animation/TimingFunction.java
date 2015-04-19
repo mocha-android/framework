@@ -25,10 +25,11 @@ abstract public class TimingFunction {
 		}
 	};
 
-	public static final TimingFunction DEFAULT = new CubicBezierCurveTimingFunction(0.25f, 0.1f, 0.25f, 0.1f);
+	public static final TimingFunction EASE = new CubicBezierCurveTimingFunction(0.25f, 0.1f, 0.25f, 0.1f);
 	public static final TimingFunction EASE_IN = new CubicBezierCurveTimingFunction(0.42f, 0.0f, 1.0f, 1.0f);
 	public static final TimingFunction EASE_OUT = new CubicBezierCurveTimingFunction(0.0f, 0.0f, 0.58f, 1.0f);
 	public static final TimingFunction EASE_IN_OUT = new CubicBezierCurveTimingFunction(0.42f, 0.0f, 0.58f, 1.0f);
+	public static final TimingFunction MATERIAL = new CubicBezierCurveTimingFunction(0.4f, 0.0f, 0.2f, 1.0f);
 
 	public static class CubicBezierCurveTimingFunction extends TimingFunction {
 		private UnitBezier unitBezier;

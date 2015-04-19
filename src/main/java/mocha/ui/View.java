@@ -176,7 +176,6 @@ public class View extends Responder implements Accessibility {
 	public enum AnimationCurve {
 		/**
 		 * Animation starts and ends slow, and accelerates during the middle
-		 * <p><i>This is the default value</i></p>
 		 */
 		EASE_IN_OUT,
 
@@ -193,7 +192,13 @@ public class View extends Responder implements Accessibility {
 		/**
 		 * Animation progresses evenly throughout it's duration
 		 */
-		LINEAR
+		LINEAR,
+
+		/**
+		 * Animation curve for Android Material design
+		 * <p><i>This is the default value</i></p>
+		 */
+		MATERIAL
 	}
 
 	public enum TintAdjustmentMode {
@@ -2110,6 +2115,11 @@ public class View extends Responder implements Accessibility {
 		 */
 		CURVE_LINEAR,
 
+		/**
+		 * @see AnimationCurve#MATERIAL
+		 */
+		CURVE_MATERIAL,
+
 		TRANSITION_NONE,
 
 		/**
@@ -2517,8 +2527,10 @@ public class View extends Responder implements Accessibility {
 			View.setAnimationCurve(AnimationCurve.EASE_OUT);
 		} else if(options.contains(AnimationOption.CURVE_LINEAR)) {
 			View.setAnimationCurve(AnimationCurve.LINEAR);
-		} else {
+		} else if(options.contains(AnimationOption.CURVE_EASE_IN_OUT)) {
 			View.setAnimationCurve(AnimationCurve.EASE_IN_OUT);
+		} else {
+			View.setAnimationCurve(AnimationCurve.MATERIAL);
 		}
 	}
 

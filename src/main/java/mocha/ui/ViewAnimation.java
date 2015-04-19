@@ -40,7 +40,7 @@ class ViewAnimation extends MObject {
 	// Animation info
 	long duration = 200;
 	long delay = 0;
-	View.AnimationCurve animationCurve = View.AnimationCurve.EASE_IN_OUT;
+	View.AnimationCurve animationCurve = View.AnimationCurve.MATERIAL;
 	TimingFunction timingFunction;
 	View.AnimationWillStart willStart;
 	View.AnimationDidStop didStop;
@@ -190,8 +190,11 @@ class ViewAnimation extends MObject {
 					this.timingFunction = TimingFunction.LINEAR;
 					break;
 				case EASE_IN_OUT:
-				default:
 					this.timingFunction = TimingFunction.EASE_IN_OUT;
+					break;
+				case MATERIAL:
+				default:
+					this.timingFunction = TimingFunction.MATERIAL;
 					break;
 			}
 		}
