@@ -241,14 +241,22 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	public void setSeparatorStyle(TableViewCell.SeparatorStyle separatorStyle) {
 		this.separatorStyle = separatorStyle;
+
+		for(TableViewCell cell : this.visibleCells) {
+			cell.setSeparatorStyle(this.separatorStyle);
+		}
 	}
 
 	public EdgeInsets getSeparatorInset() {
 		return this.separatorInset.copy();
 	}
 
-	public void setSeparatorInset(EdgeInsets separatorInsets) {
-		this.separatorInset.set(separatorInsets);
+	public void setSeparatorInset(EdgeInsets separatorInset) {
+		this.separatorInset.set(separatorInset);
+
+		for(TableViewCell cell : this.visibleCells) {
+			cell.setInheritedSeparatorInset(this.separatorInset);
+		}
 	}
 
 	public int getSeparatorColor() {
@@ -257,6 +265,10 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 	public void setSeparatorColor(int separatorColor) {
 		this.separatorColor = separatorColor;
+
+		for(TableViewCell cell : this.visibleCells) {
+			cell.setSeparatorColor(separatorColor);
+		}
 	}
 
 	public DataSource getDataSource() {
