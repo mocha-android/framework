@@ -202,6 +202,14 @@ public class Image extends MObject {
 		return size.copy();
 	}
 
+	public float getWidth() {
+		return this.size.width;
+	}
+
+	public float getHeight() {
+		return this.size.height;
+	}
+
 	public float getScale() {
 		return scale;
 	}
