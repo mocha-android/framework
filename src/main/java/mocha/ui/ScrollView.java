@@ -11,7 +11,7 @@ import mocha.graphics.Point;
 import mocha.graphics.Rect;
 import mocha.graphics.Size;
 
-public class ScrollView extends View implements GestureRecognizer.GestureHandler {
+public class ScrollView extends View {
 
 	public interface Listener extends OptionalInterface {
 		@Optional
@@ -106,7 +106,13 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.alwaysBounceHorizontal = false;
 		this.alwaysBounceVertical = false;
 		this.listener = null;
-		this.panGestureRecognizer = new ScrollViewPanGestureRecognizer(this);
+		this.panGestureRecognizer = new ScrollViewPanGestureRecognizer(new GestureRecognizer.GestureHandler() {
+			@Override
+			public void handleGesture(GestureRecognizer gestureRecognizer) {
+				ScrollView.this.handlePanGesture();
+			}
+		});
+
 		this.setUserInteractionEnabled(true);
 		this.addGestureRecognizer(this.panGestureRecognizer);
 		this.setClipsToBounds(true);
@@ -740,10 +746,8 @@ public class ScrollView extends View implements GestureRecognizer.GestureHandler
 		this.decelerationRate = decelerationRate;
 	}
 
-	public void handleGesture(GestureRecognizer gestureRecognizer) {
-		if(gestureRecognizer != this.panGestureRecognizer) return;
-
-		switch (gestureRecognizer.getState()) {
+	private void handlePanGesture() {
+		switch (this.panGestureRecognizer.getState()) {
 			case BEGAN:
 				this.panningDidStart(this.panGestureRecognizer);
 				break;
