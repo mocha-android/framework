@@ -380,8 +380,8 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 					this.clearButton.setImage(image, State.NORMAL, State.HIGHLIGHTED);
 				}
 			} else {
-				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button, State.NORMAL);
-				this.clearButton.setImage(R.drawable.mocha_text_field_clear_button_pressed, State.NORMAL, State.HIGHLIGHTED);
+				this.clearButton.setImage(Image.imageNamed(R.drawable.mocha_text_field_clear).imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE), State.NORMAL);
+				this.clearButton.setImage(Image.imageNamed(R.drawable.mocha_text_field_clear_pressed).imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE), State.NORMAL, State.HIGHLIGHTED);
 			}
 		}
 	}
