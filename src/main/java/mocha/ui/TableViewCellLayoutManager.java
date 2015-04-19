@@ -35,7 +35,7 @@ class TableViewCellLayoutManager extends MObject {
 
 	protected static final float GROUPED_INSET = 10.0f;
 	protected static final float EDIT_CONTROL_SIZE = 34.0f;
-	protected static final float BASE_INSET = 15.0f; // Used for left/right edges and imageView+label spacing
+	protected static final float BASE_INSET = 16.0f; // Used for left/right edges and imageView+label spacing
 
 	protected final float separatorHeight;
 	protected final float scale;
@@ -289,7 +289,7 @@ class TableViewCellLayoutManager extends MObject {
 			originX = maxXOrigin;
 			width = imageRectLastX - maxXOrigin;
 		} else {
-			originX = Math.max(imageRectLastX, cell.separatorInset.left);
+			originX = Math.max(BASE_INSET, Math.max(imageRectLastX, cell.separatorInset.left));
 			width = contentRect.size.width - originX - BASE_INSET;
 		}
 

@@ -20,7 +20,7 @@ public class Toolbar extends View {
 
 	public static <E extends Toolbar> Appearance appearance(Class<E> cls) {
 		if(appearanceStorage == null) {
-			appearanceStorage = new mocha.ui.Appearance.Storage<Toolbar, Appearance>(Toolbar.class, Appearance.class);
+			appearanceStorage = new mocha.ui.Appearance.Storage<>(Toolbar.class, Appearance.class);
 		}
 
 		return appearanceStorage.appearance(cls);
@@ -46,10 +46,11 @@ public class Toolbar extends View {
 		super.onCreate(frame);
 
 		this.barStyle = BarStyle.DEFAULT;
-		this.barTintColor = Color.TRANSPARENT;
-		this.items = new ArrayList<BarButtonItem>();
-		this.backgroundImages = new BarMetricsStorage<Map<Position, Image>>();
-		this.shadowImages = new HashMap<Position, Image>();
+		this.setBarTintColor(0xff0086d4);
+		this.setTintColor(Color.WHITE);
+		this.items = new ArrayList<>();
+		this.backgroundImages = new BarMetricsStorage<>();
+		this.shadowImages = new HashMap<>();
 		this.position = Position.ANY;
 
 		if(appearanceStorage != null) {
@@ -117,7 +118,7 @@ public class Toolbar extends View {
 		Map<Position,Image> backgroundImages = this.backgroundImages.get(barMetrics);
 
 		if(backgroundImages == null) {
-			backgroundImages = new HashMap<Position, Image>();
+			backgroundImages = new HashMap<>();
 			this.backgroundImages.set(barMetrics, backgroundImages);
 		}
 

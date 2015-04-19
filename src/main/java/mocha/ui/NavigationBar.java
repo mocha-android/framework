@@ -137,12 +137,13 @@ public class NavigationBar extends View {
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		this.setBarTintColor(Color.rgba(0.529f, 0.616f, 0.722f, 1.0f));
 		this.items = new ArrayList<>();
 		this.itemEdgeInsets = DEFAULT_ITEM_EDGE_INSET.copy();
 		this.backIndicatorContentInset = DEFAULT_BACK_INDICATOR_CONTENT_INSET.copy();
 		this.backIndicatorMargins = DEFAULT_BACK_INDICATOR_MARGINS.copy();
 
+		this.setBarTintColor(0xff0086d4);
+		this.setTintColor(Color.WHITE);
 		this.setShadowImage(Image.imageNamed(R.drawable.mocha_navigation_bar_shadow));
 
 		this.titleVerticalPositionAdjustment = new BarMetricsStorage<>();
