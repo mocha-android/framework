@@ -143,6 +143,8 @@ public class NavigationBar extends View {
 		this.backIndicatorContentInset = DEFAULT_BACK_INDICATOR_CONTENT_INSET.copy();
 		this.backIndicatorMargins = DEFAULT_BACK_INDICATOR_MARGINS.copy();
 
+		this.setShadowImage(Image.imageNamed(R.drawable.mocha_navigation_bar_shadow));
+
 		this.titleVerticalPositionAdjustment = new BarMetricsStorage<>();
 		this.backgroundImageView = new BarBackgroundView(this.getBounds());
 		this.titleAlignment = TitleAlignment.LEFT;
