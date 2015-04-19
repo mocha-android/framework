@@ -21,7 +21,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	}
 
 	public enum SelectionStyle {
-		NONE, BLUE, GRAY
+		NONE, DEFAULT
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 		super(frame);
 
 		this.cellStyle = style != null ? style : Style.DEFAULT;
-		this.selectionStyle = SelectionStyle.BLUE;
+		this.selectionStyle = SelectionStyle.DEFAULT;
 		this.separatorStyle = SeparatorStyle.SINGLE_LINE;
 		this.separatorColor = Color.white(0.88f, 1.0f);
 		this.separatorInset = EdgeInsets.zero();
@@ -514,8 +514,8 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 
 		if(this.highlighted) {
 			if(this.selectedBackgroundView == null) {
-				this.selectedBackgroundView = new ImageView(R.drawable.mocha_table_view_cell_selection);
-				this.selectedBackgroundView.setFrame(this.layoutManager.getBackgroundViewRectForCell(this, this.tableStyle));
+				this.selectedBackgroundView = new View(this.layoutManager.getBackgroundViewRectForCell(this, this.tableStyle));
+				this.selectedBackgroundView.setBackgroundColor(Color.white(0.0f, 0.5f));
 
 				if(animated) {
 					this.selectedBackgroundView.setAlpha(0.0f);
