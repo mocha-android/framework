@@ -81,7 +81,88 @@ class BarButton extends Button {
 			this.setTitleShadowColor(highlightedAttributes.shadowColor, highlightedStates);
 		}
 
-		if(item.getTitle() != null && item.getTitle().length() > 0) {
+		BarButtonItem.SystemItem systemItem = barButtonItem.getSystemItem();
+
+		if(systemItem != null) {
+			if(systemItem == BarButtonItem.SystemItem.CANCEL) {
+				this.setTitle("Cancel", State.NORMAL);
+			} else if(systemItem == BarButtonItem.SystemItem.EDIT) {
+				this.setTitle("Edit", State.NORMAL);
+			} else {
+				int imageId = -1;
+
+				switch (systemItem) {
+					case DONE:
+						imageId = R.drawable.mocha_bar_button_system_item_done;
+						break;
+					case SAVE:
+						imageId = R.drawable.mocha_bar_button_system_item_save;
+						break;
+					case ADD:
+						imageId = R.drawable.mocha_bar_button_system_item_save;
+						break;
+					case COMPOSE:
+						imageId = R.drawable.mocha_bar_button_system_item_compose;
+						break;
+					case REPLY:
+						imageId = R.drawable.mocha_bar_button_system_item_reply;
+						break;
+					case ACTION:
+						imageId = R.drawable.mocha_bar_button_system_item_action;
+						break;
+					case ORGANIZE:
+						imageId = R.drawable.mocha_bar_button_system_item_organize;
+						break;
+					case BOOKMARKS:
+						imageId = R.drawable.mocha_bar_button_system_item_bookmarks;
+						break;
+					case SEARCH:
+						imageId = R.drawable.mocha_bar_button_system_item_search;
+						break;
+					case REFRESH:
+						imageId = R.drawable.mocha_bar_button_system_item_refresh;
+						break;
+					case STOP:
+						imageId = R.drawable.mocha_bar_button_system_item_stop;
+						break;
+					case CAMERA:
+						imageId = R.drawable.mocha_bar_button_system_item_camera;
+						break;
+					case TRASH:
+						imageId = R.drawable.mocha_bar_button_system_item_trash;
+						break;
+					case PLAY:
+						imageId = R.drawable.mocha_bar_button_system_item_play;
+						break;
+					case PAUSE:
+						imageId = R.drawable.mocha_bar_button_system_item_pause;
+						break;
+					case REWIND:
+						imageId = R.drawable.mocha_bar_button_system_item_rewind;
+						break;
+					case FAST_FORWARD:
+						imageId = R.drawable.mocha_bar_button_system_item_fast_forward;
+						break;
+					case UNDO:
+						imageId = R.drawable.mocha_bar_button_system_item_undo;
+						break;
+					case REDO:
+						imageId = R.drawable.mocha_bar_button_system_item_redo;
+						break;
+				}
+
+				if(imageId != -1) {
+					Image image = Image.imageNamed(imageId).imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE);
+					this.setImage(image, State.NORMAL);
+
+					EdgeInsets imageInset = item.getImageInsets();
+
+					if(imageInset != null) {
+						this.setImageEdgeInsets(imageInset);
+					}
+				}
+			}
+		} else if(item.getTitle() != null && item.getTitle().length() > 0) {
 			this.setTitle(item.getTitle(), State.NORMAL);
 		} else if(item.getImage() != null) {
 			Image image = item.getImage();
