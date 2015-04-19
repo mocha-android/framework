@@ -180,32 +180,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this(style, new Rect(0.0f, 0.0f, 320.0f, 480.0f));
 	}
 
-//	private class TableSwipe extends SwipeGestureRecognizer {
-//		private TableSwipe(Direction direction, GestureHandler gestureHandler) {
-//			super(direction, gestureHandler);
-//		}
-//
-//		protected void setState(State state) {
-//			State oldState = this.getState();
-//			super.setState(state);
-//
-//			try {
-//				throw new Exception();
-//			} catch (Exception e) {
-//				MWarn(e, "%s setState: %s", this, state);
-//			}
-//
-//			MWarn("%s Transitioning to %s from %s, result: %s", this.getDirection(), state, oldState, this.getState());
-//		}
-//
-//		protected void reset() {
-//			super.reset();
-//
-//			MWarn("%s RESET", this.getDirection());
-//		}
-//
-//	}
-
 	public TableView(Rect frame, Style style) {
 		this(style, frame);
 	}
@@ -238,24 +212,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		} else {
 			this.registerHeaderFooterViewClass(TableViewHeaderFooterPlainView.class, TableViewHeaderFooterPlainView.REUSE_IDENTIFIER);
 		}
-
-//		SwipeGestureRecognizer gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.LEFT, new GestureRecognizer.GestureHandler() {
-//			public void handleGesture(GestureRecognizer gestureRecognizer) {
-//				MWarn("SWIPE LEFT");
-//				handleCellSwipe(gestureRecognizer);
-//			}
-//		});
-//		gestureRecognizer.setDelegate(this);
-//		this.addGestureRecognizer(gestureRecognizer);
-//
-//		gestureRecognizer = new TableSwipe(SwipeGestureRecognizer.Direction.RIGHT, new GestureRecognizer.GestureHandler() {
-//			public void handleGesture(GestureRecognizer gestureRecognizer) {
-//				MWarn("SWIPE RIGHT");
-//				handleCellSwipe(gestureRecognizer);
-//			}
-//		});
-//		gestureRecognizer.setDelegate(this);
-//		this.addGestureRecognizer(gestureRecognizer);
 
 		LongPressGestureRecognizer longPressGestureRecognizer = new LongPressGestureRecognizer(new GestureRecognizer.GestureHandler() {
 			public void handleGesture(GestureRecognizer gestureRecognizer) {
@@ -334,28 +290,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 			this.dataSourceHeaders = null;
 			this.dataSourceFooters = null;
 		}
-	}
-
-	private void debugSubviews() {
-		MLog("============================");
-		MLog("Subview Debug (Bounds: %s):", this.getBounds());
-		MLog("----------------------------");
-		String format = "| %-35s | %-7s | %-7s | %-35s | %-10s | %-10s | %-11s | %-6s | %-5s |";
-		MLog(format, "Native Frame", "Section", "Type", "Frame", "In Headers", "In Cells", "In Subviews", "Queued", "Y");
-		for(View view : this.getSubviews()) {
-			if(view instanceof TableViewSubview) {
-				TableViewSubview subview = (TableViewSubview)view;
-				ViewGroup viewGroup = subview.getLayer().getViewGroup();
-
-//				MLog(format, new Rect(viewGroup.getX(), viewGroup.getY(), viewGroup.getWidth(), viewGroup.getHeight()),
-//						(subview instanceof TableViewCell ? subview._dataSourceInfo.indexPath.section + "x" + subview._dataSourceInfo.indexPath.row : subview._dataSourceInfo.section),
-//						subview._dataSourceInfo.type, subview.getFrame(), this.visibleHeaders.contains(subview),
-//						(subview instanceof TableViewCell ? this.tableViewCells.contains(subview) : "false"),
-//						this.visibleSubviews.contains(subview), subview._isQueued, viewGroup.getY());
-			}
-		}
-
-		MLog("============================");
 	}
 
 	public Delegate getDelegate() {
@@ -706,8 +640,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.reloadData();
 	}
 
-	@Deprecated
-	/** This will only exist until begin/endUpdates do this properly */
+	@Deprecated /** This will only exist until begin/endUpdates do this properly */
 	public void updateRowSizes() {
 		this.reloadingData = true;
 		this.rowData.reloadData();
@@ -735,10 +668,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 		if (this.rowData.getNumberOfSections() == 0) {
 			return;
-		}
-
-		if(this.getSubviews().size() > 20) {
-			MWarn("subviews > 20 (%d), offset: %f", this.getSubviews().size(), this.getContentOffset().y);
 		}
 
 		this.updateVisibleCells();
@@ -955,7 +884,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	private void enqueueCell(TableViewCell cell) {
-		cell.createdByTableView = cell.reuseIdentifier != null; // Unlike header/footers, as long as a cell has a reuse identiifer, it's queued
+		cell.createdByTableView = cell.reuseIdentifier != null; // Unlike header/footers, as long as a cell has a reuse identifier, it's queued
 
 		List<TableViewCell> queuedViews = this.cellsQueuedForReuse.get(cell.reuseIdentifier);
 
@@ -1013,7 +942,7 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	}
 
 	public List<TableViewCell> getVisibleCells() {
-		return new ArrayList<TableViewCell>(this.visibleCells);
+		return new ArrayList<>(this.visibleCells);
 	}
 
 	public List<IndexPath> getIndexPathsForVisibleRows() {
@@ -1776,4 +1705,5 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 	public boolean shouldBeRequiredToFailByGestureRecognizer(GestureRecognizer gestureRecognizer, GestureRecognizer otherGestureRecognizer) {
 		return false;
 	}
+	
 }
