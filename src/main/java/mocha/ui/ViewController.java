@@ -16,11 +16,8 @@ public class ViewController extends Responder {
 	private static Method didReceiveMemoryWarningMethod;
 
 	public enum ModalTransitionStyle {
-		COVER_VERTICAL,
-		ANDROID,
-		FLIP_HORIZONTAL,
-		CROSS_DISOLVE,
-		PARTIAL_CURL,
+		MATERIAL,
+		HOLO,
 		CUSTOM
 	}
 
@@ -67,7 +64,7 @@ public class ViewController extends Responder {
 	public ViewController() {
 		this.childViewControllers = new ArrayList<>();
 		this.modalPresentationStyle = ModalPresentationStyle.FULL_SCREEN;
-		this.modalTransitionStyle = ModalTransitionStyle.COVER_VERTICAL;
+		this.modalTransitionStyle = ModalTransitionStyle.MATERIAL;
 		this.shouldAutorotate = this.getInitialShouldAutorotate();
 		this.preferredInterfaceOrientationForPresentation = this.getInitialPreferredInterfaceOrientationForPresentation();
 
@@ -95,7 +92,9 @@ public class ViewController extends Responder {
 	 * Called by getView if no view has been loaded. Should never be called directly.
 	 */
 	protected void loadView() {
-		this.setView(new View(Screen.mainScreen().getBounds()));
+		View view = new View(Screen.mainScreen().getBounds());
+		view.setBackgroundColor(Color.WHITE);
+		this.setView(view);
 	}
 
 	/**
@@ -757,10 +756,10 @@ public class ViewController extends Responder {
 			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			}
-		} else if(transitionStyle == ModalTransitionStyle.ANDROID) {
-			return new ViewPresentationControllerAndroid(this);
+		} else if(transitionStyle == ModalTransitionStyle.HOLO) {
+			return new ViewPresentationControllerHolo(this);
 		} else {
-			return new ViewPresentationControllerCoverVertical(this);
+			return new ViewPresentationControllerMaterial(this);
 		}
 	}
 

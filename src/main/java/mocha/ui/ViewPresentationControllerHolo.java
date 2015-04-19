@@ -9,9 +9,9 @@ import mocha.animation.TimingFunction;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Rect;
 
-class ViewPresentationControllerAndroid extends ViewPresentationController {
+class ViewPresentationControllerHolo extends ViewPresentationController {
 
-	ViewPresentationControllerAndroid(ViewController viewController) {
+	ViewPresentationControllerHolo(ViewController viewController) {
 		super(viewController);
 	}
 
