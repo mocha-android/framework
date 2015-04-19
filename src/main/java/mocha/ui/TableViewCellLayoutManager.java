@@ -43,14 +43,14 @@ class TableViewCellLayoutManager extends MObject {
 	TableViewCellLayoutManager() {
 		this.scale = Screen.mainScreen().getScale();
 
-		if(this.scale > 1.0f && this.scale < 2.0f) {
-			if(this.scale > 1.5f) {
-				this.separatorHeight = 2.0f / this.scale;
-			} else {
-				this.separatorHeight = 1.0f / this.scale;
-			}
-		} else {
+		if (this.scale <= 1.5f) {
 			this.separatorHeight = 1.0f;
+		} else if (this.scale <= 2.5f) {
+			this.separatorHeight = 1.0f / scale;
+		} else if (this.scale <= 3.5f) {
+			this.separatorHeight = 2.0f / scale;
+		} else {
+			this.separatorHeight = 3.0f / scale;
 		}
 	}
 
