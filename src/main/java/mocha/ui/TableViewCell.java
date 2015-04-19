@@ -7,6 +7,7 @@
 package mocha.ui;
 
 import mocha.graphics.Font;
+import mocha.graphics.Image;
 import mocha.graphics.Rect;
 
 import java.util.Arrays;
@@ -17,7 +18,7 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	static long ANIMATED_HIGHLIGHT_DURATION = NavigationBar.ANIMATION_DURATION;
 
 	public enum AccessoryType {
-			NONE, DISCLOSURE_INDICATOR, DETAIL_DISCLOSURE_BUTTON, CHECKMARK
+			NONE, DISCLOSURE_INDICATOR, CHECKMARK
 	}
 
 	public enum SelectionStyle {
@@ -272,27 +273,19 @@ public class TableViewCell extends TableViewSubview implements Highlightable {
 	private void setupAccessoryView() {
 		if(this.accessoryView != null || (this.customAccessoryView == null && this.accessoryType == AccessoryType.NONE)) return;
 
-		if(this.accessoryType == AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
-			Button button = new Button();
-			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator, Control.State.NORMAL);
-			button.setImage(R.drawable.mocha_table_view_cell_accessory_detailed_disclosure_indicator_pressed, Control.State.NORMAL, Control.State.HIGHLIGHTED);
-			button.setBackgroundColor(Color.TRANSPARENT);
-			this.accessoryView = button;
+		ImageView imageView = new ImageView();
+		imageView.setContentMode(ContentMode.CENTER);
+		imageView.setBackgroundColor(Color.TRANSPARENT);
+
+		if(accessoryType == AccessoryType.DISCLOSURE_INDICATOR) {
+			imageView.setImage(R.drawable.mocha_table_next);
+			imageView.setAlpha(0.65f);
 		} else {
-			ImageView imageView = new ImageView();
-			imageView.setContentMode(ContentMode.CENTER);
-			imageView.setBackgroundColor(Color.TRANSPARENT);
-
-			if(accessoryType == AccessoryType.DISCLOSURE_INDICATOR) {
-				imageView.setImage(R.drawable.mocha_table_view_cell_accessory_disclosure_indicator);
-				imageView.setHighlightedImage(R.drawable.mocha_table_view_cell_accessory_disclosure_indicator_selected);
-			} else {
-				imageView.setImage(R.drawable.mocha_table_view_cell_accessory_checkmark);
-				imageView.setHighlightedImage(R.drawable.mocha_table_view_cell_accessory_checkmark_selected);
-			}
-
-			this.accessoryView = imageView;
+			imageView.setImage(Image.imageNamed(R.drawable.mocha_table_checkmark).imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE));
+			imageView.setAlpha(1.0f);
 		}
+
+		this.accessoryView = imageView;
 
 		if(this.accessoryView.getSuperview() != this) {
 			this.addSubview(this.accessoryView);

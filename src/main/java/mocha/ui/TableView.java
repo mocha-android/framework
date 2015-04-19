@@ -1306,16 +1306,6 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 		this.selectionDidChangeForRowAtIndexPath(cell._indexPath, selected);
 	}
 
-	void disclosureButtonWasSelectedAtIndexPath(IndexPath indexPath) {
-		TableViewCell cell = this.getCellForRowAtIndexPath(indexPath);
-
-		if (cell.getAccessoryType() == TableViewCell.AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
-			if(this.delegateAccessorySelection != null) {
-				this.delegateAccessorySelection.accessoryButtonTappedForRowWithIndexPath(this, indexPath);
-			}
-		}
-	}
-
 	void editAccessoryWasSelectedAtIndexPath(IndexPath indexPath) {
 		boolean isEditing = (this.cellsBeingEditedPaths.indexOf(indexPath) > -1);
 		this.resetAllEditingCells();

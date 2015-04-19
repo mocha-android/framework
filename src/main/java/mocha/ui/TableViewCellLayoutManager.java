@@ -199,12 +199,7 @@ class TableViewCellLayoutManager extends MObject {
 
 			case CHECKMARK:
 			case DISCLOSURE_INDICATOR:
-			case DETAIL_DISCLOSURE_BUTTON:
-				float width = 30.0f;
-
-				if (accessoryType == TableViewCell.AccessoryType.DETAIL_DISCLOSURE_BUTTON) {
-					width = 33.0f;
-				}
+				final float width = 30.0f;
 
 				return new Rect(cellBounds.origin.x + cellBounds.size.width - width, 0.0f, width, cellBounds.size.height);
 

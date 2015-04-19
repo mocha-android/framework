@@ -16,14 +16,12 @@ public class TableViewHeaderFooterPlainView extends TableViewHeaderFooterView {
 		Label textLabel = this.getTextLabel();
 
 		textLabel.setFont(Font.getBoldSystemFontWithSize(14.0f));
-		textLabel.setTextColor(Color.WHITE);
+		textLabel.setTextColor(Color.BLACK);
 		textLabel.setBackgroundColor(Color.TRANSPARENT);
 		textLabel.setShadowColor(Color.white(0.0f, 0.5f));
 		textLabel.setShadowOffset(new Size(0.0f, 1.0f));
-	}
 
-	public void draw(Context context, Rect rect) {
-		Image.imageNamed(R.drawable.mocha_table_view_section_header_background).draw(context, rect);
+		this.setBackgroundColor(Color.GRAY);
 	}
 
 }
