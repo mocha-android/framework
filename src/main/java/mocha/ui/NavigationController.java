@@ -17,7 +17,7 @@ import java.util.List;
 
 public class NavigationController extends ViewController {
 	public enum TransitionStyle {
-		ANDROID, IOS, CUSTOM
+		HOLO, MATERIAL, HORIZONTAL_SLIDE, CUSTOM
 	}
 
 	public interface Delegate extends OptionalInterface {
@@ -97,7 +97,7 @@ public class NavigationController extends ViewController {
 	public NavigationController(ViewController rootViewController, Class<? extends NavigationBar> navigationBarClass) {
 		this(navigationBarClass);
 
-		this.transitionStyle = TransitionStyle.ANDROID;
+		this.transitionStyle = TransitionStyle.MATERIAL;
 
 		if(rootViewController != null) {
 			this.addChildViewController(rootViewController);
@@ -142,7 +142,18 @@ public class NavigationController extends ViewController {
 				throw new RuntimeException(e);
 			}
 		} else {
-			this.transitionController = this.transitionStyle == TransitionStyle.ANDROID ? new NavigationTransitionControllerAndroid(this) : new NavigationTransitionControlleriOS(this);
+			switch (this.transitionStyle) {
+				case HOLO:
+					this.transitionController = new NavigationTransitionControllerHolo(this);
+					break;
+				case HORIZONTAL_SLIDE:
+					this.transitionController = new NavigationTransitionControllerHorizontalSlide(this);
+					break;
+				case MATERIAL:
+				default:
+					this.transitionController = new NavigationTransitionControllerMaterial(this);
+					break;
+			}
 		}
 
 		View view = this.getView();

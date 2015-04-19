@@ -1,7 +1,7 @@
 /**
- *  @author Shaun
- *  @date 5/15/13
- *  @copyright 2013 Mocha. All rights reserved.
+ *	@author Shaun
+ *	@date 4/19/15
+ *	@copyright 2015 Mocha. All rights reserved.
  */
 package mocha.ui;
 
@@ -13,9 +13,9 @@ import mocha.graphics.Context;
 import mocha.graphics.Image;
 import mocha.graphics.Rect;
 
-class NavigationTransitionControllerAndroid extends NavigationTransitionController {
+class NavigationTransitionControllerMaterial extends NavigationTransitionController {
 
-	public NavigationTransitionControllerAndroid(NavigationController navigationController) {
+	public NavigationTransitionControllerMaterial(NavigationController navigationController) {
 		super(navigationController);
 	}
 
@@ -82,11 +82,11 @@ class NavigationTransitionControllerAndroid extends NavigationTransitionControll
 		MObject.MWarn("Took %dms to build UI cache", android.os.SystemClock.uptimeMillis() - start);
 
 		// Animate
-		final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
+		final AffineTransform transform = AffineTransform.translation(0.0f, transitionView.getBoundsHeight() * 0.08f);
 
 		if(push) {
 			transitionView.setAlpha(0.0f);
-			transitionView.setTransform(scaled);
+			transitionView.setTransform(transform);
 		} else {
 			fromView.removeFromSuperview();
 			navigationController.getView().addSubview(toView);
@@ -99,14 +99,12 @@ class NavigationTransitionControllerAndroid extends NavigationTransitionControll
 
 		View.animateWithDuration(300, 1, new View.Animations() {
 			public void performAnimatedChanges() {
-				View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
-
 				if(push) {
 					transitionView.setAlpha(1.0f);
-					transitionView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
+					transitionView.setTransform(AffineTransform.identity());
 				} else {
 					transitionView.setAlpha(0.0f);
-					transitionView.setTransform(scaled);
+					transitionView.setTransform(transform);
 				}
 			}
 		}, new View.AnimationCompletion() {

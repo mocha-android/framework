@@ -7,9 +7,9 @@ package mocha.ui;
 
 import mocha.graphics.Rect;
 
-class NavigationTransitionControlleriOS extends NavigationTransitionController {
+class NavigationTransitionControllerHorizontalSlide extends NavigationTransitionController {
 
-	public NavigationTransitionControlleriOS(NavigationController navigationController) {
+	public NavigationTransitionControllerHorizontalSlide(NavigationController navigationController) {
 		super(navigationController);
 	}
 
