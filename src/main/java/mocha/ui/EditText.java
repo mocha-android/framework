@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/21/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.R;
@@ -10,12 +5,10 @@ import android.content.Context;
 import android.text.InputType;
 import android.text.method.MovementMethod;
 import android.view.DragEvent;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 import mocha.foundation.MObject;
 
 class EditText extends android.widget.EditText implements View.OnFocusChangeListener, View.OnClickListener {
@@ -53,29 +46,29 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	}
 
 	private void showKeyboard() {
-		if(!this.showingKeyboard) {
+		if (!this.showingKeyboard) {
 			this.showingKeyboard = true;
 			showKeyboard(this);
 		}
 	}
 
 	private void hideKeyboard() {
-		if(!this.showingKeyboard) {
+		if (!this.showingKeyboard) {
 			return;
 		} else {
 			this.showingKeyboard = false;
 		}
 
-		if(!LEAVE_KEYBOARD) {
+		if (!LEAVE_KEYBOARD) {
 			hideKeyboard(this);
 		}
 	}
 
 	private static void showKeyboard(EditText text) {
-		if(keyboardLevel == 0) {
+		if (keyboardLevel == 0) {
 			keyboardLevel++;
 
-			InputMethodManager imm = (InputMethodManager)text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+			InputMethodManager imm = (InputMethodManager) text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 			imm.showSoftInput(text, 0);
 
 		}
@@ -84,18 +77,19 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	private static void hideKeyboard(EditText text) {
 		--keyboardLevel;
 
-		if(keyboardLevel < 0) {
+		if (keyboardLevel < 0) {
 			MObject.MWarn("WARNING: Unbalanced calls to show/hideKeyboard");
 		}
 
-		if(keyboardLevel == 0) {
-			InputMethodManager imm = (InputMethodManager)text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+		if (keyboardLevel == 0) {
+			InputMethodManager imm = (InputMethodManager) text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 			imm.hideSoftInputFromWindow(text.getWindowToken(), 0);
 		}
 	}
 
 	@Deprecated
-	public void clearFocus() { }
+	public void clearFocus() {
+	}
 
 	public void forceClearFocus() {
 		super.clearFocus();
@@ -106,9 +100,9 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		boolean allowFocusChange = this.allowFocusChange;
 		this.allowFocusChange = true;
 		boolean isFocusable = this.isFocusable();
-		if(isFocusable) this.setFocusable(false);
+		if (isFocusable) this.setFocusable(false);
 		this.forceClearFocus();
-		if(isFocusable) this.setFocusable(true);
+		if (isFocusable) this.setFocusable(true);
 		this.allowFocusChange = allowFocusChange;
 	}
 
@@ -119,15 +113,15 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	}
 
 	private void reenableFocusable() {
-		if(!this.hasSetFocusable) {
+		if (!this.hasSetFocusable) {
 			this.setFocusable(true);
 		}
 	}
 
 	public void onFocusChange(View view, boolean focused) {
-		if(this.allowFocusChange) return;
+		if (this.allowFocusChange) return;
 
-		if(focused) {
+		if (focused) {
 			this.didTryToFocus = true;
 			this._clearFocus();
 		}
@@ -139,7 +133,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.allowFocusChange = true;
 		boolean result = this.requestFocus();
 
-		if(result) {
+		if (result) {
 			this.showKeyboard();
 		}
 
@@ -170,8 +164,8 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		this.didTryToFocus = false;
 		boolean result = super.onTouchEvent(event);
 
-		if(this.didTryToFocus) {
-			if(this.containerView.canBecomeFirstResponder()) {
+		if (this.didTryToFocus) {
+			if (this.containerView.canBecomeFirstResponder()) {
 				this.containerView.becomeFirstResponder();
 			}
 		}
@@ -182,7 +176,7 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 	void setupEditTextWithTraits(TextInput.Traits traits) {
 		this.setImeActionLabel(null, EditorInfo.IME_NULL);
 
-		if(traits.getReturnKeyType() != null) switch (traits.getReturnKeyType()) {
+		if (traits.getReturnKeyType() != null) switch (traits.getReturnKeyType()) {
 			case DEFAULT:
 				this.setImeOptions(0);
 				break;
@@ -213,8 +207,8 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 		int inputType = 0;
 		boolean inputTypeIsText = false;
 
-		if(!(traits instanceof mocha.ui.TextView) || ((mocha.ui.TextView) traits).isEditable()) {
-			if(traits.getKeyboardType() != null) switch (traits.getKeyboardType()) {
+		if (!(traits instanceof mocha.ui.TextView) || ((mocha.ui.TextView) traits).isEditable()) {
+			if (traits.getKeyboardType() != null) switch (traits.getKeyboardType()) {
 				case URL:
 					inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
 					inputTypeIsText = true;
@@ -241,11 +235,11 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 			inputType = InputType.TYPE_NULL;
 		}
 
-		if(inputTypeIsText) {
-			if(traits.isSecureTextEntry()) {
+		if (inputTypeIsText) {
+			if (traits.isSecureTextEntry()) {
 				inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
-			} else if(traits.getKeyboardType() != TextInput.Keyboard.Type.EMAIL_ADDRESS) {
-				if(traits.getAutocapitalizationType() != null) switch (traits.getAutocapitalizationType()) {
+			} else if (traits.getKeyboardType() != TextInput.Keyboard.Type.EMAIL_ADDRESS) {
+				if (traits.getAutocapitalizationType() != null) switch (traits.getAutocapitalizationType()) {
 					case NONE:
 						inputType |= InputType.TYPE_TEXT_VARIATION_FILTER;
 						break;
@@ -261,15 +255,16 @@ class EditText extends android.widget.EditText implements View.OnFocusChangeList
 				}
 			}
 		} else {
-			if(traits.isSecureTextEntry()) {
+			if (traits.isSecureTextEntry()) {
 				inputType |= InputType.TYPE_NUMBER_VARIATION_PASSWORD;
 			}
 		}
 
-		if(this.allowMultipleLines) {
+		if (this.allowMultipleLines) {
 			inputType |= InputType.TYPE_TEXT_FLAG_MULTI_LINE;
 		}
 
 		this.setInputType(inputType);
 	}
+
 }

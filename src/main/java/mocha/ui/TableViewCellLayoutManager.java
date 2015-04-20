@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 11/20/12
- *  @copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -65,11 +60,11 @@ class TableViewCellLayoutManager extends MObject {
 		float height = bounds.size.height - separatorRect.size.height;
 		float x = 0.0f;
 
-		if(style == TableView.Style.GROUPED) {
+		if (style == TableView.Style.GROUPED) {
 			x += GROUPED_INSET;
 			width -= GROUPED_INSET;
 
-			if(accessoryRect.size.width == 0.0f) {
+			if (accessoryRect.size.width == 0.0f) {
 				width -= GROUPED_INSET;
 			}
 		}
@@ -78,18 +73,18 @@ class TableViewCellLayoutManager extends MObject {
 		x += indent;
 		width -= indent;
 
-		if(cell.getWillShowEditControl()) {
+		if (cell.getWillShowEditControl()) {
 			x += EDIT_CONTROL_SIZE;
 			width -= EDIT_CONTROL_SIZE;
 		}
 
 		Rect contentRect = new Rect(x, 0.0f, width, height);
 
-		if(cell.getWillShowDeleteConfirmation()) {
+		if (cell.getWillShowDeleteConfirmation()) {
 			Rect deleteConfirmationButtonRect = this.getDeleteConfirmationButtonRectForCell(cell, style);
 			float maxX = contentRect.maxX();
 
-			if(maxX > deleteConfirmationButtonRect.origin.x) {
+			if (maxX > deleteConfirmationButtonRect.origin.x) {
 				float delta = maxX - deleteConfirmationButtonRect.origin.x;
 				contentRect.origin.x -= delta;
 			}
@@ -101,7 +96,7 @@ class TableViewCellLayoutManager extends MObject {
 	Rect getDeleteConfirmationButtonRectForCell(TableViewCell cell, TableView.Style style) {
 		Button button = cell.getDeleteConfirmationButton();
 
-		if(button == null) {
+		if (button == null) {
 			return null;
 		} else {
 			Rect backgroundRect = this.getBackgroundViewRectForCell(cell, style);
@@ -120,7 +115,7 @@ class TableViewCellLayoutManager extends MObject {
 	Rect getEditControlRectForCell(TableViewCell cell, TableView.Style style) {
 		Button control = cell.getEditControl();
 
-		if(control == null) {
+		if (control == null) {
 			return null;
 		} else {
 			Rect backgroundRect = this.getBackgroundViewRectForCell(cell, style);
@@ -129,9 +124,9 @@ class TableViewCellLayoutManager extends MObject {
 			rect.size.height = Math.min(EDIT_CONTROL_SIZE, control.sizeThatFits(new Size(EDIT_CONTROL_SIZE, backgroundRect.size.height)).height);
 			rect.size.width = EDIT_CONTROL_SIZE;
 
-			rect.origin.y = (float)Math.floor((backgroundRect.size.height - rect.size.height) / 2.0f);
+			rect.origin.y = (float) Math.floor((backgroundRect.size.height - rect.size.height) / 2.0f);
 
-			if(cell.getWillShowDeleteConfirmation()) {
+			if (cell.getWillShowDeleteConfirmation()) {
 				rect.origin.x -= this.getDeleteConfirmationButtonRectForCell(cell, style).size.width;
 			}
 
@@ -155,7 +150,7 @@ class TableViewCellLayoutManager extends MObject {
 		// Padding is ALWAYS 10 px on the left, but is the LESSER
 		// (including negative numbers) of 10.0 or the height difference,
 		// on the right, top, and bottom
-		float heightDifference = (float)Math.floor((cellBounds.size.height - separatorRect.size.height - accessorySize.height) / 2.0);
+		float heightDifference = (float) Math.floor((cellBounds.size.height - separatorRect.size.height - accessorySize.height) / 2.0);
 
 		float padding = heightDifference < 10.0f ? heightDifference : 10.0f;
 
@@ -167,13 +162,13 @@ class TableViewCellLayoutManager extends MObject {
 		View editingAccessoryView = cell.getActiveEditingAccessoryView();
 		View activeAccessoryView = cell.isEditing() && editingAccessoryView != null ? editingAccessoryView : accessoryView;
 
-		if(activeAccessoryView == null) return Rect.zero();
+		if (activeAccessoryView == null) return Rect.zero();
 
 		Rect separatorRect = this.getSeparatorViewRectForCell(cell, style);
 		Rect bounds = cell.getBounds();
 		Rect cellBounds = new Rect(bounds.origin, new Size(bounds.size.width, bounds.size.height - separatorRect.size.height));
 
-		if(style == TableView.Style.GROUPED) {
+		if (style == TableView.Style.GROUPED) {
 			cellBounds.inset(GROUPED_INSET, 0.0f);
 		}
 
@@ -186,7 +181,7 @@ class TableViewCellLayoutManager extends MObject {
 
 			float padding = this.getAccessoryViewPaddingForCell(cell, style);
 			float x = cellBounds.origin.x + (cellBounds.size.width - accessorySize.width - padding);
-			float y = (float)Math.round((cellBounds.size.height - accessorySize.height) / 2.0);
+			float y = (float) Math.round((cellBounds.size.height - accessorySize.height) / 2.0);
 
 			return new Rect(x, y, accessorySize.width, accessorySize.height);
 		}
@@ -214,10 +209,10 @@ class TableViewCellLayoutManager extends MObject {
 		float width = cell.getBounds().size.width;
 		float x = 0.0f;
 
-		if(style == TableView.Style.GROUPED) {
+		if (style == TableView.Style.GROUPED) {
 			x += GROUPED_INSET;
 			width -= GROUPED_INSET + GROUPED_INSET;
-		} else if(cell.getSeparatorInsetShouldInsetBackgroundViews()) {
+		} else if (cell.getSeparatorInsetShouldInsetBackgroundViews()) {
 			x += cell.separatorInset.left;
 			width -= cell.separatorInset.left + cell.separatorInset.right;
 		}
@@ -226,9 +221,9 @@ class TableViewCellLayoutManager extends MObject {
 	}
 
 	Rect getSeparatorViewRectForCell(TableViewCell cell, TableView.Style style) {
-		if(cell.getSeparatorStyle() != TableViewCell.SeparatorStyle.NONE) {
-			Rect bounds  = cell.getBounds();
-			Rect rect =  new Rect(0.0f, bounds.size.height - this.separatorHeight, bounds.size.width, this.separatorHeight);
+		if (cell.getSeparatorStyle() != TableViewCell.SeparatorStyle.NONE) {
+			Rect bounds = cell.getBounds();
+			Rect rect = new Rect(0.0f, bounds.size.height - this.separatorHeight, bounds.size.width, this.separatorHeight);
 			return cell.separatorInset.inset(rect);
 		} else {
 			return Rect.zero();
@@ -241,7 +236,7 @@ class TableViewCellLayoutManager extends MObject {
 
 		float left = cell.getLayoutMargins().left;
 
-		if(imageView == null || (image = imageView.getImage()) == null) {
+		if (imageView == null || (image = imageView.getImage()) == null) {
 			return new Rect(left - BASE_INSET, 0.0f, 0.0f, 0.0f);
 		}
 
@@ -255,7 +250,7 @@ class TableViewCellLayoutManager extends MObject {
 
 		if (imageSize.height < maxHeight) {
 			// Image is not as tall as the cell
-			float padding = (float)Math.floor((maxHeight - imageSize.height) / 2.0);
+			float padding = (float) Math.floor((maxHeight - imageSize.height) / 2.0);
 			return new Rect(Math.max(left, padding < 0.0f ? 0.0f : padding), padding, imageSize.width, imageSize.height);
 		} else if (imageSize.height == maxHeight) {
 			// Image height == cell height
@@ -263,8 +258,8 @@ class TableViewCellLayoutManager extends MObject {
 		} else {
 			// Image is taller than the cell
 			float differencePercent = (maxHeight / imageSize.height);
-			float width = (float)Math.round(imageSize.width * differencePercent);
-			float height = (float)Math.round(imageSize.height * differencePercent);
+			float width = (float) Math.round(imageSize.width * differencePercent);
+			float height = (float) Math.round(imageSize.height * differencePercent);
 			return new Rect(left, 0.0f, width, height);
 		}
 	}

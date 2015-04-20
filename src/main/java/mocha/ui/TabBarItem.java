@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/26/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Image;

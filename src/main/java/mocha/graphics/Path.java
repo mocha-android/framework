@@ -1,11 +1,9 @@
-/**
- *  @author Shaun
- *  @date 2/18/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import mocha.foundation.Copying;
 import mocha.foundation.MObject;
 
@@ -46,7 +44,7 @@ public class Path extends MObject implements Copying<Path> {
 		BOTTOM_LEFT,
 		BOTTOM_RIGHT;
 
-		public final static Corner[] ALL = new Corner[] { TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT };
+		public final static Corner[] ALL = new Corner[]{TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT};
 	}
 
 	public Path() {
@@ -67,13 +65,13 @@ public class Path extends MObject implements Copying<Path> {
 	}
 
 	public static Path withRoundedRect(Rect rect, float cornerRadius) {
-		return withRoundedRect(rect, new Size(cornerRadius,cornerRadius), Corner.ALL);
+		return withRoundedRect(rect, new Size(cornerRadius, cornerRadius), Corner.ALL);
 	}
 
 	public static Path withRoundedRect(Rect rect, Size cornerRadii, Corner... byRoundingCorners) {
 		android.graphics.Path path = new android.graphics.Path();
 
-		if(byRoundingCorners == null || byRoundingCorners.length == 0) {
+		if (byRoundingCorners == null || byRoundingCorners.length == 0) {
 			// No rounded corners, just add the rect.
 			path.addRect(rect.toSystemRectF(), android.graphics.Path.Direction.CCW);
 		} else {
@@ -198,8 +196,8 @@ public class Path extends MObject implements Copying<Path> {
 	public void applyTransform(AffineTransform transform) {
 		Matrix matrix = new Matrix();
 
-		if(!transform.isIdentity()) {
-			float[] values = new float[] {
+		if (!transform.isIdentity()) {
+			float[] values = new float[]{
 				transform.getA(), transform.getB(),
 				transform.getC(), transform.getD(),
 
@@ -208,9 +206,9 @@ public class Path extends MObject implements Copying<Path> {
 			};
 
 			matrix.setValues(new float[]{
-					values[0], values[2], values[4],
-					values[1], values[3], values[5],
-					0.0f, 0.0f, 1.0f
+				values[0], values[2], values[4],
+				values[1], values[3], values[5],
+				0.0f, 0.0f, 1.0f
 			});
 		}
 
@@ -223,7 +221,7 @@ public class Path extends MObject implements Copying<Path> {
 	}
 
 	public Rect getBounds() {
-		if(this.cachedBounds == null) {
+		if (this.cachedBounds == null) {
 			RectF rectF = new RectF();
 			this.nativePath.computeBounds(rectF, true);
 			this.cachedBounds = new Rect(rectF);
@@ -287,13 +285,13 @@ public class Path extends MObject implements Copying<Path> {
 	public void setUsesEvenOddFillRule(boolean usesEvenOddFillRule) {
 		this.usesEvenOddFillRule = usesEvenOddFillRule;
 
-		if(usesEvenOddFillRule) {
+		if (usesEvenOddFillRule) {
 			this.nativePath.setFillType(android.graphics.Path.FillType.EVEN_ODD);
 		} else {
 			this.nativePath.setFillType(android.graphics.Path.FillType.WINDING);
 		}
 
-		if(this.cachedScaledPath != null) {
+		if (this.cachedScaledPath != null) {
 			this.cachedScaledPath.setFillType(this.nativePath.getFillType());
 		}
 	}
@@ -321,7 +319,7 @@ public class Path extends MObject implements Copying<Path> {
 		final float scale = context.getScale();
 		final android.graphics.Path path = this.getScaledNativePath(scale);
 
-		if(context.getClipPath() != null && context.getClipPath() != this) {
+		if (context.getClipPath() != null && context.getClipPath() != this) {
 			final Rect bounds = this.getBounds();
 
 			context.drawClippedToPath(bounds, new Context.DrawClippedToPath() {
@@ -381,7 +379,7 @@ public class Path extends MObject implements Copying<Path> {
 	}
 
 	public android.graphics.Path getScaledNativePath(float scale) {
-		if(this.cachedScaledPath == null || this.cachedScaledPathFactor != scale) {
+		if (this.cachedScaledPath == null || this.cachedScaledPathFactor != scale) {
 			Matrix matrix = new Matrix();
 			matrix.setScale(scale, scale);
 
@@ -405,4 +403,5 @@ public class Path extends MObject implements Copying<Path> {
 		path.appendPath(this);
 		return path;
 	}
+
 }

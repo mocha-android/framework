@@ -1,15 +1,12 @@
-/**
- *  @author Shaun
- *  @date 3/6/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.text.Editable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import mocha.foundation.Range;
-import mocha.graphics.*;
+import mocha.graphics.Font;
+import mocha.graphics.Rect;
+import mocha.graphics.TextAlignment;
 
 public class TextView extends View implements TextInput, TextInput.Traits {
 
@@ -18,11 +15,13 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 
 		public interface BeginEditing extends Delegate {
 			public boolean shouldBeginEditing(TextView textView);
+
 			public void didBeginEditing(TextView textView);
 		}
 
 		public interface EndEditing extends Delegate {
 			public boolean shouldEndEditing(TextView textView);
+
 			public void didEndEditing(TextView textView);
 		}
 
@@ -62,8 +61,12 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	private boolean editable;
 	private EdgeInsets contentInset;
 
-	public TextView() { }
-	public TextView(Rect frame) { super(frame); }
+	public TextView() {
+	}
+
+	public TextView(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -97,20 +100,20 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public boolean becomeFirstResponder() {
-		if(this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
+		if (this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
 			return false;
 		}
 
-		if(!this.editable) {
+		if (!this.editable) {
 			return false;
 		}
 
 		EditText.LEAVE_KEYBOARD = true;
-		if(super.becomeFirstResponder()) {
+		if (super.becomeFirstResponder()) {
 			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
 
-			if(this.delegateBeginEditing != null) {
+			if (this.delegateBeginEditing != null) {
 				this.delegateBeginEditing.didBeginEditing(this);
 			}
 
@@ -125,15 +128,15 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public boolean resignFirstResponder() {
-		if(this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
+		if (this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
 			return false;
 		}
 
-		if(super.resignFirstResponder()) {
+		if (super.resignFirstResponder()) {
 			this.editText.forceClearFocus();
 			this.ignoreTextChanges = true;
 
-			if(this.delegateEndEditing != null) {
+			if (this.delegateEndEditing != null) {
 				this.delegateEndEditing.didEndEditing(this);
 			}
 
@@ -150,7 +153,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 
 	private void returnKeyPressed() {
 		// TODO: Implementation real functionality here
-		if(this.delegateShouldReturn != null) {
+		if (this.delegateShouldReturn != null) {
 			this.delegateShouldReturn.shouldReturn(this);
 		}
 	}
@@ -214,26 +217,26 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
 
-		if(this.delegate instanceof Delegate.BeginEditing) {
-			this.delegateBeginEditing = (Delegate.BeginEditing)this.delegate;
+		if (this.delegate instanceof Delegate.BeginEditing) {
+			this.delegateBeginEditing = (Delegate.BeginEditing) this.delegate;
 		} else {
 			this.delegateBeginEditing = null;
 		}
 
-		if(this.delegate instanceof Delegate.EndEditing) {
-			this.delegateEndEditing = (Delegate.EndEditing)this.delegate;
+		if (this.delegate instanceof Delegate.EndEditing) {
+			this.delegateEndEditing = (Delegate.EndEditing) this.delegate;
 		} else {
 			this.delegateEndEditing = null;
 		}
 
-		if(this.delegate instanceof Delegate.ShouldChange) {
-			this.delegateShouldChange = (Delegate.ShouldChange)this.delegate;
+		if (this.delegate instanceof Delegate.ShouldChange) {
+			this.delegateShouldChange = (Delegate.ShouldChange) this.delegate;
 		} else {
 			this.delegateShouldChange = null;
 		}
 
-		if(this.delegate instanceof Delegate.ShouldReturn) {
-			this.delegateShouldReturn = (Delegate.ShouldReturn)this.delegate;
+		if (this.delegate instanceof Delegate.ShouldReturn) {
+			this.delegateShouldReturn = (Delegate.ShouldReturn) this.delegate;
 		} else {
 			this.delegateShouldReturn = null;
 		}
@@ -252,7 +255,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setContentInset(EdgeInsets contentInset) {
-		if(contentInset == null) {
+		if (contentInset == null) {
 			contentInset = EdgeInsets.zero();
 		} else {
 			contentInset = contentInset.copy();
@@ -260,17 +263,17 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 
 		this.contentInset = contentInset;
 
-		int top = (int)floorf(contentInset.top * this.scale);
-		int left = (int)floorf(contentInset.left * this.scale);
-		int bottom = (int)floorf(contentInset.bottom * this.scale);
-		int right = (int)floorf(contentInset.right * this.scale);
+		int top = (int) floorf(contentInset.top * this.scale);
+		int left = (int) floorf(contentInset.left * this.scale);
+		int bottom = (int) floorf(contentInset.bottom * this.scale);
+		int right = (int) floorf(contentInset.right * this.scale);
 
 		this.nativeView.getNativeView().setPadding(left, top, right, bottom);
 	}
 
 	public void setEditable(boolean editable) {
-		if(this.editable != editable) {
-			if(this.editable && this.isFirstResponder()) {
+		if (this.editable != editable) {
+			if (this.editable && this.isFirstResponder()) {
 				this.resignFirstResponder();
 			}
 
@@ -281,12 +284,12 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setScrollEnabled(boolean scrollEnabled) {
-		if(scrollEnabled) {
-			if(this.editText.getMovementMethod() == null) {
+		if (scrollEnabled) {
+			if (this.editText.getMovementMethod() == null) {
 				this.editText.setMovementMethod(this.editText.getDefaultMovementMethod());
 			}
 		} else {
-			if(this.editText.getMovementMethod() != null) {
+			if (this.editText.getMovementMethod() != null) {
 				this.editText.setMovementMethod(null);
 			}
 		}
@@ -300,7 +303,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 
 	@Override
 	public Rect getCaretRectForPosition(int position) {
-		if(position >= 0) {
+		if (position >= 0) {
 			android.text.Layout layout = this.editText.getLayout();
 			int line = layout.getLineForOffset(position);
 
@@ -325,7 +328,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setAutocapitalizationType(TextInput.AutocapitalizationType autocapitalizationType) {
-		if(this.autocapitalizationType != autocapitalizationType) {
+		if (this.autocapitalizationType != autocapitalizationType) {
 			this.autocapitalizationType = autocapitalizationType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -336,7 +339,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setAutocorrectionType(TextInput.AutocorrectionType autocorrectionType) {
-		if(this.autocorrectionType != autocorrectionType) {
+		if (this.autocorrectionType != autocorrectionType) {
 			this.autocorrectionType = autocorrectionType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -347,7 +350,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setSpellCheckingType(TextInput.SpellCheckingType spellCheckingType) {
-		if(this.spellCheckingType != spellCheckingType) {
+		if (this.spellCheckingType != spellCheckingType) {
 			this.spellCheckingType = spellCheckingType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -358,11 +361,11 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setKeyboardType(TextInput.Keyboard.Type keyboardType) {
-		if(keyboardType == null) {
+		if (keyboardType == null) {
 			keyboardType = TextInput.Keyboard.Type.DEFAULT;
 		}
 
-		if(this.keyboardType != keyboardType) {
+		if (this.keyboardType != keyboardType) {
 			this.keyboardType = keyboardType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -373,7 +376,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setKeyboardAppearance(TextInput.Keyboard.Appearance keyboardAppearance) {
-		if(this.keyboardAppearance != keyboardAppearance) {
+		if (this.keyboardAppearance != keyboardAppearance) {
 			this.keyboardAppearance = keyboardAppearance;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -384,7 +387,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setReturnKeyType(TextInput.Keyboard.ReturnKeyType returnKeyType) {
-		if(this.returnKeyType != returnKeyType) {
+		if (this.returnKeyType != returnKeyType) {
 			this.returnKeyType = returnKeyType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -395,7 +398,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically) {
-		if(this.enablesReturnKeyAutomatically != enablesReturnKeyAutomatically) {
+		if (this.enablesReturnKeyAutomatically != enablesReturnKeyAutomatically) {
 			this.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -406,7 +409,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 	}
 
 	public void setSecureTextEntry(boolean secureTextEntry) {
-		if(this.secureTextEntry != secureTextEntry) {
+		if (this.secureTextEntry != secureTextEntry) {
 			this.secureTextEntry = secureTextEntry;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -416,13 +419,13 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 		private CharSequence previousText;
 
 		public void beforeTextChanged(CharSequence text, int start, int count, int after) {
-			if(ignoreTextChanges) return;
+			if (ignoreTextChanges) return;
 
 			try {
-				if(after < count) {
+				if (after < count) {
 					this.previousText = text.subSequence(start + after, start + count);
-				} else if(count < after) {
-					if(start + after > text.length()) {
+				} else if (count < after) {
+					if (start + after > text.length()) {
 						this.previousText = null;
 					} else {
 						this.previousText = text.subSequence(start + count, start + after);
@@ -436,21 +439,22 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 			}
 		}
 
-		public void afterTextChanged(Editable editable) { }
+		public void afterTextChanged(Editable editable) {
+		}
 
 		public void onTextChanged(CharSequence text, int start, int before, int count) {
-			if(ignoreTextChanges) return;
+			if (ignoreTextChanges) return;
 
-			if(delegateShouldChange != null) {
+			if (delegateShouldChange != null) {
 				CharSequence replacementText = null;
 				Range range = new Range();
 
 				try {
-					if(count > before) {
+					if (count > before) {
 						range.location = start + before;
 						range.length = count - before;
 						replacementText = text.subSequence(start + before, start + count);
-					} else if(count < before) {
+					} else if (count < before) {
 						range.location = before;
 						replacementText = null;
 					} else {
@@ -462,18 +466,18 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 					MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
 				}
 
-				if(!delegateShouldChange.shouldChangeCharacters(TextView.this, range, replacementText)) {
+				if (!delegateShouldChange.shouldChangeCharacters(TextView.this, range, replacementText)) {
 					ignoreTextChanges = true;
 					Editable editable = editText.getEditableText();
 
 					try {
-						if(count > before) {
-							if(previousText == null) {
+						if (count > before) {
+							if (previousText == null) {
 								editable.delete(start + before, start + count);
 							} else {
 								editable.replace(start + before, start + count, this.previousText);
 							}
-						} else if(count < before) {
+						} else if (count < before) {
 							editable.insert(start + count, this.previousText);
 						} else {
 							editable.replace(start, start + count, this.previousText);
@@ -488,7 +492,7 @@ public class TextView extends View implements TextInput, TextInput.Traits {
 				}
 			}
 
-			if(delegate != null) {
+			if (delegate != null) {
 				delegate.didChange(TextView.this);
 			}
 		}

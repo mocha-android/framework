@@ -1,11 +1,8 @@
-/*
- *  @author Shaun
- *	@date 11/25/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
-import mocha.graphics.*;
+import mocha.graphics.Image;
+import mocha.graphics.Rect;
+import mocha.graphics.Size;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -24,38 +21,12 @@ public class NavigationBar extends View {
 	static final AnimationCurve ANIMATION_CURVE = AnimationCurve.EASE_IN_OUT;
 
 	public interface Delegate {
-		/**
-		 * Called before a navigation item is pushed onto the stack
-		 *
-		 * @param navigationBar Navigation bar the item is trying to be pushed onto
-		 * @param item Navigation item being pushed
-		 * @return If true, the navigation item will be pushed onto the stack, if false it will be prevented
-		 */
 		public boolean shouldPushItem(NavigationBar navigationBar, NavigationItem item);
 
-		/**
-		 * Called after the navigation item has been pushed onto the stack
-		 *
-		 * @param navigationBar Navigation bar the item was pushed onto
-		 * @param item Navigation item just pushed onto the stack
-		 */
 		public void didPushItem(NavigationBar navigationBar, NavigationItem item);
 
-		/**
-		 * Called before a navigation item is popped from the stack
-		 *
-		 * @param navigationBar Navigation bar trying to pop the item
-		 * @param item Navigation item being popped
-		 * @return If true, the navigation item will be popped from the stack, if false it will be prevented
-		 */
 		public boolean shouldPopItem(NavigationBar navigationBar, NavigationItem item);
 
-		/**
-		 * Called after a navigation item has been popped from the stack
-		 *
-		 * @param navigationBar Navigation bar the item was popped from
-		 * @param item Navigation item just popped from the stack
-		 */
 		public void didPopItem(NavigationBar navigationBar, NavigationItem item);
 	}
 
@@ -111,10 +82,11 @@ public class NavigationBar extends View {
 	 *
 	 * @param cls Subclass
 	 * @param <E> Subclass
+	 *
 	 * @return Appearance
 	 */
 	public static <E extends NavigationBar> Appearance appearance(Class<E> cls) {
-		if(appearanceStorage == null) {
+		if (appearanceStorage == null) {
 			appearanceStorage = new mocha.ui.Appearance.Storage<>(NavigationBar.class, Appearance.class);
 		}
 
@@ -130,8 +102,13 @@ public class NavigationBar extends View {
 		return appearance(NavigationBar.class);
 	}
 
-	public NavigationBar() { this(INITIAL_RECT); }
-	public NavigationBar(Rect frame) { super(frame); }
+	public NavigationBar() {
+		this(INITIAL_RECT);
+	}
+
+	public NavigationBar(Rect frame) {
+		super(frame);
+	}
 
 	@Override
 	protected void onCreate(Rect frame) {
@@ -150,7 +127,7 @@ public class NavigationBar extends View {
 		this.backgroundImageView = new BarBackgroundView(this.getBounds());
 		this.titleAlignment = TitleAlignment.LEFT;
 
-		if(appearanceStorage != null) {
+		if (appearanceStorage != null) {
 			appearanceStorage.apply(this);
 		}
 	}
@@ -162,6 +139,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the bar style
+	 *
 	 * @return Bar style
 	 */
 	public BarStyle getBarStyle() {
@@ -170,6 +148,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the bar style
+	 *
 	 * @param barStyle Bar style
 	 */
 	public void setBarStyle(BarStyle barStyle) {
@@ -178,6 +157,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the tint color of the bar
+	 *
 	 * @return Tint color
 	 */
 	public int getBarTintColor() {
@@ -186,6 +166,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the tint color of the bar
+	 *
 	 * @param barTintColor
 	 */
 	public void setBarTintColor(int barTintColor) {
@@ -195,6 +176,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the edge insets for bar button items
+	 *
 	 * @return Edge insets
 	 */
 	public EdgeInsets getItemEdgeInsets() {
@@ -207,7 +189,7 @@ public class NavigationBar extends View {
 	 * @param itemEdgeInsets Edge insets
 	 */
 	public void setItemEdgeInsets(EdgeInsets itemEdgeInsets) {
-		if(itemEdgeInsets == null) {
+		if (itemEdgeInsets == null) {
 			this.itemEdgeInsets.set(DEFAULT_ITEM_EDGE_INSET);
 		} else {
 			this.itemEdgeInsets.set(itemEdgeInsets);
@@ -229,7 +211,7 @@ public class NavigationBar extends View {
 	 * @param backIndicatorContentInset Content inset
 	 */
 	public void setBackIndicatorContentInset(EdgeInsets backIndicatorContentInset) {
-		if(backIndicatorContentInset == null) {
+		if (backIndicatorContentInset == null) {
 			this.backIndicatorContentInset.set(DEFAULT_BACK_INDICATOR_CONTENT_INSET);
 		} else {
 			this.backIndicatorContentInset.set(backIndicatorContentInset);
@@ -251,7 +233,7 @@ public class NavigationBar extends View {
 	 * @param backIndicatorMargins Margins
 	 */
 	public void setBackIndicatorMargins(EdgeInsets backIndicatorMargins) {
-		if(backIndicatorMargins == null) {
+		if (backIndicatorMargins == null) {
 			this.backIndicatorMargins.set(DEFAULT_BACK_INDICATOR_MARGINS);
 		} else {
 			this.backIndicatorMargins.set(backIndicatorMargins);
@@ -260,6 +242,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the horizontal title alignment
+	 *
 	 * @return Title alignment
 	 */
 	public TitleAlignment getTitleAlignment() {
@@ -268,10 +251,11 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the horizontal title alignment
+	 *
 	 * @param titleAlignment Title alignment
 	 */
 	public void setTitleAlignment(TitleAlignment titleAlignment) {
-		if(titleAlignment == null) {
+		if (titleAlignment == null) {
 			this.titleAlignment = TitleAlignment.CENTER;
 		} else {
 			this.titleAlignment = titleAlignment;
@@ -280,6 +264,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the top navigation item in the stack
+	 *
 	 * @return Top navigation item or null
 	 */
 	public NavigationItem getTopItem() {
@@ -288,6 +273,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the previous navigation item in the stack
+	 *
 	 * @return Previous navigation item or null
 	 */
 	public NavigationItem getBackItem() {
@@ -296,27 +282,17 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get all navigation item's in the stack
+	 *
 	 * @return All navigation item's in the stack
 	 */
 	public List<NavigationItem> getItems() {
 		return items;
 	}
 
-	/**
-	 * Set the navigation item stack, without any animation
-	 *
-	 * @param items Navigation item stack
-	 */
 	public void setItems(List<NavigationItem> items) {
 		this.setItems(items, false, null, null);
 	}
 
-	/**
-	 * Set the navigation item stack, optionally animated
-	 *
-	 * @param items Navigation item stack
-	 * @param animated If true, the transition will be animated, if false no animation will occur
-	 */
 	public void setItems(List<NavigationItem> items, boolean animated) {
 		this.setItems(items, animated, null, null);
 	}
@@ -325,25 +301,17 @@ public class NavigationBar extends View {
 		this.items.clear();
 		this.items.addAll(items);
 
-		for(NavigationItem item : items) {
+		for (NavigationItem item : items) {
 			item.setDelegate(this.navigationItemDelegate);
 		}
 	}
 
-	/**
-	 * Set the navigation item stack, optionally animated
-	 *
-	 * @param items Navigation item stack
-	 * @param animated If true, the transition will be animated, if false no animation will occur
-	 * @param additionalTransitions Additional transitions/animations that need to be performed in the same animation context
-	 * @param transitionCompleteCallback Callback for with the transition has finished
-	 */
 	public void setItems(List<NavigationItem> items, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
-		if(!this.items.equals(items)) {
+		if (!this.items.equals(items)) {
 			this.items.clear();
 			this.items.addAll(items);
 
-			for(NavigationItem item : items) {
+			for (NavigationItem item : items) {
 				item.setDelegate(this.navigationItemDelegate);
 			}
 
@@ -352,10 +320,10 @@ public class NavigationBar extends View {
 	}
 
 	void replaceNavigationItem(NavigationItem oldItem, NavigationItem newItem) {
-		if(this.items.contains(oldItem)) {
+		if (this.items.contains(oldItem)) {
 			int index = this.items.indexOf(oldItem);
 
-			if(oldItem.getDelegate() == this.navigationItemDelegate) {
+			if (oldItem.getDelegate() == this.navigationItemDelegate) {
 				oldItem.setDelegate(null);
 			}
 
@@ -366,12 +334,6 @@ public class NavigationBar extends View {
 		}
 	}
 
-	/**
-	 * Push a navigation item onto the stack
-	 *
-	 * @param navigationItem Navigation item to add to the top of the stack
-	 * @param animated If true, the transition will be animated, if false no animation will occur
-	 */
 	public void pushNavigationItem(NavigationItem navigationItem, boolean animated) {
 		this.pushNavigationItem(navigationItem, animated, null, null);
 	}
@@ -379,43 +341,39 @@ public class NavigationBar extends View {
 	void pushNavigationItem(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		boolean shouldPush = this.delegate == null || this.delegate.shouldPushItem(this, navigationItem);
 
-		if(shouldPush) {
+		if (shouldPush) {
 			this.items.add(navigationItem);
 			navigationItem.setDelegate(this.navigationItemDelegate);
 
 			this.updateItemsWithTransition(Transition.PUSH, animated, additionalTransitions, transitionCompleteCallback);
 
-			if(this.delegate != null) {
+			if (this.delegate != null) {
 				this.delegate.didPushItem(this, navigationItem);
 			}
 		}
 	}
 
-	/**
-	 * Remove the top most navigation item from the stack
-	 * @param animated If true, the transition will be animated, if false no animation will occur
-	 * @return The navigation item being removed from the stack
-	 */
+
 	public NavigationItem popNavigationItemAnimated(boolean animated) {
 		return this.popNavigationItemAnimated(animated, null, null);
 	}
 
 	void popToNavigationItemAnimated(NavigationItem navigationItem, boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
-		if(!this.items.contains(navigationItem)) return;
+		if (!this.items.contains(navigationItem)) return;
 
 		NavigationItem topItem = this.getTopItem();
-		if(topItem == navigationItem) return;
+		if (topItem == navigationItem) return;
 
 		List<NavigationItem> items = new ArrayList<NavigationItem>(this.items);
 		boolean shouldRemove = false;
 
-		for(NavigationItem item : items) {
-			if(shouldRemove) {
-				if(item != topItem) {
+		for (NavigationItem item : items) {
+			if (shouldRemove) {
+				if (item != topItem) {
 					item.setDelegate(null);
 					this.items.remove(item);
 				}
-			} else if(item == navigationItem) {
+			} else if (item == navigationItem) {
 				shouldRemove = true;
 			}
 		}
@@ -426,14 +384,14 @@ public class NavigationBar extends View {
 	NavigationItem popNavigationItemAnimated(boolean animated, Runnable additionalTransitions, Runnable transitionCompleteCallback) {
 		NavigationItem previousItem = this.getTopItem();
 
-		if(previousItem == null || (this.delegate != null && !this.delegate.shouldPopItem(this, previousItem))) {
+		if (previousItem == null || (this.delegate != null && !this.delegate.shouldPopItem(this, previousItem))) {
 			return null;
 		} else {
 			previousItem.setDelegate(null);
 			this.items.remove(previousItem);
 			this.updateItemsWithTransition(Transition.POP, animated, additionalTransitions, transitionCompleteCallback);
 
-			if(this.delegate != null) {
+			if (this.delegate != null) {
 				this.delegate.didPopItem(this, previousItem);
 			}
 
@@ -442,23 +400,23 @@ public class NavigationBar extends View {
 	}
 
 	void clearNavigationItems() {
-		for(NavigationItem item : this.items) {
+		for (NavigationItem item : this.items) {
 			item.setDelegate(null);
 		}
 
 		this.items.clear();
 
-		if(this.leftView != null) {
+		if (this.leftView != null) {
 			this.leftView.removeFromSuperview();
 			this.leftView = null;
 		}
 
-		if(this.centerView != null) {
+		if (this.centerView != null) {
 			this.centerView.removeFromSuperview();
 			this.centerView = null;
 		}
 
-		if(this.rightView != null) {
+		if (this.rightView != null) {
 			this.rightView.removeFromSuperview();
 			this.rightView = null;
 		}
@@ -466,6 +424,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the navigation bar delegate
+	 *
 	 * @return Navigation bar delegate
 	 */
 	public Delegate getDelegate() {
@@ -474,6 +433,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the navigation bar delegate
+	 *
 	 * @param delegate Navigation bar delegate
 	 */
 	public void setDelegate(Delegate delegate) {
@@ -491,6 +451,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the shadow image
+	 *
 	 * @param shadowImage Shadow image or null to use the default
 	 */
 	public void setShadowImage(Image shadowImage) {
@@ -501,6 +462,7 @@ public class NavigationBar extends View {
 	 * Get a background image for the specified bar metrics
 	 *
 	 * @param barMetrics Bar metrics
+	 *
 	 * @return Background image, may be null
 	 */
 	public Image getBackgroundImage(BarMetrics barMetrics) {
@@ -511,7 +473,7 @@ public class NavigationBar extends View {
 	 * Set a background image for the specified bar metrics
 	 *
 	 * @param backgroundImage Background image
-	 * @param barMetrics Bar metrics
+	 * @param barMetrics      Bar metrics
 	 */
 	public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
 		this.backgroundImageView.getImages().set(barMetrics, backgroundImage);
@@ -540,6 +502,7 @@ public class NavigationBar extends View {
 	 * Get the vertical title offset for the specified bar metrics
 	 *
 	 * @param barMetrics Bar metrics
+	 *
 	 * @return Vertical title offset in points
 	 */
 	public float getTitleVerticalPositionAdjustment(BarMetrics barMetrics) {
@@ -548,6 +511,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the vertical title offset for the specified bar metrics
+	 *
 	 * @param adjustment Vertical title offset in points
 	 * @param barMetrics Bar metrics
 	 */
@@ -557,6 +521,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Get the text attributes for the title label
+	 *
 	 * @return Text attributes
 	 */
 	public TextAttributes getTitleTextAttributes() {
@@ -565,6 +530,7 @@ public class NavigationBar extends View {
 
 	/**
 	 * Set the text attributes for the title label
+	 *
 	 * @param titleTextAttributes Text attributes
 	 */
 	public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
@@ -594,7 +560,7 @@ public class NavigationBar extends View {
 			if (this.leftView != null) {
 				Rect frame = this.leftView.getFrame();
 
-				if(this.leftIsBackButton) {
+				if (this.leftIsBackButton) {
 					frame.origin.x = this.backIndicatorMargins.left;
 					frame.origin.y = 0.0f;
 					frame.size.set(this.leftView.sizeThatFits(new Size(0.0f, bounds.size.height)));
@@ -606,7 +572,7 @@ public class NavigationBar extends View {
 				this.leftView.setFrame(frame);
 			}
 
-			if(this.leftView == previousLeftView) {
+			if (this.leftView == previousLeftView) {
 				previousLeftView = null;
 			}
 
@@ -620,18 +586,18 @@ public class NavigationBar extends View {
 				this.rightView.setFrame(frame);
 			}
 
-			if(this.rightView == previousRightView) {
+			if (this.rightView == previousRightView) {
 				previousRightView = null;
 			}
 
 			float titleMinX = this.itemEdgeInsets.left;
 			float titleMaxX = bounds.size.width - this.itemEdgeInsets.right;
 
-			if(this.leftView != null) {
+			if (this.leftView != null) {
 				titleMinX = this.leftView.getFrameX() + this.leftView.getFrameWidth() + this.backIndicatorMargins.right;
 			}
 
-			if(this.rightView != null) {
+			if (this.rightView != null) {
 				titleMaxX -= this.rightView.getFrameWidth() + this.itemEdgeInsets.left;
 			}
 
@@ -643,7 +609,7 @@ public class NavigationBar extends View {
 
 			if (this.centerView == null) {
 				Float adjustment = this.titleVerticalPositionAdjustment.get(BarMetrics.DEFAULT);
-				if(adjustment == null) adjustment = 0.0f;
+				if (adjustment == null) adjustment = 0.0f;
 
 				this.centerView = new NavigationItemTitleView(titleFrame, topItem, this.titleTextAttributes, adjustment);
 			}
@@ -652,17 +618,17 @@ public class NavigationBar extends View {
 			titleFrame.origin.y = floorf((bounds.size.height - titleFrame.size.height) / 2.0f);
 			titleFrame.origin.x = floorf((bounds.size.width - titleFrame.size.width) / 2.0f);
 
-			if(titleFrame.origin.x < titleMinX) {
+			if (titleFrame.origin.x < titleMinX) {
 				titleFrame.origin.x = titleMinX;
 			}
 
-			if(titleFrame.maxX() > titleMaxX) {
+			if (titleFrame.maxX() > titleMaxX) {
 				float maxDiff = titleFrame.maxX() - titleMaxX;
 
-				if(titleFrame.origin.x > titleMinX) {
+				if (titleFrame.origin.x > titleMinX) {
 					float minDiff = titleFrame.origin.x - titleMinX;
 
-					if(minDiff >= maxDiff) {
+					if (minDiff >= maxDiff) {
 						titleFrame.origin.x -= maxDiff;
 						maxDiff = 0;
 					} else {
@@ -671,7 +637,7 @@ public class NavigationBar extends View {
 					}
 				}
 
-				if(maxDiff > 0) {
+				if (maxDiff > 0) {
 					titleFrame.size.width -= maxDiff;
 				}
 			}
@@ -692,9 +658,9 @@ public class NavigationBar extends View {
 			this.centerView.setFrame(titleFrame);
 			this.centerView.setAlpha(0.0f);
 
-			if(this.centerView instanceof NavigationItemTitleView) {
-				((NavigationItemTitleView)this.centerView).setTitleAlignment(this.titleAlignment);
-				((NavigationItemTitleView)this.centerView).setDestinationFrame(titleFrame, bounds);
+			if (this.centerView instanceof NavigationItemTitleView) {
+				((NavigationItemTitleView) this.centerView).setTitleAlignment(this.titleAlignment);
+				((NavigationItemTitleView) this.centerView).setDestinationFrame(titleFrame, bounds);
 			}
 		} else {
 			this.leftView = null;
@@ -703,24 +669,24 @@ public class NavigationBar extends View {
 			leftIsBackButton = false;
 		}
 
-		if(animated) {
+		if (animated) {
 			final Rect centerFrame = this.centerView != null ? this.centerView.getFrame() : null;
-			if(centerFrame != null) {
+			if (centerFrame != null) {
 				this.centerView.setAlpha(0.0f);
 				this.centerView.setFrame(this.getAnimateFromRectForTitleView(this.centerView, transition, false));
 				this.addSubview(this.centerView);
 			}
 
-			if(this.rightView != null) {
+			if (this.rightView != null) {
 				this.rightView.setAlpha(0.0f);
 				this.addSubview(this.rightView);
 			}
 
 			final Rect leftFrame = this.leftView != null ? this.leftView.getFrame() : null;
-			if(leftFrame != null) {
+			if (leftFrame != null) {
 				this.leftView.setAlpha(0.0f);
 
-				if(this.leftIsBackButton) {
+				if (this.leftIsBackButton) {
 					this.leftView.setFrame(this.getAnimateFromRectForBackButton(this.leftView, transition, false));
 				}
 
@@ -733,77 +699,77 @@ public class NavigationBar extends View {
 				public void performAnimatedChanges() {
 					View.setAnimationCurve(ANIMATION_CURVE);
 
-					if(leftView != null) {
+					if (leftView != null) {
 						leftView.setAlpha(1.0f);
 						leftView.setFrame(leftFrame);
 					}
 
-					if(rightView != null) {
+					if (rightView != null) {
 						rightView.setAlpha(1.0f);
 					}
 
-					if(centerView != null) {
+					if (centerView != null) {
 						centerView.setAlpha(1.0f);
 						centerView.setFrame(centerFrame);
 					}
 
-					if(finalPreviousRightView != null) {
+					if (finalPreviousRightView != null) {
 						finalPreviousRightView.setAlpha(0.0f);
 					}
 
-					if(previousCenterView != null) {
+					if (previousCenterView != null) {
 						previousCenterView.setAlpha(0.0f);
 						previousCenterView.setFrame(getAnimateFromRectForTitleView(previousCenterView, transition, true));
 					}
 
-					if(finalPreviousLeftView != null) {
+					if (finalPreviousLeftView != null) {
 						finalPreviousLeftView.setAlpha(0.0f);
 
-						if(previousLeftIsBackButton) {
+						if (previousLeftIsBackButton) {
 							finalPreviousLeftView.setFrame(getAnimateFromRectForBackButton(finalPreviousLeftView, transition, true));
 						}
 					}
 
-					if(additionalTransitions != null) {
+					if (additionalTransitions != null) {
 						additionalTransitions.run();
 					}
 				}
 			}, new AnimationCompletion() {
 				public void animationCompletion(boolean finished) {
-					if(finalPreviousRightView != null) finalPreviousRightView.removeFromSuperview();
-					if(finalPreviousLeftView != null) finalPreviousLeftView.removeFromSuperview();
-					if(previousCenterView != null) previousCenterView.removeFromSuperview();
+					if (finalPreviousRightView != null) finalPreviousRightView.removeFromSuperview();
+					if (finalPreviousLeftView != null) finalPreviousLeftView.removeFromSuperview();
+					if (previousCenterView != null) previousCenterView.removeFromSuperview();
 
-					if(transitionCompleteCallback != null) {
+					if (transitionCompleteCallback != null) {
 						transitionCompleteCallback.run();
 					}
 				}
 			});
 		} else {
-			if(previousRightView != null) previousRightView.removeFromSuperview();
-			if(previousLeftView != null) previousLeftView.removeFromSuperview();
-			if(previousCenterView != null) previousCenterView.removeFromSuperview();
+			if (previousRightView != null) previousRightView.removeFromSuperview();
+			if (previousLeftView != null) previousLeftView.removeFromSuperview();
+			if (previousCenterView != null) previousCenterView.removeFromSuperview();
 
-			if(this.centerView != null) {
+			if (this.centerView != null) {
 				this.centerView.setAlpha(1.0f);
 				this.addSubview(this.centerView);
 			}
 
-			if(this.leftView != null && this.leftView.getSuperview() == null) {
+			if (this.leftView != null && this.leftView.getSuperview() == null) {
 				this.leftView.setAlpha(1.0f);
 				this.addSubview(this.leftView);
 			}
 
-			if(this.rightView != null && this.rightView.getSuperview() == null) {
+			if (this.rightView != null && this.rightView.getSuperview() == null) {
 				this.rightView.setAlpha(1.0f);
 				this.addSubview(this.rightView);
 			}
 
-			if(additionalTransitions != null) {
+			if (additionalTransitions != null) {
 				additionalTransitions.run();
 			}
 
-			if(transitionCompleteCallback != null) {
+			if (transitionCompleteCallback != null) {
 				transitionCompleteCallback.run();
 			}
 		}
@@ -813,11 +779,11 @@ public class NavigationBar extends View {
 	private Rect getAnimateFromRectForBackButton(View backButton, Transition transition, boolean previous) {
 		Rect frame = backButton.getFrame();
 
-		if(transition != Transition.PUSH && transition != Transition.POP) {
+		if (transition != Transition.PUSH && transition != Transition.POP) {
 			return frame;
 		}
 
-		if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+		if ((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
 			frame.origin.x = -frame.size.width - this.itemEdgeInsets.left;
 		} else {
 			frame.origin.x = floorf((this.getBounds().size.width - frame.size.width) / 2.0f);
@@ -829,18 +795,18 @@ public class NavigationBar extends View {
 	private Rect getAnimateFromRectForTitleView(View titleView, Transition transition, boolean previous) {
 		Rect frame = titleView.getFrame();
 
-		if(transition != Transition.PUSH && transition != Transition.POP) {
+		if (transition != Transition.PUSH && transition != Transition.POP) {
 			return frame;
 		}
 
-		if(titleView instanceof NavigationItemTitleView) {
-			if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+		if (titleView instanceof NavigationItemTitleView) {
+			if ((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
 				frame.origin.x = -((NavigationItemTitleView) titleView).getTextRect().minX();
 			} else {
 				frame.origin.x = this.getBounds().size.width - ((NavigationItemTitleView) titleView).getTextRect().origin.x;
 			}
 		} else {
-			if((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
+			if ((transition == Transition.PUSH && previous) || (transition == Transition.POP && !previous)) {
 				frame.origin.x = -frame.size.width;
 			} else {
 				frame.origin.x = this.getBounds().size.width;
@@ -851,7 +817,7 @@ public class NavigationBar extends View {
 	}
 
 	void updateNavigationItem(NavigationItem navigationItem, boolean animated) {
-		if(navigationItem != this.getTopItem()) return;
+		if (navigationItem != this.getTopItem()) return;
 
 		// TODO: Handle animation
 		this.needsReload = true;
@@ -860,7 +826,7 @@ public class NavigationBar extends View {
 
 	@Override
 	public void setFrame(Rect frame) {
-		if(!this.getFrame().size.equals(frame.size)) {
+		if (!this.getFrame().size.equals(frame.size)) {
 			this.needsReload = true;
 		}
 
@@ -873,25 +839,25 @@ public class NavigationBar extends View {
 
 		this.backgroundImageView.setFrame(this.getBounds());
 
-		if(this.needsReload) {
+		if (this.needsReload) {
 			this.needsReload = false;
 			this.updateItemsWithTransition(Transition.RELOAD, false, null, null);
 		}
 
 		Size size;
-		if(this.shadowImage != null && (size = this.getShadowImage().getSize()).width > 0 && size.height > 0) {
-			if(this.shadowImageView == null) {
+		if (this.shadowImage != null && (size = this.getShadowImage().getSize()).width > 0 && size.height > 0) {
+			if (this.shadowImageView == null) {
 				this.shadowImageView = new ImageView();
 				this.addSubview(this.shadowImageView);
 			}
 
-			if(this.shadowImageView.getImage() != this.shadowImage) {
+			if (this.shadowImageView.getImage() != this.shadowImage) {
 				this.shadowImageView.setImage(this.shadowImage);
 			}
 
 			Rect bounds = this.getBounds();
 			this.shadowImageView.setFrame(new Rect(0.0f, bounds.size.height, bounds.size.width, size.height));
-		} else if(this.shadowImageView != null) {
+		} else if (this.shadowImageView != null) {
 			this.shadowImageView.removeFromSuperview();
 			this.shadowImageView = null;
 		}
@@ -902,7 +868,7 @@ public class NavigationBar extends View {
 		Rect frame = view.getFrame();
 		frame.size = view.sizeThatFits(new Size(bounds.size.width, bounds.size.height - this.itemEdgeInsets.top - this.itemEdgeInsets.bottom));
 
-		if(bordered) {
+		if (bordered) {
 			frame.size.width = Math.max(frame.size.width, MIN_BUTTON_WIDTH);
 		}
 
@@ -910,7 +876,7 @@ public class NavigationBar extends View {
 	}
 
 	private Control getBackItemButton(NavigationItem navigationItem) {
-		if(navigationItem == null) return null;
+		if (navigationItem == null) return null;
 
 		BarBackButton button = new BarBackButton(this, navigationItem);
 
@@ -924,11 +890,11 @@ public class NavigationBar extends View {
 	}
 
 	private View getItemView(final BarButtonItem barButtonItem) {
-		if(barButtonItem == null) return null;
+		if (barButtonItem == null) return null;
 
-		if(barButtonItem.getCustomView() != null) {
+		if (barButtonItem.getCustomView() != null) {
 			return barButtonItem.getCustomView();
-		} else if(barButtonItem.getView() != null) {
+		} else if (barButtonItem.getView() != null) {
 			return barButtonItem.getView();
 		} else {
 			BarButton button = BarButton.button(barButtonItem);
@@ -961,7 +927,7 @@ public class NavigationBar extends View {
 		}
 	}
 
-	public static class Appearance extends mocha.ui.Appearance <NavigationBar> {
+	public static class Appearance extends mocha.ui.Appearance<NavigationBar> {
 		private Method setShadowImage;
 		private Method setBackgroundImage;
 		private Method setTitleVerticalPositionAdjustment;
@@ -977,46 +943,52 @@ public class NavigationBar extends View {
 				this.setTitleVerticalPositionAdjustment = NavigationBar.class.getMethod("setTitleVerticalPositionAdjustment", Float.TYPE, BarMetrics.class);
 				this.setTitleAlignment = NavigationBar.class.getMethod("setTitleAlignment", TitleAlignment.class);
 				this.setBarTintColor = NavigationBar.class.getMethod("setBarTintColor", int.class);
-			} catch (NoSuchMethodException ignored) { }
+			} catch (NoSuchMethodException ignored) {
+			}
 		}
 
 		/**
-		 * @see NavigationBar#setShadowImage(mocha.graphics.Image)
 		 * @param shadowImage Shadow image
+		 *
+		 * @see NavigationBar#setShadowImage(mocha.graphics.Image)
 		 */
 		public void setShadowImage(Image shadowImage) {
 			this.store(this.setShadowImage, shadowImage);
 		}
 
 		/**
-		 * @see NavigationBar#setBackgroundImage(mocha.graphics.Image, BarMetrics)
 		 * @param backgroundImage Background image
-		 * @param barMetrics Bar metrics
+		 * @param barMetrics      Bar metrics
+		 *
+		 * @see NavigationBar#setBackgroundImage(mocha.graphics.Image, BarMetrics)
 		 */
 		public void setBackgroundImage(Image backgroundImage, BarMetrics barMetrics) {
 			this.store(this.setBackgroundImage, backgroundImage, barMetrics);
 		}
 
 		/**
-		 * @see NavigationBar#setTitleVerticalPositionAdjustment(float, BarMetrics)
 		 * @param adjustment Adjustment
 		 * @param barMetrics Bar metrics
+		 *
+		 * @see NavigationBar#setTitleVerticalPositionAdjustment(float, BarMetrics)
 		 */
 		public void setTitleVerticalPositionAdjustment(float adjustment, BarMetrics barMetrics) {
 			this.store(this.setTitleVerticalPositionAdjustment, adjustment, barMetrics);
 		}
 
 		/**
-		 * @see NavigationBar#setTitleTextAttributes(TextAttributes)
 		 * @param titleTextAttributes Text attributes
+		 *
+		 * @see NavigationBar#setTitleTextAttributes(TextAttributes)
 		 */
 		public void setTitleTextAttributes(TextAttributes titleTextAttributes) {
 			this.store(this.setTitleTextAttributes, titleTextAttributes);
 		}
 
 		/**
-		 * @see NavigationBar#setTitleAlignment(mocha.ui.NavigationBar.TitleAlignment)
 		 * @param titleAlignment Title alignment
+		 *
+		 * @see NavigationBar#setTitleAlignment(mocha.ui.NavigationBar.TitleAlignment)
 		 */
 		public void setTitleAlignment(TitleAlignment titleAlignment) {
 			this.store(this.setTitleAlignment, titleAlignment);
@@ -1024,6 +996,7 @@ public class NavigationBar extends View {
 
 		/**
 		 * Set the tint color of the bar
+		 *
 		 * @param barTintColor Bar tint color
 		 */
 		public void setBarTintColor(int barTintColor) {

@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/10/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.view.ViewGroup;
@@ -15,8 +10,13 @@ public class Switch extends Control {
 	private NativeView<android.widget.Switch> nativeView;
 	private Size controlSize;
 
-	public Switch() { this(new Rect(0.0f, 0.0f, 30.0f, 20.0f)); }
-	public Switch(Rect frame) { super(frame); }
+	public Switch() {
+		this(new Rect(0.0f, 0.0f, 30.0f, 20.0f));
+	}
+
+	public Switch(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -35,8 +35,8 @@ public class Switch extends Control {
 
 		switchWidget.onMeasure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		this.controlSize = new Size();
-		this.controlSize.width = ceilf((float)switchWidget.getMeasuredWidth() / scale);
-		this.controlSize.height = ceilf((float)switchWidget.getMeasuredHeight() / scale);
+		this.controlSize.width = ceilf((float) switchWidget.getMeasuredWidth() / scale);
+		this.controlSize.height = ceilf((float) switchWidget.getMeasuredHeight() / scale);
 
 		this.setBackgroundColor(Color.TRANSPARENT);
 	}

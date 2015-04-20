@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/21/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.text.InputType;
@@ -16,36 +11,37 @@ public interface TextInput {
 		NONE,
 		WORDS,
 		SENTENCES,
-		ALL_CHARACTERS,
+		ALL_CHARACTERS
 	}
 
 	public enum AutocorrectionType {
 		DEFAULT,
 		NO,
-		YES,
+		YES
 	}
 
 	public enum SpellCheckingType {
 		DEFAULT,
 		NO,
-		YES,
+		YES
 	}
 
 	public static final class Keyboard {
-		private Keyboard() { }
+		private Keyboard() {
+		}
 
 		public enum Type {
-			DEFAULT,                // Default type for the current input method.
-			URL,                    // A type optimized for URL entry (shows . / .com prominently).
-			NUMBER_PAD,              // A number pad (0-9). Suitable for PIN entry.
-			PHONE_PAD,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
-			EMAIL_ADDRESS,           // A type optimized for multiple email address entry (shows space @ . prominently).
-			DECIMAL_PAD,             // A number pad with a decimal point.
+			DEFAULT,
+			URL,
+			NUMBER_PAD,
+			PHONE_PAD,
+			EMAIL_ADDRESS,
+			DECIMAL_PAD
 		}
 
 
 		public enum Appearance {
-			DEFAULT,          // Default apperance for the current input method.
+			DEFAULT,
 			DARK,
 			LIGHT
 		}
@@ -61,7 +57,7 @@ public interface TextInput {
 			DONE
 		}
 	}
-	
+
 	public interface Traits {
 		/*
 			private TextInput.AutocapitalizationType autocapitalizationType;
@@ -74,36 +70,36 @@ public interface TextInput {
 			private boolean secureTextEntry;
 		 */
 
-		// Default is AutocapitalizationType.SENTENCES
 		public AutocapitalizationType getAutocapitalizationType();
+
 		public void setAutocapitalizationType(AutocapitalizationType autocapitalizationType);
 
-		// Default is AutocorrectionType.DEFAULT
 		public AutocorrectionType getAutocorrectionType();
+
 		public void setAutocorrectionType(AutocorrectionType autocorrectionType);
 
-		// Default is SpellCheckingType.DEFAULT
 		public SpellCheckingType getSpellCheckingType();
+
 		public void setSpellCheckingType(SpellCheckingType spellCheckingType);
 
-		// Default is Keyboard.Type.DEFAULT
 		public Keyboard.Type getKeyboardType();
+
 		public void setKeyboardType(Keyboard.Type keyboardType);
 
-		// Default is Keyboard.Appearance.DEFAULT
 		public Keyboard.Appearance getKeyboardAppearance();
+
 		public void setKeyboardAppearance(Keyboard.Appearance keyboardAppearance);
 
-		// Default is Keyboard.ReturnKeyType.DEFAULT
 		public Keyboard.ReturnKeyType getReturnKeyType();
+
 		public void setReturnKeyType(Keyboard.ReturnKeyType returnKeyType);
 
-		// Default is false (when true, will automatically disable return key when text widget has zero-length contents, and will automatically enable when text widget has non-zero-length contents)
 		public boolean enablesReturnKeyAutomatically();
+
 		public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically);
 
-		// Default is false
 		public boolean isSecureTextEntry();
+
 		public void setSecureTextEntry(boolean secureTextEntry);
 
 	}
@@ -211,6 +207,7 @@ public interface TextInput {
 	}
 
 	Rect getCaretRectForPosition(int position);
+
 	TextRange getSelectedTextRange();
 
 }

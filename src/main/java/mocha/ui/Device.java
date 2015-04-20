@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/15/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.res.Configuration;
@@ -12,7 +7,6 @@ import mocha.foundation.MObject;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 // TODO: Build out!
@@ -47,11 +41,12 @@ public final class Device extends MObject {
 	/**
 	 * Gets the total number of cores on the device
 	 *
-	 * @see http://stackoverflow.com/a/10377934
 	 * @return Number of cores
+	 *
+	 * @see http://stackoverflow.com/a/10377934
 	 */
 	public int getNumberOfCores() {
-		if(this.numberOfCores == -1) {
+		if (this.numberOfCores == -1) {
 			try {
 				// Get directory containing CPU info
 				File dir = new File("/sys/devices/system/cpu/");
@@ -64,7 +59,7 @@ public final class Device extends MObject {
 				});
 				// Return the number of cores (virtual CPU devices)
 				this.numberOfCores = files.length;
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// Most likely always going to be 1, but better than nothing.
 				this.numberOfCores = Runtime.getRuntime().availableProcessors();
 				MLogException(e, "Unable to detect number of cores");
@@ -76,7 +71,7 @@ public final class Device extends MObject {
 	}
 
 	public String getUniqueIdentifier() {
-		if(this.uniqueIdentifier == null) {
+		if (this.uniqueIdentifier == null) {
 			this.uniqueIdentifier = Settings.Secure.getString(Application.sharedApplication().getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 		}
 

@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/23/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.animation.TimingFunction;
@@ -19,25 +14,27 @@ public class ScrollView extends View {
 
 		public interface Dragging extends Listener {
 			public void willBeginDragging(ScrollView scrollView);
+
 			public void willEndDraggingWithVelocityAndTargetContentOffset(ScrollView scrollView, Point velocity, Point targetContentOffset);
+
 			public void didEndDragging(ScrollView scrollView, boolean decelerating);
 		}
 
 		public interface Decelerating extends Listener {
 			public void willBeginDecelerating(ScrollView scrollView);
+
 			public void didEndDecelerating(ScrollView scrollView);
 		}
 
 		public interface Animations extends Listener {
 			public void willBeginScrollingAnimation(ScrollView scrollView);
+
 			public void didEndScrollingAnimation(ScrollView scrollView);
 		}
 	}
 
 	private static float MIN_INDICATOR_LENGTH = 34.0f;
 	private static float INHERENT_INDICATOR_INSET = 1.0f;
-	private static long DEFAULT_TRANSITION_DURATION = 330;
-	private static long PAGING_TRANSITION_DURATION = 250;
 
 	public static final float DECELERATION_RATE_NORMAL = 0.998f;
 	public static final float DECELERATION_RATE_FAST = 0.99f;
@@ -48,13 +45,8 @@ public class ScrollView extends View {
 	}
 
 	public enum KeyboardDismissMode {
-		// Do not dismiss keyboard
 		NONE,
-
-		// Dismiss when user starts to drag
 		ON_DRAG,
-
-		// Dismisses keyboard with user touch, can be cancelled if touch moves up
 		INTERACTIVE
 	}
 
@@ -87,10 +79,14 @@ public class ScrollView extends View {
 	private final EdgeInsets contentInset = EdgeInsets.zero();
 	private ScrollViewDeceleration scrollViewDeceleration;
 	private KeyboardDismissMode keyboardDismissMode;
-	private final Point reuseablePoint = new Point();
+	private final Point reusablePoint = new Point();
 
-	public ScrollView() { }
-	public ScrollView(Rect frame) { super(frame); }
+	public ScrollView() {
+	}
+
+	public ScrollView(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -165,23 +161,23 @@ public class ScrollView extends View {
 	}
 
 	public void setListener(Listener listener) {
-		if(listener != null) {
+		if (listener != null) {
 			this.listener = listener;
 
-			if(listener instanceof Listener.Dragging) {
-				this.listenerDragging = (Listener.Dragging)listener;
+			if (listener instanceof Listener.Dragging) {
+				this.listenerDragging = (Listener.Dragging) listener;
 			} else {
 				this.listenerDragging = null;
 			}
 
-			if(listener instanceof Listener.Decelerating) {
-				this.listenerDecelerating = (Listener.Decelerating)listener;
+			if (listener instanceof Listener.Decelerating) {
+				this.listenerDecelerating = (Listener.Decelerating) listener;
 			} else {
 				this.listenerDecelerating = null;
 			}
 
-			if(listener instanceof Listener.Animations) {
-				this.listenerAnimations = (Listener.Animations)listener;
+			if (listener instanceof Listener.Animations) {
+				this.listenerAnimations = (Listener.Animations) listener;
 			} else {
 				this.listenerAnimations = null;
 			}
@@ -203,7 +199,7 @@ public class ScrollView extends View {
 		Size oldSize = this.getFrame().size;
 		super.setFrame(frame);
 
-		if(!oldSize.equals(frame.size)) {
+		if (!oldSize.equals(frame.size)) {
 			this.updateConfinementMetrics(true);
 		}
 	}
@@ -264,13 +260,13 @@ public class ScrollView extends View {
 	}
 
 	public void setContentInset(EdgeInsets contentInset) {
-		if(contentInset == null) {
+		if (contentInset == null) {
 			contentInset = EdgeInsets.zero();
 		} else {
 			contentInset = contentInset.copy();
 		}
 
-		if(!this.contentInset.equals(contentInset)) {
+		if (!this.contentInset.equals(contentInset)) {
 			EdgeInsets previousContentInset = this.contentInset.copy();
 			this.contentInset.set(contentInset);
 			this.minPoint.x = -contentInset.left;
@@ -278,12 +274,12 @@ public class ScrollView extends View {
 
 			this.updateConfinementMetrics(false);
 
-			if(!this.hasLaidOut) {
+			if (!this.hasLaidOut) {
 				this.setContentOffset(this.minPoint);
 			} else {
 				Point contentOffset = this.contentOffset.copy();
 
-				if(contentOffset.x == -previousContentInset.left) {
+				if (contentOffset.x == -previousContentInset.left) {
 					contentOffset.x = -this.contentInset.left;
 				} else {
 					if (this.contentInset.left < previousContentInset.left) {
@@ -291,7 +287,7 @@ public class ScrollView extends View {
 					}
 				}
 
-				if(contentOffset.y == -previousContentInset.top) {
+				if (contentOffset.y == -previousContentInset.top) {
 					contentOffset.y = -this.contentInset.top;
 				} else {
 					if (this.contentInset.top < previousContentInset.top) {
@@ -299,7 +295,7 @@ public class ScrollView extends View {
 					}
 				}
 
-				if(!contentOffset.equals(this.contentOffset)) {
+				if (!contentOffset.equals(this.contentOffset)) {
 					this.setContentOffset(contentOffset);
 				}
 			}
@@ -403,7 +399,7 @@ public class ScrollView extends View {
 	}
 
 	public void setContentOffset(Point contentOffset, boolean animated) {
-		this.setContentOffset(contentOffset, animated ? TimingFunction.LINEAR : null, DEFAULT_TRANSITION_DURATION, false);
+		this.setContentOffset(contentOffset, animated ? TimingFunction.LINEAR : null, 330, false);
 	}
 
 	void setContentOffset(Point contentOffset, TimingFunction timingFunction, long animationDuration, boolean internal) {
@@ -411,20 +407,20 @@ public class ScrollView extends View {
 			return;
 		}
 
-		if(this.scrollViewDeceleration != null && !internal && !inSimpleAnimation) {
+		if (this.scrollViewDeceleration != null && !internal && !inSimpleAnimation) {
 			this.scrollViewDeceleration.cancel();
 			this.scrollViewDeceleration = null;
 		}
 
 		final ViewAnimation.Type type = ViewAnimation.Type.CALLBACK_POINT;
 
-		if(!this.animationIsSetting && this.animations[type.value] != null) {
-			if(this.changeEndValueForAnimationType(type, contentOffset.copy())) {
+		if (!this.animationIsSetting && this.animations[type.value] != null) {
+			if (this.changeEndValueForAnimationType(type, contentOffset.copy())) {
 				return;
 			}
 		}
 
-		if(timingFunction != null) {
+		if (timingFunction != null) {
 			View.beginAnimations(null, null);
 			View.setAnimationDuration(animationDuration);
 			View.setTimingFunction(timingFunction);
@@ -448,19 +444,19 @@ public class ScrollView extends View {
 
 			currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
 				public void processFrame(Object value) {
-					setContentOffset((Point)value);
+					setContentOffset((Point) value);
 				}
 			});
 
 			View.commitAnimations();
-		} else if(View.isInAnimationContext()) {
+		} else if (View.isInAnimationContext()) {
 			currentViewAnimation.addAnimation(this, type, this.contentOffset.copy(), contentOffset.copy(), new ViewAnimation.ProcessFrameCallback() {
 				public void processFrame(Object value) {
-					setContentOffset((Point)value);
+					setContentOffset((Point) value);
 				}
 			});
 		} else {
-			if(internal || inSimpleAnimation) {
+			if (internal || inSimpleAnimation) {
 				this.contentOffset.set(contentOffset);
 			} else {
 				this.contentOffset.x = ScreenMath.round(contentOffset.x);
@@ -513,8 +509,8 @@ public class ScrollView extends View {
 		}
 
 		if ((contentOffset.x != this.contentOffset.x || contentOffset.y != this.contentOffset.y)) {
-			if(pagingEnabled && animated) {
-				this.setContentOffset(contentOffset, TimingFunction.EASE_OUT, PAGING_TRANSITION_DURATION, false);
+			if (pagingEnabled && animated) {
+				this.setContentOffset(contentOffset, TimingFunction.EASE_OUT, 250, false);
 			} else {
 				this.setContentOffset(contentOffset, new TimingFunction.CubicBezierCurveTimingFunction(0.390f, 0.575f, 0.565f, 1.000f), 400, false);
 			}
@@ -525,7 +521,7 @@ public class ScrollView extends View {
 		this.snapToBounds(false);
 		this.hideScrollIndicators(false);
 
-		if(this.listenerDecelerating != null) {
+		if (this.listenerDecelerating != null) {
 			this.listenerDecelerating.didEndDecelerating(this);
 		}
 	}
@@ -688,12 +684,12 @@ public class ScrollView extends View {
 		View.animateWithDuration(100, 100, new Animations() {
 			public void performAnimatedChanges() {
 				View.setAnimationCurve(AnimationCurve.LINEAR);
-				if(showHorizontal) horizontalScrollIndicator.setVisible(true);
-				if(showVertical) verticalScrollIndicator.setVisible(true);
+				if (showHorizontal) horizontalScrollIndicator.setVisible(true);
+				if (showVertical) verticalScrollIndicator.setVisible(true);
 			}
 		}, new AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				if(finished) {
+				if (finished) {
 					performAfterDelay(0, new Runnable() {
 						public void run() {
 							hideScrollIndicators(true);
@@ -709,7 +705,7 @@ public class ScrollView extends View {
 	}
 
 	void hideScrollIndicators(boolean fromFlash) {
-		if(!this.horizontalScrollIndicator.isVisible() && !this.verticalScrollIndicator.isVisible()) return;
+		if (!this.horizontalScrollIndicator.isVisible() && !this.verticalScrollIndicator.isVisible()) return;
 
 		this.horizontalScrollIndicator.cancelAnimations();
 		this.verticalScrollIndicator.cancelAnimations();
@@ -735,7 +731,7 @@ public class ScrollView extends View {
 	}
 
 	float getEffectiveDecelerationRate() {
-		if(this.pagingEnabled) {
+		if (this.pagingEnabled) {
 			return DECELERATION_RATE_PAGING; // UIScrollView ignores deceleration rate when paging is enabled
 		} else {
 			return this.decelerationRate;
@@ -766,12 +762,12 @@ public class ScrollView extends View {
 	private final Point startContentOffset = Point.zero();
 
 	private void panningDidStart(PanGestureRecognizer gestureRecognizer) {
-		if(this.scrollViewDeceleration != null) {
+		if (this.scrollViewDeceleration != null) {
 			this.scrollViewDeceleration.cancel();
 			this.scrollViewDeceleration = null;
 		}
 
-		if(this.listenerDragging != null) {
+		if (this.listenerDragging != null) {
 			this.listenerDragging.willBeginDragging(this);
 		}
 
@@ -812,9 +808,9 @@ public class ScrollView extends View {
 			y = clampf(y, this.minPoint.y, this.maxPoint.y);
 		}
 
-		this.reuseablePoint.x = x;
-		this.reuseablePoint.y = y;
-		this.setContentOffset(this.reuseablePoint);
+		this.reusablePoint.x = x;
+		this.reusablePoint.y = y;
+		this.setContentOffset(this.reusablePoint);
 	}
 
 	private void panningDidEnd(PanGestureRecognizer gestureRecognizer) {
@@ -822,7 +818,7 @@ public class ScrollView extends View {
 
 		this.dragging = false;
 
-		if(this.scrollViewDeceleration != null) {
+		if (this.scrollViewDeceleration != null) {
 			this.scrollViewDeceleration.cancel();
 		}
 
@@ -847,7 +843,7 @@ public class ScrollView extends View {
 		this.dragging = false;
 		this.snapToBounds(true);
 
-		if(this.listenerDragging != null) {
+		if (this.listenerDragging != null) {
 			this.listenerDragging.didEndDragging(this, false);
 		}
 
@@ -855,19 +851,19 @@ public class ScrollView extends View {
 	}
 
 	private void didScroll(boolean fromAnimation) {
-		if(fromAnimation) {
+		if (fromAnimation) {
 			this.contentOffset.x = ScreenMath.round(this.contentOffset.x);
 			this.contentOffset.y = ScreenMath.round(this.contentOffset.y);
 			this.updateScrollPositionWithContentOffset();
 
-			if(this.listenerAnimations != null) {
+			if (this.listenerAnimations != null) {
 				this.listenerAnimations.didEndScrollingAnimation(this);
 			}
 		}
 
 		this.didScroll();
 
-		if(this.listener != null) {
+		if (this.listener != null) {
 			this.listener.didScroll(this);
 		}
 	}
@@ -882,8 +878,9 @@ public class ScrollView extends View {
 	/**
 	 * Convenience for subclasses, called before listener is notified
 	 *
-	 * @param velocity Scroll velocity
+	 * @param velocity            Scroll velocity
 	 * @param targetContentOffset Target content offset
+	 *
 	 * @return true to allow the listener to be called, false to prevent it from being called
 	 */
 	protected boolean willEndDraggingWithVelocityAndTargetContentOffset(Point velocity, Point targetContentOffset) {

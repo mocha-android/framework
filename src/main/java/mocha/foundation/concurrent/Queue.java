@@ -1,9 +1,3 @@
-/**
- *  @author Shaun
- *  @date 2/18/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
-
 package mocha.foundation.concurrent;
 
 import mocha.foundation.MObject;
@@ -18,9 +12,10 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get the main queue
-	 * @see mocha.foundation.concurrent.MainQueue#get()
 	 *
 	 * @return Main queue
+	 *
+	 * @see mocha.foundation.concurrent.MainQueue#get()
 	 */
 	public static ScheduledQueue main() {
 		return MainQueue.get();
@@ -28,10 +23,12 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global serial queue
-	 * @see SerialQueue#getGlobalQueue(Priority)
 	 *
 	 * @param priority queue priority
+	 *
 	 * @return Global serial queue
+	 *
+	 * @see SerialQueue#getGlobalQueue(Priority)
 	 */
 	public static Queue serial(Priority priority) {
 		return SerialQueue.getGlobalQueue(priority);
@@ -39,10 +36,12 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get a global concurrent queue
-	 * @see ConcurrentQueue#getGlobalQueue(Priority)
 	 *
 	 * @param priority queue priority
+	 *
 	 * @return Global serial queue
+	 *
+	 * @see ConcurrentQueue#getGlobalQueue(Priority)
 	 */
 	public static Queue concurrent(Priority priority) {
 		return ConcurrentQueue.getGlobalQueue(priority);
@@ -64,6 +63,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Set the default exception handler to be assigned to any new Queue created.
+	 *
 	 * @param defaultExceptionHandler Exception handler or null
 	 */
 	public static void setDefaultExceptionHandler(ExceptionHandler defaultExceptionHandler) {
@@ -72,10 +72,11 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Set the exception handler for this queue, overriding the default handler
+	 *
 	 * @param exceptionHandler Exception handler or null to resume using the default exception handler
 	 */
 	public final void setExceptionHandler(ExceptionHandler exceptionHandler) {
-		if(exceptionHandler == null) {
+		if (exceptionHandler == null) {
 			this.exceptionHandler = defaultExceptionHandler;
 		} else {
 			this.exceptionHandler = exceptionHandler;
@@ -84,6 +85,7 @@ public abstract class Queue extends MObject {
 
 	/**
 	 * Get the exception handler for this queue
+	 *
 	 * @return Exception handler or null
 	 */
 	protected final ExceptionHandler getExceptionHandler() {

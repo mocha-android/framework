@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/21/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.text.TextPaint;
@@ -13,7 +8,7 @@ public class ShadowSpan extends CharacterStyle {
 	private Shadow shadow;
 
 	public ShadowSpan(Shadow shadow) {
-		if(shadow == null) {
+		if (shadow == null) {
 			throw new IllegalArgumentException("Shadow can not be null");
 		}
 

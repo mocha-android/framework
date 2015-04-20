@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/23/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Point;
@@ -36,8 +31,8 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		final State state = this.getState();
 
 		// If our scroll view is decelerating, begin gesture immediately to halt deceleration
-		if(!state.recognized && !state.finished && scrollView != null && scrollView.decelerating) {
-			if(touch != null) {
+		if (!state.recognized && !state.finished && scrollView != null && scrollView.decelerating) {
+			if (touch != null) {
 				this.start.set(touch.location);
 				this.trackingTouch = touch;
 				this.current.set(touch.location);
@@ -53,7 +48,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 			}
 		}
 
-		if(touch != null) {
+		if (touch != null) {
 			this.startLocation.set(touch.location);
 			this.lastLocation.set(this.startLocation);
 		}
@@ -64,7 +59,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	protected void touchesMoved(List<Touch> touches, Event event) {
 		if (this.trackingTouch == null || !touches.contains(this.trackingTouch)) return;
 
-		if(this.directionalLockEnabled && this.scrollDirection == null) {
+		if (this.directionalLockEnabled && this.scrollDirection == null) {
 			this.lastLocation.set(this.trackingTouch.location);
 		}
 
@@ -76,10 +71,10 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	protected void setState(State state, boolean skipDirectionCheck) {
-		if(!skipDirectionCheck && state == State.BEGAN && this.directionalLockEnabled) {
+		if (!skipDirectionCheck && state == State.BEGAN && this.directionalLockEnabled) {
 			Point abs = new Point(Math.abs(this.startLocation.x - this.lastLocation.x), Math.abs(this.startLocation.y - this.lastLocation.y));
 
-			if(abs.x > abs.y) {
+			if (abs.x > abs.y) {
 				this.scrollDirection = ScrollDirection.HORIZONTAL;
 			} else {
 				this.scrollDirection = ScrollDirection.VERTICAL;
@@ -87,20 +82,20 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 			ScrollView scrollView = this.getScrollView();
 
-			if(scrollView != null) {
-				if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
-					if(!scrollView.canScrollHorizontally && !scrollView.alwaysBounceHorizontal()) {
+			if (scrollView != null) {
+				if (this.scrollDirection == ScrollDirection.HORIZONTAL) {
+					if (!scrollView.canScrollHorizontally && !scrollView.alwaysBounceHorizontal()) {
 						state = State.FAILED;
 					}
-				} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
-					if(!scrollView.canScrollVertically && !scrollView.alwaysBounceVertical()) {
+				} else if (this.scrollDirection == ScrollDirection.VERTICAL) {
+					if (!scrollView.canScrollVertically && !scrollView.alwaysBounceVertical()) {
 						state = State.FAILED;
 					}
 				}
 			}
 		}
 
-		if(state == State.BEGAN && this.areAnyEnclosingScrollViewsDecelerating()) {
+		if (state == State.BEGAN && this.areAnyEnclosingScrollViewsDecelerating()) {
 			state = State.FAILED;
 		}
 
@@ -110,10 +105,10 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	public Point translationInView(View view) {
 		Point point = super.translationInView(view);
 
-		if(this.directionalLockEnabled) {
-			if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
+		if (this.directionalLockEnabled) {
+			if (this.scrollDirection == ScrollDirection.HORIZONTAL) {
 				point.y = 0.0f;
-			} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
+			} else if (this.scrollDirection == ScrollDirection.VERTICAL) {
 				point.x = 0.0f;
 			}
 		}
@@ -124,10 +119,10 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	public Point velocityInView(View view) {
 		Point point = super.velocityInView(view);
 
-		if(this.directionalLockEnabled) {
-			if(this.scrollDirection == ScrollDirection.HORIZONTAL) {
+		if (this.directionalLockEnabled) {
+			if (this.scrollDirection == ScrollDirection.HORIZONTAL) {
 				point.y = 0.0f;
-			} else if(this.scrollDirection == ScrollDirection.VERTICAL) {
+			} else if (this.scrollDirection == ScrollDirection.VERTICAL) {
 				point.x = 0.0f;
 			}
 		}
@@ -150,7 +145,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	private ScrollView getScrollView() {
-		if(this.getView() instanceof ScrollView) {
+		if (this.getView() instanceof ScrollView) {
 			return (ScrollView) this.getView();
 		} else {
 			return null;
@@ -159,13 +154,13 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 
 	private boolean areAnyEnclosingScrollViewsDecelerating() {
 		ScrollView scrollView = this.getScrollView();
-		if(scrollView == null) return false;
+		if (scrollView == null) return false;
 
 		View superview = scrollView;
 
-		while((superview = superview.getSuperview()) != null) {
-			if(superview instanceof ScrollView) {
-				if(((ScrollView) superview).decelerating) {
+		while ((superview = superview.getSuperview()) != null) {
+			if (superview instanceof ScrollView) {
+				if (((ScrollView) superview).decelerating) {
 					return true;
 				}
 			}
@@ -175,7 +170,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 	}
 
 	protected boolean shouldRequireFailureOfGestureRecognizer(GestureRecognizer otherGestureRecognizer) {
-		if(otherGestureRecognizer instanceof PanGestureRecognizer) {
+		if (otherGestureRecognizer instanceof PanGestureRecognizer) {
 			if (this.isDescendant((PanGestureRecognizer) otherGestureRecognizer)) {
 				return true;
 			}
@@ -189,7 +184,7 @@ class ScrollViewPanGestureRecognizer extends PanGestureRecognizer {
 		View otherView = otherGestureRecognizer.getView();
 
 		while (otherView != null) {
-			if(view == otherView) {
+			if (view == otherView) {
 				return true;
 			} else {
 				otherView = otherView.getSuperview();

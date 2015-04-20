@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/17/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.util.DisplayMetrics;
@@ -13,13 +8,13 @@ public class Screen extends MObject {
 	private static Screen MAIN_SCREEN;
 
 	static void setupMainScreen(Activity activity) {
-		if(MAIN_SCREEN == null) {
+		if (MAIN_SCREEN == null) {
 			MAIN_SCREEN = new Screen(activity);
 		}
 	}
 
 	public static Screen mainScreen() {
-		if(MAIN_SCREEN == null) {
+		if (MAIN_SCREEN == null) {
 			throw new RuntimeException("Screen is unavailable until " + Activity.class.getCanonicalName() + " is instantiated.");
 		}
 
@@ -40,7 +35,7 @@ public class Screen extends MObject {
 		float y = FloatMath.floor((size.y / getScale()) + 0.5f);
 		this.bounds = new mocha.graphics.Rect();
 
-		if(size.y > size.x) {
+		if (size.y > size.x) {
 			this.bounds.size.width = x;
 			this.bounds.size.height = y;
 		} else {

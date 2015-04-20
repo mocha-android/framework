@@ -1,8 +1,3 @@
-/**
- *	@author Shaun
- *	@date 1/30/13
- *	@copyright	2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.*;
@@ -15,7 +10,7 @@ class BarButton extends Button {
 	static BarButton button(final BarButtonItem barButtonItem) {
 		BarButtonItem.SystemItem systemItem = barButtonItem.getSystemItem();
 
-		if(systemItem == BarButtonItem.SystemItem.FIXED_SPACE || systemItem == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
+		if (systemItem == BarButtonItem.SystemItem.FIXED_SPACE || systemItem == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
 			return null;
 		} else {
 			BarButton button = new BarButton(barButtonItem);
@@ -23,7 +18,7 @@ class BarButton extends Button {
 				public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
 					BarButtonItem.Action action = barButtonItem.getAction();
 
-					if(action != null) {
+					if (action != null) {
 						action.action(barButtonItem, event);
 					}
 				}
@@ -39,10 +34,10 @@ class BarButton extends Button {
 		TextAttributes normalAttributes = item.getTitleTextAttributesForState(State.NORMAL);
 		final float fontSize = item.getStyle() == BarButtonItem.Style.BORDERED ? 12.0f : 18.0f;
 
-		if(normalAttributes != null && normalAttributes.font != null) {
+		if (normalAttributes != null && normalAttributes.font != null) {
 			Font font = normalAttributes.font;
 
-			if(font.getPointSize() == 0.0f) {
+			if (font.getPointSize() == 0.0f) {
 				font = font.getFontWithSize(fontSize);
 			}
 
@@ -51,42 +46,42 @@ class BarButton extends Button {
 			this.getTitleLabel().setFont(Font.getBoldSystemFontWithSize(fontSize));
 		}
 
-		if(normalAttributes != null && normalAttributes.shadowOffset != null) {
+		if (normalAttributes != null && normalAttributes.shadowOffset != null) {
 			this.getTitleLabel().setShadowOffset(normalAttributes.shadowOffset);
 		} else {
 			this.getTitleLabel().setShadowOffset(new Size(0.0f, -1.0f));
 		}
 
-		if(normalAttributes != null && normalAttributes.textColor != 0) {
+		if (normalAttributes != null && normalAttributes.textColor != 0) {
 			this.setTitleColor(normalAttributes.textColor, State.NORMAL);
 		} else {
 			this.setTitleColor(Color.WHITE, State.NORMAL);
 		}
 
-		if(normalAttributes != null && normalAttributes.shadowColor != 0) {
+		if (normalAttributes != null && normalAttributes.shadowColor != 0) {
 			this.setTitleShadowColor(normalAttributes.shadowColor, State.NORMAL);
 		} else {
 			this.setTitleShadowColor(Color.white(0.0f, 0.5f), State.NORMAL);
 		}
 
-		State[] highlightedStates = new State[] { State.NORMAL, State.HIGHLIGHTED };
+		State[] highlightedStates = new State[]{State.NORMAL, State.HIGHLIGHTED};
 
 		TextAttributes highlightedAttributes = item.getTitleTextAttributesForState(highlightedStates);
 
-		if(highlightedAttributes != null && highlightedAttributes.textColor != 0) {
+		if (highlightedAttributes != null && highlightedAttributes.textColor != 0) {
 			this.setTitleColor(highlightedAttributes.textColor, highlightedStates);
 		}
 
-		if(highlightedAttributes != null && highlightedAttributes.shadowColor != 0) {
+		if (highlightedAttributes != null && highlightedAttributes.shadowColor != 0) {
 			this.setTitleShadowColor(highlightedAttributes.shadowColor, highlightedStates);
 		}
 
 		BarButtonItem.SystemItem systemItem = barButtonItem.getSystemItem();
 
-		if(systemItem != null) {
-			if(systemItem == BarButtonItem.SystemItem.CANCEL) {
+		if (systemItem != null) {
+			if (systemItem == BarButtonItem.SystemItem.CANCEL) {
 				this.setTitle("Cancel", State.NORMAL);
-			} else if(systemItem == BarButtonItem.SystemItem.EDIT) {
+			} else if (systemItem == BarButtonItem.SystemItem.EDIT) {
 				this.setTitle("Edit", State.NORMAL);
 			} else {
 				int imageId = -1;
@@ -154,23 +149,23 @@ class BarButton extends Button {
 						break;
 				}
 
-				if(imageId != -1) {
+				if (imageId != -1) {
 					Image image = Image.imageNamed(imageId).imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE);
 					this.setImage(image, State.NORMAL);
 
 					EdgeInsets imageInset = item.getImageInsets();
 
-					if(imageInset != null) {
+					if (imageInset != null) {
 						this.setImageEdgeInsets(imageInset);
 					}
 				}
 			}
-		} else if(item.getTitle() != null && item.getTitle().length() > 0) {
+		} else if (item.getTitle() != null && item.getTitle().length() > 0) {
 			this.setTitle(item.getTitle(), State.NORMAL);
-		} else if(item.getImage() != null) {
+		} else if (item.getImage() != null) {
 			Image image = item.getImage();
 
-			if(image.getRenderingMode() == Image.RenderingMode.AUTOMATIC) {
+			if (image.getRenderingMode() == Image.RenderingMode.AUTOMATIC) {
 				image = image.imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE);
 			}
 
@@ -178,12 +173,12 @@ class BarButton extends Button {
 
 			EdgeInsets imageInset = item.getImageInsets();
 
-			if(imageInset != null) {
+			if (imageInset != null) {
 				this.setImageEdgeInsets(imageInset);
 			}
 		}
 
-		if(item.getStyle() == BarButtonItem.Style.BORDERED) {
+		if (item.getStyle() == BarButtonItem.Style.BORDERED) {
 			this.setContentEdgeInsets(new EdgeInsets(0.0f, 7.0f, 0.0f, 7.0f));
 			this.bordered = true;
 
@@ -194,21 +189,21 @@ class BarButton extends Button {
 			backgroundImage = item.getBackgroundImage(BarMetrics.DEFAULT, State.NORMAL);
 			capInsets = new EdgeInsets(0.0f, 5.0f, 0.0f, 5.0f);
 
-			if(backgroundImage != null) {
+			if (backgroundImage != null) {
 				highlightedBackgroundImage = item.getBackgroundImage(BarMetrics.DEFAULT, highlightedStates);
 				this.backgroundImageVerticalAdjustment = item.getBackgroundVerticalPositionAdjustmentForBarMetrics(BarMetrics.DEFAULT);
 			}
 
 			this.setContentEdgeInsets(new EdgeInsets(0.0f, 9.0f, 0.0f, 9.0f));
 
-			if(backgroundImage != null && backgroundImage.getCapInsets() == null) {
+			if (backgroundImage != null && backgroundImage.getCapInsets() == null) {
 				backgroundImage = backgroundImage.resizableImageWithCapInsets(capInsets);
 			}
 
 			this.setBackgroundImage(backgroundImage, State.NORMAL);
 
-			if(highlightedBackgroundImage != null) {
-				if(highlightedBackgroundImage.getCapInsets() == null) {
+			if (highlightedBackgroundImage != null) {
+				if (highlightedBackgroundImage.getCapInsets() == null) {
 					highlightedBackgroundImage = highlightedBackgroundImage.resizableImageWithCapInsets(capInsets);
 				}
 
@@ -222,7 +217,7 @@ class BarButton extends Button {
 		titlePositionAdjustment = item.getTitlePositionAdjustment(BarMetrics.DEFAULT);
 
 
-		if(titlePositionAdjustment != null) {
+		if (titlePositionAdjustment != null) {
 			titleEdgeInsets.top += titlePositionAdjustment.vertical;
 			titleEdgeInsets.left += titlePositionAdjustment.horizontal;
 

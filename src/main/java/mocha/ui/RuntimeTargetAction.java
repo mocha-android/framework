@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 3/10/15
- *	@copyright	2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -11,7 +6,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 class RuntimeTargetAction {
@@ -21,16 +15,16 @@ class RuntimeTargetAction {
 		Method method = null;
 		int count = 0;
 
-		for(Method m : methods) {
-			if(m.getName().equals(actionMethodName)) {
+		for (Method m : methods) {
+			if (m.getName().equals(actionMethodName)) {
 				method = m;
 				count++;
 			}
 		}
 
-		if(count > 1) {
+		if (count > 1) {
 			throw new RuntimeException("Found multiple public methods named " + actionMethodName + " on target " + target + ".");
-		} else if(method == null) {
+		} else if (method == null) {
 			throw new RuntimeException("Could not find public method " + actionMethodName + " on target " + target + ".");
 		}
 
@@ -48,18 +42,18 @@ class RuntimeTargetAction {
 	public RuntimeTargetAction(Object target, Method action, Class... availableParameterTypes) {
 		this.argumentClasses = new ArrayList<>();
 
-		for(Class parameterType : action.getParameterTypes()) {
+		for (Class parameterType : action.getParameterTypes()) {
 			boolean matched = false;
 
-			for(Class availableParameterType : availableParameterTypes) {
-				if(parameterType.isAssignableFrom(availableParameterType)) {
+			for (Class availableParameterType : availableParameterTypes) {
+				if (parameterType.isAssignableFrom(availableParameterType)) {
 					this.argumentClasses.add(availableParameterType);
 					matched = true;
 					break;
 				}
 			}
 
-			if(!matched) {
+			if (!matched) {
 				throw new RuntimeException(String.format("%s on %s requires parameter type %s which is not available." + action.getName(), target));
 			}
 		}
@@ -70,18 +64,18 @@ class RuntimeTargetAction {
 
 	public void invoke(Object... arguments) {
 		Object target = this.target.get();
-		if(target == null) return;
+		if (target == null) return;
 
 		try {
-			if(this.argumentClasses.size() > 0) {
+			if (this.argumentClasses.size() > 0) {
 				Object[] args = new Object[this.argumentClasses.size()];
 				int i = 0;
 
-				for(Class argumentType : this.argumentClasses) {
+				for (Class argumentType : this.argumentClasses) {
 					Object arg = null;
 
-					for(Object a : arguments) {
-						if(argumentType.isInstance(a)) {
+					for (Object a : arguments) {
+						if (argumentType.isInstance(a)) {
 							arg = a;
 							break;
 						}

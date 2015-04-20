@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/24/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -24,13 +19,13 @@ public class Responder extends MObject {
 	public boolean becomeFirstResponder() {
 		Window window = this.findWindow();
 
-		if(this.isFirstResponder(window)) {
+		if (this.isFirstResponder(window)) {
 			return true;
-		} else if(window != null && this.canBecomeFirstResponder() && this.isInCompleteResponderChain()) {
+		} else if (window != null && this.canBecomeFirstResponder() && this.isInCompleteResponderChain()) {
 			Responder firstResponder = window.getFirstResponder();
 			boolean allow;
 
-			if(firstResponder != null) {
+			if (firstResponder != null) {
 				firstResponder.transitioningFirstResponders = true;
 				allow = firstResponder.resignFirstResponder();
 				firstResponder.transitioningFirstResponders = false;
@@ -38,7 +33,7 @@ public class Responder extends MObject {
 				allow = true;
 			}
 
-			if(allow || this.forceTransitionFirstResponder) {
+			if (allow || this.forceTransitionFirstResponder) {
 				window.setFirstResponder(this);
 				return true;
 			}
@@ -54,7 +49,7 @@ public class Responder extends MObject {
 	public boolean resignFirstResponder() {
 		Window window = this.findWindow();
 
-		if((this.isFirstResponder(window) && this.canResignFirstResponder()) || this.forceTransitionFirstResponder) {
+		if ((this.isFirstResponder(window) && this.canResignFirstResponder()) || this.forceTransitionFirstResponder) {
 			window.setFirstResponder(null);
 		}
 
@@ -72,7 +67,7 @@ public class Responder extends MObject {
 	}
 
 	private void makeNextFirstResponderActiveIfAllowed() {
-		if(!this.transitioningFirstResponders) {
+		if (!this.transitioningFirstResponders) {
 			this.makeNextFirstResponderActive();
 		}
 	}
@@ -82,10 +77,10 @@ public class Responder extends MObject {
 
 		this.forceTransitionFirstResponder = true;
 
-		while((nextResponder = nextResponder.nextResponder()) != null) {
+		while ((nextResponder = nextResponder.nextResponder()) != null) {
 			nextResponder.forceTransitionFirstResponder = true;
 
-			if(nextResponder.becomeFirstResponder()) {
+			if (nextResponder.becomeFirstResponder()) {
 				nextResponder.forceTransitionFirstResponder = false;
 				break;
 			} else {
@@ -99,12 +94,12 @@ public class Responder extends MObject {
 	void promoteDeepestDefaultFirstResponder() {
 		Responder[] rootResponder = new Responder[1];
 
-		if(this.isInCompleteResponderChain(rootResponder)) {
+		if (this.isInCompleteResponderChain(rootResponder)) {
 			Responder firstResponder = rootResponder[0].getDefaultFirstResponder();
 
-			while(firstResponder != null) {
-				if(firstResponder.canBecomeDefaultFirstResponder()) {
-					if(firstResponder.becomeFirstResponder()) {
+			while (firstResponder != null) {
+				if (firstResponder.canBecomeDefaultFirstResponder()) {
+					if (firstResponder.becomeFirstResponder()) {
 						break;
 					}
 				}
@@ -121,7 +116,7 @@ public class Responder extends MObject {
 	Responder getDefaultFirstResponder() {
 		Responder nextResponder = this.nextResponder();
 
-		if(nextResponder != null) {
+		if (nextResponder != null) {
 			return nextResponder.getDefaultFirstResponder();
 		} else {
 			return null;
@@ -135,9 +130,9 @@ public class Responder extends MObject {
 	private boolean isInCompleteResponderChain(Responder[] rootResponder) {
 		Responder responder = this;
 
-		while(responder != null) {
-			if(responder == Application.sharedApplication()) {
-				if(rootResponder != null) {
+		while (responder != null) {
+			if (responder == Application.sharedApplication()) {
+				if (rootResponder != null) {
 					rootResponder[0] = responder;
 				}
 
@@ -153,7 +148,7 @@ public class Responder extends MObject {
 	public void touchesBegan(List<Touch> touches, Event event) {
 		Responder nextResponder = this.nextResponder();
 
-		if(nextResponder != null) {
+		if (nextResponder != null) {
 			nextResponder.touchesBegan(touches, event);
 		}
 	}
@@ -161,7 +156,7 @@ public class Responder extends MObject {
 	public void touchesMoved(List<Touch> touches, Event event) {
 		Responder nextResponder = this.nextResponder();
 
-		if(nextResponder != null) {
+		if (nextResponder != null) {
 			nextResponder.touchesMoved(touches, event);
 		}
 	}
@@ -169,7 +164,7 @@ public class Responder extends MObject {
 	public void touchesEnded(List<Touch> touches, Event event) {
 		Responder nextResponder = this.nextResponder();
 
-		if(nextResponder != null) {
+		if (nextResponder != null) {
 			nextResponder.touchesEnded(touches, event);
 		}
 	}
@@ -177,18 +172,18 @@ public class Responder extends MObject {
 	public void touchesCancelled(List<Touch> touches, Event event) {
 		Responder nextResponder = this.nextResponder();
 
-		if(nextResponder != null) {
+		if (nextResponder != null) {
 			nextResponder.touchesCancelled(touches, event);
 		}
 	}
 
 	private Window findWindow() {
-		if(this instanceof View) {
-			return ((View)this).getWindow();
+		if (this instanceof View) {
+			return ((View) this).getWindow();
 		} else {
 			Responder nextResponder = this.nextResponder();
 
-			if(nextResponder != null) {
+			if (nextResponder != null) {
 				return nextResponder.findWindow();
 			} else {
 				return null;

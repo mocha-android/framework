@@ -1,21 +1,15 @@
-/*
- *  @author Shaun
- *	@date 2/5/13
- *	@copyright	2013 Mocha. All rights reserved.
- */
-
 package mocha.ui;
 
 import mocha.foundation.IndexPath;
 import mocha.graphics.Rect;
 
 abstract public class TableViewSubview extends View {
-	boolean _isQueued;
-	int _section;
+	boolean isQueued;
+	int section;
 
 	// Only applies to cells
-	int _globalRow;
-	IndexPath _indexPath;
+	int globalRow;
+	IndexPath indexPath;
 
 	// Only applies to headers/footers
 	boolean createdByTableView;

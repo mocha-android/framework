@@ -12,20 +12,21 @@ public class ScalingThreadPoolExecutor extends ThreadPoolExecutor {
 
 	public ScalingThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new ScalingQueue<Runnable>());
-		((ScalingQueue)this.getQueue()).setExecutor(this);
+		((ScalingQueue) this.getQueue()).setExecutor(this);
 		this.setRejectedExecutionHandler(new ForceQueuePolicy());
 	}
 
 	public ScalingThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, ThreadFactory threadFactory) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new ScalingQueue<Runnable>(), threadFactory);
-		((ScalingQueue)this.getQueue()).setExecutor(this);
+		((ScalingQueue) this.getQueue()).setExecutor(this);
 		this.setRejectedExecutionHandler(new ForceQueuePolicy());
 	}
 
-	private static class ScalingQueue <E> extends LinkedBlockingQueue <E> {
+	private static class ScalingQueue<E> extends LinkedBlockingQueue<E> {
 		private ScalingThreadPoolExecutor executor;
 
-		private ScalingQueue() { }
+		private ScalingQueue() {
+		}
 
 		private void setExecutor(ScalingThreadPoolExecutor executor) {
 			this.executor = executor;

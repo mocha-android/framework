@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/15/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import java.util.List;

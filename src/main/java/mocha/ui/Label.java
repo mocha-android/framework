@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/14/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.graphics.Color;
@@ -26,8 +21,12 @@ public class Label extends View implements Highlightable {
 	private Size lastSize;
 	private Size textSize;
 
-	public Label() { }
-	public Label(Rect frame) { super(frame); }
+	public Label() {
+	}
+
+	public Label(Rect frame) {
+		super(frame);
+	}
 
 	@Override
 	protected void onCreate(Rect frame) {
@@ -45,7 +44,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public CharSequence getText() {
-		if(this.attributedText != null) {
+		if (this.attributedText != null) {
 			return this.attributedText.toString();
 		} else {
 			return this.text == null || this.text.getText() == null ? "" : this.text.getText();
@@ -53,8 +52,8 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setText(CharSequence text) {
-		if((this.text == null && text != null) || (this.text != null && this.text.getText() != text)) {
-			if(text == null) {
+		if ((this.text == null && text != null) || (this.text != null && this.text.getText() != text)) {
+			if (text == null) {
 				this.text = null;
 			} else {
 				this.text = new TextDrawingText(text);
@@ -66,7 +65,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public AttributedString getAttributedText() {
-		if(this.attributedText == null) {
+		if (this.attributedText == null) {
 			return new AttributedString();
 		} else {
 			return this.attributedText.copy();
@@ -74,7 +73,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setAttributedText(AttributedString attributedText) {
-		if(attributedText == null) {
+		if (attributedText == null) {
 			this.attributedText = null;
 		} else {
 			this.attributedText = attributedText.copy();
@@ -85,7 +84,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public Font getFont() {
-		if(this.font == null) {
+		if (this.font == null) {
 			this.font = Font.getSystemFontWithSize(17.0f);
 		}
 
@@ -93,7 +92,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setFont(Font font) {
-		if(this.font != font) {
+		if (this.font != font) {
 			this.font = font;
 			this.setTextNeedsMeasuring();
 		}
@@ -104,9 +103,9 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setTextColor(int textColor) {
-		if(this.textColor != textColor) {
+		if (this.textColor != textColor) {
 			this.textColor = textColor;
-			if(this.text != null) this.text.invalidate();
+			if (this.text != null) this.text.invalidate();
 			this.setNeedsDisplay();
 		}
 	}
@@ -117,7 +116,7 @@ public class Label extends View implements Highlightable {
 
 	public void setHighlightedTextColor(int highlightedTextColor) {
 		this.highlightedTextColor = highlightedTextColor;
-		if(this.text != null) this.text.invalidate();
+		if (this.text != null) this.text.invalidate();
 		this.setNeedsDisplay();
 	}
 
@@ -126,7 +125,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setShadowColor(int shadowColor) {
-		if(this.shadowColor != shadowColor) {
+		if (this.shadowColor != shadowColor) {
 			this.shadowColor = shadowColor;
 			this.setNeedsDisplay();
 		}
@@ -137,7 +136,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setShadowOffset(Size shadowOffset) {
-		if(shadowOffset == null || !shadowOffset.equals(this.shadowOffset)) {
+		if (shadowOffset == null || !shadowOffset.equals(this.shadowOffset)) {
 			this.shadowOffset = shadowOffset == null ? null : shadowOffset.copy();
 			this.setNeedsDisplay();
 		}
@@ -152,7 +151,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setTextAlignment(TextAlignment textAlignment) {
-		if(this.textAlignment != textAlignment) {
+		if (this.textAlignment != textAlignment) {
 			this.textAlignment = textAlignment;
 			this.setTextNeedsMeasuring();
 		}
@@ -163,7 +162,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setLineBreakMode(LineBreakMode lineBreakMode) {
-		if(this.lineBreakMode != lineBreakMode) {
+		if (this.lineBreakMode != lineBreakMode) {
 			this.lineBreakMode = lineBreakMode;
 			this.setTextNeedsMeasuring();
 		}
@@ -174,7 +173,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setEnabled(boolean enabled) {
-		if(this.enabled != enabled) {
+		if (this.enabled != enabled) {
 			this.enabled = enabled;
 			this.setNeedsDisplay();
 		}
@@ -185,7 +184,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void setNumberOfLines(int numberOfLines) {
-		if(this.numberOfLines != numberOfLines) {
+		if (this.numberOfLines != numberOfLines) {
 			this.numberOfLines = numberOfLines;
 			this.setTextNeedsMeasuring();
 		}
@@ -198,9 +197,9 @@ public class Label extends View implements Highlightable {
 
 	@Override
 	public void setHighlighted(boolean highlighted) {
-		if(this.highlighted != highlighted) {
+		if (this.highlighted != highlighted) {
 			this.highlighted = highlighted;
-			if(this.text != null) this.text.invalidate();
+			if (this.text != null) this.text.invalidate();
 			this.setNeedsDisplay();
 		}
 	}
@@ -209,13 +208,13 @@ public class Label extends View implements Highlightable {
 	public void setFrame(Rect frame) {
 		super.setFrame(frame);
 
-		if(this.lastSize == null || !this.getFrame().size.equals(this.lastSize)) {
+		if (this.lastSize == null || !this.getFrame().size.equals(this.lastSize)) {
 			this.setTextNeedsMeasuring();
 		}
 	}
 
 	public Rect getTextRectForBound(Rect bounds, int numberOfLines) {
-		if(this.attributedText != null && this.attributedText.length() > 0) {
+		if (this.attributedText != null && this.attributedText.length() > 0) {
 			return new Rect(bounds.origin, this.attributedText.getBoundingRectWithSize(bounds.size, this.textAlignment).size);
 		} else if (this.text != null && this.text.length() > 0) {
 			Size maxSize = new Size(bounds.size);
@@ -233,7 +232,7 @@ public class Label extends View implements Highlightable {
 	public Size sizeThatFits(Size size) {
 		Size textSize;
 
-		if(this.attributedText != null && this.attributedText.length() > 0) {
+		if (this.attributedText != null && this.attributedText.length() > 0) {
 			textSize = this.attributedText.getBoundingRectWithSize(size, this.textAlignment).size;
 			textSize.width = ceilf(textSize.width);
 			textSize.height = ceilf(textSize.height);
@@ -259,7 +258,7 @@ public class Label extends View implements Highlightable {
 	}
 
 	private void setTextNeedsMeasuring() {
-		if(this.text != null) {
+		if (this.text != null) {
 			this.text.invalidate();
 		}
 
@@ -268,12 +267,13 @@ public class Label extends View implements Highlightable {
 	}
 
 	public void drawTextInRect(mocha.graphics.Context context, Rect rect) {
-		if((this.text == null || this.text.length() == 0) && (this.attributedText == null || this.attributedText.length() == 0)) return;
+		if ((this.text == null || this.text.length() == 0) && (this.attributedText == null || this.attributedText.length() == 0))
+			return;
 
 		context.save();
 		context.setFillColor(this.highlighted && this.highlightedTextColor != 0 ? this.highlightedTextColor : this.textColor);
 
-		if(this.attributedText != null && this.attributedText.length() > 0) {
+		if (this.attributedText != null && this.attributedText.length() > 0) {
 			this.attributedText.draw(context, rect, this.textAlignment);
 		} else {
 			context.setShadow(this.shadowOffset, 0.0f, this.shadowColor);
@@ -285,19 +285,20 @@ public class Label extends View implements Highlightable {
 
 	@Override
 	public void draw(Context context, Rect rect) {
-		if((this.attributedText == null || this.attributedText.length() == 0) && (this.text == null || this.text.length() == 0)) return;
+		if ((this.attributedText == null || this.attributedText.length() == 0) && (this.text == null || this.text.length() == 0))
+			return;
 
 		Rect bounds = this.getBounds();
 		Rect drawRect = Rect.zero();
 
-		if(this.lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
+		if (this.lastSize == null || this.textNeedsMeasuring || !bounds.size.equals(lastSize)) {
 			Size maxSize = bounds.size.copy();
 
 			if (this.numberOfLines > 0) {
 				maxSize.height = this.getFont().getLineHeight() * this.numberOfLines;
 			}
 
-			if(this.attributedText != null && this.attributedText.length() > 0) {
+			if (this.attributedText != null && this.attributedText.length() > 0) {
 				this.textSize = this.attributedText.getBoundingRectWithSize(maxSize, this.textAlignment).size;
 				this.textSize.width = ceilf(textSize.width);
 				this.textSize.height = ceilf(textSize.height);

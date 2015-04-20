@@ -1,9 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/14/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
-
 package mocha.foundation;
 
 public enum ComparisonResult {
@@ -21,9 +15,9 @@ public enum ComparisonResult {
 
 
 	public static ComparisonResult compare(int i, int j) {
-		if(i > j) {
+		if (i > j) {
 			return DESCENDING;
-		} else if(i < j) {
+		} else if (i < j) {
 			return ASCENDING;
 		} else {
 			return SAME;
@@ -31,9 +25,9 @@ public enum ComparisonResult {
 	}
 
 	public static ComparisonResult compare(long i, long j) {
-		if(i > j) {
+		if (i > j) {
 			return DESCENDING;
-		} else if(i < j) {
+		} else if (i < j) {
 			return ASCENDING;
 		} else {
 			return SAME;
@@ -43,9 +37,9 @@ public enum ComparisonResult {
 	public static ComparisonResult compare(String i, String j) {
 		int comparison = i.compareTo(j);
 
-		if(comparison > 0) {
+		if (comparison > 0) {
 			return DESCENDING;
-		} else if(comparison < 0) {
+		} else if (comparison < 0) {
 			return ASCENDING;
 		} else {
 			return SAME;

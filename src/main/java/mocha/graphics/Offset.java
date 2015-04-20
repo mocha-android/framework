@@ -1,11 +1,6 @@
-/*
- *  @author Shaun
- *	@date 10/30/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
-public final class Offset implements mocha.foundation.Copying <Offset> {
+public final class Offset implements mocha.foundation.Copying<Offset> {
 	// specify amount to offset a position, positive for right or down, negative for left or up
 	public float horizontal;
 	public float vertical;
@@ -29,7 +24,7 @@ public final class Offset implements mocha.foundation.Copying <Offset> {
 
 
 	public void set(Offset offset) {
-		if(this != offset) {
+		if (this != offset) {
 			if (offset == null) {
 				this.horizontal = 0.0f;
 				this.vertical = 0.0f;
@@ -45,7 +40,7 @@ public final class Offset implements mocha.foundation.Copying <Offset> {
 	}
 
 	public String toString() {
-		return String.format("[%s,%s]", ((Float)this.horizontal), ((Float)this.vertical));
+		return String.format("[%s,%s]", ((Float) this.horizontal), ((Float) this.vertical));
 	}
 
 

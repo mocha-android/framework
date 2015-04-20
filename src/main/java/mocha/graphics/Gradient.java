@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *  @date 2/15/13
- *  @copyright  2013 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import java.util.Arrays;
@@ -18,13 +13,13 @@ public class Gradient {
 	}
 
 	public Gradient(int[] colors, float[] locations) {
-		if(colors != null) {
+		if (colors != null) {
 			this.colors = Arrays.copyOf(colors, colors.length);
 		} else {
 			this.colors = null;
 		}
 
-		if(locations != null) {
+		if (locations != null) {
 			this.locations = Arrays.copyOf(locations, locations.length);
 		} else {
 			this.locations = null;
@@ -32,20 +27,20 @@ public class Gradient {
 	}
 
 	public Gradient(List<Integer> colors, List<Float> locations) {
-		if(colors != null) {
+		if (colors != null) {
 			this.colors = new int[colors.size()];
 
-			for(int i = 0; i < this.colors.length; i++) {
+			for (int i = 0; i < this.colors.length; i++) {
 				this.colors[i] = colors.get(i);
 			}
 		} else {
 			this.colors = null;
 		}
 
-		if(locations != null) {
+		if (locations != null) {
 			this.locations = new float[locations.size()];
 
-			for(int i = 0; i < this.locations.length; i++) {
+			for (int i = 0; i < this.locations.length; i++) {
 				this.locations[i] = locations.get(i);
 			}
 		} else {

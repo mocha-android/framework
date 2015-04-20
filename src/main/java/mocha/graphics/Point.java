@@ -1,13 +1,8 @@
-/*
- *  @author Shaun
- *	@date 10/30/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.util.FloatMath;
 
-public final class Point implements mocha.foundation.Copying <Point> {
+public final class Point implements mocha.foundation.Copying<Point> {
 	public float x;
 	public float y;
 
@@ -38,8 +33,8 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public void set(Point otherPoint) {
-		if(this != otherPoint) {
-			if(otherPoint == null) {
+		if (this != otherPoint) {
+			if (otherPoint == null) {
 				this.x = 0.0f;
 				this.y = 0.0f;
 			} else {
@@ -50,7 +45,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public float distanceBetween(Point point) {
-		if(point == null) return 0.0f;
+		if (point == null) return 0.0f;
 
 		float deltaX = point.x - this.x;
 		float deltaY = point.y - this.y;
@@ -58,7 +53,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public Point delta(Point point) {
-		if(point == null) {
+		if (point == null) {
 			return Point.zero();
 		} else {
 			return new Point(this.x - point.x, this.y - point.y);
@@ -74,7 +69,7 @@ public final class Point implements mocha.foundation.Copying <Point> {
 	}
 
 	public android.graphics.Point toPoint() {
-		return new android.graphics.Point((int)this.x, (int)this.y);
+		return new android.graphics.Point((int) this.x, (int) this.y);
 	}
 
 	public android.graphics.PointF toPointF() {

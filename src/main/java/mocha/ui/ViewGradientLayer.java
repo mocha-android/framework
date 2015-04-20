@@ -1,14 +1,7 @@
-/**
- *	@author Shaun
- *	@date 3/15/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
 import android.graphics.*;
-import mocha.graphics.Gradient;
-import mocha.graphics.Path;
 import mocha.graphics.Point;
 
 import java.util.Arrays;
@@ -35,7 +28,7 @@ public class ViewGradientLayer extends ViewLayerNative {
 		this.startPoint = new Point(0.5f, 0.0f);
 		this.endPoint = new Point(0.5f, 1.0f);
 
-		this.locations = new float[] { 0.0f, 1.0f };
+		this.locations = new float[]{0.0f, 1.0f};
 	}
 
 	@Override
@@ -45,8 +38,8 @@ public class ViewGradientLayer extends ViewLayerNative {
 
 	@Override
 	protected void drawBackground(Canvas canvas, RectF rect, Paint borderPaint, boolean alwaysDraw) {
-		if(this.colors != null && this.locations != null) {
-			if(this.linearGradient == null) {
+		if (this.colors != null && this.locations != null) {
+			if (this.linearGradient == null) {
 				float width = rect.width();
 				float height = rect.height();
 
@@ -57,14 +50,14 @@ public class ViewGradientLayer extends ViewLayerNative {
 
 			android.graphics.Path cornerPath = this.getCornerNativePath();
 
-			if(cornerPath != null) {
+			if (cornerPath != null) {
 				canvas.drawPath(cornerPath, this.gradientPaint);
 			} else {
 				canvas.drawPaint(this.gradientPaint);
 			}
 
-			if(borderPaint != null) {
-				if(cornerPath != null) {
+			if (borderPaint != null) {
+				if (cornerPath != null) {
 					canvas.drawPath(cornerPath, borderPaint);
 				} else {
 					canvas.drawPaint(borderPaint);
@@ -76,7 +69,7 @@ public class ViewGradientLayer extends ViewLayerNative {
 	}
 
 	public int[] getColors() {
-		if(this.colors != null) {
+		if (this.colors != null) {
 			return Arrays.copyOf(this.colors, this.colors.length);
 		} else {
 			return null;
@@ -88,11 +81,11 @@ public class ViewGradientLayer extends ViewLayerNative {
 		this.invalidateGradient();
 	}
 
-	public void setColors(List<Integer >colors) {
-		if(colors != null) {
+	public void setColors(List<Integer> colors) {
+		if (colors != null) {
 			this.colors = new int[colors.size()];
 
-			for(int i = 0; i < this.colors.length; i++) {
+			for (int i = 0; i < this.colors.length; i++) {
 				this.colors[i] = colors.get(i);
 			}
 		} else {
@@ -103,7 +96,7 @@ public class ViewGradientLayer extends ViewLayerNative {
 	}
 
 	public float[] getLocations() {
-		if(this.locations != null) {
+		if (this.locations != null) {
 			return Arrays.copyOf(this.locations, this.locations.length);
 		} else {
 			return null;
@@ -116,10 +109,10 @@ public class ViewGradientLayer extends ViewLayerNative {
 	}
 
 	public void setLocations(List<Float> locations) {
-		if(locations != null) {
+		if (locations != null) {
 			this.locations = new float[locations.size()];
 
-			for(int i = 0; i < this.locations.length; i++) {
+			for (int i = 0; i < this.locations.length; i++) {
 				this.locations[i] = locations.get(i);
 			}
 		} else {

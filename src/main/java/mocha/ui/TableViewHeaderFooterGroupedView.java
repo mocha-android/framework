@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 2/5/2013
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 public class TableViewHeaderFooterGroupedView extends TableViewHeaderFooterView {

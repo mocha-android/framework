@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 7/30/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation.concurrent;
 
 import java.util.ArrayDeque;
@@ -12,7 +7,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class SerialQueue extends BackgroundQueue {
-	private static Map<Priority,SerialQueue> globalQueues = new HashMap<>();
+	private static Map<Priority, SerialQueue> globalQueues = new HashMap<>();
 
 	/**
 	 * Get a global queue based on the priority you request
@@ -20,13 +15,14 @@ public class SerialQueue extends BackgroundQueue {
 	 * executed before jobs with lower priorities.
 	 *
 	 * @param priority queue priority
+	 *
 	 * @return Global queue for requested priority
 	 */
 	public static synchronized SerialQueue getGlobalQueue(Priority priority) {
-		if(priority == null) priority = Priority.DEFAULT;
+		if (priority == null) priority = Priority.DEFAULT;
 		SerialQueue globalQueue = globalQueues.get(priority);
 
-		if(globalQueue == null) {
+		if (globalQueue == null) {
 			globalQueue = new SerialQueue("mocha.foundation.global." + priority, priority, true);
 			globalQueues.put(priority, globalQueue);
 		}
@@ -46,7 +42,7 @@ public class SerialQueue extends BackgroundQueue {
 	/**
 	 * Create a new queue
 	 *
-	 * @param label label for the queue, may be null
+	 * @param label    label for the queue, may be null
 	 * @param priority Priority for the queue
 	 */
 	public SerialQueue(String label, Priority priority) {
@@ -57,7 +53,7 @@ public class SerialQueue extends BackgroundQueue {
 	/**
 	 * Create a new queue
 	 *
-	 * @param label label for the queue, may be null
+	 * @param label    label for the queue, may be null
 	 * @param priority Priority for the queue
 	 */
 	private SerialQueue(final String label, final Priority priority, final boolean global) {

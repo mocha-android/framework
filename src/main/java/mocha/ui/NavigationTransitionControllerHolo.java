@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/15/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.graphics.Bitmap;
@@ -44,7 +39,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 
 		float navigationBarHeight = navigationController.getNavigationBar().getFrame().size.height;
 
-		if(push) {
+		if (push) {
 			this.adjustNavigationBar(toViewController.getNavigationItem(), true);
 		}
 
@@ -56,7 +51,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 				context.save();
 				context.getCanvas().translate(0.0f, navigationBarHeight * view.scale);
 
-				if(push) {
+				if (push) {
 					toView.getLayer().renderInContext(context);
 				} else {
 					fromView.getLayer().renderInContext(context);
@@ -73,7 +68,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 			}
 		}
 
-		if(push) {
+		if (push) {
 			this.adjustNavigationBar(fromViewController.getNavigationItem(), false);
 		} else {
 			this.adjustNavigationBar(toViewController.getNavigationItem(), false);
@@ -84,7 +79,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 		// Animate
 		final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
 
-		if(push) {
+		if (push) {
 			transitionView.setAlpha(0.0f);
 			transitionView.setTransform(scaled);
 		} else {
@@ -101,7 +96,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 			public void performAnimatedChanges() {
 				View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
 
-				if(push) {
+				if (push) {
 					transitionView.setAlpha(1.0f);
 					transitionView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
 				} else {
@@ -115,11 +110,11 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 				Image image = transitionView.getImage();
 				transitionView.setImage(null);
 
-				if(image != null) {
+				if (image != null) {
 					image.recycle();
 				}
 
-				if(push) {
+				if (push) {
 					adjustNavigationBar(toViewController.getNavigationItem(), true);
 					navigationController.getView().addSubview(toView);
 					navigationController.getView().bringSubviewToFront(navigationController.getNavigationBar());
@@ -133,7 +128,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 
 				transitionView.removeFromSuperview();
 
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 
@@ -150,7 +145,7 @@ class NavigationTransitionControllerHolo extends NavigationTransitionController 
 		NavigationBar.Delegate delegate = navigationBar.getDelegate();
 		navigationBar.setDelegate(null);
 
-		if(push) {
+		if (push) {
 			this.pushNavigationItem(navigationItem, false, null, null);
 		} else {
 			this.popToNavigationItemAnimated(navigationItem, false, null, null);

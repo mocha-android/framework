@@ -1,13 +1,7 @@
-/**
- *  @author Shaun
- *  @date 5/2/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.util.SparseArray;
 import mocha.foundation.IndexPath;
-import mocha.foundation.MObject;
 import mocha.foundation.Range;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -28,8 +22,6 @@ class TableViewRowData {
 	private int lastGetSectionsMiddleSection;
 	private SparseArray<Rect> cachedGlobalRects;
 	private SparseArray<Rect> cachedSectionRects;
-
-	private Range reuseableRange;
 
 	TableViewRowData(TableView tableView) {
 		this.tableView = tableView;
@@ -53,36 +45,36 @@ class TableViewRowData {
 	}
 
 	public void reloadData() {
-		if(this.tableView.dataSource == null) {
+		if (this.tableView.dataSource == null) {
 			this.sectionRowData = new TableViewSectionRowData[0];
 			return;
 		}
 
 		int numberOfSections = Math.max(0, this.tableView.dataSource.getNumberOfSections(this.tableView));
 
-		if(this.sectionRowData.length == 0) {
+		if (this.sectionRowData.length == 0) {
 			this.sectionRowData = new TableViewSectionRowData[numberOfSections];
-		} else if(this.sectionRowData.length != numberOfSections) {
+		} else if (this.sectionRowData.length != numberOfSections) {
 			this.sectionRowData = Arrays.copyOf(this.sectionRowData, numberOfSections);
 		}
 
 		View view;
 
-		if((view = this.tableView.getTableHeaderView()) != null) {
+		if ((view = this.tableView.getTableHeaderView()) != null) {
 			this.tableHeaderHeight = view.getFrame().size.height;
 		}
 
-		if((view = this.tableView.getTableFooterView()) != null) {
+		if ((view = this.tableView.getTableFooterView()) != null) {
 			this.tableFooterHeight = view.getFrame().size.height;
 		}
 
 		float offset = this.tableHeaderHeight;
 		this.numberOfRows = 0;
 
-		for(int section = 0; section < numberOfSections; section++) {
+		for (int section = 0; section < numberOfSections; section++) {
 			TableViewSectionRowData rowData = this.sectionRowData[section];
 
-			if(rowData == null) {
+			if (rowData == null) {
 				rowData = new TableViewSectionRowData();
 				this.sectionRowData[section] = rowData;
 			}
@@ -103,22 +95,22 @@ class TableViewRowData {
 
 		int startAt = 0;
 
-		if(visibleRect.origin.y > 0.0f) {
-			if(this.lastGetGlobalRowsMiddleRow != -1 && visibleRect.intersects(this.getRectForGlobalRow(this.lastGetGlobalRowsMiddleRow))) {
+		if (visibleRect.origin.y > 0.0f) {
+			if (this.lastGetGlobalRowsMiddleRow != -1 && visibleRect.intersects(this.getRectForGlobalRow(this.lastGetGlobalRowsMiddleRow))) {
 				startAt = this.lastGetGlobalRowsMiddleRow;
 			} else {
 				int mid = this.numberOfRows >>> 1;
 
-				while(mid > 0 && mid < this.numberOfRows) {
+				while (mid > 0 && mid < this.numberOfRows) {
 					Rect rect = this.getRectForGlobalRow(mid);
 
-					if(rect.intersects(visibleRect)) {
+					if (rect.intersects(visibleRect)) {
 						startAt = mid;
 						break;
 					} else {
 						int mid1;
 
-						if(rect.maxY() < visibleRect.origin.y) {
+						if (rect.maxY() < visibleRect.origin.y) {
 							minRow = mid;
 							mid1 = (mid + maxRow) >>> 1;
 						} else {
@@ -126,7 +118,7 @@ class TableViewRowData {
 							mid1 = (minRow + mid) >>> 1;
 						}
 
-						if(mid1 == mid) {
+						if (mid1 == mid) {
 							startAt = mid;
 							break;
 						} else {
@@ -139,9 +131,9 @@ class TableViewRowData {
 
 		minRow = 0;
 
-		for(int globalRow = startAt; globalRow > 0; globalRow--) {
+		for (int globalRow = startAt; globalRow > 0; globalRow--) {
 			Rect rect = this.getRectForGlobalRow(globalRow);
-			if(rect.origin.y < visibleRect.origin.y) {
+			if (rect.origin.y < visibleRect.origin.y) {
 				minRow = globalRow;
 				break;
 			}
@@ -149,9 +141,9 @@ class TableViewRowData {
 
 		maxRow = this.numberOfRows - 1;
 
-		for(int globalRow = startAt; globalRow < this.numberOfRows; globalRow++) {
+		for (int globalRow = startAt; globalRow < this.numberOfRows; globalRow++) {
 			Rect rect = this.getRectForGlobalRow(globalRow);
-			if(rect.maxY() > visibleRect.maxY()) {
+			if (rect.maxY() > visibleRect.maxY()) {
 				maxRow = globalRow;
 				break;
 			}
@@ -165,31 +157,31 @@ class TableViewRowData {
 	private int[] getSectionRowForGlobalRow(int globalRow) {
 		int numberOfSections = this.getNumberOfSections();
 
-		if(numberOfSections == 0) {
-			return new int[] { -1, -1 };
+		if (numberOfSections == 0) {
+			return new int[]{-1, -1};
 		}
-		if(numberOfSections == 1) {
-			return new int[] { 0, globalRow };
+		if (numberOfSections == 1) {
+			return new int[]{0, globalRow};
 		} else {
 			int section;
 
-			for(section = 0; section < numberOfSections; section++) {
+			for (section = 0; section < numberOfSections; section++) {
 				int numberOfRows = this.sectionRowData[section].numberOfRows;
-				if(globalRow >= numberOfRows) {
+				if (globalRow >= numberOfRows) {
 					globalRow -= numberOfRows;
 				} else {
 					break;
 				}
 			}
 
-			return new int[] { section, globalRow };
+			return new int[]{section, globalRow};
 		}
 	}
 
 	public Rect getRectForGlobalRow(int globalRow) {
 		Rect rect = this.cachedGlobalRects.get(globalRow);
 
-		if(rect == null) {
+		if (rect == null) {
 			int[] sectionRow = this.getSectionRowForGlobalRow(globalRow);
 			rect = this.getRectForRow(sectionRow[0], sectionRow[1]);
 			this.cachedGlobalRects.put(globalRow, rect);
@@ -203,7 +195,7 @@ class TableViewRowData {
 	public Range getSectionsInRect(Rect visibleRect) {
 		int numberOfSections = this.sectionRowData.length;
 
-		if(numberOfSections < 2) {
+		if (numberOfSections < 2) {
 			return new Range(0, numberOfSections);
 		}
 
@@ -212,22 +204,22 @@ class TableViewRowData {
 
 		int startAt = 0;
 
-		if(visibleRect.origin.y > 0.0f) {
-			if(this.lastGetSectionsMiddleSection != -1 && visibleRect.intersects(this.getRectForSection(this.lastGetSectionsMiddleSection))) {
+		if (visibleRect.origin.y > 0.0f) {
+			if (this.lastGetSectionsMiddleSection != -1 && visibleRect.intersects(this.getRectForSection(this.lastGetSectionsMiddleSection))) {
 				startAt = this.lastGetSectionsMiddleSection;
 			} else {
 				int mid = numberOfSections >>> 1;
 
-				while(mid > 0 && mid < numberOfSections) {
+				while (mid > 0 && mid < numberOfSections) {
 					Rect rect = this.getRectForSection(mid);
 
-					if(rect.intersects(visibleRect)) {
+					if (rect.intersects(visibleRect)) {
 						startAt = mid;
 						break;
 					} else {
 						int mid1;
 
-						if(rect.maxY() < visibleRect.origin.y) {
+						if (rect.maxY() < visibleRect.origin.y) {
 							minSection = mid;
 							mid1 = (mid + maxSection) >>> 1;
 						} else {
@@ -235,7 +227,7 @@ class TableViewRowData {
 							mid1 = (minSection + mid) >>> 1;
 						}
 
-						if(mid1 == mid) {
+						if (mid1 == mid) {
 							startAt = mid;
 							break;
 						} else {
@@ -248,9 +240,9 @@ class TableViewRowData {
 
 		minSection = 0;
 
-		for(int section = startAt; section > 0; section--) {
+		for (int section = startAt; section > 0; section--) {
 			Rect rect = this.getRectForSection(section);
-			if(rect.origin.y < visibleRect.origin.y) {
+			if (rect.origin.y < visibleRect.origin.y) {
 				minSection = section;
 				break;
 			}
@@ -258,10 +250,10 @@ class TableViewRowData {
 
 		maxSection = numberOfSections - 1;
 
-		for(int section = startAt; section < numberOfSections; section++) {
+		for (int section = startAt; section < numberOfSections; section++) {
 			Rect rect = this.getRectForSection(section);
 
-			if(rect.maxY() > visibleRect.maxY()) {
+			if (rect.maxY() > visibleRect.maxY()) {
 				maxSection = section;
 				break;
 			}
@@ -275,16 +267,16 @@ class TableViewRowData {
 	public int getSectionAtPoint(Point point) {
 		int numberOfSections = this.getNumberOfSections();
 
-		for(int section = 0; section < numberOfSections; section++) {
-			if(point.y <= this.sectionRowData[section].sectionOffset) {
+		for (int section = 0; section < numberOfSections; section++) {
+			if (point.y <= this.sectionRowData[section].sectionOffset) {
 				return section - 1;
 			}
 		}
 
-		if(numberOfSections > 0) {
+		if (numberOfSections > 0) {
 			TableViewSectionRowData lastSection = this.sectionRowData[numberOfSections - 1];
 
-			if(point.y < lastSection.sectionOffset + lastSection.sectionHeight) {
+			if (point.y < lastSection.sectionOffset + lastSection.sectionHeight) {
 				return numberOfSections - 1;
 			}
 		}
@@ -297,12 +289,12 @@ class TableViewRowData {
 
 		int start = this.getSectionAtPoint(rect.origin);
 
-		if(start != -1) {
+		if (start != -1) {
 			int numberOfSections = this.sectionRowData.length;
 			Point point = rect.origin.copy();
 			float max = rect.maxY();
 
-			for(int section = start; section < numberOfSections; section++) {
+			for (int section = start; section < numberOfSections; section++) {
 				TableViewSectionRowData sectionRowData = this.sectionRowData[section];
 
 				int startRow = Math.max(0, sectionRowData.getRowForPoint(point));
@@ -310,11 +302,11 @@ class TableViewRowData {
 
 				boolean stop = false;
 
-				for(int row = startRow; row < numberOfRows; row++) {
+				for (int row = startRow; row < numberOfRows; row++) {
 					float offset = sectionRowData.rowOffsets[row];
 
-					if(offset >= point.y) {
-						if(offset > max) {
+					if (offset >= point.y) {
+						if (offset > max) {
 							stop = true;
 							break;
 						} else {
@@ -323,7 +315,7 @@ class TableViewRowData {
 					}
 				}
 
-				if(stop) {
+				if (stop) {
 					break;
 				}
 			}
@@ -335,12 +327,12 @@ class TableViewRowData {
 	public IndexPath getIndexPathForRowAtPoint(Point point) {
 		int section = this.getSectionAtPoint(point);
 
-		if(section == -1) {
+		if (section == -1) {
 			return null;
 		} else {
 			int row = this.sectionRowData[section].getRowForPoint(point);
 
-			if(row == -1) {
+			if (row == -1) {
 				return null;
 			} else {
 				return IndexPath.withRowInSection(row, section);
@@ -354,12 +346,12 @@ class TableViewRowData {
 	}
 
 	public Rect getRectForRow(int section, int row) {
-		if(section < 0 || section >= this.sectionRowData.length || row < 0) {
+		if (section < 0 || section >= this.sectionRowData.length || row < 0) {
 			return Rect.zero();
 		} else {
 			TableViewSectionRowData sectionRowData = this.sectionRowData[section];
 
-			if(row < sectionRowData.numberOfRows) {
+			if (row < sectionRowData.numberOfRows) {
 				Rect rect = new Rect();
 				rect.origin.x = 0.0f;
 				rect.origin.y = sectionRowData.rowOffsets[row];
@@ -376,7 +368,7 @@ class TableViewRowData {
 	public float getTableHeight() {
 		int numberOfSections = this.getNumberOfSections();
 
-		if(numberOfSections > 0) {
+		if (numberOfSections > 0) {
 			TableViewSectionRowData lastSection = this.sectionRowData[numberOfSections - 1];
 			return lastSection.sectionOffset + lastSection.sectionHeight + this.tableFooterHeight;
 		} else {
@@ -385,7 +377,7 @@ class TableViewRowData {
 	}
 
 	public Rect getRectForFooterInSection(int section) {
-		if(section < 0 || section >= this.sectionRowData.length) {
+		if (section < 0 || section >= this.sectionRowData.length) {
 			return Rect.zero();
 		} else {
 			TableViewSectionRowData sectionRowData = this.sectionRowData[section];
@@ -406,8 +398,8 @@ class TableViewRowData {
 		Rect rect = this.getRectForHeaderInSection(section);
 		float headerMaxY = sectionRowData.footerOffset;
 
-		if(bounds.origin.y >= sectionRowData.headerOffset && bounds.origin.y < headerMaxY) {
-			if(bounds.origin.y + sectionRowData.headerHeight > headerMaxY) {
+		if (bounds.origin.y >= sectionRowData.headerOffset && bounds.origin.y < headerMaxY) {
+			if (bounds.origin.y + sectionRowData.headerHeight > headerMaxY) {
 				// Being pushed out	of the viewport
 				rect.origin.y = headerMaxY - sectionRowData.headerHeight;
 			} else {
@@ -422,7 +414,7 @@ class TableViewRowData {
 	}
 
 	public Rect getRectForHeaderInSection(int section) {
-		if(section < 0 || section >= this.sectionRowData.length) {
+		if (section < 0 || section >= this.sectionRowData.length) {
 			return Rect.zero();
 		} else {
 			TableViewSectionRowData sectionRowData = this.sectionRowData[section];
@@ -438,12 +430,12 @@ class TableViewRowData {
 	}
 
 	public Rect getRectForSection(int section) {
-		if(section < 0 || section >= this.sectionRowData.length) {
+		if (section < 0 || section >= this.sectionRowData.length) {
 			return Rect.zero();
 		} else {
 			Rect rect = this.cachedSectionRects.get(section);
 
-			if(rect == null) {
+			if (rect == null) {
 				TableViewSectionRowData sectionRowData = this.sectionRowData[section];
 
 				rect = new Rect();
@@ -479,7 +471,7 @@ class TableViewRowData {
 
 		int numberOfSections = this.getNumberOfSections();
 
-		if(numberOfSections > 0) {
+		if (numberOfSections > 0) {
 			TableViewSectionRowData lastSection = this.sectionRowData[numberOfSections - 1];
 			rect.origin.y = lastSection.sectionOffset + lastSection.sectionHeight;
 		} else {
@@ -558,10 +550,10 @@ class TableViewRowData {
 	public void tableHeaderHeightDidChangeToHeight(float height) {
 		float delta = height - this.tableHeaderHeight;
 
-		if(delta != 0.0f) {
+		if (delta != 0.0f) {
 			this.tableHeaderHeight = height;
 
-			for(TableViewSectionRowData rowData : this.sectionRowData) {
+			for (TableViewSectionRowData rowData : this.sectionRowData) {
 				rowData.adjustSectionOffsetBy(delta);
 			}
 		}
@@ -570,7 +562,7 @@ class TableViewRowData {
 	public void tableViewWidthDidChangeToWidth(float width) {
 		this.tableWidth = width;
 
-		if(this.sectionRowData != null && this.sectionRowData.length > 0) {
+		if (this.sectionRowData != null && this.sectionRowData.length > 0) {
 			this.reloadData();
 		}
 	}

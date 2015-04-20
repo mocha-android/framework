@@ -1,12 +1,6 @@
-/**
- *  @author Shaun
- *  @date 4/10/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import mocha.graphics.Point;
 import mocha.graphics.Rect;
@@ -16,8 +10,13 @@ public class Slider extends Control {
 	private NativeView<SeekBar> nativeView;
 	private Size controlSize;
 
-	public Slider() { this(new Rect(0.0f, 0.0f, 30.0f, 20.0f)); }
-	public Slider(Rect frame) { super(frame); }
+	public Slider() {
+		this(new Rect(0.0f, 0.0f, 30.0f, 20.0f));
+	}
+
+	public Slider(Rect frame) {
+		super(frame);
+	}
 
 	private int minimumValue;
 	private int maximumValue;
@@ -36,8 +35,8 @@ public class Slider extends Control {
 		SeekBar seekBar = this.nativeView.getNativeView();
 		seekBar.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		this.controlSize = new Size();
-		this.controlSize.width = ceilf((float)seekBar.getMeasuredWidth() / scale);
-		this.controlSize.height = ceilf((float)seekBar.getMeasuredHeight() / scale);
+		this.controlSize.width = ceilf((float) seekBar.getMeasuredWidth() / scale);
+		this.controlSize.height = ceilf((float) seekBar.getMeasuredHeight() / scale);
 
 		this.setBackgroundColor(Color.TRANSPARENT);
 	}
@@ -45,7 +44,7 @@ public class Slider extends Control {
 	public View hitTest(Point point, Event event) {
 		View hitTest = super.hitTest(point, event);
 
-		if(hitTest == this || hitTest == this.nativeView) {
+		if (hitTest == this || hitTest == this.nativeView) {
 			return this.nativeView;
 		} else {
 			return hitTest;

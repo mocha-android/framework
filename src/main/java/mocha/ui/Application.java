@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 1/29/13
- *	@copyright	2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
@@ -23,7 +18,8 @@ public class Application extends Responder {
 	public static final String WILL_TERMINATE_NOTIFICATION = "APPLICATION_WILL_TERMINATE_NOTIFICATION";
 
 	public interface Delegate {
-		boolean didFinishLaunchingWithOptions(Application application, Map<String,Object> options);
+		boolean didFinishLaunchingWithOptions(Application application, Map<String, Object> options);
+
 		boolean handleOpenUri(Application application, Uri uri, String sourceApplication, Object annotation);
 	}
 
@@ -74,13 +70,13 @@ public class Application extends Responder {
 	}
 
 	public InterfaceOrientation getStatusBarOrientation() {
-		final Display display = ((WindowManager)this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		final Display display = ((WindowManager) this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
 		int width = display.getWidth();
 		int height = display.getHeight();
 		int rotation = display.getRotation();
 
-		if(rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+		if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
 			int temp = height;
 			//noinspection SuspiciousNameCombination
 			height = width;
@@ -91,26 +87,26 @@ public class Application extends Responder {
 
 		switch (display.getRotation()) {
 			case Surface.ROTATION_0:
-				if(nativeLandscape) {
+				if (nativeLandscape) {
 					return InterfaceOrientation.LANDSCAPE_LEFT;
 				} else {
 					return InterfaceOrientation.PORTRAIT;
 				}
 			case Surface.ROTATION_90:
-				if(nativeLandscape) {
+				if (nativeLandscape) {
 					return InterfaceOrientation.PORTRAIT;
 				} else {
 					return InterfaceOrientation.LANDSCAPE_RIGHT;
 				}
 			case Surface.ROTATION_180:
-				if(nativeLandscape) {
+				if (nativeLandscape) {
 					return InterfaceOrientation.LANDSCAPE_RIGHT;
 				} else {
 					return InterfaceOrientation.PORTRAIT_UPSIDE_DOWN;
 				}
 
 			case Surface.ROTATION_270:
-				if(nativeLandscape) {
+				if (nativeLandscape) {
 					return InterfaceOrientation.PORTRAIT_UPSIDE_DOWN;
 				} else {
 					return InterfaceOrientation.LANDSCAPE_LEFT;
@@ -122,20 +118,20 @@ public class Application extends Responder {
 
 	/**
 	 * Tells the receiver to suspend the handling of touch-related events
-	 *
+	 * <p/>
 	 * You typically call this method before starting an animation or
 	 * transition. Calls are nested with the endIgnoringInteractionEvents
 	 * method.
 	 */
 	public void beginIgnoringInteractionEvents() {
-		if(this.ignoreInteractionEventsLevel == 0) {
+		if (this.ignoreInteractionEventsLevel == 0) {
 			// Cancel all existing touches on next loop
 			this.cancelTouchesCallback = performOnMain(false, new Runnable() {
 				public void run() {
 					cancelTouchesCallback = null;
 					List<Window> windows = activity.getWindows();
 
-					for(Window window : windows) {
+					for (Window window : windows) {
 						window.cancelAllTouches();
 					}
 				}
@@ -147,7 +143,7 @@ public class Application extends Responder {
 
 	/**
 	 * Tells the receiver to resume the handling of touch-related events.
-	 *
+	 * <p/>
 	 * You typically call this method when, after calling the
 	 * beginIgnoringInteractionEvents method, the animation or transition
 	 * concludes. Nested calls of this method should match nested calls of
@@ -156,12 +152,12 @@ public class Application extends Responder {
 	public void endIgnoringInteractionEvents() {
 		this.ignoreInteractionEventsLevel--;
 
-		if(this.ignoreInteractionEventsLevel == 0) {
-			if(this.cancelTouchesCallback != null) {
+		if (this.ignoreInteractionEventsLevel == 0) {
+			if (this.cancelTouchesCallback != null) {
 				cancelCallbacks(this.cancelTouchesCallback);
 				this.cancelTouchesCallback = null;
 			}
-		} else if(this.ignoreInteractionEventsLevel < 0) {
+		} else if (this.ignoreInteractionEventsLevel < 0) {
 			throw new RuntimeException("Unbalanced calls to beginIgnoringInteractionEvents and endIgnoringInteractionEvents");
 		}
 	}
@@ -179,7 +175,7 @@ public class Application extends Responder {
 	}
 
 	/**
-	 * Get's the current context of the application
+	 * Gets the current context of the application
 	 *
 	 * @return Application context
 	 */
@@ -191,6 +187,7 @@ public class Application extends Responder {
 	 * Checks whether the system can open the url
 	 *
 	 * @param url Url to open
+	 *
 	 * @return Whether the system can open it
 	 */
 	public boolean canOpenUrl(String url) {
@@ -205,6 +202,7 @@ public class Application extends Responder {
 	 * Tells the system to open a url
 	 *
 	 * @param url Url to open
+	 *
 	 * @return Whether the system was able to open it
 	 */
 	public boolean openUrl(String url) {
@@ -219,6 +217,7 @@ public class Application extends Responder {
 	 * Checks whether the system can open the uri
 	 *
 	 * @param uri Uri to open
+	 *
 	 * @return Whether the system can open it
 	 */
 	public boolean canOpenUri(Uri uri) {
@@ -229,6 +228,7 @@ public class Application extends Responder {
 	 * Tells the system to open a url
 	 *
 	 * @param uri Url to open
+	 *
 	 * @return Whether the system was able to open it
 	 */
 	public boolean openUri(Uri uri) {
@@ -239,12 +239,13 @@ public class Application extends Responder {
 	 * Checks whether the system can open the intent
 	 *
 	 * @param intent Intent to open
+	 *
 	 * @return Whether the system can open it
 	 */
 	public boolean canOpenIntent(Intent intent) {
 		try {
 			return this.activity.getPackageManager().resolveActivity(intent, 0) != null;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -253,6 +254,7 @@ public class Application extends Responder {
 	 * Opens an intent
 	 *
 	 * @param intent Intent to open
+	 *
 	 * @return Whether or not the intent was opened
 	 */
 	public boolean openIntent(Intent intent) {

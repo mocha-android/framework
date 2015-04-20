@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 3/10/15
- *	@copyright	2015 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.text.ParseException;
@@ -30,11 +25,11 @@ public class DateFormatter extends MObject {
 	}
 
 	private SimpleDateFormat getFormatter() {
-		if(this.formatter == null) {
+		if (this.formatter == null) {
 			String format = this.dateFormat;
 
-			if(format == null) {
-				if(this.dateStyle == null) {
+			if (format == null) {
+				if (this.dateStyle == null) {
 					this.dateStyle = Style.NONE;
 				}
 
@@ -56,7 +51,7 @@ public class DateFormatter extends MObject {
 						break;
 				}
 
-				if(this.timeStyle == null) {
+				if (this.timeStyle == null) {
 					this.timeStyle = Style.NONE;
 				}
 

@@ -1,14 +1,9 @@
-/**
- *  @author Shaun
- *  @date 2/11/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.util.FloatMath;
 import mocha.foundation.MObject;
 
-public class AffineTransform extends MObject implements mocha.foundation.Copying <AffineTransform> {
+public class AffineTransform extends MObject implements mocha.foundation.Copying<AffineTransform> {
 	private static final AffineTransform IDENTITY = new AffineTransform(1, 0, 0, 1, 0, 0);
 
 	private float a, b, c, d;
@@ -32,8 +27,8 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	}
 
 	public static AffineTransform rotation(float value, AngleUnit angleUnit) {
-		if(angleUnit == AngleUnit.DEGREES) {
-			return rotation((float)Math.toRadians(value));
+		if (angleUnit == AngleUnit.DEGREES) {
+			return rotation((float) Math.toRadians(value));
 		} else {
 			return rotation(value);
 		}
@@ -55,7 +50,7 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	}
 
 	public void set(AffineTransform affineTransform) {
-		if(affineTransform == null) {
+		if (affineTransform == null) {
 			this.a = IDENTITY.a;
 			this.b = IDENTITY.b;
 			this.c = IDENTITY.c;
@@ -87,8 +82,8 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	}
 
 	public AffineTransform rotate(float value, AngleUnit angleUnit) {
-		if(angleUnit == AngleUnit.DEGREES) {
-			return this.rotate((float)Math.toRadians(value));
+		if (angleUnit == AngleUnit.DEGREES) {
+			return this.rotate((float) Math.toRadians(value));
 		} else {
 			return this.rotate(value);
 		}
@@ -130,11 +125,11 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	public void invert() {
 		float determinant = (this.a * this.d) - (this.c * this.b);
 
-		if(determinant == 0){
+		if (determinant == 0) {
 			return;
 		}
 
-		float a = this.d /determinant;
+		float a = this.d / determinant;
 		float b = -this.b / determinant;
 		float c = -this.c / determinant;
 		float d = this.a / determinant;
@@ -158,10 +153,10 @@ public class AffineTransform extends MObject implements mocha.foundation.Copying
 	}
 
 	public boolean equals(Object object) {
-		if(object == this) return true;
+		if (object == this) return true;
 
-		if(object instanceof AffineTransform) {
-			AffineTransform transform = (AffineTransform)object;
+		if (object instanceof AffineTransform) {
+			AffineTransform transform = (AffineTransform) object;
 			return this.a == transform.a && this.b == transform.b && this.c == transform.c && this.d == transform.d && this.tx == transform.tx && this.ty == transform.ty;
 		} else {
 			return false;

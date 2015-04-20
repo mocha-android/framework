@@ -1,12 +1,4 @@
-/**
- *  @author Shaun
- *  @date 4/22/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation;
-
-import android.net.Uri;
-import mocha.ui.Application;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,7 +10,8 @@ public class Data extends MObject implements Copying<Data> {
 
 	private byte[] bytes;
 
-	public Data() { }
+	public Data() {
+	}
 
 	public Data(byte[] bytes) {
 		this.bytes = bytes;
@@ -42,11 +35,12 @@ public class Data extends MObject implements Copying<Data> {
 			if (inputStream != null) {
 				try {
 					inputStream.close();
-				} catch (IOException ignored) { }
+				} catch (IOException ignored) {
+				}
 			}
 		}
 
-		if(exception != null) {
+		if (exception != null) {
 			throw exception;
 		} else {
 			return data;
@@ -81,7 +75,7 @@ public class Data extends MObject implements Copying<Data> {
 	}
 
 	public int hashCode() {
-		if(this.bytes != null) {
+		if (this.bytes != null) {
 			return Arrays.hashCode(this.bytes);
 		} else {
 			return 0;
@@ -89,10 +83,10 @@ public class Data extends MObject implements Copying<Data> {
 	}
 
 	public boolean equals(Object o) {
-		if(this == o) {
+		if (this == o) {
 			return true;
-		} else if(o instanceof Data) {
-			Data data = (Data)o;
+		} else if (o instanceof Data) {
+			Data data = (Data) o;
 			return this.bytes == data.bytes || this.hashCode() == data.hashCode();
 		} else {
 			return false;

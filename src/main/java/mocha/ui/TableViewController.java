@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *  @date 2/11/13
- *  @copyright  2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.IndexPath;
@@ -31,7 +26,7 @@ abstract public class TableViewController extends ViewController implements Tabl
 	protected void loadView() {
 		TableView tableView;
 
-		if(tableViewClass != null) {
+		if (tableViewClass != null) {
 			try {
 				tableView = tableViewClass.getConstructor(TableView.Style.class).newInstance(this.style);
 			} catch (Exception e) {
@@ -53,15 +48,15 @@ abstract public class TableViewController extends ViewController implements Tabl
 	public void viewWillAppear(boolean animated) {
 		super.viewWillAppear(animated);
 
-		if(this.getTableView().isEmpty()) {
+		if (this.getTableView().isEmpty()) {
 			this.getTableView().reloadData();
 		}
 
-		if(this.clearsSelectionOnViewWillAppear) {
+		if (this.clearsSelectionOnViewWillAppear) {
 			Set<IndexPath> indexPaths = this.getTableView().getIndexPathsForSelectedRows();
 
-			if(indexPaths.size() > 0) {
-				for(IndexPath indexPath : indexPaths) {
+			if (indexPaths.size() > 0) {
+				for (IndexPath indexPath : indexPaths) {
 					this.getTableView().deselectRowAtIndexPath(indexPath, animated);
 				}
 			}
@@ -74,7 +69,7 @@ abstract public class TableViewController extends ViewController implements Tabl
 	}
 
 	public TableView getTableView() {
-		return (TableView)this.getView();
+		return (TableView) this.getView();
 	}
 
 	public boolean doesClearSelectionOnViewWillAppear() {
@@ -90,6 +85,7 @@ abstract public class TableViewController extends ViewController implements Tabl
 	}
 
 	abstract public int getNumberOfRowsInSection(TableView tableView, int section);
+
 	abstract public TableViewCell getCellForRowAtIndexPath(TableView tableView, IndexPath indexPath);
 
 }

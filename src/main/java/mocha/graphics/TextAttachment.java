@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/21/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 public class TextAttachment {
@@ -25,7 +20,7 @@ public class TextAttachment {
 	public void setImage(Image image) {
 		this.image = image;
 
-		if(this.image != null) {
+		if (this.image != null) {
 			this.bounds.size.set(image.getSize());
 		} else {
 			this.bounds.size.set(null);
@@ -43,7 +38,7 @@ public class TextAttachment {
 	}
 
 	public void offset(Offset offset) {
-		if(offset != null) {
+		if (offset != null) {
 			this.bounds.origin.x += offset.horizontal;
 			this.bounds.origin.y += offset.vertical;
 		}

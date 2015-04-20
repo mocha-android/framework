@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/21/14
- *  @copyright 2014 Mocha, Inc. All rights reserved.
- */
 package mocha.graphics;
 
 import android.graphics.Bitmap;
@@ -16,9 +11,9 @@ import mocha.ui.Screen;
 public class TextAttachmentSpan extends ReplacementSpan {
 	private final float scale;
 	private TextAttachment textAttachment;
-	private VerticalAligment verticalAligment;
+	private VerticalAlignment verticalAlignment;
 
-	public static enum VerticalAligment {
+	public static enum VerticalAlignment {
 		BASELINE,
 		BOTTOM
 	}
@@ -26,31 +21,31 @@ public class TextAttachmentSpan extends ReplacementSpan {
 	public TextAttachmentSpan(TextAttachment textAttachment) {
 		this.scale = Screen.mainScreen().getScale();
 		this.textAttachment = textAttachment;
-		this.verticalAligment = VerticalAligment.BASELINE;
+		this.verticalAlignment = VerticalAlignment.BASELINE;
 	}
 
 	public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
 		Rect bounds = this.textAttachment.bounds;
-		return (int)FloatMath.ceil(bounds.maxX() * this.scale);
+		return (int) FloatMath.ceil(bounds.maxX() * this.scale);
 	}
 
 	public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
-		if(this.textAttachment.image == null) return;
+		if (this.textAttachment.image == null) return;
 
 		Bitmap bitmap = this.textAttachment.image.getBitmap();
-		if(bitmap == null) return;
+		if (bitmap == null) return;
 
 		canvas.save();
 
 		RectF rectF = this.textAttachment.bounds.toSystemRectF(this.scale);
 		float transY = top;
 
-//		if (this.verticalAligment == VerticalAligment.BASELINE) {
+//		if (this.verticalAlignment == verticalAlignment.BASELINE) {
 //			transY -= paint.getFontMetricsInt().descent;
 //		}
 
 		canvas.translate(x, transY);
-		canvas.drawBitmap(bitmap, new android.graphics.Rect(0, 0, (int)FloatMath.ceil(rectF.width()), (int)FloatMath.ceil(rectF.height())), rectF, paint);
+		canvas.drawBitmap(bitmap, new android.graphics.Rect(0, 0, (int) FloatMath.ceil(rectF.width()), (int) FloatMath.ceil(rectF.height())), rectF, paint);
 		canvas.restore();
 
 	}

@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/15/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.view.VelocityTracker;
@@ -16,7 +11,7 @@ import java.util.Set;
 
 public class SwipeGestureRecognizer extends GestureRecognizer {
 	private EnumSet<Direction> directions;
-//	private int numberOfTouchesRequired;
+	//	private int numberOfTouchesRequired;
 	private VelocityTracker velocityTracker;
 
 	private long startTimestamp;
@@ -72,7 +67,7 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	protected void reset() {
 		super.reset();
 
-		if(this.velocityTracker != null) {
+		if (this.velocityTracker != null) {
 			this.velocityTracker.recycle();
 			this.velocityTracker = null;
 		}
@@ -81,12 +76,10 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	protected void setState(State state) {
 		super.setState(state);
 
-		if(state == State.CANCELLED || state == State.ENDED || state == State.FAILED) {
+		if (state == State.CANCELLED || state == State.ENDED || state == State.FAILED) {
 			this.shouldTrack = false;
 		}
 	}
-
-	// Properties
 
 	public Direction getDirection() {
 		return this.directions.iterator().next();
@@ -104,10 +97,8 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 		this.directions = EnumSet.of(direction, others);
 	}
 
-	// Touches
-
 	private void trackVelocity(Event event) {
-		if(this.velocityTracker == null) {
+		if (this.velocityTracker == null) {
 			this.velocityTracker = VelocityTracker.obtain();
 		}
 
@@ -115,7 +106,7 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	}
 
 	protected void touchesBegan(List<Touch> touches, Event event) {
-		if(this.getState() == State.POSSIBLE) {
+		if (this.getState() == State.POSSIBLE) {
 			this.shouldTrack = true;
 			this.startTimestamp = event.getTimestamp();
 			this.startLocation = touches.get(0).location;
@@ -124,29 +115,28 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	}
 
 	protected void touchesMoved(List<Touch> touches, Event event) {
-		if(!this.shouldTrack) return;
+		if (!this.shouldTrack) return;
 
 		this.trackVelocity(event);
 		this.trackMovement(touches.get(0).location, event.getTimestamp());
 	}
 
 	protected void touchesEnded(List<Touch> touches, Event event) {
-		if(!this.shouldTrack) return;
+		if (!this.shouldTrack) return;
 
 		this.trackVelocity(event);
-		if(!this.trackMovement(touches.get(0).location, event.getTimestamp())) {
+		if (!this.trackMovement(touches.get(0).location, event.getTimestamp())) {
 			this.setState(State.FAILED);
 		}
 	}
 
 	protected void touchesCancelled(List<Touch> touches, Event event) {
-		if(!this.shouldTrack) return;
+		if (!this.shouldTrack) return;
 		this.setState(State.CANCELLED);
 	}
 
-	// Return value: whether or not a movement has finished and a cancelled/ended state was set
 	protected boolean trackMovement(Point location, long timestamp) {
-		if(timestamp - this.startTimestamp > maximumDuration) {
+		if (timestamp - this.startTimestamp > maximumDuration) {
 			this.setState(State.FAILED);
 			return true;
 		}
@@ -158,7 +148,7 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 		float secondaryMovement;
 		boolean primaryIsY = deltaY >= deltaX;
 
-		if(primaryIsY) {
+		if (primaryIsY) {
 			primaryMovement = deltaY;
 			secondaryMovement = deltaX;
 		} else {
@@ -166,24 +156,24 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 			secondaryMovement = deltaY;
 		}
 
-		if(primaryMovement > maximumPrimaryMovement) {
+		if (primaryMovement > maximumPrimaryMovement) {
 			this.setState(State.FAILED);
 			return true;
 		}
 
-		if(secondaryMovement < minimumSecondaryMovement || secondaryMovement > maximumSecondaryMovement) {
+		if (secondaryMovement < minimumSecondaryMovement || secondaryMovement > maximumSecondaryMovement) {
 			this.setState(State.FAILED);
 			return true;
 		}
 
-		if(primaryMovement >= minimumPrimaryMovement) {
+		if (primaryMovement >= minimumPrimaryMovement) {
 			this.velocityTracker.computeCurrentVelocity(1000, this.maximumVelocity);
 			float velocity = primaryIsY ? this.velocityTracker.getYVelocity() : this.velocityTracker.getXVelocity();
 
-			if(Math.abs(velocity) > this.minimumVelocity) {
+			if (Math.abs(velocity) > this.minimumVelocity) {
 				Direction direction = this.findDirection(primaryIsY, velocity > 0);
 
-				if(this.directions.contains(direction)) {
+				if (this.directions.contains(direction)) {
 					this.setState(State.RECOGNIZED);
 				} else {
 					this.setState(State.FAILED);
@@ -197,14 +187,14 @@ public class SwipeGestureRecognizer extends GestureRecognizer {
 	}
 
 	private Direction findDirection(boolean primaryIsY, boolean positive) {
-		if(primaryIsY) {
-			if(positive) {
+		if (primaryIsY) {
+			if (positive) {
 				return Direction.DOWN;
 			} else {
 				return Direction.UP;
 			}
 		} else {
-			if(positive) {
+			if (positive) {
 				return Direction.RIGHT;
 			} else {
 				return Direction.LEFT;

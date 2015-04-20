@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/21/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import mocha.foundation.Copying;

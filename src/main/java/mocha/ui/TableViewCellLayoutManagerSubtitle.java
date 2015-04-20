@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/29/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Rect;
@@ -19,14 +14,14 @@ class TableViewCellLayoutManagerSubtitle extends TableViewCellLayoutManager {
 			return Size.zero();
 		}
 
-		if(tvSize == null) tvSize = Size.zero();
-		if(dvSize == null) dvSize = Size.zero();
+		if (tvSize == null) tvSize = Size.zero();
+		if (dvSize == null) dvSize = Size.zero();
 
-		if(textLabel != null && textLabel.getText() != null && textLabel.getText().length() > 0) {
+		if (textLabel != null && textLabel.getText() != null && textLabel.getText().length() > 0) {
 			tvSize.set(TextDrawing.getTextSize(textLabel.getText(), textLabel.getFont()));
 		}
 
-		if(detailTextLabel != null && detailTextLabel.getText() != null && detailTextLabel.getText().length() > 0) {
+		if (detailTextLabel != null && detailTextLabel.getText() != null && detailTextLabel.getText().length() > 0) {
 			dvSize.set(TextDrawing.getTextSize(detailTextLabel.getText(), detailTextLabel.getFont()));
 		}
 
@@ -62,7 +57,7 @@ class TableViewCellLayoutManagerSubtitle extends TableViewCellLayoutManager {
 			width = maxWidth <= originalSize.width ? maxWidth : originalSize.width;
 		}
 
-		float originY = (float)Math.round((contentRect.size.height - combinedSize.height) / 2.0);
+		float originY = (float) Math.round((contentRect.size.height - combinedSize.height) / 2.0);
 		return new Rect(originX, originY, width, originalSize.height);
 	}
 
@@ -93,7 +88,7 @@ class TableViewCellLayoutManagerSubtitle extends TableViewCellLayoutManager {
 			width = maxWidth <= originalSize.width ? maxWidth : originalSize.width;
 		}
 
-		float originY = (float)Math.round(((contentRect.size.height - combinedSize.height) / 2.0) + (combinedSize.height - originalSize.height));
+		float originY = (float) Math.round(((contentRect.size.height - combinedSize.height) / 2.0) + (combinedSize.height - originalSize.height));
 		return new Rect(originX, originY, width, originalSize.height);
 	}
 }

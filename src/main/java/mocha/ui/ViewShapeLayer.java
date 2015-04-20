@@ -1,8 +1,3 @@
-/**
- *	@author Shaun
- *	@date 3/15/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
@@ -29,8 +24,8 @@ public class ViewShapeLayer extends ViewLayerNative {
 
 	@Override
 	protected void drawBackground(Canvas canvas, RectF rect, Paint borderPaint, boolean alwaysDraw) {
-		if(this.path != null) {
-			if(this.pathPaint == null) {
+		if (this.path != null) {
+			if (this.pathPaint == null) {
 				this.pathPaint = new Paint();
 				this.pathPaint.setAntiAlias(true);
 				this.pathPaint.setDither(true);
@@ -40,7 +35,7 @@ public class ViewShapeLayer extends ViewLayerNative {
 
 			canvas.drawPath(this.getNativePath(), this.pathPaint);
 
-			if(borderPaint != null) {
+			if (borderPaint != null) {
 				canvas.drawPath(this.getNativePath(), borderPaint);
 			}
 		} else {
@@ -58,7 +53,7 @@ public class ViewShapeLayer extends ViewLayerNative {
 	}
 
 	private android.graphics.Path getNativePath() {
-		if(this.path != null) {
+		if (this.path != null) {
 			if (this.nativePath == null) {
 				this.nativePath = this.path.getScaledNativePath(this.scale);
 			}

@@ -1,11 +1,7 @@
-/**
- *  @author Shaun
- *  @date 5/15/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
+
 import java.util.List;
 import java.util.Set;
 
@@ -20,21 +16,21 @@ abstract public class ViewPresentationController extends MObject {
 	void presentViewController(final ViewController viewController, final ViewController hideViewController, boolean animated, final Window window, final Runnable completion) {
 		InterfaceOrientation presentOrientation = viewController.getPreferredInterfaceOrientationForPresentation();
 
-		if(presentOrientation == null) {
+		if (presentOrientation == null) {
 			Set<InterfaceOrientation> supportedOrientations = viewController.getSupportedInterfaceOrientations();
 
-			if(!supportedOrientations.contains(hideViewController.getInterfaceOrientation())) {
+			if (!supportedOrientations.contains(hideViewController.getInterfaceOrientation())) {
 				presentOrientation = supportedOrientations.iterator().next();
 			}
 		}
 
-		if(presentOrientation != null && presentOrientation == hideViewController.getInterfaceOrientation()) {
+		if (presentOrientation != null && presentOrientation == hideViewController.getInterfaceOrientation()) {
 			presentOrientation = null;
 		}
 
 		animated = animated && window.isVisible() && presentOrientation == null;
 
-		if(animated) {
+		if (animated) {
 			Application.sharedApplication().beginIgnoringInteractionEvents();
 			this.presentViewControllerAnimated(viewController, hideViewController, window, new Runnable() {
 				public void run() {
@@ -43,7 +39,7 @@ abstract public class ViewPresentationController extends MObject {
 				}
 			});
 		} else {
-			if(presentOrientation != null) {
+			if (presentOrientation != null) {
 				InterfaceOrientation interfaceOrientation = hideViewController.getInterfaceOrientation();
 				hideViewController.setRestoreToInterfaceOrientationOnReappear(hideViewController.getInterfaceOrientation());
 				hideViewController.setInterfaceOrientation(interfaceOrientation);
@@ -57,7 +53,7 @@ abstract public class ViewPresentationController extends MObject {
 			viewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			viewController.setBeingPresented(true);
 
-			if(window.isVisible()) {
+			if (window.isVisible()) {
 				viewController.beginAppearanceTransition(true, animated);
 				hideViewController.beginAppearanceTransition(false, animated);
 			}
@@ -70,7 +66,7 @@ abstract public class ViewPresentationController extends MObject {
 	abstract protected void presentViewControllerAnimated(ViewController viewController, ViewController hideViewController, Window window, Runnable completion);
 
 	private void presentViewControllerFinish(ViewController presentedViewController, ViewController hideViewController, Window window, Runnable completion) {
-		if(window.isVisible()) {
+		if (window.isVisible()) {
 			presentedViewController.endAppearanceTransition();
 			hideViewController.endAppearanceTransition();
 		}
@@ -82,7 +78,7 @@ abstract public class ViewPresentationController extends MObject {
 
 		presentedViewController.setBeingPresented(false);
 
-		if(completion != null) {
+		if (completion != null) {
 			completion.run();
 		}
 	}
@@ -91,19 +87,19 @@ abstract public class ViewPresentationController extends MObject {
 		InterfaceOrientation restoreOrientation = revealViewController.getRestoreToInterfaceOrientationOnReappear();
 		revealViewController.setRestoreToInterfaceOrientationOnReappear(null);
 
-		if(restoreOrientation != null && restoreOrientation == hideViewController.getInterfaceOrientation()) {
+		if (restoreOrientation != null && restoreOrientation == hideViewController.getInterfaceOrientation()) {
 			restoreOrientation = null;
 		}
 
-		if(restoreOrientation != null) {
-			if(revealViewController.getSupportedInterfaceOrientations().contains(hideViewController.getInterfaceOrientation())) {
+		if (restoreOrientation != null) {
+			if (revealViewController.getSupportedInterfaceOrientations().contains(hideViewController.getInterfaceOrientation())) {
 				restoreOrientation = null;
 			}
 		}
 
 		animated = animated && window.isVisible() && restoreOrientation == null;
 
-		if(animated) {
+		if (animated) {
 			Application.sharedApplication().beginIgnoringInteractionEvents();
 			this.dismissPresentedViewControllerAnimated(hideViewController, revealViewController, window, new Runnable() {
 				public void run() {
@@ -112,7 +108,7 @@ abstract public class ViewPresentationController extends MObject {
 				}
 			});
 		} else {
-			if(restoreOrientation != null) {
+			if (restoreOrientation != null) {
 				InterfaceOrientation interfaceOrientation = hideViewController.getInterfaceOrientation();
 				hideViewController.setInterfaceOrientation(interfaceOrientation);
 
@@ -138,7 +134,7 @@ abstract public class ViewPresentationController extends MObject {
 	private void dismissPresentedViewControllerFinish(ViewController hideViewController, ViewController revealViewController, List<ViewController> dismissViewControllers, Window window, Runnable completion) {
 		hideViewController.getView().removeFromSuperview();
 
-		for(ViewController dismissViewController : dismissViewControllers) {
+		for (ViewController dismissViewController : dismissViewControllers) {
 			viewController.removePresentedViewController(dismissViewController, window);
 		}
 
@@ -148,13 +144,13 @@ abstract public class ViewPresentationController extends MObject {
 		hideViewController.setInterfaceOrientation(null);
 		revealViewController.setInterfaceOrientation(null);
 
-		if(completion != null) {
+		if (completion != null) {
 			completion.run();
 		}
 
 		hideViewController.setBeingDismissed(false);
 
-		if(revealViewController == viewController) {
+		if (revealViewController == viewController) {
 			viewController.presentingFromWindow = null;
 		}
 	}

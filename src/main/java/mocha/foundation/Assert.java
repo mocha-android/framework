@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/11/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 final public class Assert extends MObject {
@@ -17,8 +12,8 @@ final public class Assert extends MObject {
 	}
 
 	public static void condition(boolean pass, String message) {
-		if(!pass) {
-			if(throwExceptions) {
+		if (!pass) {
+			if (throwExceptions) {
 				throw new AssertationException(message);
 			} else {
 				MLog(LogLevel.WTF, message);
@@ -27,7 +22,7 @@ final public class Assert extends MObject {
 	}
 
 	public static void condition(boolean pass, String format, Object... objects) {
-		if(!pass) {
+		if (!pass) {
 			// No reason to waste the String.format call unless we're going to display it
 			condition(true, String.format(format, objects));
 		}

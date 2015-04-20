@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/6/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.text.Layout;

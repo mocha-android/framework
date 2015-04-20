@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/25/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.*;
@@ -29,7 +24,9 @@ public class Button extends Control {
 		TITLE, TITLE_COLOR, TITLE_SHADOW_COLOR, ATTRIBUTED_TITLE, BACKGROUND_IMAGE, IMAGE
 	}
 
-	public Button() { this(Rect.zero()); }
+	public Button() {
+		this(Rect.zero());
+	}
 
 	public Button(Rect frame) {
 		super(frame);
@@ -94,13 +91,13 @@ public class Button extends Control {
 
 		HashMap<ContentType, Object> content = this.content.get(set);
 
-		if(content == null) {
+		if (content == null) {
 			content = new HashMap<>();
 			this.content.put(set, content);
 		}
 
 
-		if(value != null) {
+		if (value != null) {
 			content.put(type, value);
 		} else {
 			content.remove(type);
@@ -110,19 +107,19 @@ public class Button extends Control {
 	}
 
 	public CharSequence getTitleForState(State... states) {
-		return (CharSequence)this.getContent(ContentType.TITLE, states);
+		return (CharSequence) this.getContent(ContentType.TITLE, states);
 	}
 
 	private CharSequence getTitleForState(EnumSet<State> stateSet) {
-		return (CharSequence)this.getContent(ContentType.TITLE, stateSet);
+		return (CharSequence) this.getContent(ContentType.TITLE, stateSet);
 	}
 
 	public AttributedString getAttributedTitleForState(State... states) {
-		return (AttributedString)this.getContent(ContentType.TITLE, states);
+		return (AttributedString) this.getContent(ContentType.TITLE, states);
 	}
 
 	private AttributedString getAttributedTitleForState(EnumSet<State> stateSet) {
-		return (AttributedString)this.getContent(ContentType.ATTRIBUTED_TITLE, stateSet);
+		return (AttributedString) this.getContent(ContentType.ATTRIBUTED_TITLE, stateSet);
 	}
 
 	public int getTitleColor(State... states) {
@@ -142,19 +139,19 @@ public class Button extends Control {
 	}
 
 	public Image getImage(State... states) {
-		return (Image)this.getContent(ContentType.IMAGE, states);
+		return (Image) this.getContent(ContentType.IMAGE, states);
 	}
 
 	public Image getImage(EnumSet<State> stateSet) {
-		return (Image)this.getContent(ContentType.IMAGE, stateSet);
+		return (Image) this.getContent(ContentType.IMAGE, stateSet);
 	}
 
 	public Image getBackgroundImage(State... states) {
-		return (Image)this.getContent(ContentType.BACKGROUND_IMAGE, states);
+		return (Image) this.getContent(ContentType.BACKGROUND_IMAGE, states);
 	}
 
 	private Image getBackgroundImage(EnumSet<State> stateSet) {
-		return (Image)this.getContent(ContentType.BACKGROUND_IMAGE, stateSet);
+		return (Image) this.getContent(ContentType.BACKGROUND_IMAGE, stateSet);
 	}
 
 	private Object getContent(ContentType type, State... states) {
@@ -165,11 +162,11 @@ public class Button extends Control {
 		Object object = null;
 		HashMap<ContentType, Object> content = this.content.get(stateSet);
 
-		if(content != null) {
+		if (content != null) {
 			object = content.get(type);
 		}
 
-		if(object == null && (stateSet.size() != 1 || !stateSet.contains(State.NORMAL))) {
+		if (object == null && (stateSet.size() != 1 || !stateSet.contains(State.NORMAL))) {
 			object = this.getContent(type, State.NORMAL);
 		}
 
@@ -182,7 +179,7 @@ public class Button extends Control {
 
 	private int getColor(ContentType type, EnumSet<State> stateSet) {
 		Object color = this.getContent(type, stateSet);
-		return color == null ? 0 : (Integer)color;
+		return color == null ? 0 : (Integer) color;
 	}
 
 	public Label getTitleLabel() {
@@ -281,34 +278,34 @@ public class Button extends Control {
 
 		boolean needsLayout = false;
 
-		if(changedContent == null || changedContent == ContentType.TITLE) {
+		if (changedContent == null || changedContent == ContentType.TITLE) {
 			CharSequence newText = this.getTitleForState(states);
 			this.titleLabel.setText(newText);
 			needsLayout = true;
 		}
 
-		if(changedContent == null || changedContent == ContentType.ATTRIBUTED_TITLE) {
+		if (changedContent == null || changedContent == ContentType.ATTRIBUTED_TITLE) {
 			this.titleLabel.setAttributedText(this.getAttributedTitleForState(states));
 			needsLayout = true;
 		}
 
-		if(changedContent == null || changedContent == ContentType.TITLE_COLOR) {
+		if (changedContent == null || changedContent == ContentType.TITLE_COLOR) {
 			this.titleLabel.setTextColor(this.getTitleColor(states));
 		}
 
-		if(changedContent == null || changedContent == ContentType.TITLE_SHADOW_COLOR) {
+		if (changedContent == null || changedContent == ContentType.TITLE_SHADOW_COLOR) {
 			this.titleLabel.setShadowColor(this.getTitleShadowColor(states));
 		}
 
-		if(changedContent == null || changedContent == ContentType.IMAGE) {
+		if (changedContent == null || changedContent == ContentType.IMAGE) {
 			Image oldImage = needsLayout ? null : this.imageView.getImage();
 			Image newImage = this.getImage(states);
 			this.imageView.setImage(newImage);
 
-			if(!needsLayout) {
-				if(oldImage != null && newImage == null) {
+			if (!needsLayout) {
+				if (oldImage != null && newImage == null) {
 					needsLayout = true;
-				} else if(oldImage == null && newImage != null) {
+				} else if (oldImage == null && newImage != null) {
 					needsLayout = true;
 				} else if (oldImage != null) {
 					needsLayout = !oldImage.getSize().equals(newImage.getSize());
@@ -316,20 +313,20 @@ public class Button extends Control {
 			}
 		}
 
-		if(changedContent == null || changedContent == ContentType.BACKGROUND_IMAGE) {
+		if (changedContent == null || changedContent == ContentType.BACKGROUND_IMAGE) {
 			this.backgroundImageView.setImage(this.getBackgroundImage(states));
 		}
 
-		if(this.adjustsImageWhenDisabled && changedContent == null) {
-			if(this.getState().contains(State.DISABLED)) {
+		if (this.adjustsImageWhenDisabled && changedContent == null) {
+			if (this.getState().contains(State.DISABLED)) {
 				this.imageView.setAlpha(0.35f);
 			} else {
 				this.imageView.setAlpha(1.0f);
 			}
 		}
 
-		if(needsLayout) {
-			if(this.getSuperview() != null) {
+		if (needsLayout) {
+			if (this.getSuperview() != null) {
 				this.layoutSubviews();
 			} else {
 				this.setNeedsLayout();
@@ -349,7 +346,7 @@ public class Button extends Control {
 		Image image = this.getCurrentImage();
 		float imageWidth = image == null ? 0.0f : image.getSize().width;
 
-		if(this.getCurrentAttributedTitle().length() > 0) {
+		if (this.getCurrentAttributedTitle().length() > 0) {
 			return this.getAttributedTitleRectForContentRect(contentRect, imageWidth);
 		} else {
 			return this.getPlainTitleRectForContentRect(contentRect, imageWidth);
@@ -423,7 +420,7 @@ public class Button extends Control {
 
 	public Rect getImageRectForContentRect(Rect contentRect) {
 		Image image = this.getCurrentImage();
-		if(image == null) return Rect.zero();
+		if (image == null) return Rect.zero();
 
 		Rect rect = contentRect.copy();
 		rect.size = image.getSize();
@@ -447,7 +444,7 @@ public class Button extends Control {
 
 		HorizontalAlignment alignment = this.getContentHorizontalAlignment();
 
-		if(alignment != HorizontalAlignment.LEFT && rect.size.width < contentRect.size.width) {
+		if (alignment != HorizontalAlignment.LEFT && rect.size.width < contentRect.size.width) {
 			CharSequence title = this.getCurrentTitle();
 			float width = title != null && title.length() > 0 ? ceilf(TextDrawing.getTextWidth(title, this.getTitleLabel().getFont(), contentRect.size.width - rect.size.width)) : 0.0f;
 
@@ -487,12 +484,12 @@ public class Button extends Control {
 		Size sizeThatFits = imageSize.copy();
 		CharSequence title = this.getCurrentTitle();
 
-		if(title != null && title.length() > 0) {
+		if (title != null && title.length() > 0) {
 			float titleWidth = ceilf(this.titleLabel.sizeThatFits(new Size(10000.0f, 10000.0f)).width);
 			sizeThatFits.width = imageSize.width + titleWidth;
 		}
 
-		if(title != null && title.length() > 0) {
+		if (title != null && title.length() > 0) {
 			sizeThatFits.height = Math.max(imageSize.height, ceilf(this.titleLabel.getFont().getLineHeight()));
 		}
 
@@ -501,7 +498,7 @@ public class Button extends Control {
 
 		Image background = this.getCurrentBackgroundImage();
 
-		if(background != null) {
+		if (background != null) {
 			Size backgroundSize = background.getSize();
 			sizeThatFits.width = Math.max(sizeThatFits.width, backgroundSize.width);
 			sizeThatFits.height = Math.max(sizeThatFits.height, backgroundSize.height);

@@ -1,11 +1,6 @@
-/*
- *  @author Shaun
- *	@date 10/30/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
-public final class Size implements mocha.foundation.Copying <Size> {
+public final class Size implements mocha.foundation.Copying<Size> {
 	public float width;
 	public float height;
 
@@ -28,8 +23,8 @@ public final class Size implements mocha.foundation.Copying <Size> {
 	}
 
 	public void set(Size size) {
-		if(this != size) {
-			if(size == null) {
+		if (this != size) {
+			if (size == null) {
 				this.width = 0.0f;
 				this.height = 0.0f;
 			} else {

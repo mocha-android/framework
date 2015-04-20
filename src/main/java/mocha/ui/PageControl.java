@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/13/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Context;
@@ -21,8 +16,13 @@ public class PageControl extends Control {
 	private Image indicatorImage;
 	private Image indicatorCurrentImage;
 
-	public PageControl() { super(); }
-	public PageControl(Rect frame) { super(frame); }
+	public PageControl() {
+		super();
+	}
+
+	public PageControl(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		this.indicatorCurrentImage = Image.imageNamed(R.drawable.mocha_page_indicator_current);
@@ -58,7 +58,7 @@ public class PageControl extends Control {
 	}
 
 	public Size getSizeForNumberOfPages(int num) {
-		return new Size(((this.pageDotSize.width * num) + (this.pageGapWidth * (num-1))), this.pageDotSize.height);
+		return new Size(((this.pageDotSize.width * num) + (this.pageGapWidth * (num - 1))), this.pageDotSize.height);
 	}
 
 	public int getNumberOfPages() {
@@ -66,7 +66,7 @@ public class PageControl extends Control {
 	}
 
 	public void setNumberOfPages(int numberOfPages) {
-		if(this.numberOfPages != numberOfPages) {
+		if (this.numberOfPages != numberOfPages) {
 			this.numberOfPages = numberOfPages;
 			this.setNeedsDisplay();
 		}
@@ -77,7 +77,7 @@ public class PageControl extends Control {
 	}
 
 	public void setCurrentPage(int page) {
-		if(page != this.currentPage) {
+		if (page != this.currentPage) {
 			page = Math.max(0, page);
 
 			if (page > this.numberOfPages) {
@@ -94,7 +94,7 @@ public class PageControl extends Control {
 	}
 
 	public void setHidesForSinglePage(boolean hidesForSinglePage) {
-		if(this.hidesForSinglePage != hidesForSinglePage) {
+		if (this.hidesForSinglePage != hidesForSinglePage) {
 			this.hidesForSinglePage = hidesForSinglePage;
 			this.setNeedsDisplay();
 		}

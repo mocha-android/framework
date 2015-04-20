@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 6/6/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 class TableViewSwipeDeleteGestureRecognizer extends SwipeGestureRecognizer {

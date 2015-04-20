@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 7/30/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation.concurrent;
 
 import java.util.concurrent.*;
@@ -34,24 +29,16 @@ abstract class BackgroundQueue extends Queue {
 			public void run() {
 				try {
 					runnable.run();
-				} catch(final Throwable t) {
+				} catch (final Throwable t) {
 					MWarn(t, "Error executing on queue " + label);
 
-					if(getExceptionHandler() != null) {
+					if (getExceptionHandler() != null) {
 						getExceptionHandler().handleException(t, BackgroundQueue.this);
 					}
 				}
 			}
 		});
 	}
-
-//	public void post(long delayInMillis, Runnable runnable) {
-//		throw new UnsupportedOperationException();
-//	}
-
-//	public void wait(Runnable runnable) {
-//		throw new UnsupportedOperationException();
-//	}
 
 	public String getLabel() {
 		return this.label;

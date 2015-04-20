@@ -1,8 +1,3 @@
-/**
- *	@author Shaun
- *	@data 4/15/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 public class TextRange {

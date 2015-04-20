@@ -1,13 +1,8 @@
-/*
- *  @author Shaun
- *	@date 10/30/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.util.FloatMath;
 
-public final class Rect implements mocha.foundation.Copying <Rect> {
+public final class Rect implements mocha.foundation.Copying<Rect> {
 	public Point origin;
 	public Size size;
 
@@ -142,7 +137,7 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public boolean contains(Point point) {
-		return point != null && (point.x >= this.origin.x  && point.y >= this.origin.y && point.x <= this.maxX() && point.y <= this.maxY());
+		return point != null && (point.x >= this.origin.x && point.y >= this.origin.y && point.x <= this.maxX() && point.y <= this.maxY());
 	}
 
 	public boolean contains(Rect rect) {
@@ -165,7 +160,7 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public Rect union(Rect rect) {
-		if(rect == null) {
+		if (rect == null) {
 			return this.copy();
 		}
 
@@ -178,10 +173,10 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public void makeIntegral() {
-		float maxX = (float)Math.ceil(this.maxX());
-		float maxY = (float)Math.ceil(this.maxY());
-		this.origin.x = (float)Math.floor(this.origin.x);
-		this.origin.y = (float)Math.floor(this.origin.y);
+		float maxX = (float) Math.ceil(this.maxX());
+		float maxY = (float) Math.ceil(this.maxY());
+		this.origin.x = (float) Math.floor(this.origin.x);
+		this.origin.y = (float) Math.floor(this.origin.y);
 		this.size.width = maxX - this.minX();
 		this.size.height = maxY - this.minY();
 	}
@@ -193,19 +188,19 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public void set(Rect rect) {
-		if(this != rect) {
-			if(rect == null) {
+		if (this != rect) {
+			if (rect == null) {
 				this.origin.x = 0.0f;
 				this.origin.y = 0.0f;
 				this.size.width = 0.0f;
 				this.size.height = 0.0f;
 			} else {
-				if(rect.origin != this.origin) {
+				if (rect.origin != this.origin) {
 					this.origin.x = rect.origin.x;
 					this.origin.y = rect.origin.y;
 				}
 
-				if(rect.size != this.size) {
+				if (rect.size != this.size) {
 					this.size.width = rect.size.width;
 					this.size.height = rect.size.height;
 				}
@@ -235,17 +230,17 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	}
 
 	public void toSystemRect(android.graphics.Rect outRect) {
-		outRect.left = (int)this.origin.x;
-		outRect.right = (int)this.maxX();
-		outRect.top = (int)this.origin.y;
-		outRect.bottom = (int)this.maxY();
+		outRect.left = (int) this.origin.x;
+		outRect.right = (int) this.maxX();
+		outRect.top = (int) this.origin.y;
+		outRect.bottom = (int) this.maxY();
 	}
 
 	public void toSystemRect(android.graphics.Rect outRect, float scale) {
-		outRect.left = (int)FloatMath.floor(this.origin.x * scale);
-		outRect.right = (int)FloatMath.floor(this.maxX() * scale);
-		outRect.top = (int)FloatMath.floor(this.origin.y * scale);
-		outRect.bottom = (int)FloatMath.floor(this.maxY() * scale);
+		outRect.left = (int) FloatMath.floor(this.origin.x * scale);
+		outRect.right = (int) FloatMath.floor(this.maxX() * scale);
+		outRect.top = (int) FloatMath.floor(this.origin.y * scale);
+		outRect.bottom = (int) FloatMath.floor(this.maxY() * scale);
 	}
 
 	public android.graphics.RectF toSystemRectF() {
@@ -270,7 +265,7 @@ public final class Rect implements mocha.foundation.Copying <Rect> {
 	public void toSystemRectF(android.graphics.RectF outRect, float scale) {
 		outRect.left = this.origin.x * scale;
 		outRect.right = this.maxX() * scale;
-		outRect.top = this.origin.y  * scale;
+		outRect.top = this.origin.y * scale;
 		outRect.bottom = this.maxY() * scale;
 	}
 

@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/15/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Point;
@@ -74,8 +69,8 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	}
 
 	public boolean canBePreventedByGestureRecognizer(GestureRecognizer preventingGestureRecognizer) {
-		if(preventingGestureRecognizer instanceof TapGestureRecognizer) {
-			return ((TapGestureRecognizer)preventingGestureRecognizer).numberOfTapsRequired > this.numberOfTapsRequired;
+		if (preventingGestureRecognizer instanceof TapGestureRecognizer) {
+			return ((TapGestureRecognizer) preventingGestureRecognizer).numberOfTapsRequired > this.numberOfTapsRequired;
 		} else {
 			return super.canBePreventedByGestureRecognizer(preventingGestureRecognizer);
 		}
@@ -83,8 +78,8 @@ public class TapGestureRecognizer extends GestureRecognizer {
 
 
 	public boolean canPreventGestureRecognizer(GestureRecognizer preventedGestureRecognizer) {
-		if(preventedGestureRecognizer instanceof TapGestureRecognizer) {
-			return ((TapGestureRecognizer)preventedGestureRecognizer).numberOfTapsRequired <= this.numberOfTapsRequired;
+		if (preventedGestureRecognizer instanceof TapGestureRecognizer) {
+			return ((TapGestureRecognizer) preventedGestureRecognizer).numberOfTapsRequired <= this.numberOfTapsRequired;
 		} else {
 			return super.canPreventGestureRecognizer(preventedGestureRecognizer);
 		}
@@ -95,7 +90,7 @@ public class TapGestureRecognizer extends GestureRecognizer {
 		this.startPoint = touches.get(0).location;
 		this.startTime = android.os.SystemClock.uptimeMillis();
 
-		if(this.failCallback == null) {
+		if (this.failCallback == null) {
 			this.failCallback = performAfterDelay(this.maximumIntervalBetweenSuccessiveTaps, new Runnable() {
 				@Override
 				public void run() {
@@ -113,7 +108,7 @@ public class TapGestureRecognizer extends GestureRecognizer {
 
 	protected void touchesEnded(List<Touch> touches, Event event) {
 		if (this.tracking) {
-			if(this.verifyTouch(touches.get(0))) {
+			if (this.verifyTouch(touches.get(0))) {
 				this.setState(State.RECOGNIZED);
 			} else {
 				this.setState(State.FAILED);
@@ -124,7 +119,7 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	}
 
 	private boolean verifyTouch(Touch touch) {
-		if(this.startTime + this.maximumSingleTapDuration < android.os.SystemClock.uptimeMillis()) {
+		if (this.startTime + this.maximumSingleTapDuration < android.os.SystemClock.uptimeMillis()) {
 			return false;
 		} else {
 			Point delta = this.startPoint.delta(touch.location).abs();
@@ -139,7 +134,7 @@ public class TapGestureRecognizer extends GestureRecognizer {
 	protected void reset() {
 		this.tracking = false;
 
-		if(this.failCallback != null) {
+		if (this.failCallback != null) {
 			cancelCallbacks(this.failCallback);
 			this.failCallback = null;
 		}

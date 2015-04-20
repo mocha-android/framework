@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/10/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.app.AlertDialog;
@@ -20,7 +15,7 @@ public class AlertView extends MObject {
 		 * Called when the button is clicked, before the dialog
 		 * is dismissed.
 		 *
-		 * @param alertView Alert view
+		 * @param alertView   Alert view
 		 * @param buttonIndex Button index that clicked (guaranteed not to be cancel button index)
 		 */
 		public void onClickedButtonAtIndex(AlertView alertView, int buttonIndex);
@@ -51,7 +46,7 @@ public class AlertView extends MObject {
 			/**
 			 * Called before the alert view dismisses from screen, after Listener#onClickedButtonAtIndex is called.
 			 *
-			 * @param alertView Alert view
+			 * @param alertView   Alert view
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
 			public void willDismissWithButtonIndex(AlertView alertView, int buttonIndex);
@@ -59,7 +54,7 @@ public class AlertView extends MObject {
 			/**
 			 * Called after the alert view is removed from the screen.
 			 *
-			 * @param alertView Alert view
+			 * @param alertView   Alert view
 			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
 			 */
 			public void didDismissWithButtonIndex(AlertView alertView, int buttonIndex);
@@ -93,9 +88,9 @@ public class AlertView extends MObject {
 	/**
 	 * Create an alert view
 	 *
-	 * @param title Title of the alert view
-	 * @param message Message body of the alert view (will not appear if there are more than 3 total buttons, including cancel)
-	 * @param listener Listener for the alert
+	 * @param title             Title of the alert view
+	 * @param message           Message body of the alert view (will not appear if there are more than 3 total buttons, including cancel)
+	 * @param listener          Listener for the alert
 	 * @param cancelButtonTitle Cancel button title, may be null
 	 * @param otherButtonTitles Other button titles, may be null
 	 */
@@ -108,7 +103,7 @@ public class AlertView extends MObject {
 		this.cancelButtonTitle = cancelButtonTitle;
 		this.otherButtonTitles = new ArrayList<CharSequence>();
 
-		if(otherButtonTitles != null) {
+		if (otherButtonTitles != null) {
 			Collections.addAll(this.otherButtonTitles, otherButtonTitles);
 		}
 	}
@@ -130,8 +125,8 @@ public class AlertView extends MObject {
 	public void setListener(Listener listener) {
 		this.listener = listener;
 
-		if(this.listener instanceof Listener.Presentation) {
-			this.presentationListener = (Listener.Presentation)this.listener;
+		if (this.listener instanceof Listener.Presentation) {
+			this.presentationListener = (Listener.Presentation) this.listener;
 		}
 	}
 
@@ -164,7 +159,7 @@ public class AlertView extends MObject {
 
 	/**
 	 * Set the alert message body
-	 *
+	 * <p/>
 	 * Note: This will not appear if there are more than 3 total buttons, including the cancel button.
 	 *
 	 * @param message alert message body
@@ -177,6 +172,7 @@ public class AlertView extends MObject {
 	 * Add a button and return it's index
 	 *
 	 * @param title Button title
+	 *
 	 * @return Index of the button added
 	 */
 	public int addButton(CharSequence title) {
@@ -188,10 +184,11 @@ public class AlertView extends MObject {
 	 * Get the title of the button at an index
 	 *
 	 * @param index Index of the button to get the title from
+	 *
 	 * @return Button title index
 	 */
 	public CharSequence getButtonTitle(int index) {
-		if(index == this.CANCEL_BUTTON_INDEX) {
+		if (index == CANCEL_BUTTON_INDEX) {
 			return this.cancelButtonTitle;
 		} else {
 			return this.otherButtonTitles.get(index);
@@ -217,7 +214,7 @@ public class AlertView extends MObject {
 	public void setStyle(Style style) {
 		this.style = style;
 
-		if(this.textFields != null) {
+		if (this.textFields != null) {
 			this.textFields.clear();
 		} else {
 			this.textFields = new ArrayList<TextField>();
@@ -242,10 +239,11 @@ public class AlertView extends MObject {
 	 * Get a text field
 	 *
 	 * @param index Index of the text field, starting at 0
+	 *
 	 * @return Text field
 	 */
 	public TextField getTextField(int index) {
-		if(this.textFields != null) {
+		if (this.textFields != null) {
 			return this.textFields.get(index);
 		} else {
 			throw new IndexOutOfBoundsException();
@@ -285,7 +283,7 @@ public class AlertView extends MObject {
 	 * @return Cancel button index
 	 */
 	public int getCancelButtonIndex() {
-		return this.CANCEL_BUTTON_INDEX;
+		return CANCEL_BUTTON_INDEX;
 	}
 
 	/**
@@ -314,15 +312,15 @@ public class AlertView extends MObject {
 	public void show() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(Application.sharedApplication().getContext(), this.appearance == Appearance.LIGHT ? AlertDialog.THEME_HOLO_LIGHT : AlertDialog.THEME_HOLO_DARK);
 
-		if(this.title != null) {
+		if (this.title != null) {
 			builder.setTitle(this.title);
 		}
 
-		if(this.message != null) {
+		if (this.message != null) {
 			builder.setMessage(this.message);
 		}
 
-		if(this.cancelButtonTitle != null) {
+		if (this.cancelButtonTitle != null) {
 			builder.setNegativeButton(this.cancelButtonTitle, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialogInterface, int which) {
 					dialogInterface.cancel();
@@ -331,7 +329,7 @@ public class AlertView extends MObject {
 
 			builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
 				public void onCancel(DialogInterface dialogInterface) {
-					if(listener != null) {
+					if (listener != null) {
 						_dismissWithClickedButtonIndex(CANCEL_BUTTON_INDEX);
 					}
 				}
@@ -340,10 +338,10 @@ public class AlertView extends MObject {
 			builder.setCancelable(false);
 		}
 
-		if(this.otherButtonTitles.size() > 0) {
-			if(this.otherButtonTitles.size() == 1) {
+		if (this.otherButtonTitles.size() > 0) {
+			if (this.otherButtonTitles.size() == 1) {
 				builder.setPositiveButton(this.otherButtonTitles.get(0), new OnClickListener(0));
-			} else if(this.otherButtonTitles.size() == 2) {
+			} else if (this.otherButtonTitles.size() == 2) {
 				builder.setNeutralButton(this.otherButtonTitles.get(0), new OnClickListener(0));
 				builder.setPositiveButton(this.otherButtonTitles.get(1), new OnClickListener(1));
 			} else {
@@ -357,11 +355,11 @@ public class AlertView extends MObject {
 			}
 		}
 
-		if(this.textFields != null && this.textFields.size() > 0) {
+		if (this.textFields != null && this.textFields.size() > 0) {
 			builder.setView(this.textFields.get(0).getNativeView().getNativeView());
 		}
 
-		if(this.destructive) {
+		if (this.destructive) {
 			builder.setIcon(android.R.drawable.ic_dialog_alert);
 		}
 
@@ -371,7 +369,7 @@ public class AlertView extends MObject {
 		this.alertDialog.setOnShowListener(alertListener);
 		this.alertDialog.setOnDismissListener(alertListener);
 
-		if(this.presentationListener != null) {
+		if (this.presentationListener != null) {
 			this.presentationListener.willPresentAlertView(this);
 		}
 
@@ -385,22 +383,22 @@ public class AlertView extends MObject {
 	 * @param buttonIndex Button index
 	 */
 	public void dismissWithClickedButtonIndex(int buttonIndex) {
-		if(this.isVisible()) {
+		if (this.isVisible()) {
 			_dismissWithClickedButtonIndex(buttonIndex);
 			this.alertDialog.dismiss();
 		}
 	}
 
 	private void _dismissWithClickedButtonIndex(int buttonIndex) {
-		if(this.listener != null) {
-			if(buttonIndex == this.CANCEL_BUTTON_INDEX) {
+		if (this.listener != null) {
+			if (buttonIndex == CANCEL_BUTTON_INDEX) {
 				this.listener.onCancel(this);
 			} else {
 				this.listener.onClickedButtonAtIndex(this, buttonIndex);
 			}
 		}
 
-		if(this.presentationListener != null) {
+		if (this.presentationListener != null) {
 			this.presentationListener.willDismissWithButtonIndex(this, buttonIndex);
 		}
 
@@ -421,7 +419,7 @@ public class AlertView extends MObject {
 
 	private class AlertListener implements DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
 		public void onDismiss(DialogInterface dialogInterface) {
-			if(presentationListener != null) {
+			if (presentationListener != null) {
 				presentationListener.didDismissWithButtonIndex(AlertView.this, dismissedWithButtonIndex);
 			}
 
@@ -429,7 +427,7 @@ public class AlertView extends MObject {
 		}
 
 		public void onShow(DialogInterface dialogInterface) {
-			if(presentationListener != null) {
+			if (presentationListener != null) {
 				presentationListener.didPresentAlertView(AlertView.this);
 			}
 		}

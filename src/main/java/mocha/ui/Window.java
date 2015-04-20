@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/13/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
@@ -58,7 +53,7 @@ public final class Window extends View {
 	}
 
 	public WindowLayer getLayer() {
-		return (WindowLayer)super.getLayer();
+		return (WindowLayer) super.getLayer();
 	}
 
 	public Class<? extends ViewLayer> getLayerClass() {
@@ -75,19 +70,19 @@ public final class Window extends View {
 	}
 
 	public void setRootViewController(ViewController rootViewController) {
-		if(this.rootViewController != rootViewController) {
+		if (this.rootViewController != rootViewController) {
 			// Remove the old root + any modals
 
-			for(ViewController viewController : this.visibleViewControllers) {
+			for (ViewController viewController : this.visibleViewControllers) {
 				viewController.beginAppearanceTransition(false, false);
 				viewController.setNextResponder(null);
 			}
 
-			while(this.getSubviews().size() > 0) {
+			while (this.getSubviews().size() > 0) {
 				this.getSubviews().get(0).removeFromSuperview();
 			}
 
-			for(ViewController viewController : this.visibleViewControllers) {
+			for (ViewController viewController : this.visibleViewControllers) {
 				viewController.endAppearanceTransition();
 			}
 
@@ -96,7 +91,7 @@ public final class Window extends View {
 			// Set the new root view controller
 			this.rootViewController = rootViewController;
 
-			if(rootViewController != null) {
+			if (rootViewController != null) {
 				rootViewController.setNextResponder(this);
 				this.addVisibleViewController(rootViewController);
 
@@ -104,7 +99,7 @@ public final class Window extends View {
 				view.setFrame(this.getBounds());
 				view.setAutoresizing(Autoresizing.FLEXIBLE_SIZE);
 
-				if(this.getSuperview() != null) {
+				if (this.getSuperview() != null) {
 					rootViewController.beginAppearanceTransition(true, false);
 				}
 
@@ -112,12 +107,12 @@ public final class Window extends View {
 
 				this.addSubview(view);
 
-				if(this.getSuperview() != null) {
+				if (this.getSuperview() != null) {
 					rootViewController.endAppearanceTransition();
 				}
 			}
 
-			if(this.rootViewController != null) {
+			if (this.rootViewController != null) {
 				this.rootViewController.promoteDeepestDefaultFirstResponder();
 			}
 		}
@@ -135,7 +130,7 @@ public final class Window extends View {
 		this.windowLayer.onWindowPause();
 		this.visible = false;
 
-		for(ViewController viewController : this.visibleViewControllers) {
+		for (ViewController viewController : this.visibleViewControllers) {
 			viewController.beginAppearanceTransition(false, false);
 			viewController.endAppearanceTransition();
 		}
@@ -145,7 +140,7 @@ public final class Window extends View {
 		this.windowLayer.onWindowResume();
 		this.visible = true;
 
-		for(ViewController viewController : this.visibleViewControllers) {
+		for (ViewController viewController : this.visibleViewControllers) {
 			viewController.beginAppearanceTransition(true, false);
 			viewController.endAppearanceTransition();
 		}
@@ -178,7 +173,7 @@ public final class Window extends View {
 	public void makeKeyWindow() {
 		this.activity.presentKeyWindow(this);
 
-		if(this.rootViewController != null) {
+		if (this.rootViewController != null) {
 			this.promoteDeepestDefaultFirstResponder();
 		}
 	}
@@ -197,7 +192,7 @@ public final class Window extends View {
 	}
 
 	boolean canDeliverToNativeView(NativeView nativeView, MotionEvent motionEvent, android.view.View touchedView) {
-		if(this.lastEvent == null) {
+		if (this.lastEvent == null) {
 			this.lastEvent = Event.touchEvent(this);
 		}
 
@@ -205,12 +200,12 @@ public final class Window extends View {
 
 		boolean bubble = true;
 
-		if(nativeView.trackingTouches) {
+		if (nativeView.trackingTouches) {
 			bubble = false;
 		} else {
-			if(nativeView.isUserInteractionEnabled()) {
-				for(Touch touch : this.lastEvent.allTouches()) {
-					if(touch.getView() == nativeView) {
+			if (nativeView.isUserInteractionEnabled()) {
+				for (Touch touch : this.lastEvent.allTouches()) {
+					if (touch.getView() == nativeView) {
 						bubble = false;
 						nativeView.trackingTouches = true;
 						break;
@@ -221,11 +216,11 @@ public final class Window extends View {
 
 		int mask = motionEvent.getActionMasked();
 
-		if(nativeView.trackingTouches && (mask == MotionEvent.ACTION_POINTER_UP || mask == MotionEvent.ACTION_UP)) {
+		if (nativeView.trackingTouches && (mask == MotionEvent.ACTION_POINTER_UP || mask == MotionEvent.ACTION_UP)) {
 			nativeView.trackingTouches = false;
 		}
 
-		if(bubble) {
+		if (bubble) {
 			this.sendEvent(this.lastEvent);
 			return false;
 		} else {
@@ -239,40 +234,40 @@ public final class Window extends View {
 	}
 
 	private void sendEvent(Event event, boolean ignoreIgnoringInteractionEvents) {
-		if(!ignoreIgnoringInteractionEvents && Application.sharedApplication().isIgnoringInteractionEvents()) return;
+		if (!ignoreIgnoringInteractionEvents && Application.sharedApplication().isIgnoringInteractionEvents()) return;
 
-		if(event.getType() == Event.Type.TOUCHES) {
+		if (event.getType() == Event.Type.TOUCHES) {
 			HashSet<GestureRecognizer> gestureRecognizers = new HashSet<GestureRecognizer>();
 			List<Touch> touches = event.getCurrentTouches();
 
-			for(Touch touch : touches) {
+			for (Touch touch : touches) {
 				gestureRecognizers.addAll(touch.getGestureRecognizers());
 			}
 
-			for(GestureRecognizer gestureRecognizer : gestureRecognizers) {
+			for (GestureRecognizer gestureRecognizer : gestureRecognizers) {
 				gestureRecognizer.recognizeTouches(event.getTouchesForGestureRecognizer(gestureRecognizer), event);
 			}
 
 			int numberOfTouches = touches.size();
 
-			if(numberOfTouches == 1) {
+			if (numberOfTouches == 1) {
 				Touch touch = touches.get(0);
 				this.sendTouches(touches, touch.getPhase(), event, touch.getView());
-			} else if(numberOfTouches > 1) {
+			} else if (numberOfTouches > 1) {
 				List<Touch> undeliveredTouches = new ArrayList<Touch>(touches);
 				List<Touch> touchesToDeliver = new ArrayList<Touch>();
 
 				int remainingTouches;
-				while((remainingTouches = undeliveredTouches.size()) > 0) {
+				while ((remainingTouches = undeliveredTouches.size()) > 0) {
 					Touch touch = undeliveredTouches.get(0);
 					touchesToDeliver.clear();
 					touchesToDeliver.add(touch);
 
 					// Find other touches with the same state and view
-					for(int i = 1; i < remainingTouches; i++) {
+					for (int i = 1; i < remainingTouches; i++) {
 						Touch nextTouch = undeliveredTouches.get(i);
 
-						if(nextTouch.getPhase() == touch.getPhase() && nextTouch.getView() == touch.getView()) {
+						if (nextTouch.getPhase() == touch.getPhase() && nextTouch.getView() == touch.getView()) {
 							touchesToDeliver.add(touch);
 						}
 					}
@@ -289,20 +284,20 @@ public final class Window extends View {
 	}
 
 	private void sendTouches(List<Touch> touches, Touch.Phase phase, Event event, View view) {
-		if(view == null) return;
+		if (view == null) return;
 
 		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
-		if(touches.size() == 1) {
+		if (touches.size() == 1) {
 			gestureRecognizers.addAll(touches.get(0).getGestureRecognizers());
-		} else if(touches.size() > 1) {
-			for(Touch touch : touches) {
+		} else if (touches.size() > 1) {
+			for (Touch touch : touches) {
 				gestureRecognizers.addAll(touch.getGestureRecognizers());
 			}
 		}
 
-		if(gestureRecognizers.size() > 0) {
+		if (gestureRecognizers.size() > 0) {
 			for (GestureRecognizer gestureRecognizer : gestureRecognizers) {
-				if(!gestureRecognizer.getCancelsTouchesInView()) {
+				if (!gestureRecognizer.getCancelsTouchesInView()) {
 					continue;
 				}
 
@@ -321,35 +316,35 @@ public final class Window extends View {
 						// don't ignore touches
 				}
 
-				if(removedTouches && touches.size() == 0) break;
+				if (removedTouches && touches.size() == 0) break;
 			}
 		}
 
-		if(touches.size() == 0) return;
+		if (touches.size() == 0) return;
 
-		if(!view.isMultipleTouchEnabled()) {
+		if (!view.isMultipleTouchEnabled()) {
 			boolean skipContainsCheck = false;
 
-			if(phase == Touch.Phase.BEGAN && view.trackingSingleTouch == null) {
+			if (phase == Touch.Phase.BEGAN && view.trackingSingleTouch == null) {
 				view.trackingSingleTouch = touches.get(0);
 				skipContainsCheck = true;
 			}
 
-			if(!skipContainsCheck && !touches.contains(view.trackingSingleTouch)) return;
+			if (!skipContainsCheck && !touches.contains(view.trackingSingleTouch)) return;
 
-			if(touches.size() > 1) {
+			if (touches.size() > 1) {
 				touches.clear();
 				touches.add(view.trackingSingleTouch);
 			}
 
-			if(phase == Touch.Phase.CANCELLED || phase == Touch.Phase.ENDED) {
+			if (phase == Touch.Phase.CANCELLED || phase == Touch.Phase.ENDED) {
 				view.trackingSingleTouch = null;
 			}
-		} else if(view.trackingSingleTouch != null) {
+		} else if (view.trackingSingleTouch != null) {
 			view.trackingSingleTouch = null;
 		}
 
-		if(touches.size() == 0) return;
+		if (touches.size() == 0) return;
 
 		switch (phase) {
 			case BEGAN:
@@ -372,7 +367,7 @@ public final class Window extends View {
 
 	void cancelAllTouches() {
 		Event event = this.lastEvent;
-		if(event != null && event.cancel()) {
+		if (event != null && event.cancel()) {
 			this.sendEvent(event, true);
 			event.cleanTouches();
 		}
@@ -395,9 +390,9 @@ public final class Window extends View {
 	}
 
 	Responder getDefaultFirstResponder() {
-		if(this.visibleViewControllers.size() > 0) {
+		if (this.visibleViewControllers.size() > 0) {
 			return this.visibleViewControllers.get(this.visibleViewControllers.size() - 1).getDefaultFirstResponder();
-		} else if(this.rootViewController != null) {
+		} else if (this.rootViewController != null) {
 			return this.rootViewController.getDefaultFirstResponder();
 		} else {
 			return this;
@@ -413,27 +408,27 @@ public final class Window extends View {
 	}
 
 	void willRotateToInterfaceOrientation(InterfaceOrientation toInterfaceOrientation) {
-		if(this.ignoreRotationEvent == 2) {
+		if (this.ignoreRotationEvent == 2) {
 			this.ignoreRotationEvent--;
 			return;
 		}
 
 		ViewController viewController = this.getTopFullScreenViewController();
 
-		if(viewController != null) {
+		if (viewController != null) {
 			viewController.willRotateToInterfaceOrientation(toInterfaceOrientation);
 		}
 	}
 
 	void didRotateFromInterfaceOrientation(InterfaceOrientation fromInterfaceOrientation) {
-		if(this.ignoreRotationEvent == 1) {
+		if (this.ignoreRotationEvent == 1) {
 			this.ignoreRotationEvent--;
 			return;
 		}
 
 		ViewController viewController = this.getTopFullScreenViewController();
 
-		if(viewController != null) {
+		if (viewController != null) {
 			viewController.didRotateFromInterfaceOrientation(fromInterfaceOrientation);
 		}
 	}
@@ -442,7 +437,7 @@ public final class Window extends View {
 		ViewController viewController = this.getTopFullScreenViewController();
 		boolean shouldAutorotate = viewController.getShouldAutorotate();
 
-		if(shouldAutorotate) {
+		if (shouldAutorotate) {
 			this.setOrientations(viewController.getSupportedInterfaceOrientations());
 		} else {
 			this.activity.setRequestedOrientation(this.activity.getCurrentConfiguration().orientation);
@@ -465,16 +460,16 @@ public final class Window extends View {
 		InterfaceOrientation[] orientations1 = orientations.toArray(new InterfaceOrientation[orientations.size()]);
 		int size = orientations1.length;
 
-		if(size == 1) {
+		if (size == 1) {
 			this.setOrientation(orientations1[0]);
-		} else if(size == 4 || size == 0) {
+		} else if (size == 4 || size == 0) {
 			this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 		} else {
 			// TODO: Allow support for mixing PORTRAIT and LANDSCAPE_LEFT, but not LANDSCAPE_RIGHT.  Unsure if this is even possible.
 
-			if(orientations.contains(InterfaceOrientation.PORTRAIT) && orientations.containsAll(InterfaceOrientation.SET_LANDSCAPE)) {
+			if (orientations.contains(InterfaceOrientation.PORTRAIT) && orientations.containsAll(InterfaceOrientation.SET_LANDSCAPE)) {
 				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-			} else if((orientations.contains(InterfaceOrientation.PORTRAIT) || orientations.contains(InterfaceOrientation.PORTRAIT_UPSIDE_DOWN)) && !isNativeLandscape) {
+			} else if ((orientations.contains(InterfaceOrientation.PORTRAIT) || orientations.contains(InterfaceOrientation.PORTRAIT_UPSIDE_DOWN)) && !isNativeLandscape) {
 				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
 			} else {
 				this.activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
@@ -487,12 +482,12 @@ public final class Window extends View {
 	}
 
 	private boolean isNativeLandscape() {
-		Display display = ((WindowManager)this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-		int rotation =  ((WindowManager)this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+		Display display = ((WindowManager) this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		int rotation = ((WindowManager) this.activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
 		int width = display.getWidth();
 		int height = display.getHeight();
 
-		if(rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+		if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
 			int temp = height;
 			//noinspection SuspiciousNameCombination
 			height = width;
@@ -505,7 +500,7 @@ public final class Window extends View {
 	void viewControllerOrientationConfigChanged(ViewController viewController) {
 		viewController = this.getTopViewController(viewController);
 
-		if(viewController == this.getTopFullScreenViewController()) {
+		if (viewController == this.getTopFullScreenViewController()) {
 			this.topFullScreenViewControllerOrientationConfigChanged();
 		}
 	}
@@ -513,7 +508,7 @@ public final class Window extends View {
 	private ViewController getTopViewController(ViewController viewController) {
 		ViewController viewController1 = viewController.getParentViewController();
 
-		if(viewController1 != null) {
+		if (viewController1 != null) {
 			return this.getTopViewController(viewController1);
 		} else {
 			return viewController;

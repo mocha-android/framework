@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/21/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.lang.Object;
@@ -11,7 +6,9 @@ public class Range extends MObject implements Copying<Range> {
 	public long location;
 	public long length;
 
-	public Range() { }
+	public Range() {
+	}
+
 	public Range(long location, long length) {
 		this.location = location;
 		this.length = length;
@@ -26,9 +23,9 @@ public class Range extends MObject implements Copying<Range> {
 	}
 
 	public static boolean equals(Range a, Range b) {
-		if(a == b) {
+		if (a == b) {
 			return true;
-		} else if(a == null || b == null) {
+		} else if (a == null || b == null) {
 			return false;
 		} else {
 			return a.equals(b);
@@ -36,11 +33,11 @@ public class Range extends MObject implements Copying<Range> {
 	}
 
 	public boolean equals(Object o) {
-		if(o == this) {
+		if (o == this) {
 			return true;
-		} else if(o == null) {
+		} else if (o == null) {
 			return false;
-		} else if(o instanceof Range) {
+		} else if (o instanceof Range) {
 			return this.location == ((Range) o).location && this.length == ((Range) o).length;
 		} else {
 			return false;

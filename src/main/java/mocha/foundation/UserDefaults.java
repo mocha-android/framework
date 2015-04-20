@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/10/15
- *  @copyright 2015 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import android.content.SharedPreferences;
@@ -16,7 +11,7 @@ public class UserDefaults {
 	private static UserDefaults standardUserDefaults = new UserDefaults("UserDefaults");
 	private SharedPreferences sharedPreferences;
 	private SharedPreferences.Editor editor;
-	private Map<String,Object> defaults;
+	private Map<String, Object> defaults;
 
 	public static UserDefaults standardUserDefaults() {
 		return standardUserDefaults;
@@ -26,8 +21,8 @@ public class UserDefaults {
 		this.sharedPreferences = Application.sharedApplication().getContext().getSharedPreferences(name, 0);
 	}
 
-	public void registerDefaults(Map<String,Object> defaults) {
-		if(this.defaults == null) {
+	public void registerDefaults(Map<String, Object> defaults) {
+		if (this.defaults == null) {
 			this.defaults = new HashMap<>();
 		}
 
@@ -40,9 +35,9 @@ public class UserDefaults {
 
 	public void put(String name, Object value) {
 		if (value instanceof String) {
-			this.putString(name, (String)value);
+			this.putString(name, (String) value);
 		} else if (value instanceof Date) {
-			this.putDate(name, (Date)value);
+			this.putDate(name, (Date) value);
 		} else if (value instanceof Integer) {
 			this.putInt(name, (Integer) value);
 		} else if (value instanceof Long) {
@@ -61,8 +56,8 @@ public class UserDefaults {
 	}
 
 	public String getString(String name, String defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (String)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (String) this.defaults.get(name);
 		} else {
 			return this.sharedPreferences.getString(name, defaultValue);
 		}
@@ -77,8 +72,8 @@ public class UserDefaults {
 	}
 
 	public boolean getBoolean(String name, boolean defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (Boolean)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Boolean) this.defaults.get(name);
 		} else {
 			return this.sharedPreferences.getBoolean(name, defaultValue);
 		}
@@ -93,8 +88,8 @@ public class UserDefaults {
 	}
 
 	public int getInt(String name, int defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (Integer)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Integer) this.defaults.get(name);
 		} else {
 			return this.sharedPreferences.getInt(name, defaultValue);
 		}
@@ -109,8 +104,8 @@ public class UserDefaults {
 	}
 
 	public long getLong(String name, long defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (Long)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Long) this.defaults.get(name);
 		} else {
 			return this.sharedPreferences.getLong(name, defaultValue);
 		}
@@ -125,8 +120,8 @@ public class UserDefaults {
 	}
 
 	public float getFloat(String name, float defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (Float)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Float) this.defaults.get(name);
 		} else {
 			return this.sharedPreferences.getFloat(name, defaultValue);
 		}
@@ -141,8 +136,8 @@ public class UserDefaults {
 	}
 
 	public Date getDate(String name, Date defaultValue) {
-		if(!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
-			return (Date)this.defaults.get(name);
+		if (!this.sharedPreferences.contains(name) && (this.defaults != null && this.defaults.containsKey(name))) {
+			return (Date) this.defaults.get(name);
 		} else {
 			long time = getLong(name, -1);
 			if (time == -1) {
@@ -166,7 +161,7 @@ public class UserDefaults {
 	}
 
 	private SharedPreferences.Editor getEditor() {
-		if(this.editor == null) {
+		if (this.editor == null) {
 			this.editor = this.sharedPreferences.edit();
 		}
 
@@ -174,7 +169,7 @@ public class UserDefaults {
 	}
 
 	public void save() {
-		if(this.editor != null) {
+		if (this.editor != null) {
 			this.editor.apply();
 			this.editor = null;
 		}

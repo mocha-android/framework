@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/21/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.*;
@@ -19,7 +14,7 @@ public class Toolbar extends View {
 	private static mocha.ui.Appearance.Storage<Toolbar, Appearance> appearanceStorage;
 
 	public static <E extends Toolbar> Appearance appearance(Class<E> cls) {
-		if(appearanceStorage == null) {
+		if (appearanceStorage == null) {
 			appearanceStorage = new mocha.ui.Appearance.Storage<>(Toolbar.class, Appearance.class);
 		}
 
@@ -34,13 +29,18 @@ public class Toolbar extends View {
 	private int barTintColor;
 	private List<BarButtonItem> items;
 	private boolean translucent;
-	private BarMetricsStorage<Map<Position,Image>> backgroundImages;
-	private Map<Position,Image> shadowImages;
+	private BarMetricsStorage<Map<Position, Image>> backgroundImages;
+	private Map<Position, Image> shadowImages;
 	private ImageView shadowImageView;
 	private Position position;
 
-	public Toolbar() { this(new Rect(0.0f, 0.0f, 320.0f, 44.0f)); }
-	public Toolbar(Rect frame) { super(frame); }
+	public Toolbar() {
+		this(new Rect(0.0f, 0.0f, 320.0f, 44.0f));
+	}
+
+	public Toolbar(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -53,7 +53,7 @@ public class Toolbar extends View {
 		this.shadowImages = new HashMap<>();
 		this.position = Position.ANY;
 
-		if(appearanceStorage != null) {
+		if (appearanceStorage != null) {
 			appearanceStorage.apply(this);
 		}
 	}
@@ -73,12 +73,12 @@ public class Toolbar extends View {
 	}
 
 	private void determinePosition() {
-		if(frame.origin.y <= 0.0f) {
+		if (frame.origin.y <= 0.0f) {
 			this.position = Position.TOP;
 		} else {
 			View superview = this.getSuperview();
 
-			if(superview != null && frame.maxY() > superview.getBounds().height()) {
+			if (superview != null && frame.maxY() > superview.getBounds().height()) {
 				this.position = Position.BOTTOM;
 			} else {
 				this.position = Position.ANY;
@@ -115,9 +115,9 @@ public class Toolbar extends View {
 	}
 
 	public void setBackgroundImage(Image backgroundImage, Position position, BarMetrics barMetrics) {
-		Map<Position,Image> backgroundImages = this.backgroundImages.get(barMetrics);
+		Map<Position, Image> backgroundImages = this.backgroundImages.get(barMetrics);
 
-		if(backgroundImages == null) {
+		if (backgroundImages == null) {
 			backgroundImages = new HashMap<>();
 			this.backgroundImages.set(barMetrics, backgroundImages);
 		}
@@ -126,8 +126,8 @@ public class Toolbar extends View {
 	}
 
 	public Image getBackgroundImageForToolbarPosition(Position position, BarMetrics barMetrics) {
-		Map<Position,Image> backgroundImages = this.backgroundImages.get(barMetrics);
-		if(backgroundImages != null) {
+		Map<Position, Image> backgroundImages = this.backgroundImages.get(barMetrics);
+		if (backgroundImages != null) {
 			return backgroundImages.get(position);
 		} else {
 			return null;
@@ -164,28 +164,28 @@ public class Toolbar extends View {
 		final List<BarButtonItem> oldItems = new ArrayList<BarButtonItem>(this.items);
 		oldItems.removeAll(items);
 
-		if(oldItems.size() > 0) {
-			if(animated) {
+		if (oldItems.size() > 0) {
+			if (animated) {
 				View.animateWithDuration(200, new Animations() {
 					public void performAnimatedChanges() {
-						for(BarButtonItem item : oldItems) {
-							if(item.getView() != null) {
+						for (BarButtonItem item : oldItems) {
+							if (item.getView() != null) {
 								item.getView().setAlpha(0.0f);
 							}
 						}
 					}
 				}, new AnimationCompletion() {
 					public void animationCompletion(boolean finished) {
-						for(BarButtonItem item : oldItems) {
-							if(item.getView() != null) {
+						for (BarButtonItem item : oldItems) {
+							if (item.getView() != null) {
 								item.getView().removeFromSuperview();
 							}
 						}
 					}
 				});
 			} else {
-				for(BarButtonItem item : oldItems) {
-					if(item.getView() != null) {
+				for (BarButtonItem item : oldItems) {
+					if (item.getView() != null) {
 						item.getView().removeFromSuperview();
 					}
 				}
@@ -194,26 +194,26 @@ public class Toolbar extends View {
 
 		this.items.clear();
 
-		if(items != null) {
+		if (items != null) {
 			this.items.addAll(items);
 		}
 
-		if(animated) {
+		if (animated) {
 			View.beginAnimations();
 			View.setAnimationDuration(200);
 		}
 
 		Rect bounds = this.getBounds();
 
-		for(BarButtonItem item : this.items) {
+		for (BarButtonItem item : this.items) {
 			View view = item.getView();
 
-			if(view == null) {
+			if (view == null) {
 				item.setView((view = BarButton.button(item)));
 			}
 
-			if(view != null) {
-				if(animated) {
+			if (view != null) {
+				if (animated) {
 					boolean areAnimationsEnabled = View.areAnimationsEnabled();
 					View.setAnimationsEnabled(false);
 					view.setAlpha(0.0f);
@@ -230,7 +230,7 @@ public class Toolbar extends View {
 
 		this.layoutItems();
 
-		if(animated) {
+		if (animated) {
 			View.commitAnimations();
 		}
 	}
@@ -243,28 +243,28 @@ public class Toolbar extends View {
 
 		Image shadowImage = this.getShadowImageForToolbarPosition(this.position);
 
-		if(shadowImage == null && this.position != Position.ANY) {
+		if (shadowImage == null && this.position != Position.ANY) {
 			shadowImage = this.getShadowImageForToolbarPosition(Position.ANY);
 		}
 
-		if(shadowImage != null && (size = shadowImage.getSize()).width > 0 && size.height > 0) {
-			if(this.shadowImageView == null) {
+		if (shadowImage != null && (size = shadowImage.getSize()).width > 0 && size.height > 0) {
+			if (this.shadowImageView == null) {
 				this.shadowImageView = new ImageView();
 				this.addSubview(this.shadowImageView);
 			}
 
-			if(this.shadowImageView.getImage() != shadowImage) {
+			if (this.shadowImageView.getImage() != shadowImage) {
 				this.shadowImageView.setImage(shadowImage);
 			}
 
 			Rect bounds = this.getBounds();
 
-			if(this.position == Position.TOP) {
+			if (this.position == Position.TOP) {
 				this.shadowImageView.setFrame(new Rect(0.0f, bounds.size.height, bounds.size.width, size.height));
 			} else {
 				this.shadowImageView.setFrame(new Rect(0.0f, -size.height, bounds.size.width, size.height));
 			}
-		} else if(this.shadowImageView != null) {
+		} else if (this.shadowImageView != null) {
 			this.shadowImageView.removeFromSuperview();
 			this.shadowImageView = null;
 		}
@@ -276,7 +276,7 @@ public class Toolbar extends View {
 		int totalFlexItems = 0;
 
 		for (BarButtonItem item : this.items) {
-			if(item.getSystemItem() == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
+			if (item.getSystemItem() == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
 				totalFlexItems++;
 			} else {
 				totalItemsWidth += Math.max(item._getWidth(), 0.0f);
@@ -291,7 +291,7 @@ public class Toolbar extends View {
 		float offset = itemsInset;
 
 		for (BarButtonItem item : this.items) {
-			if(item.getSystemItem() == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
+			if (item.getSystemItem() == BarButtonItem.SystemItem.FLEXIBLE_SPACE) {
 				offset += flexItemWidth;
 			} else {
 				View view = item.getView();
@@ -313,16 +313,16 @@ public class Toolbar extends View {
 	public void draw(Context context, Rect rect) {
 		Image backgroundImage = this.getBackgroundImageForToolbarPosition(this.position, BarMetrics.DEFAULT);
 
-		if(backgroundImage == null && this.position != Position.ANY) {
+		if (backgroundImage == null && this.position != Position.ANY) {
 			backgroundImage = this.getBackgroundImageForToolbarPosition(Position.ANY, BarMetrics.DEFAULT);
 		}
 
-		if(backgroundImage != null) {
+		if (backgroundImage != null) {
 			backgroundImage.draw(context, rect);
 		}
 	}
 
-	public static class Appearance extends mocha.ui.Appearance <Toolbar> {
+	public static class Appearance extends mocha.ui.Appearance<Toolbar> {
 		private Method setShadowImage;
 		private Method setBackgroundImage;
 		private Method setBarTintColor;
@@ -332,7 +332,8 @@ public class Toolbar extends View {
 				this.setShadowImage = Toolbar.class.getMethod("setShadowImage", Image.class, Position.class);
 				this.setBackgroundImage = Toolbar.class.getMethod("setBackgroundImage", Image.class, Position.class, BarMetrics.class);
 				this.setBarTintColor = Toolbar.class.getMethod("setBarTintColor", int.class);
-			} catch (NoSuchMethodException ignored) { }
+			} catch (NoSuchMethodException ignored) {
+			}
 		}
 
 		public void setShadowImage(Image shadowImage, Position position) {
@@ -345,6 +346,7 @@ public class Toolbar extends View {
 
 		/**
 		 * Set the tint color of the bar
+		 *
 		 * @param barTintColor Bar tint color
 		 */
 		public void setBarTintColor(int barTintColor) {

@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/18/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.util.FloatMath;
@@ -10,7 +5,7 @@ import mocha.graphics.Size;
 
 public final class ScreenMath {
 	private static float scaleF = Screen.mainScreen().getScale();
-	private static double scaleD = (double)Screen.mainScreen().getScale();
+	private static double scaleD = (double) Screen.mainScreen().getScale();
 
 	public static float floor(float v) {
 		return FloatMath.floor(v * scaleF) / scaleF;
@@ -21,7 +16,7 @@ public final class ScreenMath {
 	}
 
 	public static float round(float v) {
-		return ((float)Math.round(v * scaleF)) / scaleF;
+		return ((float) Math.round(v * scaleF)) / scaleF;
 	}
 
 	public static double floor(double v) {

@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 2/24/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.util.Map;
@@ -11,12 +6,12 @@ public class Notification extends MObject {
 
 	private String name;
 	private java.lang.Object sender;
-	private Map<String,java.lang.Object> info;
+	private Map<String, java.lang.Object> info;
 
 	/**
 	 * Create a new notification
 	 *
-	 * @param name Name of the notification (a RuntimeException will be thrown if null)
+	 * @param name   Name of the notification (a RuntimeException will be thrown if null)
 	 * @param sender Sender of the notification or null
 	 */
 	public Notification(String name, java.lang.Object sender) {
@@ -26,12 +21,12 @@ public class Notification extends MObject {
 	/**
 	 * Create a new notification
 	 *
-	 * @param name Name of the notification (a RuntimeException will be thrown if null)
+	 * @param name   Name of the notification (a RuntimeException will be thrown if null)
 	 * @param sender Sender of the notification or null
-	 * @param info Additional information for the notification or null
+	 * @param info   Additional information for the notification or null
 	 */
-	public Notification(String name, java.lang.Object sender, Map<String,java.lang.Object> info) {
-		if(name == null) {
+	public Notification(String name, java.lang.Object sender, Map<String, java.lang.Object> info) {
+		if (name == null) {
 			throw new RuntimeException("Notification name can not be null.");
 		}
 
@@ -59,11 +54,11 @@ public class Notification extends MObject {
 	}
 
 	/**
-	 * Additional information regarding the notifcation
+	 * Additional information regarding the notification
 	 *
 	 * @return Notification information (may be null)
 	 */
-	public Map<String,java.lang.Object> getInfo() {
+	public Map<String, java.lang.Object> getInfo() {
 		return this.info;
 	}
 

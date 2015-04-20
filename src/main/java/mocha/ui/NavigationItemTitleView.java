@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 1/31/13
- *	@copyright	2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.*;
@@ -23,8 +18,8 @@ class NavigationItemTitleView extends View {
 
 		Font font;
 
-		if(textAttributes != null && textAttributes.font != null) {
-			if(textAttributes.font.getPointSize() == 0.0f) {
+		if (textAttributes != null && textAttributes.font != null) {
+			if (textAttributes.font.getPointSize() == 0.0f) {
 				font = textAttributes.font.getFontWithSize(20.0f);
 			} else {
 				font = textAttributes.font;
@@ -38,15 +33,15 @@ class NavigationItemTitleView extends View {
 		this.label.setText(this.navigationItem.getTitle());
 		this.label.setTextAlignment(TextAlignment.LEFT);
 		this.label.setLineBreakMode(LineBreakMode.TRUNCATING_MIDDLE);
-		this.label.setBackgroundColor(Color.TRANSPARENT	);
+		this.label.setBackgroundColor(Color.TRANSPARENT);
 
-		if(textAttributes != null && textAttributes.textColor != 0) {
+		if (textAttributes != null && textAttributes.textColor != 0) {
 			this.label.setTextColor(textAttributes.textColor);
 		} else {
 			this.label.setTextColor(Color.WHITE);
 		}
 
-		if(textAttributes != null && textAttributes.shadowOffset != null) {
+		if (textAttributes != null && textAttributes.shadowOffset != null) {
 			this.label.setShadowOffset(textAttributes.shadowOffset);
 			this.label.setShadowColor(textAttributes.shadowColor);
 		}
@@ -70,7 +65,7 @@ class NavigationItemTitleView extends View {
 	public Size sizeThatFits(Size size) {
 		String title = this.navigationItem.getTitle();
 
-		if(title != null && title.length() > 0) {
+		if (title != null && title.length() > 0) {
 			return this.label.sizeThatFits(size);
 		} else {
 			return Size.zero();
@@ -88,7 +83,7 @@ class NavigationItemTitleView extends View {
 	 * Set the destination frame when it's actually on the navigation
 	 * bar and not animating
 	 *
-	 * @param frame final frame
+	 * @param frame        final frame
 	 * @param parentBounds bounds for superview
 	 */
 	public void setDestinationFrame(Rect frame, Rect parentBounds) {
@@ -116,7 +111,7 @@ class NavigationItemTitleView extends View {
 				break;
 		}
 
-		if(offset.x < 0.0f) offset.x = 0.0f;
+		if (offset.x < 0.0f) offset.x = 0.0f;
 
 		Rect frame = new Rect();
 		frame.origin = offset;

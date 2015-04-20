@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 4/20/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
@@ -115,7 +110,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	public void setBackgroundColor(int backgroundColor) {
 		this.backgroundColor = backgroundColor;
 
-		if(this.useLayoutBackgroundColor()) {
+		if (this.useLayoutBackgroundColor()) {
 			this.layout.setBackgroundColor(backgroundColor);
 		}
 	}
@@ -125,21 +120,21 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	protected void drawBackground(Canvas canvas, RectF rect, Paint borderPaint, boolean alwaysDraw) {
-		if(this.cornerRadius > 0.0f) {
-			if(this.backgroundColor != Color.TRANSPARENT) {
+		if (this.cornerRadius > 0.0f) {
+			if (this.backgroundColor != Color.TRANSPARENT) {
 				canvas.drawPath(this.getCornerNativePath(), this.getBackgroundPaint());
 			}
-		} else if(alwaysDraw && this.backgroundColor != Color.TRANSPARENT) {
+		} else if (alwaysDraw && this.backgroundColor != Color.TRANSPARENT) {
 			canvas.drawRect(rect, this.getBackgroundPaint());
 		}
 
-		if(borderPaint != null) {
+		if (borderPaint != null) {
 			canvas.drawPath(this.getBorderNativePath(), borderPaint);
 		}
 	}
 
 	private Paint getBackgroundPaint() {
-		if(this.backgroundPaint == null) {
+		if (this.backgroundPaint == null) {
 			this.backgroundPaint = new Paint();
 			this.backgroundPaint.setAntiAlias(true);
 			this.backgroundPaint.setDither(true);
@@ -154,15 +149,15 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	public void setClipsToBounds(boolean clipsToBounds) {
-		if(this.clipsToBounds != clipsToBounds) {
+		if (this.clipsToBounds != clipsToBounds) {
 			this.clipsToBounds = clipsToBounds;
 			this.updateHierarchyClips();
 		}
 	}
 
 	private void updateHierarchyClips() {
-		for(ViewLayerNative sublayer : this.sublayers) {
-			if(this.clipsToBounds) {
+		for (ViewLayerNative sublayer : this.sublayers) {
+			if (this.clipsToBounds) {
 				sublayer.setClipToView(this.getView());
 			} else {
 				sublayer.setClipToView(this.clipToView);
@@ -183,11 +178,11 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		this.frame.set(frame);
 
 
-		if(originChanged) {
+		if (originChanged) {
 			this.updatePosition();
 		}
 
-		if(sizeChanged) {
+		if (sizeChanged) {
 			this.updateSize();
 			this.setNeedsLayout();
 		}
@@ -196,10 +191,10 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	public void setBounds(Rect bounds) {
-		if(!this.bounds.equals(bounds)) {
+		if (!this.bounds.equals(bounds)) {
 			this.bounds.set(bounds);
 
-			for(ViewLayerNative sublayer : this.sublayers) {
+			for (ViewLayerNative sublayer : this.sublayers) {
 				sublayer.updatePosition();
 			}
 		}
@@ -219,7 +214,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		float width = this.reuseableRect.width();
 		float height = this.reuseableRect.height();
 
-		if(this.layoutParams == null) {
+		if (this.layoutParams == null) {
 			this.layoutParams = new FrameLayout.LayoutParams(this.reuseableRect.width(), this.reuseableRect.height());
 		} else {
 			this.layoutParams.width = this.reuseableRect.width();
@@ -242,7 +237,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		float offsetX;
 		float offsetY;
 
-		if(this.superlayer != null) {
+		if (this.superlayer != null) {
 			Rect bounds = this.superlayer.bounds.getScaledRect(scale);
 			offsetX = bounds.origin.x;
 			offsetY = bounds.origin.y;
@@ -250,8 +245,8 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 			offsetX = 0;
 			offsetY = 0;
 		}
-		this.layout.setTranslationX((int)(frame.origin.x - offsetX + this.tx));
-		this.layout.setTranslationY((int)(frame.origin.y - offsetY + this.ty));
+		this.layout.setTranslationX((int) (frame.origin.x - offsetX + this.tx));
+		this.layout.setTranslationY((int) (frame.origin.y - offsetY + this.ty));
 	}
 
 	protected void onUpdateSize(float nativeWidth, float nativeHeight) {
@@ -275,11 +270,11 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	public void setNeedsLayout() {
-		if(this.scheduledLayoutCallback != null) {
+		if (this.scheduledLayoutCallback != null) {
 			return;
 		}
 
-		if(this.layoutCallback == null) {
+		if (this.layoutCallback == null) {
 			this.layoutCallback = new LayoutCallback();
 		}
 
@@ -300,17 +295,17 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	public void setTransform(AffineTransform transform) {
-		if(this.transform.equals(transform)) return;
+		if (this.transform.equals(transform)) return;
 		this.transform.set(transform);
 
-		if(this.transform.isIdentity()) {
+		if (this.transform.isIdentity()) {
 			this.matrix = null;
 
-			if(this.layout.getScaleX() != 1.0f) {
+			if (this.layout.getScaleX() != 1.0f) {
 				this.layout.setScaleX(1.0f);
 			}
 
-			if(this.layout.getScaleY() != 1.0f) {
+			if (this.layout.getScaleY() != 1.0f) {
 				this.layout.setScaleY(1.0f);
 			}
 
@@ -325,8 +320,8 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 			float ty = this.transform.getTy() * this.scale;
 
 			// Check for a simple scale/translate animation
-			if(b == 0.0f && c == 0.0f) {
-				if(this.matrix != null) {
+			if (b == 0.0f && c == 0.0f) {
+				if (this.matrix != null) {
 					this.matrix = null;
 					this.setNeedsDisplay();
 				}
@@ -334,7 +329,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 				this.layout.setScaleX(a);
 				this.layout.setScaleY(d);
 
-				if(tx != this.tx || ty != this.ty) {
+				if (tx != this.tx || ty != this.ty) {
 					this.tx = tx;
 					this.ty = ty;
 
@@ -344,22 +339,22 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 
 			// Use a full matrix transform, which is still buggy.
 			else {
-				float[] values = new float[] {
-						a, b,
-						c, d,
+				float[] values = new float[]{
+					a, b,
+					c, d,
 
-						tx,
-						ty
+					tx,
+					ty
 				};
 
-				if(this.matrix == null) {
+				if (this.matrix == null) {
 					this.matrix = new Matrix();
 				}
 
 				this.matrix.setValues(new float[]{
-						values[0], values[2], values[4],
-						values[1], values[3], values[5],
-						0.0f, 0.0f, 1.0f
+					values[0], values[2], values[4],
+					values[1], values[3], values[5],
+					0.0f, 0.0f, 1.0f
 				});
 
 				this.resetTranslation();
@@ -367,14 +362,14 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 
 			this.setNeedsDisplay();
 
-			if(this.getSuperlayer() != null) {
+			if (this.getSuperlayer() != null) {
 				this.getSuperlayer().setNeedsDisplay();
 			}
 		}
 	}
 
 	private void resetTranslation() {
-		if(this.tx != 0.0f || this.ty != 0.0f) {
+		if (this.tx != 0.0f || this.ty != 0.0f) {
 			this.tx = 0.0f;
 			this.ty = 0.0f;
 
@@ -390,23 +385,23 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		ViewLayerNative layer1 = this.assertLayerType(layer);
 		ViewLayer superlayer = layer1.getSuperlayer();
 
-		if(superlayer != null && superlayer != this) {
+		if (superlayer != null && superlayer != this) {
 			layer1.removeFromSuperlayer();
 		}
 
 		int size = this.sublayers.size();
 
-		if(superlayer == this) {
+		if (superlayer == this) {
 			this.layout.removeView(layer1.layout);
 		}
 
 		layer1.setClipToView(this.clipsToBounds ? this.getView() : this.clipToView);
 
-		if(index >= size) {
+		if (index >= size) {
 			this.layout.addView(layer1.layout);
 			this.sublayers.add(layer1);
 		} else {
-			if(index < 0) {
+			if (index < 0) {
 				index = 0;
 			}
 
@@ -414,7 +409,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 			this.sublayers.add(index, layer1);
 		}
 
-		if(superlayer != this) {
+		if (superlayer != this) {
 			layer1.superlayer = this;
 			layer1.didMoveToSuperlayer();
 		}
@@ -447,7 +442,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	public void removeFromSuperlayer() {
-		if(this.superlayer != null) {
+		if (this.superlayer != null) {
 			this.superlayer.sublayers.remove(this);
 			this.superlayer.layout.removeView(this.layout);
 			this.superlayer = null;
@@ -457,7 +452,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	private ViewLayerNative assertLayerType(ViewLayer layer) {
-		if(layer instanceof ViewLayerNative) {
+		if (layer instanceof ViewLayerNative) {
 			return (ViewLayerNative) layer;
 		} else {
 			throw new InvalidSubLayerClassException(this, layer);
@@ -509,7 +504,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	protected Path getCornerPath() {
-		if(this.cornerPath == null) {
+		if (this.cornerPath == null) {
 			float cornerRadius = Math.min(Math.min(this.cornerRadius, this.bounds.size.width / 2.0f), this.bounds.size.height / 2.0f);
 			this.cornerPath = Path.withRoundedRect(new Rect(this.bounds.size), cornerRadius);
 		}
@@ -518,7 +513,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	protected android.graphics.Path getCornerNativePath() {
-		if(this.cornerNativePath == null) {
+		if (this.cornerNativePath == null) {
 			this.cornerNativePath = this.getCornerPath().getScaledNativePath(this.scale);
 		}
 
@@ -528,7 +523,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	public void setCornerRadius(float cornerRadius) {
 		this.cornerRadius = cornerRadius;
 
-		if(this.cornerRadius > 0.0f) {
+		if (this.cornerRadius > 0.0f) {
 			this.setSupportsDrawing(true);
 			this.layout.setBackgroundColor(Color.TRANSPARENT);
 		} else {
@@ -558,7 +553,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	protected Path getBorderPath() {
-		if(this.borderPath == null) {
+		if (this.borderPath == null) {
 			Rect rect = new Rect(this.bounds.size);
 			rect.inset(borderWidth / 2.0f, borderWidth / 2.0f);
 
@@ -570,7 +565,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 	}
 
 	protected android.graphics.Path getBorderNativePath() {
-		if(this.borderNativePath == null) {
+		if (this.borderNativePath == null) {
 			this.borderNativePath = this.getBorderPath().getScaledNativePath(this.scale);
 		}
 
@@ -585,20 +580,20 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		rect.toSystemRectF(this.reuseableRectF, this.scale);
 		drawBackground(context.getCanvas(), this.reuseableRectF, null, true); // TODO: Support borders here
 
-		if(this.supportsDrawing) {
+		if (this.supportsDrawing) {
 			context.clipToRect(rect);
 			this.getView().draw(context, rect);
 		}
 
 		int count = this.layout.getChildCount();
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			android.view.View child = this.layout.getChildAt(i);
-			if(child.getVisibility() != android.view.View.VISIBLE || child.getAlpha() < 0.01f) continue;
+			if (child.getVisibility() != android.view.View.VISIBLE || child.getAlpha() < 0.01f) continue;
 
-			if(child instanceof Layout) {
+			if (child instanceof Layout) {
 				Rect frame = ((Layout) child).getLayer().view.getFrame();
 
-				if(!this.clipsToBounds || bounds.intersects(frame)) {
+				if (!this.clipsToBounds || bounds.intersects(frame)) {
 					context.save();
 					context.translate(frame.origin.x - bounds.origin.x, frame.origin.y - bounds.origin.y);
 					((Layout) child).getLayer().renderInContext(context);
@@ -654,9 +649,9 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 
 		private boolean updateClippingRect(Canvas canvas) {
 			RectF clippingRect = null;
-			if(clipsToBounds) {
+			if (clipsToBounds) {
 				clippingRect = new RectF(0.0f, 0.0f, bounds.size.width * scale, bounds.size.height * scale);
-			} else if(clipToView != null) {
+			} else if (clipToView != null) {
 				// TODO: Properly handle this scenario
 //				Rect bounds = this.clipToView.convertRectToView(this.clipToView.getBounds(), this.view);
 //
@@ -666,7 +661,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 //				}
 			}
 
-			if(clippingRect != null) {
+			if (clippingRect != null) {
 				canvas.save(Canvas.CLIP_SAVE_FLAG);
 				canvas.clipRect(clippingRect);
 				return true;
@@ -678,7 +673,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		public void draw(android.graphics.Canvas canvas) {
 			boolean restore = this.updateClippingRect(canvas);
 
-			if(matrix == null) {
+			if (matrix == null) {
 				super.draw(canvas);
 			} else {
 				canvas.save(Canvas.MATRIX_SAVE_FLAG);
@@ -695,7 +690,7 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 				canvas.restore();
 			}
 
-			if(restore) {
+			if (restore) {
 				canvas.restore();
 			}
 		}
@@ -703,8 +698,8 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 		protected void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 
-			if(borderWidth > 0.0f && borderColor != 0) {
-				if(this.borderPaint == null) {
+			if (borderWidth > 0.0f && borderColor != 0) {
+				if (this.borderPaint == null) {
 					this.borderPaint = new Paint();
 					this.borderPaint.setAntiAlias(true);
 					this.borderPaint.setDither(true);
@@ -728,8 +723,8 @@ public class ViewLayerNative extends MObject implements ViewLayer {
 
 			drawBackground(canvas, reuseableRectF, this.borderPaint, false);
 
-			if(supportsDrawing) {
-				if(drawContext != null) {
+			if (supportsDrawing) {
+				if (drawContext != null) {
 					drawContext.reset(canvas);
 				} else {
 					drawContext = new mocha.graphics.Context(canvas, scale);

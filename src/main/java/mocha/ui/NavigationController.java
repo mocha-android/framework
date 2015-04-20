@@ -1,14 +1,9 @@
-/*
- *  @author Shaun
- *	@date 11/24/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.Lists;
 import mocha.foundation.OptionalInterface;
 import mocha.foundation.OptionalInterfaceHelper;
-import mocha.graphics.*;
+import mocha.graphics.Rect;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -67,7 +62,7 @@ public class NavigationController extends ViewController {
 			}
 		};
 
-		if(navigationBarClass != null) {
+		if (navigationBarClass != null) {
 			try {
 				this.navigationBar = navigationBarClass.getConstructor(Rect.class).newInstance(NavigationBar.INITIAL_RECT);
 			} catch (NoSuchMethodException e) {
@@ -76,7 +71,7 @@ public class NavigationController extends ViewController {
 				} catch (Exception e2) {
 					throw new RuntimeException(e);
 				}
-			} catch(IllegalAccessException | InstantiationException | InvocationTargetException e2) {
+			} catch (IllegalAccessException | InstantiationException | InvocationTargetException e2) {
 				throw new RuntimeException(e2);
 			}
 		} else {
@@ -87,7 +82,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public NavigationController() {
-		this((Class<? extends NavigationBar>)null);
+		this((Class<? extends NavigationBar>) null);
 	}
 
 	public NavigationController(ViewController rootViewController) {
@@ -99,7 +94,7 @@ public class NavigationController extends ViewController {
 
 		this.transitionStyle = TransitionStyle.MATERIAL;
 
-		if(rootViewController != null) {
+		if (rootViewController != null) {
 			this.addChildViewController(rootViewController);
 			this.viewControllers.add(rootViewController);
 			rootViewController.didMoveToParentViewController(this);
@@ -116,7 +111,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public void setTransitionStyle(TransitionStyle transitionStyle) {
-		if(this.isViewLoaded()) {
+		if (this.isViewLoaded()) {
 			throw new RuntimeException("You can not change a NavigationController's transitionStyle after it's view has loaded.");
 		}
 
@@ -135,7 +130,7 @@ public class NavigationController extends ViewController {
 	protected void loadView() {
 		super.loadView();
 
-		if(this.transitionStyle == TransitionStyle.CUSTOM && this.transitionControllerClass != null) {
+		if (this.transitionStyle == TransitionStyle.CUSTOM && this.transitionControllerClass != null) {
 			try {
 				this.transitionController = this.transitionControllerClass.getConstructor(NavigationController.class).newInstance(this);
 			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -163,7 +158,7 @@ public class NavigationController extends ViewController {
 
 		float navBarHeight = this.navigationBar.sizeThatFits(bounds.size).height;
 
-		if(this.navigationBarHidden) {
+		if (this.navigationBarHidden) {
 			this.navigationBar.setFrame(new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight));
 		} else {
 			this.navigationBar.setFrame(new Rect(0.0f, 0.0f, bounds.size.width, navBarHeight));
@@ -180,13 +175,13 @@ public class NavigationController extends ViewController {
 
 		ViewController topViewController = this.getTopViewController();
 
-		if(topViewController != null) {
+		if (topViewController != null) {
 			this.topView = topViewController.getView();
 			this.topView.setFrame(this.getContentBounds());
 			this.topView.setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			this.getView().insertSubview(this.topView, 0);
 
-			for(ViewController viewController : this.viewControllers) {
+			for (ViewController viewController : this.viewControllers) {
 				this.navigationBar.pushNavigationItem(viewController.getNavigationItem(), false);
 			}
 		}
@@ -205,7 +200,7 @@ public class NavigationController extends ViewController {
 
 
 	public TabBarItem getTabBarItem() {
-		if(this.viewControllers.size() > 0) {
+		if (this.viewControllers.size() > 0) {
 			return this.viewControllers.get(0).getTabBarItem();
 		} else {
 			return null;
@@ -250,18 +245,18 @@ public class NavigationController extends ViewController {
 
 		this.viewControllers.clear();
 
-		if(viewControllers != null) {
+		if (viewControllers != null) {
 			this.viewControllers.addAll(viewControllers);
 		}
 
-		for(ViewController viewController : previousViewControllers) {
+		for (ViewController viewController : previousViewControllers) {
 			viewController.willMoveToParentViewController(null);
 		}
 
 		List<NavigationItem> navigationItems = new ArrayList<NavigationItem>();
 
-		for(ViewController viewController : this.viewControllers) {
-			if(viewController.getParentViewController() != this) {
+		for (ViewController viewController : this.viewControllers) {
+			if (viewController.getParentViewController() != this) {
 				this.addChildViewController(viewController);
 			}
 
@@ -272,11 +267,11 @@ public class NavigationController extends ViewController {
 
 		Runnable finish = new Runnable() {
 			public void run() {
-				for(ViewController viewController : previousViewControllers) {
+				for (ViewController viewController : previousViewControllers) {
 					viewController.removeFromParentViewController();
 				}
 
-				for(ViewController viewController : NavigationController.this.viewControllers) {
+				for (ViewController viewController : NavigationController.this.viewControllers) {
 					viewController.didMoveToParentViewController(NavigationController.this);
 				}
 			}
@@ -288,7 +283,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public void pushViewController(final ViewController viewController, boolean animated) {
-		if(this.viewControllers.contains(viewController)) return;
+		if (this.viewControllers.contains(viewController)) return;
 
 		animated = animated && this.viewControllers.size() > 0 && this.getView().getWindow() != null;
 
@@ -305,7 +300,7 @@ public class NavigationController extends ViewController {
 
 	public void popViewControllerAnimated(boolean animated) {
 		int size;
-		if((size = this.viewControllers.size()) < 2) return;
+		if ((size = this.viewControllers.size()) < 2) return;
 
 		final ViewController poppedViewController = this.viewControllers.get(size - 1);
 		ViewController toViewController = this.viewControllers.get(size - 2);
@@ -323,7 +318,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public List<ViewController> popToRootViewControllerAnimated(boolean animated) {
-		if(this.viewControllers.size() > 0) {
+		if (this.viewControllers.size() > 0) {
 			return this.popToViewController(this.viewControllers.get(0), animated);
 		} else {
 			return Collections.emptyList();
@@ -331,7 +326,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public List<ViewController> popToViewController(ViewController toViewController, boolean animated) {
-		if(this.viewControllers.size() == 0 || !this.viewControllers.contains(toViewController) || this.getTopViewController() == toViewController) {
+		if (this.viewControllers.size() == 0 || !this.viewControllers.contains(toViewController) || this.getTopViewController() == toViewController) {
 			return Collections.emptyList();
 		}
 
@@ -341,7 +336,7 @@ public class NavigationController extends ViewController {
 
 		this.transitionFromViewController(fromViewController, toViewController, animated, false, new Runnable() {
 			public void run() {
-				for(ViewController viewController : poppingViewControllers) {
+				for (ViewController viewController : poppingViewControllers) {
 					viewController.removeFromParentViewController();
 				}
 			}
@@ -353,7 +348,7 @@ public class NavigationController extends ViewController {
 	private void transitionFromViewController(final ViewController fromViewController, final ViewController toViewController, boolean animated, final boolean push, final Runnable completion1) {
 		animated = animated && fromViewController != null && toViewController != null;
 
-		if(this.delegate != null && this.delegateWillShow) {
+		if (this.delegate != null && this.delegateWillShow) {
 			this.delegate.willShowViewController(this, toViewController, animated);
 		}
 
@@ -362,47 +357,47 @@ public class NavigationController extends ViewController {
 			public void run() {
 				promoteDeepestDefaultFirstResponder();
 
-				if(completion1 != null) {
+				if (completion1 != null) {
 					completion1.run();
 				}
 
-				if(delegate != null && delegateWillShow) {
+				if (delegate != null && delegateWillShow) {
 					delegate.willShowViewController(NavigationController.this, toViewController, _animated);
 				}
 			}
 		};
 
-		if(toViewController == fromViewController || !this.isViewLoaded()) {
+		if (toViewController == fromViewController || !this.isViewLoaded()) {
 			completion.run();
 		} else {
 			final Rect bounds = this.getContentBounds();
 
-			if(toViewController != null) {
+			if (toViewController != null) {
 				toViewController.getView().setAutoresizing(View.Autoresizing.FLEXIBLE_SIZE);
 			}
 
-			if(!animated) {
+			if (!animated) {
 				this.navigationBar.setDelegate(null);
 
-				if(push) {
-					if(toViewController != null) {
+				if (push) {
+					if (toViewController != null) {
 						this.navigationBar.pushNavigationItem(toViewController.getNavigationItem(), false);
 					}
 				} else {
-					if(toViewController != null) {
+					if (toViewController != null) {
 						this.navigationBar.popToNavigationItemAnimated(toViewController.getNavigationItem(), false, null, null);
 					}
 				}
 
 				this.navigationBar.setDelegate(this.navigationBarDelegate);
 
-				if(fromViewController != null) {
+				if (fromViewController != null) {
 					fromViewController.beginAppearanceTransition(false, false);
 					fromViewController.getView().removeFromSuperview();
 					fromViewController.endAppearanceTransition();
 				}
 
-				if(toViewController != null) {
+				if (toViewController != null) {
 					this.topView = toViewController.getView();
 
 					toViewController.beginAppearanceTransition(true, false);
@@ -424,7 +419,7 @@ public class NavigationController extends ViewController {
 	Rect getContentBounds() {
 		Rect bounds = this.getView().getBounds();
 
-		if(!this.navigationBarHidden) {
+		if (!this.navigationBarHidden) {
 			float height = this.navigationBar.getFrame().size.height;
 			bounds.origin.y += height;
 			bounds.size.height -= height;
@@ -458,7 +453,7 @@ public class NavigationController extends ViewController {
 	}
 
 	public void backKeyPressed(Event event) {
-		if(this.viewControllers.size() > 1) {
+		if (this.viewControllers.size() > 1) {
 			this.popViewControllerAnimated(true);
 		} else {
 			super.backKeyPressed(event);
@@ -471,10 +466,10 @@ public class NavigationController extends ViewController {
 	}
 
 	Responder getDefaultFirstResponder() {
-		if(this.viewControllers != null && this.viewControllers.size() > 0) {
+		if (this.viewControllers != null && this.viewControllers.size() > 0) {
 			Responder responder = this.getTopViewController().getDefaultFirstResponder();
 
-			if(responder != null && responder.isInCompleteResponderChain()) {
+			if (responder != null && responder.isInCompleteResponderChain()) {
 				return responder;
 			}
 		}
@@ -501,7 +496,7 @@ public class NavigationController extends ViewController {
 	/**
 	 * Change navigation bar visibility
 	 *
-	 * @param hidden Set to true to hide the navigation bar, or false to show it.
+	 * @param hidden   Set to true to hide the navigation bar, or false to show it.
 	 * @param animated Set true to animate the changes, or false to change without animations.
 	 */
 	public void setNavigationBarHidden(boolean hidden, boolean animated) {
@@ -510,12 +505,12 @@ public class NavigationController extends ViewController {
 
 	/**
 	 * Change navigation bar visibility
-	 *
+	 * <p/>
 	 * NOTE: The animations and completion callbacks are called regardless of whether or
 	 * not the animated property is true.
 	 *
-	 * @param hidden Set to true to hide the navigation bar, or false to show it.
-	 * @param animated Set true to animate the changes, or false to change without animations.
+	 * @param hidden     Set to true to hide the navigation bar, or false to show it.
+	 * @param animated   Set true to animate the changes, or false to change without animations.
 	 * @param animations Callback to be called from within the animation block
 	 * @param completion Completion to be called after animations have ended.
 	 */
@@ -523,18 +518,18 @@ public class NavigationController extends ViewController {
 		boolean wasHidden = this.navigationBarHidden;
 		this.navigationBarHidden = hidden;
 
-		if(wasHidden == this.navigationBarHidden || !this.isViewLoaded()) {
-			if(animations != null) {
+		if (wasHidden == this.navigationBarHidden || !this.isViewLoaded()) {
+			if (animations != null) {
 				animations.performAnimatedChanges();
 			}
 
-			if(completion != null) {
+			if (completion != null) {
 				completion.animationCompletion(true);
 			}
 			return;
 		}
 
-		if(this.isBeingPresented() || this.isMovingToParentViewController() || (this.getParentViewController() == null && this.getPresentingViewController() == null) || this.getView().getSuperview() == null) {
+		if (this.isBeingPresented() || this.isMovingToParentViewController() || (this.getParentViewController() == null && this.getPresentingViewController() == null) || this.getView().getSuperview() == null) {
 			animated = false;
 		}
 
@@ -543,7 +538,7 @@ public class NavigationController extends ViewController {
 		final Rect navigationFrame;
 		float navBarHeight = this.navigationBar.getFrame().size.height;
 
-		if(this.navigationBarHidden) {
+		if (this.navigationBarHidden) {
 			navigationFrame = new Rect(0.0f, -navBarHeight, bounds.size.width, navBarHeight);
 			navBarHeight = 0.0f;
 		} else {
@@ -554,25 +549,25 @@ public class NavigationController extends ViewController {
 		contentFrame.origin.y += navBarHeight;
 		contentFrame.size.height -= navBarHeight;
 
-		if(!animated) {
+		if (!animated) {
 			this.navigationBar.setFrame(navigationFrame);
 			this.navigationBar.setHidden(this.navigationBarHidden);
 
-			if(this.topView != null) {
+			if (this.topView != null) {
 				this.topView.setFrame(contentFrame);
 			}
 
-			if(animations != null) {
+			if (animations != null) {
 				animations.performAnimatedChanges();
 			}
 
-			if(completion != null) {
+			if (completion != null) {
 				completion.animationCompletion(true);
 			}
 		} else {
 			this.navigationBar.setHidden(false);
 
-			if(this.inTransition) {
+			if (this.inTransition) {
 				this.showHideNavigationBarDuringTransition = true;
 				return;
 			}
@@ -581,21 +576,21 @@ public class NavigationController extends ViewController {
 				public void performAnimatedChanges() {
 					navigationBar.setFrame(navigationFrame);
 
-					if(topView != null) {
+					if (topView != null) {
 						topView.setFrame(contentFrame);
 					}
 
-					if(animations != null) {
+					if (animations != null) {
 						animations.performAnimatedChanges();
 					}
 				}
 			}, new View.AnimationCompletion() {
 				public void animationCompletion(boolean finished) {
-					if(navigationBarHidden && finished) {
+					if (navigationBarHidden && finished) {
 						navigationBar.setHidden(true);
 					}
 
-					if(completion != null) {
+					if (completion != null) {
 						completion.animationCompletion(finished);
 					}
 				}

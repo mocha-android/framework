@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/2/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.IndexPath;
@@ -38,31 +33,31 @@ class TableViewSectionRowData {
 		boolean headerSizing = tableView.delegateHeaders != null;
 		boolean headerTitles = tableView.dataSourceHeaders != null;
 
-		if(groupedStyle) {
+		if (groupedStyle) {
 			this.sectionOffset += TableView.GROUPED_TABLE_Y_MARGIN;
 		}
 
 		float offset = this.sectionOffset;
 
-		if(headerSizing) {
+		if (headerSizing) {
 			this.headerHeight = Math.max(tableView.delegateHeaders.getHeightForHeaderInSection(tableView, section), 0.0f);
 		} else {
 			this.headerHeight = 0.0f;
 		}
 
-		if(this.headerHeight == 0.0f) {
-			if(headerTitles) {
+		if (this.headerHeight == 0.0f) {
+			if (headerTitles) {
 				String title = tableView.dataSourceHeaders.getTitleForHeaderInSection(tableView, section);
 
-				if(title != null) {
-					if(plainStyle) {
+				if (title != null) {
+					if (plainStyle) {
 						this.headerHeight = TableView.PLAIN_HEADER_HEIGHT;
 					} else {
 						this.headerHeight = TableViewHeaderFooterGroupedView.getHeight(title, tableView.getFrame().size.width);
 					}
 				} else {
-					if(tableView.getTableStyle() == TableView.Style.GROUPED) {
-						if(section == 0) {
+					if (tableView.getTableStyle() == TableView.Style.GROUPED) {
+						if (section == 0) {
 							this.sectionOffset += TableView.GROUPED_TABLE_Y_MARGIN;
 							offset += TableView.GROUPED_TABLE_Y_MARGIN;
 						}
@@ -85,11 +80,11 @@ class TableViewSectionRowData {
 		this.rowOffsets = new float[this.numberOfRows];
 		float defaultRowHeight = usesCustomRowHeights ? 0.0f : tableView.getRowHeight();
 
-		for(int i = 0; i < this.numberOfRows; i++) {
+		for (int i = 0; i < this.numberOfRows; i++) {
 			float rowHeight;
 			IndexPath indexPath = IndexPath.withRowInSection(i, section);
 
-			if(usesCustomRowHeights) {
+			if (usesCustomRowHeights) {
 				rowHeight = tableView.delegateRowSizing.getHeightForRowAtIndexPath(tableView, indexPath);
 			} else {
 				rowHeight = defaultRowHeight;
@@ -108,18 +103,18 @@ class TableViewSectionRowData {
 		boolean footerSizing = tableView.delegateFooters != null;
 		boolean footerTitles = tableView.dataSourceFooters != null;
 
-		if(footerSizing) {
+		if (footerSizing) {
 			this.footerHeight = Math.max(0.0f, tableView.delegateFooters.getHeightForFooterInSection(tableView, section));
 		} else {
 			this.footerHeight = 0.0f;
 		}
 
-		if(this.footerHeight == 0.0f) {
-			if(footerTitles) {
+		if (this.footerHeight == 0.0f) {
+			if (footerTitles) {
 				String title = tableView.dataSourceFooters.getTitleForFooterInSection(tableView, section);
 
-				if(title != null) {
-					if(plainStyle) {
+				if (title != null) {
+					if (plainStyle) {
 						this.footerHeight = TableView.PLAIN_HEADER_HEIGHT;
 					} else {
 						this.footerHeight = TableViewFooter.getHeight(title, tableView.getFrame().size.width);
@@ -145,24 +140,24 @@ class TableViewSectionRowData {
 
 		int numberOfRows = this.rowOffsets.length;
 
-		for(int i = 0; i < numberOfRows; i++) {
+		for (int i = 0; i < numberOfRows; i++) {
 			this.rowOffsets[i] += delta;
 		}
 	}
 
 	public int getRowForPoint(Point point) {
-		if(point.y < this.sectionOffset || point.y > this.sectionOffset + this.sectionHeight || this.rowHeights == null || this.rowHeights.length == 0) {
+		if (point.y < this.sectionOffset || point.y > this.sectionOffset + this.sectionHeight || this.rowHeights == null || this.rowHeights.length == 0) {
 			return -1;
 		} else {
 			int numberOfRows = this.rowOffsets.length;
 
 			for (int row = 0; row < numberOfRows; row++) {
-				if(point.y < this.rowOffsets[row]) {
+				if (point.y < this.rowOffsets[row]) {
 					return row - 1;
 				}
 			}
 
-			if(point.y < this.footerOffset) {
+			if (point.y < this.footerOffset) {
 				return numberOfRows - 1;
 			} else {
 				return -1;

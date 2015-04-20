@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 1/29/13
- *	@copyright	2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -21,7 +16,7 @@ public class BarItem extends MObject {
 	private EdgeInsets imageInsets;
 	private EdgeInsets landscapeImagePhoneInsets;
 	private int tag;
-	private Map<EnumSet<Control.State>,TextAttributes> titleTextAttributes;
+	private Map<EnumSet<Control.State>, TextAttributes> titleTextAttributes;
 
 	public BarItem() {
 		this.enabled = true;
@@ -81,7 +76,7 @@ public class BarItem extends MObject {
 	public void setTitleTextAttributes(TextAttributes textAttributes, Control.State... state) {
 		EnumSet<Control.State> stateSet = Control.getStateSet(state);
 
-		if(textAttributes == null) {
+		if (textAttributes == null) {
 			this.titleTextAttributes.remove(stateSet);
 		} else {
 			this.titleTextAttributes.put(stateSet, textAttributes);
@@ -92,7 +87,7 @@ public class BarItem extends MObject {
 		return this.titleTextAttributes.get(Control.getStateSet(state));
 	}
 
-	Map<EnumSet<Control.State>,TextAttributes> getTitleTextAttributes() {
+	Map<EnumSet<Control.State>, TextAttributes> getTitleTextAttributes() {
 		return Collections.unmodifiableMap(this.titleTextAttributes);
 	}
 

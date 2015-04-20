@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 2/4/13
- *	@copyright	2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.os.Handler;
@@ -24,7 +19,7 @@ class ViewAnimation extends MObject {
 
 	// We use a hash so if the same property is changed multiple times in the animation
 	// we just override the last one.
-	private Map<String,Animation> animations;
+	private Map<String, Animation> animations;
 	private long startTimeDelayed;
 	private long startTime;
 	private boolean hasStarted;
@@ -79,10 +74,10 @@ class ViewAnimation extends MObject {
 		int originalLayerType;
 
 		public void setEndValue(Object endValue) {
-			if(this.type == Type.BACKGROUND_COLOR) {
-				this.endValue = Color.components((Integer)endValue);
-			} else if(type == Type.TRANSFORM) {
-				this.endValue = new AffineTransformHolder((AffineTransform)endValue);
+			if (this.type == Type.BACKGROUND_COLOR) {
+				this.endValue = Color.components((Integer) endValue);
+			} else if (type == Type.TRANSFORM) {
+				this.endValue = new AffineTransformHolder((AffineTransform) endValue);
 			} else {
 				this.endValue = endValue;
 			}
@@ -92,13 +87,13 @@ class ViewAnimation extends MObject {
 	/**
 	 * Add an animation to the view
 	 *
-	 * @param view view the animation should be applied to
-	 * @param type type of animation
+	 * @param view     view the animation should be applied to
+	 * @param type     type of animation
 	 * @param endValue end value for this animation, start value will be grabbed from current state.
 	 *                 endValue type is expected to be correct, an exception will be thrown if it's wrong
 	 */
 	void addAnimation(View view, Type type, Object endValue) {
-		if(this.animations == null) {
+		if (this.animations == null) {
 			this.animations = new HashMap<String, Animation>();
 		}
 
@@ -106,7 +101,7 @@ class ViewAnimation extends MObject {
 
 		Animation animation = this.animations.get(key);
 
-		if(animation == null) {
+		if (animation == null) {
 			animation = new Animation();
 			animation.view = view;
 			animation.type = type;
@@ -133,7 +128,7 @@ class ViewAnimation extends MObject {
 
 		animation.setEndValue(endValue);
 
-		if(!animation.startValue.equals(animation.endValue)) {
+		if (!animation.startValue.equals(animation.endValue)) {
 			this.animations.put(key, animation);
 		}
 	}
@@ -141,14 +136,14 @@ class ViewAnimation extends MObject {
 	/**
 	 * Use of this method is discouraged unless using a callback type
 	 *
-	 * @param view view the animation should be applied to
-	 * @param type type of animation
-	 * @param startValue start value for this animation
-	 * @param endValue end value for this animation
+	 * @param view                 view the animation should be applied to
+	 * @param type                 type of animation
+	 * @param startValue           start value for this animation
+	 * @param endValue             end value for this animation
 	 * @param processFrameCallback If using a callback type, you must provide this
 	 */
 	void addAnimation(View view, Type type, Object startValue, Object endValue, ProcessFrameCallback processFrameCallback) {
-		if(this.animations == null) {
+		if (this.animations == null) {
 			this.animations = new HashMap<String, Animation>();
 		}
 
@@ -156,7 +151,7 @@ class ViewAnimation extends MObject {
 
 		Animation animation = this.animations.get(key);
 
-		if(animation == null) {
+		if (animation == null) {
 			animation = new Animation();
 			animation.view = view;
 			animation.type = type;
@@ -169,16 +164,16 @@ class ViewAnimation extends MObject {
 	}
 
 	void start() {
-		if(hasBeenAddedToActiveAnimations) return;
+		if (hasBeenAddedToActiveAnimations) return;
 		hasBeenAddedToActiveAnimations = true;
 
-		if(this.animations == null || this.animations.size() == 0) {
-			if(willStart != null) willStart.animationWillStart(animationID, context);
-			if(didStop != null) didStop.animationDidStop(animationID, true, context);
+		if (this.animations == null || this.animations.size() == 0) {
+			if (willStart != null) willStart.animationWillStart(animationID, context);
+			if (didStop != null) didStop.animationDidStop(animationID, true, context);
 			return;
 		}
 
-		if(this.timingFunction == null) {
+		if (this.timingFunction == null) {
 			switch (animationCurve) {
 				case EASE_IN:
 					this.timingFunction = TimingFunction.EASE_IN;
@@ -199,13 +194,13 @@ class ViewAnimation extends MObject {
 			}
 		}
 
-		if(this.reverses) {
-			if(this.repeatCount <= 0.0) {
+		if (this.reverses) {
+			if (this.repeatCount <= 0.0) {
 				this.repeatCount = 1.0;
 			}
 		}
 
-		if(this.repeatCount > 0.0) {
+		if (this.repeatCount > 0.0) {
 			this.repeats = true;
 		}
 
@@ -219,7 +214,7 @@ class ViewAnimation extends MObject {
 		String[] keys = strings.toArray(new String[strings.size()]);
 		ViewAnimationHandler.cancelAnimationsForKeys(keys, this);
 
-		for(Animation animation : this.animations.values()) {
+		for (Animation animation : this.animations.values()) {
 			animation.view.animations[animation.type.value] = this;
 		}
 
@@ -227,11 +222,11 @@ class ViewAnimation extends MObject {
 	}
 
 	boolean changeEndValueForAnimationType(View view, Type type, Object endValue) {
-		if(!this.isCancelled) {
+		if (!this.isCancelled) {
 			String key = view.hashCode() + "-" + type.toString();
 			Animation animation = this.animations.get(key);
 
-			if(animation != null) {
+			if (animation != null) {
 				animation.setEndValue(endValue);
 				return true;
 			} else {
@@ -243,7 +238,7 @@ class ViewAnimation extends MObject {
 	}
 
 	private void processFrame(float time) {
-		if(PROFILE_FRAME_RATE) {
+		if (PROFILE_FRAME_RATE) {
 //			long start = android.os.SystemClock.uptimeMillis();
 //			if(this.sinceLastFrameStart > 0) {
 //				MLog("time since last frame started: %s | ended: %s", start - this.sinceLastFrameStart, start-this.sinceLastFrameEnd);
@@ -256,19 +251,19 @@ class ViewAnimation extends MObject {
 		boolean reverse = this.reverses && this.reversing;
 
 		// MLog("Running for %f", time);
-		for(Animation animation : this.animations.values()) {
+		for (Animation animation : this.animations.values()) {
 			// MLog("Running %s on %s", animation.type, animation.view);
 
 			final float frame = this.timingFunction.solve(time, this.duration / 1000.0f);
 
-			if(animation.view.isHidden() && frame != 0.0f && frame !=  1.0f) {
+			if (animation.view.isHidden() && frame != 0.0f && frame != 1.0f) {
 				continue;
 			}
 
 			Object startValue;
 			Object endValue;
 
-			if(reverse) {
+			if (reverse) {
 				startValue = animation.endValue;
 				endValue = animation.startValue;
 			} else {
@@ -279,7 +274,7 @@ class ViewAnimation extends MObject {
 			animation.view.animationIsSetting = true;
 			switch (animation.type) {
 				case FRAME:
-					animation.view.setFrame(this.interpolate(frame, (Rect)startValue, (Rect)endValue));
+					animation.view.setFrame(this.interpolate(frame, (Rect) startValue, (Rect) endValue));
 					break;
 				case BOUNDS:
 					animation.view.setBounds(this.interpolate(frame, (Rect) startValue, (Rect) endValue));
@@ -288,8 +283,8 @@ class ViewAnimation extends MObject {
 					animation.view.setAlpha(this.interpolate(frame, (Float) startValue, (Float) endValue));
 					break;
 				case BACKGROUND_COLOR:
-					int[] startColor = (int[])startValue;
-					int[] endColor = (int[])endValue;
+					int[] startColor = (int[]) startValue;
+					int[] endColor = (int[]) endValue;
 
 					int red = this.interpolate(frame, startColor[0], endColor[0]);
 					int green = this.interpolate(frame, startColor[1], endColor[1]);
@@ -299,13 +294,13 @@ class ViewAnimation extends MObject {
 					animation.view.setBackgroundColor(Color.rgba(red, green, blue, alpha));
 					break;
 				case TRANSFORM:
-					AffineTransformHolder startTransform = (AffineTransformHolder)startValue;
-					AffineTransformHolder endTransform = (AffineTransformHolder)endValue;
+					AffineTransformHolder startTransform = (AffineTransformHolder) startValue;
+					AffineTransformHolder endTransform = (AffineTransformHolder) endValue;
 					AffineTransform transform;
 
-					if(time <= 0.0f) {
+					if (time <= 0.0f) {
 						transform = startTransform.transform;
-					} else if(time >= 1.0f) {
+					} else if (time >= 1.0f) {
 						transform = endTransform.transform;
 					} else {
 						transform = AffineTransformHelper.interpolate(this.timingFunction, frame, startTransform.decomposed, endTransform.decomposed);
@@ -314,10 +309,10 @@ class ViewAnimation extends MObject {
 					animation.view.setTransform(transform);
 					break;
 				case CALLBACK_POINT:
-					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point)startValue, (Point)endValue));
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (Point) startValue, (Point) endValue));
 					break;
 				case CALLBACK_EDGE_INSETS:
-					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets)startValue, (EdgeInsets)endValue));
+					animation.processFrameCallback.processFrame(this.interpolate(frame, (EdgeInsets) startValue, (EdgeInsets) endValue));
 					break;
 			}
 			animation.view.animationIsSetting = false;
@@ -331,19 +326,19 @@ class ViewAnimation extends MObject {
 	private Rect interpolate(float frame, Rect start, Rect end) {
 		Rect rect = start.copy();
 
-		if(start.origin.x != end.origin.x) {
+		if (start.origin.x != end.origin.x) {
 			rect.origin.x = this.timingFunction.interpolate(frame, start.origin.x, end.origin.x);
 		}
 
-		if(start.origin.y != end.origin.y) {
+		if (start.origin.y != end.origin.y) {
 			rect.origin.y = this.timingFunction.interpolate(frame, start.origin.y, end.origin.y);
 		}
 
-		if(start.size.width != end.size.width) {
+		if (start.size.width != end.size.width) {
 			rect.size.width = this.timingFunction.interpolate(frame, start.size.width, end.size.width);
 		}
 
-		if(start.size.height != end.size.height) {
+		if (start.size.height != end.size.height) {
 			rect.size.height = this.timingFunction.interpolate(frame, start.size.height, end.size.height);
 		}
 
@@ -353,11 +348,11 @@ class ViewAnimation extends MObject {
 	private Point interpolate(float frame, Point start, Point end) {
 		Point point = start.copy();
 
-		if(start.x != end.x) {
+		if (start.x != end.x) {
 			point.x = this.timingFunction.interpolate(frame, start.x, end.x);
 		}
 
-		if(start.y != end.y) {
+		if (start.y != end.y) {
 			point.y = this.timingFunction.interpolate(frame, start.y, end.y);
 		}
 
@@ -367,19 +362,19 @@ class ViewAnimation extends MObject {
 	private EdgeInsets interpolate(float frame, EdgeInsets start, EdgeInsets end) {
 		EdgeInsets insets = start.copy();
 
-		if(start.top != end.top) {
+		if (start.top != end.top) {
 			insets.top = this.timingFunction.interpolate(frame, start.top, end.top);
 		}
 
-		if(start.left != end.left) {
+		if (start.left != end.left) {
 			insets.left = this.timingFunction.interpolate(frame, start.left, end.left);
 		}
 
-		if(start.bottom != end.bottom) {
+		if (start.bottom != end.bottom) {
 			insets.bottom = this.timingFunction.interpolate(frame, start.bottom, end.bottom);
 		}
 
-		if(start.right != end.right) {
+		if (start.right != end.right) {
 			insets.right = this.timingFunction.interpolate(frame, start.right, end.right);
 		}
 
@@ -387,7 +382,7 @@ class ViewAnimation extends MObject {
 	}
 
 	private float interpolate(float frame, float start, float end) {
-		if(start == end) {
+		if (start == end) {
 			return start;
 		} else {
 			return this.timingFunction.interpolate(frame, start, end);
@@ -395,7 +390,7 @@ class ViewAnimation extends MObject {
 	}
 
 	private int interpolate(float frame, int start, int end) {
-		return (int)this.interpolate(frame, (float)start, (float)end);
+		return (int) this.interpolate(frame, (float) start, (float) end);
 	}
 
 	/// New implementation
@@ -405,14 +400,14 @@ class ViewAnimation extends MObject {
 			willStart.animationWillStart(animationID, context);
 		}
 
-		for(Animation animation : this.animations.values()) {
-			if(animation.shouldUseHardwareLayer) {
+		for (Animation animation : this.animations.values()) {
+			if (animation.shouldUseHardwareLayer) {
 				ViewGroup viewGroup = animation.view.getLayer().getViewGroup();
 
-				if(viewGroup != null) {
+				if (viewGroup != null) {
 					int type = viewGroup.getLayerType();
 
-					if(type != android.view.View.LAYER_TYPE_HARDWARE) {
+					if (type != android.view.View.LAYER_TYPE_HARDWARE) {
 						animation.originalLayerType = type;
 						animation.shouldRestoreToOriginalLayerType = true;
 						viewGroup.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
@@ -428,11 +423,11 @@ class ViewAnimation extends MObject {
 		this.hasEnded = true;
 
 		long endTime = android.os.SystemClock.uptimeMillis();
-		long elapsed = endTime-startTime;
-		double mspf = (double)elapsed / (double)frameCount;
+		long elapsed = endTime - startTime;
+		double mspf = (double) elapsed / (double) frameCount;
 		double fps = 1000 / mspf;
 
-		if(PROFILE_FRAME_RATE) {
+		if (PROFILE_FRAME_RATE) {
 			MObject.MLog("duration: %sms | elapsed: %sms | frames: %d | fps: %s", duration, elapsed, frameCount, fps);
 		}
 
@@ -456,19 +451,19 @@ class ViewAnimation extends MObject {
 	}
 
 	private void cleanAnimationReferences() {
-		for(Animation animation : this.animations.values()) {
-			if(animation.view.animations[animation.type.value] == this) {
+		for (Animation animation : this.animations.values()) {
+			if (animation.view.animations[animation.type.value] == this) {
 				animation.view.animations[animation.type.value] = null;
 			}
 		}
 	}
 
 	private void restoreLayerTypes() {
-		for(Animation animation : this.animations.values()) {
-			if(animation.shouldRestoreToOriginalLayerType) {
+		for (Animation animation : this.animations.values()) {
+			if (animation.shouldRestoreToOriginalLayerType) {
 				ViewGroup viewGroup = animation.view.getLayer().getViewGroup();
 
-				if(viewGroup != null) {
+				if (viewGroup != null) {
 					viewGroup.setLayerType(animation.originalLayerType, null);
 				}
 			}
@@ -499,7 +494,7 @@ class ViewAnimation extends MObject {
 		};
 
 		static Handler getHandler() {
-			if(handler == null) {
+			if (handler == null) {
 				handler = new Handler(Looper.getMainLooper());
 			}
 
@@ -507,7 +502,7 @@ class ViewAnimation extends MObject {
 		}
 
 		static void addAnimation(final ViewAnimation animation) {
-			if(isProcessing) {
+			if (isProcessing) {
 				getHandler().postAtFrontOfQueue(new Runnable() {
 					public void run() {
 						_addAnimation(animation);
@@ -526,16 +521,16 @@ class ViewAnimation extends MObject {
 			lock.release();
 
 
-			if(!scheduled) {
+			if (!scheduled) {
 				scheduled = true;
 				getHandler().postAtFrontOfQueue(processor);
 			}
 		}
 
 		static synchronized void cancelAllAnimationsReferencingView(final View view) {
-			if(handler == null) return; // Nothings scheduled!
+			if (handler == null) return; // Nothings scheduled!
 
-			if(isProcessing) {
+			if (isProcessing) {
 				handler.postAtFrontOfQueue(new Runnable() {
 					public void run() {
 						_cancelAllAnimationsReferencingView(view);
@@ -549,11 +544,11 @@ class ViewAnimation extends MObject {
 		static synchronized void _cancelAllAnimationsReferencingView(View view) {
 			lock.acquireUninterruptibly();
 			{
-				for(ViewAnimation viewAnimation : activeAnimations) {
-					if(viewAnimation.isCancelled || viewAnimation.hasEnded) continue;
+				for (ViewAnimation viewAnimation : activeAnimations) {
+					if (viewAnimation.isCancelled || viewAnimation.hasEnded) continue;
 
-					for(Animation animation : viewAnimation.animations.values()) {
-						if(animation.view == view) {
+					for (Animation animation : viewAnimation.animations.values()) {
+						if (animation.view == view) {
 							viewAnimation.isCancelled = true;
 							break;
 						}
@@ -564,9 +559,9 @@ class ViewAnimation extends MObject {
 		}
 
 		static synchronized void cancelAnimationsForKeys(final String[] keys, final ViewAnimation ignoreAnimation) {
-			if(handler == null) return; // Nothings scheduled!
+			if (handler == null) return; // Nothings scheduled!
 
-			if(isProcessing) {
+			if (isProcessing) {
 				handler.postAtFrontOfQueue(new Runnable() {
 					public void run() {
 						_cancelAnimationsForKeys(keys, ignoreAnimation);
@@ -580,14 +575,15 @@ class ViewAnimation extends MObject {
 		static synchronized void _cancelAnimationsForKeys(String[] keys, ViewAnimation ignoreAnimation) {
 			lock.acquireUninterruptibly();
 			{
-				for(ViewAnimation viewAnimation : activeAnimations) {
-					if(viewAnimation.isCancelled || viewAnimation.hasEnded || viewAnimation == ignoreAnimation) continue;
+				for (ViewAnimation viewAnimation : activeAnimations) {
+					if (viewAnimation.isCancelled || viewAnimation.hasEnded || viewAnimation == ignoreAnimation)
+						continue;
 
-					for(String key : keys) {
-						if(viewAnimation.animations.containsKey(key)) {
+					for (String key : keys) {
+						if (viewAnimation.animations.containsKey(key)) {
 							viewAnimation.animations.remove(key);
 
-							if(viewAnimation.animations.size() == 0) {
+							if (viewAnimation.animations.size() == 0) {
 								viewAnimation.isCancelled = true;
 							}
 						}
@@ -602,21 +598,21 @@ class ViewAnimation extends MObject {
 			long startTime = android.os.SystemClock.uptimeMillis();
 
 			Iterator<ViewAnimation> iterator = activeAnimations.iterator();
-			while(iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				ViewAnimation animation = iterator.next();
 
-				if(animation.isCancelled) {
+				if (animation.isCancelled) {
 					animation.onAnimationCancel();
 					iterator.remove();
 					continue;
 				}
 
-				if(!animation.hasStarted) {
-					if(animation.delay > 0) {
-						if(animation.startTimeDelayed > 0 && startTime > animation.startTimeDelayed) {
+				if (!animation.hasStarted) {
+					if (animation.delay > 0) {
+						if (animation.startTimeDelayed > 0 && startTime > animation.startTimeDelayed) {
 							animation.delay = 0;
 						} else {
-							if(animation.startTimeDelayed == 0) {
+							if (animation.startTimeDelayed == 0) {
 								animation.startTimeDelayed = startTime + animation.delay;
 							}
 
@@ -631,24 +627,24 @@ class ViewAnimation extends MObject {
 
 
 				long elapsed = startTime - animation.startTime;
-				float frame = animation.duration > 0 ? (float)elapsed / animation.duration : 1.0f;
+				float frame = animation.duration > 0 ? (float) elapsed / animation.duration : 1.0f;
 				// MWarn("Processing frame %f", frame);
-				if(frame > 1.0f) {
+				if (frame > 1.0f) {
 					frame = 1.0f;
-				} else if(animation.repeats && animation.repeatCount < 0.5) {
-					if(frame >= animation.repeatCount * 2) {
+				} else if (animation.repeats && animation.repeatCount < 0.5) {
+					if (frame >= animation.repeatCount * 2) {
 						frame = 1.0f;
 					}
 				}
 
 				animation.processFrame(frame);
 
-				if(frame == 1.0f) {
-					if(animation.repeats && animation.repeatCount > 0) {
+				if (frame == 1.0f) {
+					if (animation.repeats && animation.repeatCount > 0) {
 						animation.startTime = startTime;
 						animation.repeatCount -= 0.5;
 
-						if(animation.reverses) {
+						if (animation.reverses) {
 							animation.reversing = !animation.reversing;
 						}
 					} else {
@@ -658,12 +654,12 @@ class ViewAnimation extends MObject {
 				}
 			}
 
-			if(activeAnimations.size() > 0) {
+			if (activeAnimations.size() > 0) {
 				long since = lastFrameTime == 0 ? startTime : lastFrameTime;
 				long now = android.os.SystemClock.uptimeMillis();
 				long delay = (DESIRED_ANIMATION_FRAME_RATE - (now - since));
 
-				if(View.SHOW_DROPPED_ANIMATION_FRAMES && delay < 0) {
+				if (View.SHOW_DROPPED_ANIMATION_FRAMES && delay < 0) {
 					MWarn("Dropping frames! Last frame took %dms, should not take more than %dms. (%dms behind)", (now - since), DESIRED_ANIMATION_FRAME_RATE, Math.abs(delay));
 				}
 
@@ -675,7 +671,6 @@ class ViewAnimation extends MObject {
 			}
 		}
 	}
-
 
 
 	static class AffineTransformHolder {
@@ -692,14 +687,14 @@ class ViewAnimation extends MObject {
 	static class AffineTransformHelper {
 		/**
 		 * This code has been ported from WebKit.
-		 *
+		 * <p/>
 		 * The original code can be found here:
 		 * http://trac.webkit.org/browser/trunk/Source/WebCore/platform/graphics/transforms/TransformationMatrix.cpp?rev=143810
 		 */
 
-		private static final float PI = (float)Math.PI;
+		private static final float PI = (float) Math.PI;
 
-		static class Decomposed implements mocha.foundation.Copying <Decomposed> {
+		static class Decomposed implements mocha.foundation.Copying<Decomposed> {
 			float scaleX, scaleY;
 			float angle;
 			float remainderA, remainderB, remainderC, remainderD;
@@ -736,7 +731,7 @@ class ViewAnimation extends MObject {
 			end = end.copy();
 
 			// If x-axis of one is flipped, and y-axis of the other, convert to an unflipped rotation.
-			if ((start.scaleX < 0 && end.scaleY < 0) || (start.scaleY < 0 &&  end.scaleX < 0)) {
+			if ((start.scaleX < 0 && end.scaleY < 0) || (start.scaleY < 0 && end.scaleX < 0)) {
 				start.scaleX = -start.scaleX;
 				start.scaleY = -start.scaleY;
 				start.angle += start.angle < 0 ? PI : -PI;
@@ -753,39 +748,39 @@ class ViewAnimation extends MObject {
 					end.angle -= PI * 2;
 			}
 
-			if(start.scaleX != end.scaleX) {
+			if (start.scaleX != end.scaleX) {
 				start.scaleX = timingFunction.interpolate(frame, start.scaleX, end.scaleX);
 			}
 
-			if(start.scaleY != end.scaleY) {
+			if (start.scaleY != end.scaleY) {
 				start.scaleY = timingFunction.interpolate(frame, start.scaleY, end.scaleY);
 			}
 
-			if(start.angle != end.angle) {
+			if (start.angle != end.angle) {
 				start.angle = timingFunction.interpolate(frame, start.angle, end.angle);
 			}
 
-			if(start.remainderA != end.remainderA) {
+			if (start.remainderA != end.remainderA) {
 				start.remainderA = timingFunction.interpolate(frame, start.remainderA, end.remainderA);
 			}
 
-			if(start.remainderB != end.remainderB) {
+			if (start.remainderB != end.remainderB) {
 				start.remainderB = timingFunction.interpolate(frame, start.remainderB, end.remainderB);
 			}
 
-			if(start.remainderC != end.remainderC) {
+			if (start.remainderC != end.remainderC) {
 				start.remainderC = timingFunction.interpolate(frame, start.remainderC, end.remainderC);
 			}
 
-			if(start.remainderC != end.remainderC) {
+			if (start.remainderC != end.remainderC) {
 				start.remainderC = timingFunction.interpolate(frame, start.remainderC, end.remainderC);
 			}
 
-			if(start.translateX != end.translateX) {
+			if (start.translateX != end.translateX) {
 				start.translateX = timingFunction.interpolate(frame, start.translateX, end.translateX);
 			}
 
-			if(start.translateY != end.translateY) {
+			if (start.translateY != end.translateY) {
 				start.translateY = timingFunction.interpolate(frame, start.translateY, end.translateY);
 			}
 
@@ -813,7 +808,7 @@ class ViewAnimation extends MObject {
 			transform.scale(1.0f / sx, 1.0f / sy);
 
 			// Compute rotation
-			float angle = (float)Math.atan2(transform.getB(), transform.getA());
+			float angle = (float) Math.atan2(transform.getB(), transform.getA());
 
 			// Remove rotation from matrix
 			transform.rotate(-angle);

@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/19/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -22,11 +17,11 @@ public class Color extends MObject {
 	public static final int TRANSPARENT = android.graphics.Color.TRANSPARENT;
 
 	public static int rgb(float red, float green, float blue) {
-		return android.graphics.Color.rgb((int)Math.round(red * 255.0f), (int)Math.round(green * 255.0f), (int)Math.round(blue * 255.0f));
+		return android.graphics.Color.rgb((int) Math.round(red * 255.0f), (int) Math.round(green * 255.0f), (int) Math.round(blue * 255.0f));
 	}
 
 	public static int hsb(float hue, float saturation, float brightness) {
-		return android.graphics.Color.HSVToColor(new float[] { hue * 360.0f, saturation, brightness });
+		return android.graphics.Color.HSVToColor(new float[]{hue * 360.0f, saturation, brightness});
 	}
 
 	public static int hsba(float hue, float saturation, float brightness, float alpha) {
@@ -34,7 +29,7 @@ public class Color extends MObject {
 	}
 
 	public static int rgba(float red, float green, float blue, float alpha) {
-		return android.graphics.Color.argb((int)Math.round(alpha * 255.0f), (int)Math.round(red * 255.0f), (int)Math.round(green * 255.0f), (int)Math.round(blue * 255.0f));
+		return android.graphics.Color.argb((int) Math.round(alpha * 255.0f), (int) Math.round(red * 255.0f), (int) Math.round(green * 255.0f), (int) Math.round(blue * 255.0f));
 	}
 
 	public static int rgb(int red, int green, int blue) {
@@ -48,7 +43,7 @@ public class Color extends MObject {
 	public static int white(float white) {
 		return rgb(white, white, white);
 	}
-	
+
 	public static int white(float white, float alpha) {
 		return rgba(white, white, white, alpha);
 	}
@@ -70,19 +65,19 @@ public class Color extends MObject {
 	}
 
 	public static float redf(int color) {
-		return (float)android.graphics.Color.red(color) / 255.0f;
+		return (float) android.graphics.Color.red(color) / 255.0f;
 	}
 
 	public static float greenf(int color) {
-		return (float)android.graphics.Color.green(color) / 255.0f;
+		return (float) android.graphics.Color.green(color) / 255.0f;
 	}
 
 	public static float bluef(int color) {
-		return (float)android.graphics.Color.blue(color) / 255.0f;
+		return (float) android.graphics.Color.blue(color) / 255.0f;
 	}
 
 	public static float alphaf(int color) {
-		return (float)android.graphics.Color.alpha(color) / 255.0f;
+		return (float) android.graphics.Color.alpha(color) / 255.0f;
 	}
 
 	public static int colorWithAlpha(int color, float alpha) {
@@ -107,11 +102,11 @@ public class Color extends MObject {
 	}
 
 	public static int[] getRGBA(int color) {
-		return new int[] { Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color) };
+		return new int[]{Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color)};
 	}
 
 	public static float[] getRGBAf(int color) {
-		return new float[] { Color.redf(color), Color.greenf(color), Color.bluef(color), Color.alphaf(color) };
+		return new float[]{Color.redf(color), Color.greenf(color), Color.bluef(color), Color.alphaf(color)};
 	}
 
 	public static float[] getHSBA(int color) {

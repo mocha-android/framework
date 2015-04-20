@@ -1,12 +1,10 @@
-/**
- *  @author Shaun
- *	@date 11/19/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.graphics.Canvas;
-import android.text.*;
+import android.text.BoringLayout;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.FloatMath;
 import mocha.foundation.MObject;
 import mocha.ui.Screen;
@@ -22,15 +20,15 @@ public class TextDrawing extends MObject {
 	}
 
 	public static Size draw(Context context, CharSequence text, Rect rect, Font font, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
-		if(rect.size.width < 0.0f || rect.size.height < 0.0f) {
+		if (rect.size.width < 0.0f || rect.size.height < 0.0f) {
 			return Size.zero();
 		}
 
-		if(textAlignment == null) {
+		if (textAlignment == null) {
 			textAlignment = TextAlignment.LEFT;
 		}
 
-		if(lineBreakMode == null) {
+		if (lineBreakMode == null) {
 			lineBreakMode = LineBreakMode.TRUNCATING_TAIL;
 		}
 
@@ -65,9 +63,10 @@ public class TextDrawing extends MObject {
 	 * Truncated based on LineBreakMode.WORD_WRAPPING.
 	 *
 	 * @param context Context to draw text in
-	 * @param text Text to draw
-	 * @param point Point to draw text at
-	 * @param font Font to draw text with
+	 * @param text    Text to draw
+	 * @param point   Point to draw text at
+	 * @param font    Font to draw text with
+	 *
 	 * @return Size of the drawing rounded up to the nearest point.
 	 */
 	public static Size draw(Context context, CharSequence text, Point point, Font font) {
@@ -77,16 +76,17 @@ public class TextDrawing extends MObject {
 	/**
 	 * Draws a single line of text capped at a max width, line breaks are ignored.
 	 *
-	 * @param context Context to draw text in
-	 * @param text Text to draw
-	 * @param point Point to draw text at
-	 * @param font Font to draw text with
-	 * @param maxWidth Maximum width text can be, if <= 0.0f, no max width is assumed.
+	 * @param context       Context to draw text in
+	 * @param text          Text to draw
+	 * @param point         Point to draw text at
+	 * @param font          Font to draw text with
+	 * @param maxWidth      Maximum width text can be, if <= 0.0f, no max width is assumed.
 	 * @param lineBreakMode Determines how truncation should work, still only draws a single line.
+	 *
 	 * @return Size of the drawing rounded up to the nearest point.
 	 */
 	public static Size draw(Context context, CharSequence text, Point point, Font font, float maxWidth, LineBreakMode lineBreakMode) {
-		if(maxWidth < 0.0f) {
+		if (maxWidth < 0.0f) {
 			maxWidth = constrainWidth(Float.MAX_VALUE);
 		}
 
@@ -118,9 +118,9 @@ public class TextDrawing extends MObject {
 
 	public static float getTextWidth(CharSequence text, Font font, float width, float screenScale) {
 		width = constrainWidth(width * screenScale);
-		float[] measuredWidth = new float[] { 0.0f };
+		float[] measuredWidth = new float[]{0.0f};
 
-		if(text instanceof TextDrawingText) {
+		if (text instanceof TextDrawingText) {
 			text = ((TextDrawingText) text).getText();
 		}
 
@@ -145,8 +145,8 @@ public class TextDrawing extends MObject {
 	}
 
 	private static Size getTextSize(CharSequence text, Font font, TextPaint textPaint, Size constrainedToSize, LineBreakMode lineBreakMode, float screenScale) {
-		if(text == null || text.length() == 0) return Size.zero();
-		if(constrainedToSize.width < 0.0f) return Size.zero();
+		if (text == null || text.length() == 0) return Size.zero();
+		if (constrainedToSize.width < 0.0f) return Size.zero();
 
 		constrainedToSize = new Size(constrainWidth(constrainedToSize.width * screenScale), constrainedToSize.height);
 
@@ -169,13 +169,13 @@ public class TextDrawing extends MObject {
 
 	static Layout getLayout(CharSequence text, float maxWidth, boolean useMultipleLines, TextPaint textPaint, TextAlignment textAlignment, LineBreakMode lineBreakMode) {
 		Layout layout;
-		int outerWidth = (int)FloatMath.floor(maxWidth);
+		int outerWidth = (int) FloatMath.floor(maxWidth);
 
 		TextDrawingText textDrawingText = null;
 
-		if(text instanceof TextDrawingText) {
-			if(((TextDrawingText) text).getLayout() != null) {
-				if(((TextDrawingText) text).getLayout().getAlignment() == textAlignment.getLayoutAlignemnt()) {
+		if (text instanceof TextDrawingText) {
+			if (((TextDrawingText) text).getLayout() != null) {
+				if (((TextDrawingText) text).getLayout().getAlignment() == textAlignment.getLayoutAlignment()) {
 					((TextDrawingText) text).getPaint().set(textPaint);
 					return ((TextDrawingText) text).getLayout();
 				}
@@ -189,13 +189,13 @@ public class TextDrawing extends MObject {
 		BoringLayout.Metrics metrics;
 		boolean isBoring = (metrics = BoringLayout.isBoring(text, textPaint)) != null;
 
-		if(isBoring && (!useMultipleLines || (float)metrics.width <= maxWidth)) {
+		if (isBoring && (!useMultipleLines || (float) metrics.width <= maxWidth)) {
 			layout = new BoringLayout(text, textPaint, outerWidth, Layout.Alignment.ALIGN_NORMAL, 0, 0, metrics, false, lineBreakMode.truncateAt(), outerWidth);
 		} else {
-			layout = new StaticLayout(text, 0, text.length(), textPaint, outerWidth, textAlignment.getLayoutAlignemnt(), 1.0f, 0.0f, false);
+			layout = new StaticLayout(text, 0, text.length(), textPaint, outerWidth, textAlignment.getLayoutAlignment(), 1.0f, 0.0f, false);
 		}
 
-		if(textDrawingText != null) {
+		if (textDrawingText != null) {
 			textDrawingText.setLayout(layout, textPaint);
 		}
 
@@ -203,34 +203,34 @@ public class TextDrawing extends MObject {
 	}
 
 	private static Size getLayoutSize(Layout layout, Font font, float scale) {
-		if(layout instanceof BoringLayout) {
+		if (layout instanceof BoringLayout) {
 			float width = layout.getLineWidth(0);
-			return new Size(FloatMath.ceil(width / scale) , (float)layout.getHeight() / scale);
-		} else if(layout instanceof StaticLayout) {
+			return new Size(FloatMath.ceil(width / scale), (float) layout.getHeight() / scale);
+		} else if (layout instanceof StaticLayout) {
 			float width = Float.MIN_VALUE;
 			int lines = layout.getLineCount();
 
-			for(int line = 0; line < lines; line++) {
+			for (int line = 0; line < lines; line++) {
 				float w = layout.getLineWidth(line);
 
-				if(w > width) {
+				if (w > width) {
 					width = w;
 				}
 			}
 
-			return new Size(FloatMath.ceil(width / scale), font.getLineHeight() * (float)lines);
+			return new Size(FloatMath.ceil(width / scale), font.getLineHeight() * (float) lines);
 		} else {
 			return Size.zero();
 		}
 	}
 
 	private static void adjustRect(Rect rect, Layout layout, TextAlignment textAlignment, Font font, float scale) {
-		if(textAlignment != TextAlignment.LEFT && layout instanceof BoringLayout) {
+		if (textAlignment != TextAlignment.LEFT && layout instanceof BoringLayout) {
 			float textWidth = getLayoutSize(layout, font, scale).width;
 
-			if(textAlignment == TextAlignment.CENTER) {
+			if (textAlignment == TextAlignment.CENTER) {
 				rect.origin.x += FloatMath.floor((rect.size.width - textWidth) / 2.0f);
-			} else if(textAlignment == TextAlignment.RIGHT) {
+			} else if (textAlignment == TextAlignment.RIGHT) {
 				rect.origin.x += rect.size.width - textWidth;
 			}
 

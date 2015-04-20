@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/13/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.Lists;
@@ -41,14 +36,15 @@ public final class Touch extends MObject {
 		SWIPE
 	}
 
-	Touch() { }
+	Touch() {
+	}
 
 	public View getView() {
 		return this.view;
 	}
 
 	public Window getWindow() {
-		if(this.view == null) {
+		if (this.view == null) {
 			return null;
 		} else {
 			return this.view.getWindow();
@@ -58,7 +54,7 @@ public final class Touch extends MObject {
 	public Point locationInView(View view) {
 		Window window = this.getWindow();
 
-		if(window != null) {
+		if (window != null) {
 			return this.getWindow().convertPointToView(this.location, view);
 		} else {
 			return Point.zero();
@@ -99,7 +95,7 @@ public final class Touch extends MObject {
 	}
 
 	void updatePhase(Phase phase, Point screenLocation, long timestamp) {
-		if(!screenLocation.equals(this.location)) {
+		if (!screenLocation.equals(this.location)) {
 			this.previousLocation.set(this.location);
 			this.location.set(screenLocation);
 		}
@@ -110,7 +106,7 @@ public final class Touch extends MObject {
 
 	// sets up the window and gesture recognizers as well
 	void setTouchedView(View view) {
-		if(this.view != view) {
+		if (this.view != view) {
 			this.view = view;
 			this.gestureRecognizers.clear();
 			this.gestureRecognizers.addAll(gestureRecognizersForView(view));
@@ -144,7 +140,7 @@ public final class Touch extends MObject {
 	private static List<GestureRecognizer> gestureRecognizersForView(View view) {
 		List<GestureRecognizer> gestureRecognizers = new ArrayList<GestureRecognizer>();
 
-		while(view != null) {
+		while (view != null) {
 			gestureRecognizers.addAll(view.getGestureRecognizers());
 			view = view.getSuperview();
 		}

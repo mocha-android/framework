@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/22/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.text.TextPaint;
@@ -11,7 +6,7 @@ import mocha.ui.Screen;
 
 /**
  * FontSpan is a convenience class to assist with using Mocha's {@link Font} class with Android spannables.
- *
+ * <p/>
  * <p>Since {@link Font} already provides both the typeface and size, FontSpan replaces the need
  * to use {@link android.text.style.TypefaceSpan} and {@link android.text.style.RelativeSizeSpan}.</p>
  */

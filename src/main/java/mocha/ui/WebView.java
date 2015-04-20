@@ -1,14 +1,12 @@
-/**
- *  @author Shaun
- *  @date 3/8/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.util.Log;
-import android.webkit.*;
+import android.webkit.ConsoleMessage;
+import android.webkit.JavascriptInterface;
+import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import mocha.foundation.WeakReference;
 import mocha.graphics.Rect;
 
@@ -20,8 +18,11 @@ public class WebView extends View {
 
 	public interface Delegate {
 		public boolean shouldStartLoad(WebView webView, String url, NavigationType navigationType);
+
 		public void didStartLoad(WebView webView);
+
 		public void didFinishLoad(WebView webView);
+
 		public void didFailLoad(WebView webView);
 	}
 
@@ -45,14 +46,19 @@ public class WebView extends View {
 	private static Method evaluateJavascriptMethod = null;
 	private static boolean loadedEvaluateJavascriptMethod = false;
 
-	public WebView(Rect frame) { super(frame); }
-	public WebView() { super(); }
+	public WebView(Rect frame) {
+		super(frame);
+	}
+
+	public WebView() {
+		super();
+	}
 
 	@Override
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
 
-		if(!loadedEvaluateJavascriptMethod) {
+		if (!loadedEvaluateJavascriptMethod) {
 			try {
 				evaluateJavascriptMethod = android.webkit.WebView.class.getMethod("evaluateJavascript", String.class, ValueCallback.class);
 			} catch (NoSuchMethodException e) {
@@ -98,12 +104,12 @@ public class WebView extends View {
 	public void willMoveToWindow(Window newWindow) {
 		super.willMoveToWindow(newWindow);
 
-		if(newWindow == null) {
-			if(this.nativeView.getSuperview() != null) {
+		if (newWindow == null) {
+			if (this.nativeView.getSuperview() != null) {
 				this.nativeView.removeFromSuperview();
 			}
 		} else {
-			if(this.nativeView.getSuperview() == null) {
+			if (this.nativeView.getSuperview() == null) {
 				this.addSubview(this.nativeView);
 				this.nativeView.setFrame(this.getBounds());
 			}
@@ -121,14 +127,14 @@ public class WebView extends View {
 		layer.getView()._layoutSubviews();
 		layer.setNeedsDisplay();
 
-		for(ViewLayer sublayer : layer.getSublayers()) {
-			this.recursiveLayout((ViewLayerNative)sublayer);
+		for (ViewLayer sublayer : layer.getSublayers()) {
+			this.recursiveLayout((ViewLayerNative) sublayer);
 		}
 	}
 
 	private void recursiveFix() {
 		Window window = getWindow();
-		if(window != null) {
+		if (window != null) {
 			recursiveLayout((ViewLayerNative) window.getLayer());
 
 			this.webView.postInvalidate();
@@ -139,6 +145,7 @@ public class WebView extends View {
 
 	/**
 	 * Get the delegate for this web view
+	 *
 	 * @return Delegate
 	 */
 	public Delegate getDelegate() {
@@ -164,7 +171,7 @@ public class WebView extends View {
 	public void setNeedsLayout() {
 		super.setNeedsLayout();
 
-		if(this.nativeView != null) {
+		if (this.nativeView != null) {
 			this.nativeView.getNativeView().invalidate();
 		}
 	}
@@ -173,7 +180,7 @@ public class WebView extends View {
 	public void setNeedsDisplay() {
 		super.setNeedsDisplay();
 
-		if(this.nativeView != null) {
+		if (this.nativeView != null) {
 			this.nativeView.getNativeView().forceLayout();
 		}
 	}
@@ -181,10 +188,10 @@ public class WebView extends View {
 	/**
 	 * Load a url and provide extra request headers
 	 *
-	 * @param url URL to load
+	 * @param url          URL to load
 	 * @param extraHeaders Extra request headers to be sent
 	 */
-	public void loadUrl(String url, Map<String,String> extraHeaders) {
+	public void loadUrl(String url, Map<String, String> extraHeaders) {
 		this.lastNavigationType = NavigationType.OTHER;
 		this.webView.loadUrl(url, extraHeaders);
 	}
@@ -202,7 +209,7 @@ public class WebView extends View {
 	/**
 	 * Post a URL with a post body
 	 *
-	 * @param url URL to post to
+	 * @param url      URL to post to
 	 * @param postData Post body
 	 */
 	public void postUrl(String url, byte[] postData) {
@@ -214,7 +221,7 @@ public class WebView extends View {
 	 * Load an HTML string with a base URL
 	 *
 	 * @param htmlString HTML String to load
-	 * @param baseUrl Base URL for the document
+	 * @param baseUrl    Base URL for the document
 	 */
 	public void loadHTMLString(String htmlString, String baseUrl) {
 		this.lastNavigationType = NavigationType.OTHER;
@@ -224,10 +231,10 @@ public class WebView extends View {
 	/**
 	 * Load data with a base URL
 	 *
-	 * @param data Data to load
-	 * @param mimeType Mime type of the data
+	 * @param data             Data to load
+	 * @param mimeType         Mime type of the data
 	 * @param textEncodingName Name of the data encoding
-	 * @param baseUrl Base URL for the document
+	 * @param baseUrl          Base URL for the document
 	 */
 	public void loadData(String data, String mimeType, String textEncodingName, String baseUrl) {
 		this.lastNavigationType = NavigationType.OTHER;
@@ -247,10 +254,10 @@ public class WebView extends View {
 	 * Execute javascript on the current page and notify a callback of it's response
 	 *
 	 * @param javascript Javascript to evaluate
-	 * @param callback Called on the main thread with the response of the execution
+	 * @param callback   Called on the main thread with the response of the execution
 	 */
-	public void evaluateJavascript(String javascript, ValueCallback <String> callback) {
-		if(evaluateJavascriptMethod != null) {
+	public void evaluateJavascript(String javascript, ValueCallback<String> callback) {
+		if (evaluateJavascriptMethod != null) {
 			try {
 				evaluateJavascriptMethod.invoke(this.webView, javascript, callback);
 			} catch (Exception e) {
@@ -375,8 +382,8 @@ public class WebView extends View {
 		private Map<String, Command> commands = new HashMap<String, Command>();
 		private int executionOrdinal = 0;
 		private static final String JS_CODE = "javascript:try { " +
-				"__mochaWebViewJSInterface.commandExecuted('%s', eval(__mochaWebViewJSInterface.getCommand('%s')));" +
-				"} catch(err) { __mochaWebViewJSInterface.commandExecuted('%s', ''); }";
+			"__mochaWebViewJSInterface.commandExecuted('%s', eval(__mochaWebViewJSInterface.getCommand('%s')));" +
+			"} catch(err) { __mochaWebViewJSInterface.commandExecuted('%s', ''); }";
 
 
 		private class Command {
@@ -407,7 +414,7 @@ public class WebView extends View {
 			}
 
 			String get() {
-				if(!failed) {
+				if (!failed) {
 					cancelCallbacks(this.compileTimeoutCallback);
 					this.compileTimeoutCallback = null;
 
@@ -431,15 +438,15 @@ public class WebView extends View {
 			}
 
 			void didFinish(String result) {
-				if(this.executionTimeoutCallback != null) {
+				if (this.executionTimeoutCallback != null) {
 					cancelCallbacks(this.executionTimeoutCallback);
 					this.executionTimeoutCallback = null;
 				}
 
-				if(!finished && !failed) {
+				if (!finished && !failed) {
 					finished = true;
 
-					if(this.callback != null) {
+					if (this.callback != null) {
 						this.callback.onReceiveValue(result);
 					}
 				}
@@ -462,7 +469,7 @@ public class WebView extends View {
 		@JavascriptInterface
 		public String getCommand(String key) {
 			Command command = this.commands.get(key);
-			if(command != null) {
+			if (command != null) {
 				return command.get();
 			} else {
 				return null;
@@ -472,7 +479,7 @@ public class WebView extends View {
 		@JavascriptInterface
 		public void commandExecuted(String key, String result) {
 			Command command = this.commands.get(key);
-			if(command != null) {
+			if (command != null) {
 				command.didFinish(result);
 				commandEnded(command);
 			}
@@ -492,15 +499,15 @@ public class WebView extends View {
 	private class WebViewClient extends android.webkit.WebViewClient {
 
 		public boolean shouldOverrideUrlLoading(android.webkit.WebView view, final String url) {
-			if(delegate != null && (url == null || !url.startsWith("javascript:"))) {
+			if (delegate != null && (url == null || !url.startsWith("javascript:"))) {
 				final NavigationType navigationType;
 
-				if(lastNavigationType != null) {
+				if (lastNavigationType != null) {
 					navigationType = lastNavigationType;
 					lastNavigationType = null;
 				} else {
 					android.webkit.WebView.HitTestResult hitTestResult = view.getHitTestResult();
-					if(hitTestResult != null) {
+					if (hitTestResult != null) {
 						switch (hitTestResult.getType()) {
 							case android.webkit.WebView.HitTestResult.PHONE_TYPE:
 							case android.webkit.WebView.HitTestResult.GEO_TYPE:
@@ -522,7 +529,7 @@ public class WebView extends View {
 					}
 				}
 
-				final boolean shouldStart[] = new boolean[] { true };
+				final boolean shouldStart[] = new boolean[]{true};
 
 				delegate.runIf(new WeakReference.HasReference<Delegate>() {
 					public void hasReference(Delegate delegate) {
@@ -539,7 +546,7 @@ public class WebView extends View {
 		public void onPageStarted(android.webkit.WebView view, String url, Bitmap favicon) {
 			super.onPageStarted(view, url, favicon);
 
-			if(url == null || !url.startsWith("javascript:")) {
+			if (url == null || !url.startsWith("javascript:")) {
 				this.loadDidStart();
 			}
 		}
@@ -547,7 +554,7 @@ public class WebView extends View {
 		public void onPageFinished(android.webkit.WebView view, String url) {
 			super.onPageFinished(view, url);
 
-			if(url == null || !url.startsWith("javascript:")) {
+			if (url == null || !url.startsWith("javascript:")) {
 				this.loadDidEnd(false);
 			}
 		}
@@ -555,7 +562,7 @@ public class WebView extends View {
 		public void onReceivedError(android.webkit.WebView view, int errorCode, String description, String failingUrl) {
 			super.onReceivedError(view, errorCode, description, failingUrl);
 
-			if(failingUrl == null || !failingUrl.startsWith("javascript:")) {
+			if (failingUrl == null || !failingUrl.startsWith("javascript:")) {
 				this.loadDidEnd(true);
 			}
 		}
@@ -568,7 +575,7 @@ public class WebView extends View {
 		private void loadDidStart() {
 			isLoading = true;
 
-			if(delegate != null) {
+			if (delegate != null) {
 				delegate.runIf(new WeakReference.HasReference<Delegate>() {
 					public void hasReference(Delegate delegate) {
 						delegate.didStartLoad(WebView.this);
@@ -584,10 +591,10 @@ public class WebView extends View {
 
 			recursiveFix();
 
-			if(delegate != null) {
+			if (delegate != null) {
 				delegate.runIf(new WeakReference.HasReference<Delegate>() {
 					public void hasReference(Delegate delegate) {
-						if(failed) {
+						if (failed) {
 							delegate.didFailLoad(WebView.this);
 						} else {
 							delegate.didFinishLoad(WebView.this);
@@ -606,7 +613,7 @@ public class WebView extends View {
 		private static WeakReference<WebChromeClient> instance;
 
 		static WebChromeClient instance() {
-			if(instance == null || instance.get() == null) {
+			if (instance == null || instance.get() == null) {
 				instance = new WeakReference<WebChromeClient>(new WebChromeClient());
 			}
 

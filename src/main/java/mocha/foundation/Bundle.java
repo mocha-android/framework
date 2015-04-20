@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/10/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import android.content.pm.PackageManager;
@@ -30,6 +25,7 @@ public class Bundle extends MObject {
 	 * Create a bundle for an application
 	 *
 	 * @param application Application
+	 *
 	 * @hide
 	 */
 	public Bundle(Application application) {
@@ -40,6 +36,7 @@ public class Bundle extends MObject {
 	 * Gets the contents of an asset file as a string
 	 *
 	 * @param assetName Name of the asset to read
+	 *
 	 * @return Asset contents
 	 */
 	public String getStringFromAssets(String assetName) {
@@ -67,7 +64,8 @@ public class Bundle extends MObject {
 	 * Gets the contents of an asset file as an image
 	 *
 	 * @param assetName Name of the asset to read
-	 * @param scale Scale of the image
+	 * @param scale     Scale of the image
+	 *
 	 * @return Asset contents
 	 */
 	public Image getImageFromAssets(String assetName, float scale) {
@@ -76,10 +74,10 @@ public class Bundle extends MObject {
 			Bitmap bitmap = BitmapFactory.decodeStream(is);
 			is.close();
 
-			if(bitmap != null) {
+			if (bitmap != null) {
 				int density;
 
-				if(scale >= 1.5) {
+				if (scale >= 1.5) {
 					if (scale >= 2.0f) {
 						if (scale >= 3.0f) {
 							density = DisplayMetrics.DENSITY_XXHIGH;
@@ -89,7 +87,7 @@ public class Bundle extends MObject {
 					} else {
 						density = DisplayMetrics.DENSITY_HIGH;
 					}
-				} else if(scale < 1.0f) {
+				} else if (scale < 1.0f) {
 					density = DisplayMetrics.DENSITY_LOW;
 				} else {
 					density = DisplayMetrics.DENSITY_MEDIUM;
@@ -108,6 +106,7 @@ public class Bundle extends MObject {
 
 	/**
 	 * Gets the name of the package
+	 *
 	 * @return Name
 	 */
 	public String getName() {
@@ -116,6 +115,7 @@ public class Bundle extends MObject {
 
 	/**
 	 * Gets the version of the package
+	 *
 	 * @return Version
 	 */
 	public String getVersion() {
@@ -128,6 +128,7 @@ public class Bundle extends MObject {
 
 	/**
 	 * Gets the version code of the package
+	 *
 	 * @return Version code
 	 */
 	public int getVersionCode() {

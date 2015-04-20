@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 2/18/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.foundation.concurrent;
 
 import android.os.Handler;
@@ -23,7 +18,7 @@ public class MainQueue extends ScheduledQueue {
 	 * @return Main queue for this application
 	 */
 	public synchronized static MainQueue get() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new MainQueue();
 		}
 
@@ -33,7 +28,7 @@ public class MainQueue extends ScheduledQueue {
 	private MainQueue() {
 		Looper looper = Looper.getMainLooper();
 
-		if(looper == null) {
+		if (looper == null) {
 			throw new RuntimeException("Could not find main looper.");
 		} else {
 			this.handler = new Handler(looper);
@@ -58,7 +53,7 @@ public class MainQueue extends ScheduledQueue {
 	 * @inheritDoc
 	 */
 	public void wait(final Runnable runnable) {
-		if(Looper.myLooper() == this.handler.getLooper()) {
+		if (Looper.myLooper() == this.handler.getLooper()) {
 			runnable.run();
 		} else {
 			this.lock.acquireUninterruptibly();

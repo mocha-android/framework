@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/15/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.lang.reflect.Field;
@@ -48,32 +43,32 @@ public class Lists {
 
 	public static List<Integer> createFromPrimitives(int... items) {
 		List<Integer> list = new ArrayList<>(items.length);
-		for(int i : list) list.add(i);
+		for (int i : list) list.add(i);
 		return list;
 	}
 
 	public static List<Float> createFromPrimitives(float... items) {
 		List<Float> list = new ArrayList<>(items.length);
-		for(float i : list) list.add(i);
+		for (float i : list) list.add(i);
 		return list;
 	}
 
 	public static List<Double> createFromPrimitives(double... items) {
 		List<Double> list = new ArrayList<>(items.length);
-		for(double i : list) list.add(i);
+		for (double i : list) list.add(i);
 		return list;
 	}
 
 	public static List<Boolean> createFromPrimitives(boolean... items) {
 		List<Boolean> list = new ArrayList<>(items.length);
-		for(boolean i : list) list.add(i);
+		for (boolean i : list) list.add(i);
 		return list;
 	}
 
 	public static <T> List<T> copy(Collection<T> list) {
 		List<T> copy = new ArrayList<>();
 
-		if(list != null) {
+		if (list != null) {
 			copy.addAll(list);
 		}
 
@@ -99,10 +94,10 @@ public class Lists {
 	}
 
 	public static <T> T removeLast(List<T> list) {
-		if(list != null) {
+		if (list != null) {
 			int size = list.size();
 
-			if(size > 0) {
+			if (size > 0) {
 				T item = list.get(size - 1);
 				list.remove(size - 1);
 				return item;
@@ -125,8 +120,8 @@ public class Lists {
 	}
 
 	public static <T> T removeFirst(List<T> list) {
-		if(list != null) {
-			if(list.size() > 0) {
+		if (list != null) {
+			if (list.size() > 0) {
 				T item = list.get(0);
 				list.remove(0);
 				return item;
@@ -157,13 +152,13 @@ public class Lists {
 	public static <T extends Comparable<T>> List<T> sortedList(Collection<T> list, boolean ascending) {
 		List<T> sortedList = new ArrayList<>();
 
-		if(list != null) {
+		if (list != null) {
 			int size = list.size();
 
-			if(size > 0) {
+			if (size > 0) {
 				sortedList.addAll(list);
 
-				if(size == 1) {
+				if (size == 1) {
 					sort(sortedList, ascending);
 				}
 			}
@@ -173,7 +168,7 @@ public class Lists {
 	}
 
 	public static <T> void sort(List<T> list, SortDescriptor sortDescriptor) {
-		if(list.size() < 2) return;
+		if (list.size() < 2) return;
 
 		Class<?> itemClass = list.get(0).getClass();
 		Class<?> type;
@@ -181,13 +176,13 @@ public class Lists {
 
 		try {
 			fieldOrMethod = itemClass.getField(sortDescriptor.key);
-			type = ((Field)fieldOrMethod).getType();
+			type = ((Field) fieldOrMethod).getType();
 		} catch (NoSuchFieldException e) {
 			String getter = "get" + sortDescriptor.key.substring(0, 1).toUpperCase() + sortDescriptor.key.substring(1);
 
 			try {
 				fieldOrMethod = itemClass.getMethod(getter);
-				type = ((Method)fieldOrMethod).getReturnType();
+				type = ((Method) fieldOrMethod).getReturnType();
 			} catch (NoSuchMethodException e1) {
 				throw new RuntimeException(e);
 			}
@@ -195,7 +190,7 @@ public class Lists {
 
 		Comparator<T> comparator = null;
 
-		if(type != null) {
+		if (type != null) {
 			if (type.equals(Integer.class) || type.equals(int.class)) {
 				comparator = getIntComparator(fieldOrMethod);
 			} else if (type.equals(Long.class) || type.equals(long.class)) {
@@ -211,13 +206,13 @@ public class Lists {
 			}
 		}
 
-		if(comparator == null) {
+		if (comparator == null) {
 			throw new RuntimeException("Type '" + type + "' is not supported.");
 		}
 
 		Collections.sort(list, comparator);
 
-		if(!sortDescriptor.ascending) {
+		if (!sortDescriptor.ascending) {
 			Collections.reverse(list);
 		}
 	}
@@ -225,8 +220,8 @@ public class Lists {
 	private static <T> Comparator<T> getStringComparator(Object o) {
 		return new ReflectionComparator<T, String>(o) {
 			protected int compareValues(String value1, String value2) {
-				if(value1 == null) value1 = "";
-				if(value2 == null) value2 = "";
+				if (value1 == null) value1 = "";
+				if (value2 == null) value2 = "";
 				return value1.compareTo(value2);
 			}
 		};
@@ -235,8 +230,8 @@ public class Lists {
 	private static <T> Comparator<T> getLongComparator(Object o) {
 		return new ReflectionComparator<T, Long>(o) {
 			protected int compareValues(Long value1, Long value2) {
-				if(value1 == null) value1 = 0L;
-				if(value2 == null) value2 = 0L;
+				if (value1 == null) value1 = 0L;
+				if (value2 == null) value2 = 0L;
 				return value1.compareTo(value2);
 			}
 		};
@@ -245,8 +240,8 @@ public class Lists {
 	private static <T> Comparator<T> getIntComparator(Object o) {
 		return new ReflectionComparator<T, Integer>(o) {
 			protected int compareValues(Integer value1, Integer value2) {
-				if(value1 == null) value1 = 0;
-				if(value2 == null) value2 = 0;
+				if (value1 == null) value1 = 0;
+				if (value2 == null) value2 = 0;
 				return value1.compareTo(value2);
 			}
 		};
@@ -255,8 +250,8 @@ public class Lists {
 	private static <T> Comparator<T> getDoubleComparator(Object o) {
 		return new ReflectionComparator<T, Double>(o) {
 			protected int compareValues(Double value1, Double value2) {
-				if(value1 == null) value1 = 0.0;
-				if(value2 == null) value2 = 0.0;
+				if (value1 == null) value1 = 0.0;
+				if (value2 == null) value2 = 0.0;
 				return value1.compareTo(value2);
 			}
 		};
@@ -265,8 +260,8 @@ public class Lists {
 	private static <T> Comparator<T> getFloatComparator(Object o) {
 		return new ReflectionComparator<T, Float>(o) {
 			protected int compareValues(Float value1, Float value2) {
-				if(value1 == null) value1 = 0.0f;
-				if(value2 == null) value2 = 0.0f;
+				if (value1 == null) value1 = 0.0f;
+				if (value2 == null) value2 = 0.0f;
 				return value1.compareTo(value2);
 			}
 		};
@@ -275,8 +270,8 @@ public class Lists {
 	private static <T> Comparator<T> getBooleanComparator(Object o) {
 		return new ReflectionComparator<T, Boolean>(o) {
 			protected int compareValues(Boolean value1, Boolean value2) {
-				if(value1 == null) value1 = false;
-				if(value2 == null) value2 = false;
+				if (value1 == null) value1 = false;
+				if (value2 == null) value2 = false;
 				return value1.compareTo(value2);
 			}
 		};
@@ -287,10 +282,10 @@ public class Lists {
 		Method method;
 
 		protected ReflectionComparator(Object object) {
-			if(object instanceof Field) {
-				this.field = (Field)object;
-			} else if(object instanceof Method) {
-				this.method = (Method)object;
+			if (object instanceof Field) {
+				this.field = (Field) object;
+			} else if (object instanceof Method) {
+				this.method = (Method) object;
 			}
 		}
 
@@ -299,10 +294,10 @@ public class Lists {
 			F value1;
 
 			try {
-				if(method != null) {
-					value1 = (F)this.method.invoke(t);
+				if (method != null) {
+					value1 = (F) this.method.invoke(t);
 				} else {
-					value1 = (F)this.field.get(t);
+					value1 = (F) this.field.get(t);
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
@@ -311,10 +306,10 @@ public class Lists {
 			F value2;
 
 			try {
-				if(this.method != null) {
-					value2 = (F)this.method.invoke(t2);
+				if (this.method != null) {
+					value2 = (F) this.method.invoke(t2);
 				} else {
-					value2 = (F)this.field.get(t2);
+					value2 = (F) this.field.get(t2);
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);

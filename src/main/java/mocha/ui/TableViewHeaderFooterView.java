@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/21/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Font;
@@ -36,7 +31,7 @@ public class TableViewHeaderFooterView extends TableViewSubview {
 
 		Rect bounds = this.getBounds();
 
-		if(this.backgroundView != null) {
+		if (this.backgroundView != null) {
 			this.backgroundView.setFrame(this.getBounds());
 		}
 
@@ -61,13 +56,13 @@ public class TableViewHeaderFooterView extends TableViewSubview {
 	}
 
 	public void setBackgroundView(View backgroundView) {
-		if(this.backgroundView != null) {
+		if (this.backgroundView != null) {
 			this.backgroundView.removeFromSuperview();
 		}
 
 		this.backgroundView = backgroundView;
 
-		if(this.backgroundView != null) {
+		if (this.backgroundView != null) {
 			this.insertSubview(this.backgroundView, 0);
 		}
 

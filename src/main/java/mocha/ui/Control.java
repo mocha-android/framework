@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/25/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Rect;
@@ -13,8 +8,8 @@ import java.util.*;
 public class Control extends View {
 
 	public enum ControlEvent {
-		TOUCH_DOWN,      // on all touch downs
-		TOUCH_DOWN_REPEAT,      // on multiple touchdowns (tap count > 1)
+		TOUCH_DOWN,
+		TOUCH_DOWN_REPEAT,
 		TOUCH_DRAG_INSIDE,
 		TOUCH_DRAG_OUTSIDE,
 		TOUCH_DRAG_ENTER,
@@ -23,17 +18,17 @@ public class Control extends View {
 		TOUCH_UP_OUTSIDE,
 		TOUCH_CANCEL,
 
-		VALUE_CHANGED,     // sliders, etc.
+		VALUE_CHANGED,
 
-		EDITING_DID_BEGIN,     // Text field
+		EDITING_DID_BEGIN,
 		EDITING_CHANGED,
 		EDITING_DID_END,
-		EDITING_DID_END_ON_EXIT,     // 'return key' ending editing
+		EDITING_DID_END_ON_EXIT,
 
-		ALL_TOUCH_EVENTS,  // for touch events
-		ALL_EDITING_EVENTS,  // for Text field
-		APPLICATION_RESERVED,  // range available for application use
-		SYSTEM_RESERVED,  // range reserved for internal framework use
+		ALL_TOUCH_EVENTS,
+		ALL_EDITING_EVENTS,
+		APPLICATION_RESERVED,
+		SYSTEM_RESERVED,
 		ALL_EVENTS
 	}
 
@@ -53,16 +48,16 @@ public class Control extends View {
 
 	public enum State {
 		NORMAL,
-		HIGHLIGHTED, // used when isHighlighted is set
+		HIGHLIGHTED,
 		DISABLED,
-		SELECTED, // flag usable by app (see below)
-		APPLICATION, // additional flags available for application use
-		RESERVED; // flags reserved for internal framework
+		SELECTED,
+		APPLICATION,
+		RESERVED;
 
 		public static EnumSet<State> toSet(State[] states) {
-			if(states != null && states.length == 1) {
+			if (states != null && states.length == 1) {
 				return EnumSet.of(states[0]);
-			} else if(states != null && states.length > 0) {
+			} else if (states != null && states.length > 0) {
 				return EnumSet.of(states[0], states);
 			} else {
 				return EnumSet.noneOf(State.class);
@@ -86,14 +81,19 @@ public class Control extends View {
 	private boolean touchInside;
 	private HorizontalAlignment contentHorizontalAlignment;
 	private VerticalAlignment contentVerticalAlignment;
-	private Map<ActionTarget,EnumSet<ControlEvent>> registeredActions;
+	private Map<ActionTarget, EnumSet<ControlEvent>> registeredActions;
 	private EnumSet<State> cachedState;
 	private State[] cachedStates;
 	private boolean shouldPerformHapticFeedbackOnTouchUpInside;
 	private boolean shouldPlayClickSoundOnTouchUpInside;
 
-	public Control() { super(); }
-	public Control(Rect frame) { super(frame); }
+	public Control() {
+		super();
+	}
+
+	public Control(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -134,7 +134,7 @@ public class Control extends View {
 	public void addActionTarget(ActionTarget actionTarget, ControlEvent... controlEvents) {
 		EnumSet<ControlEvent> registeredEvents;
 
-		if((registeredEvents = this.registeredActions.get(actionTarget)) == null) {
+		if ((registeredEvents = this.registeredActions.get(actionTarget)) == null) {
 			registeredEvents = EnumSet.noneOf(ControlEvent.class);
 		}
 
@@ -145,13 +145,13 @@ public class Control extends View {
 
 	public void removeActionTarget(ActionTarget actionTarget, ControlEvent... controlEvents) {
 		EnumSet<ControlEvent> registeredEvents = this.registeredActions.get(actionTarget);
-		if(registeredEvents == null) return;
+		if (registeredEvents == null) return;
 
-		for(ControlEvent controlEvent : controlEvents) {
+		for (ControlEvent controlEvent : controlEvents) {
 			registeredEvents.remove(controlEvent);
 		}
 
-		if(registeredEvents.size() == 0) {
+		if (registeredEvents.size() == 0) {
 			this.registeredActions.remove(actionTarget);
 		}
 	}
@@ -163,7 +163,7 @@ public class Control extends View {
 	public ControlEvent[] allControlEvents() {
 		EnumSet<ControlEvent> registeredEvents = EnumSet.noneOf(ControlEvent.class);
 
-		for(EnumSet<ControlEvent> controlEvents : this.registeredActions.values()) {
+		for (EnumSet<ControlEvent> controlEvents : this.registeredActions.values()) {
 			registeredEvents.addAll(controlEvents);
 		}
 
@@ -175,23 +175,23 @@ public class Control extends View {
 	}
 
 	void sendActionsForControlEvents(Event event, ControlEvent... controlEvents) {
-		if(this.registeredActions.size() == 0) return;
+		if (this.registeredActions.size() == 0) return;
 
 		boolean hasSentTouchUpInsideAction = false;
 
-		for(ActionTarget actionTarget : this.registeredActions.keySet()) {
-			for(ControlEvent controlEvent : controlEvents) {
-				if(this.registeredActions.get(actionTarget).contains(controlEvent)) {
+		for (ActionTarget actionTarget : this.registeredActions.keySet()) {
+			for (ControlEvent controlEvent : controlEvents) {
+				if (this.registeredActions.get(actionTarget).contains(controlEvent)) {
 
-					if(controlEvent == ControlEvent.TOUCH_UP_INSIDE && !hasSentTouchUpInsideAction) {
+					if (controlEvent == ControlEvent.TOUCH_UP_INSIDE && !hasSentTouchUpInsideAction) {
 						// We have to fire this stuff before the action, because if the action
 						// removes us from the window, they won't fire.
 
-						if(this.shouldPerformHapticFeedbackOnTouchUpInside) {
+						if (this.shouldPerformHapticFeedbackOnTouchUpInside) {
 							this.performHapticFeedback();
 						}
 
-						if(this.shouldPlayClickSoundOnTouchUpInside) {
+						if (this.shouldPlayClickSoundOnTouchUpInside) {
 							this.playClickSound();
 						}
 
@@ -226,14 +226,14 @@ public class Control extends View {
 		this.tracking = this.beginTracking(touch, event);
 		this.setHighlighted(true);
 
-		if(this.tracking) {
+		if (this.tracking) {
 
 			ControlEvent[] controlEvents;
 
-			if(touch.getTapCount() > 1) {
-				controlEvents = new ControlEvent[] { ControlEvent.TOUCH_DOWN, ControlEvent.TOUCH_DOWN_REPEAT };
+			if (touch.getTapCount() > 1) {
+				controlEvents = new ControlEvent[]{ControlEvent.TOUCH_DOWN, ControlEvent.TOUCH_DOWN_REPEAT};
 			} else {
-				controlEvents = new ControlEvent[] { ControlEvent.TOUCH_DOWN };
+				controlEvents = new ControlEvent[]{ControlEvent.TOUCH_DOWN};
 			}
 
 			this.sendActionsForControlEvents(event, controlEvents);
@@ -245,23 +245,23 @@ public class Control extends View {
 		boolean wasTouchInside = this.touchInside;
 		this.touchInside = this.pointInside(touch.locationInView(this), event);
 
-		if(this.highlighted != this.touchInside) {
+		if (this.highlighted != this.touchInside) {
 			this.setHighlighted(this.touchInside);
 		}
 
-		if(this.tracking) {
+		if (this.tracking) {
 			this.tracking = this.continueTracking(touch, event);
 
-			if(this.tracking) {
+			if (this.tracking) {
 				ControlEvent dragEvent = this.touchInside ? ControlEvent.TOUCH_DRAG_INSIDE : ControlEvent.TOUCH_DRAG_OUTSIDE;
 				ControlEvent[] controlEvents;
 
 				if (!wasTouchInside && this.touchInside) {
-					controlEvents = new ControlEvent[] { dragEvent, ControlEvent.TOUCH_DRAG_ENTER };
+					controlEvents = new ControlEvent[]{dragEvent, ControlEvent.TOUCH_DRAG_ENTER};
 				} else if (wasTouchInside && !this.touchInside) {
-					controlEvents = new ControlEvent[] { dragEvent, ControlEvent.TOUCH_DRAG_EXIT };
+					controlEvents = new ControlEvent[]{dragEvent, ControlEvent.TOUCH_DRAG_EXIT};
 				} else {
-					controlEvents = new ControlEvent[] { dragEvent };
+					controlEvents = new ControlEvent[]{dragEvent};
 				}
 
 				this.sendActionsForControlEvents(event, controlEvents);
@@ -273,11 +273,11 @@ public class Control extends View {
 		Touch touch = touches.get(0);
 		this.touchInside = this.pointInside(touch.locationInView(this), event);
 
-		if(this.highlighted) {
+		if (this.highlighted) {
 			this.setHighlighted(false);
 		}
 
-		if(this.tracking) {
+		if (this.tracking) {
 			this.endTracking(touch, event);
 			this.sendActionsForControlEvents(event, this.touchInside ? ControlEvent.TOUCH_UP_INSIDE : ControlEvent.TOUCH_UP_OUTSIDE);
 		}
@@ -287,11 +287,11 @@ public class Control extends View {
 	}
 
 	public void touchesCancelled(List<Touch> touches, Event event) {
-		if(this.highlighted) {
+		if (this.highlighted) {
 			this.setHighlighted(false);
 		}
 
-		if(this.tracking) {
+		if (this.tracking) {
 			this.cancelTracking(event);
 			this.sendActionsForControlEvents(event, ControlEvent.TOUCH_CANCEL);
 		}
@@ -302,18 +302,18 @@ public class Control extends View {
 
 
 	public EnumSet<State> getState() {
-		if(this.cachedState == null) {
+		if (this.cachedState == null) {
 			this.cachedState = EnumSet.of(State.NORMAL);
 
-			if(this.highlighted) {
+			if (this.highlighted) {
 				this.cachedState.add(State.HIGHLIGHTED);
 			}
 
-			if(this.selected) {
+			if (this.selected) {
 				this.cachedState.add(State.SELECTED);
 			}
 
-			if(!this.enabled) {
+			if (!this.enabled) {
 				this.cachedState.add(State.DISABLED);
 			}
 		}
@@ -322,7 +322,7 @@ public class Control extends View {
 	}
 
 	State[] getStates() {
-		if(this.cachedStates == null) {
+		if (this.cachedStates == null) {
 			EnumSet<State> state = this.getState();
 			this.cachedStates = state.toArray(new State[state.size()]);
 		}
@@ -347,7 +347,7 @@ public class Control extends View {
 	}
 
 	public void setEnabled(boolean enabled) {
-		if(this.enabled != enabled) {
+		if (this.enabled != enabled) {
 			this.stateWillChange();
 			this.enabled = enabled;
 			this.setUserInteractionEnabled(this.enabled);
@@ -360,7 +360,7 @@ public class Control extends View {
 	}
 
 	public void setSelected(boolean selected) {
-		if(this.selected != selected) {
+		if (this.selected != selected) {
 			this.stateWillChange();
 			this.selected = selected;
 			this.stateDidChange();
@@ -372,7 +372,7 @@ public class Control extends View {
 	}
 
 	public void setHighlighted(boolean highlighted) {
-		if(this.highlighted != highlighted) {
+		if (this.highlighted != highlighted) {
 			this.stateWillChange();
 			this.highlighted = highlighted;
 			this.stateDidChange();
@@ -404,9 +404,11 @@ public class Control extends View {
 	}
 
 	/**
-	 * @deprecated {@link State#toSet(mocha.ui.Control.State[])}
 	 * @param states States to convert to a set
+	 *
 	 * @return State set
+	 *
+	 * @deprecated {@link State#toSet(mocha.ui.Control.State[])}
 	 */
 	static EnumSet<State> getStateSet(State... states) {
 		return State.toSet(states);

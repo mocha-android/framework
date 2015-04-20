@@ -1,8 +1,3 @@
-/**
- *    @author Shaun
- *	@date 11/24/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.util.FloatMath;
@@ -82,19 +77,19 @@ class ScrollViewDeceleration extends MObject {
 		velocity.y /= -1000.0f;
 
 
-		if(this.target.isPagingEnabled()) {
+		if (this.target.isPagingEnabled()) {
 			final float width = this.target.getBoundsWidth();
 			final float height = this.target.getBoundsHeight();
 
 			this.targetContentOffset = new Point();
 
-			if(velocity.x > 0) {
+			if (velocity.x > 0) {
 				this.targetContentOffset.x = Math.min(maxPoint.x, FloatMath.ceil(this.startContentOffset.x / width) * width);
 			} else {
 				this.targetContentOffset.x = Math.max(minPoint.x, FloatMath.floor(this.startContentOffset.x / width) * width);
 			}
 
-			if(velocity.y > 0) {
+			if (velocity.y > 0) {
 				this.targetContentOffset.y = Math.min(maxPoint.y, FloatMath.ceil(this.target.contentOffset.y / height) * height);
 			} else {
 				this.targetContentOffset.y = Math.max(minPoint.y, FloatMath.floor(this.target.contentOffset.y / height) * height);
@@ -169,6 +164,5 @@ class ScrollViewDeceleration extends MObject {
 
 		this.target.setContentOffset(this.reusablePoint, null, 0, true);
 	}
-
 
 }

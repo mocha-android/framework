@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/1/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.pm.ActivityInfo;
@@ -31,9 +26,9 @@ public enum InterfaceOrientation {
 	}
 
 	public static Set<InterfaceOrientation> toSet(InterfaceOrientation... interfaceOrientations) {
-		if(interfaceOrientations != null && interfaceOrientations.length == 1) {
+		if (interfaceOrientations != null && interfaceOrientations.length == 1) {
 			return EnumSet.of(interfaceOrientations[0]);
-		} else if(interfaceOrientations != null && interfaceOrientations.length > 0) {
+		} else if (interfaceOrientations != null && interfaceOrientations.length > 0) {
 			return EnumSet.of(interfaceOrientations[0], interfaceOrientations);
 		} else {
 			return EnumSet.noneOf(InterfaceOrientation.class);

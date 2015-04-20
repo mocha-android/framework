@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/10/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.app.AlertDialog;
@@ -55,7 +50,7 @@ public class ActionSheet extends MObject {
 			 * Called before the action sheet dismisses from screen, after Listener#onClickedButtonAtIndex is called.
 			 *
 			 * @param actionSheet Action sheet
-			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
+			 * @param buttonIndex Button index that was clicked causing the dismissal (could be cancel button index)
 			 */
 			void willDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 
@@ -63,7 +58,7 @@ public class ActionSheet extends MObject {
 			 * Called after the action sheet is removed from the screen.
 			 *
 			 * @param actionSheet Action sheet
-			 * @param buttonIndex Button index that was clicked causing the dismisall (could be cancel button index)
+			 * @param buttonIndex Button index that was clicked causing the dismissal (could be cancel button index)
 			 */
 			void didDismissWithButtonIndex(ActionSheet actionSheet, int buttonIndex);
 		}
@@ -86,8 +81,8 @@ public class ActionSheet extends MObject {
 	/**
 	 * Create an action sheet
 	 *
-	 * @param title Title of the action sheet
-	 * @param listener Listener for the action sheet
+	 * @param title             Title of the action sheet
+	 * @param listener          Listener for the action sheet
 	 * @param cancelButtonTitle Cancel button title, may be null
 	 * @param otherButtonTitles Other button titles, may be null
 	 */
@@ -99,7 +94,7 @@ public class ActionSheet extends MObject {
 		this.cancelButtonTitle = cancelButtonTitle;
 		this.otherButtonTitles = new ArrayList<CharSequence>();
 
-		if(otherButtonTitles != null) {
+		if (otherButtonTitles != null) {
 			Collections.addAll(this.otherButtonTitles, otherButtonTitles);
 		}
 	}
@@ -121,8 +116,8 @@ public class ActionSheet extends MObject {
 	public void setListener(Listener listener) {
 		this.listener = listener;
 
-		if(this.listener instanceof Listener.Presentation) {
-			this.presentationListener = (Listener.Presentation)this.listener;
+		if (this.listener instanceof Listener.Presentation) {
+			this.presentationListener = (Listener.Presentation) this.listener;
 		}
 	}
 
@@ -148,6 +143,7 @@ public class ActionSheet extends MObject {
 	 * Add a button and return it's index
 	 *
 	 * @param title Button title
+	 *
 	 * @return Index of the button added
 	 */
 	public int addButton(CharSequence title) {
@@ -159,10 +155,11 @@ public class ActionSheet extends MObject {
 	 * Get the title of the button at an index
 	 *
 	 * @param index Index of the button to get the title from
+	 *
 	 * @return Button title index
 	 */
 	public CharSequence getButtonTitle(int index) {
-		if(index == this.CANCEL_BUTTON_INDEX) {
+		if (index == CANCEL_BUTTON_INDEX) {
 			return this.cancelButtonTitle;
 		} else {
 			return this.otherButtonTitles.get(index);
@@ -202,13 +199,13 @@ public class ActionSheet extends MObject {
 	 * @return Cancel button index
 	 */
 	public int getCancelButtonIndex() {
-		return this.CANCEL_BUTTON_INDEX;
+		return CANCEL_BUTTON_INDEX;
 	}
 
 	/**
 	 * Show the action sheet from a bar button item
 	 *
-	 * @param item Bar button item to show from
+	 * @param item     Bar button item to show from
 	 * @param animated Whether or not the presentation is animated
 	 */
 	public void show(BarButtonItem item, boolean animated) {
@@ -218,8 +215,8 @@ public class ActionSheet extends MObject {
 	/**
 	 * Show the action sheet from a view, around the rect
 	 *
-	 * @param rect Rect to show from
-	 * @param view View to show in
+	 * @param rect     Rect to show from
+	 * @param view     View to show in
 	 * @param animated Whether or not the presentation is animated
 	 */
 	public void show(Rect rect, View view, boolean animated) {
@@ -236,16 +233,16 @@ public class ActionSheet extends MObject {
 	}
 
 	/**
-	 * Show the actions heet
+	 * Show the action sheet
 	 */
 	private void show() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(Application.sharedApplication().getContext(), this.style == Style.LIGHT ? AlertDialog.THEME_HOLO_LIGHT : AlertDialog.THEME_HOLO_DARK);
 
-		if(this.title != null) {
+		if (this.title != null) {
 			builder.setTitle(this.title);
 		}
 
-		if(this.cancelButtonTitle != null) {
+		if (this.cancelButtonTitle != null) {
 			builder.setNegativeButton(this.cancelButtonTitle, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialogInterface, int which) {
 					dialogInterface.cancel();
@@ -254,7 +251,7 @@ public class ActionSheet extends MObject {
 
 			builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
 				public void onCancel(DialogInterface dialogInterface) {
-					if(listener != null) {
+					if (listener != null) {
 						_dismissWithClickedButtonIndex(CANCEL_BUTTON_INDEX);
 					}
 				}
@@ -263,7 +260,7 @@ public class ActionSheet extends MObject {
 			builder.setCancelable(false);
 		}
 
-		if(this.otherButtonTitles.size() > 0) {
+		if (this.otherButtonTitles.size() > 0) {
 			CharSequence[] otherButtonTitles = this.otherButtonTitles.toArray(new CharSequence[this.otherButtonTitles.size()]);
 			builder.setItems(otherButtonTitles, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialogInterface, int which) {
@@ -278,7 +275,7 @@ public class ActionSheet extends MObject {
 		this.alertDialog.setOnShowListener(alertListener);
 		this.alertDialog.setOnDismissListener(alertListener);
 
-		if(this.presentationListener != null) {
+		if (this.presentationListener != null) {
 			this.presentationListener.willPresentActionSheet(this);
 		}
 
@@ -292,22 +289,22 @@ public class ActionSheet extends MObject {
 	 * @param buttonIndex Button index
 	 */
 	public void dismissWithClickedButtonIndex(int buttonIndex) {
-		if(this.isVisible()) {
+		if (this.isVisible()) {
 			_dismissWithClickedButtonIndex(buttonIndex);
 			this.alertDialog.dismiss();
 		}
 	}
 
 	private void _dismissWithClickedButtonIndex(int buttonIndex) {
-		if(this.listener != null) {
-			if(buttonIndex == CANCEL_BUTTON_INDEX) {
+		if (this.listener != null) {
+			if (buttonIndex == CANCEL_BUTTON_INDEX) {
 				this.listener.onCancel(this);
 			} else {
 				this.listener.onClickedButtonAtIndex(this, buttonIndex);
 			}
 		}
 
-		if(this.presentationListener != null) {
+		if (this.presentationListener != null) {
 			this.presentationListener.willDismissWithButtonIndex(this, buttonIndex);
 		}
 
@@ -328,7 +325,7 @@ public class ActionSheet extends MObject {
 
 	private class AlertListener implements DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
 		public void onDismiss(DialogInterface dialogInterface) {
-			if(presentationListener != null) {
+			if (presentationListener != null) {
 				presentationListener.didDismissWithButtonIndex(ActionSheet.this, dismissedWithButtonIndex);
 			}
 
@@ -336,7 +333,7 @@ public class ActionSheet extends MObject {
 		}
 
 		public void onShow(DialogInterface dialogInterface) {
-			if(presentationListener != null) {
+			if (presentationListener != null) {
 				presentationListener.didPresentActionSheet(ActionSheet.this);
 			}
 		}

@@ -1,13 +1,9 @@
-/**
- *  @author Shaun
- *  @date 4/20/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.content.Context;
 import android.util.FloatMath;
-import android.view.*;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
 import mocha.foundation.NotificationCenter;
 import mocha.graphics.Rect;
 
@@ -23,7 +19,7 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 	}
 
 	public Window getWindow() {
-		return (Window)this.getView();
+		return (Window) this.getView();
 	}
 
 	public android.view.View getNativeView() {
@@ -51,8 +47,8 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 		layer.getView()._layoutSubviews();
 		layer.setNeedsDisplay();
 
-		for(ViewLayer sublayer : layer.getSublayers()) {
-			this.recursiveLayout((ViewLayerNative)sublayer);
+		for (ViewLayer sublayer : layer.getSublayers()) {
+			this.recursiveLayout((ViewLayerNative) sublayer);
 		}
 	}
 
@@ -81,7 +77,7 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 
 			Event event = window.getLastEvent();
 
-			if(event == null) {
+			if (event == null) {
 				event = Event.touchEvent(window);
 				window.setLastEvent(event);
 			}
@@ -103,7 +99,7 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 			super.onLayout(changed, left, top, right, bottom);
 
-			if(changed) {
+			if (changed) {
 				MLog("[WINDOW SIZE] onLayout changed, new height: %d, top: %d, left: %d | using: %dx%d", bottom - top, top, left, measuredWidth, measuredHeight);
 
 				// Rect oldFrame = getWindow().getFrame();
@@ -128,8 +124,8 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 			this.measuredWidth = proposedWidth;
 			this.measuredHeight = proposedHeight;
 
-			if(this.orientationChangeCallback != null) {
-				if(proposedWidth == this.orientationChangeWidth) {
+			if (this.orientationChangeCallback != null) {
+				if (proposedWidth == this.orientationChangeWidth) {
 					super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 					return;
 				} else {
@@ -140,10 +136,10 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 
 			boolean orientationChange = this.hasMeasured && (this.getWidth() != proposedWidth);
 
-			if(orientationChange) {
+			if (orientationChange) {
 				this.orientationChangeCallback = performAfterDelay(1000, new Runnable() {
 					public void run() {
-						if(keyboardOpen) {
+						if (keyboardOpen) {
 							float keyboardHeight = (lastKeyboardHeight / scale);
 
 							Rect beginFrame = getWindow().getBounds();
@@ -153,7 +149,7 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 							Rect endFrame = getWindow().getBounds();
 							endFrame.origin.y = endFrame.size.height;
 							endFrame.size.height = keyboardHeight;
-							final Map<String,Object> info = new HashMap<String,Object>();
+							final Map<String, Object> info = new HashMap<String, Object>();
 							info.put(Window.KEYBOARD_FRAME_BEGIN_USER_INFO_KEY, beginFrame);
 							info.put(Window.KEYBOARD_FRAME_END_USER_INFO_KEY, endFrame);
 							info.put(Window.KEYBOARD_ANIMATION_DURATION_USER_INFO_KEY, 0L);
@@ -172,27 +168,27 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 					}
 				});
 
-				this.orientationChangeWidth  = proposedWidth;
+				this.orientationChangeWidth = proposedWidth;
 				super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
 				return;
 			} else {
-				if(!this.hasMeasured) {
+				if (!this.hasMeasured) {
 					this.hasMeasured = true;
 				}
 			}
 
 			this.largestHeight = Math.max(this.largestHeight, proposedHeight);
 
-			if(this.lastProposedHeight != proposedHeight) {
+			if (this.lastProposedHeight != proposedHeight) {
 				Rect bounds = getWindow().getBounds();
 				float beginHeight = this.lastKeyboardHeight / scale;
 
-				if(this.lastProposedHeight > 0 || this.keyboardOpen) {
+				if (this.lastProposedHeight > 0 || this.keyboardOpen) {
 					final String startNotification;
 					final String endNotification;
 
-					if(proposedHeight < this.largestHeight && (this.lastProposedHeight > 0.0f)) {
+					if (proposedHeight < this.largestHeight && (this.lastProposedHeight > 0.0f)) {
 						startNotification = Window.KEYBOARD_WILL_SHOW_NOTIFICATION;
 						endNotification = Window.KEYBOARD_DID_SHOW_NOTIFICATION;
 
@@ -212,7 +208,7 @@ public class WindowLayerNative extends ViewLayerNative implements WindowLayer {
 					Rect beginFrame = new Rect(0.0f, bounds.size.height - beginHeight, bounds.size.width, beginHeight);
 					Rect endFrame = new Rect(0.0f, bounds.size.height - endHeight, bounds.size.width, endHeight);
 
-					final Map<String,Object> info = new HashMap<>();
+					final Map<String, Object> info = new HashMap<>();
 					info.put(Window.KEYBOARD_FRAME_BEGIN_USER_INFO_KEY, beginFrame);
 					info.put(Window.KEYBOARD_FRAME_END_USER_INFO_KEY, endFrame);
 					info.put(Window.KEYBOARD_ANIMATION_DURATION_USER_INFO_KEY, 0L);

@@ -19,7 +19,7 @@ class UnitBezier {
 		// Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
 		cx = 3.0f * p1x;
 		bx = 3.0f * (p2x - p1x) - cx;
-		ax = 1.0f - cx -bx;
+		ax = 1.0f - cx - bx;
 
 		cy = 3.0f * p1y;
 		by = 3.0f * (p2y - p1y) - cy;

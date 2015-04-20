@@ -1,33 +1,28 @@
-/*
- *  @author Shaun
- *	@date 11/19/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.util.Arrays;
 
-public final class IndexPath extends MObject implements Copying <IndexPath>, Comparable <IndexPath> {
+public final class IndexPath extends MObject implements Copying<IndexPath>, Comparable<IndexPath> {
 	private final int[] indexes;
 	private final int hashCode;
 
 	/**
 	 * Convenience getter to get first index
-	 *
+	 * <p/>
 	 * Used primarily for speed in {@link mocha.ui.TableView}
 	 */
 	public final int section;
 
 	/**
 	 * Convenience getter to get second index
-	 *
+	 * <p/>
 	 * Used primarily for speed in {@link mocha.ui.TableView}
 	 */
 	public final int row;
 
 	/**
 	 * Convenience getter to get second index
-	 *
+	 * <p/>
 	 * Synonymous with {@link #row}
 	 */
 	public final int item;
@@ -36,6 +31,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 	 * Create an IndexPath with a single index
 	 *
 	 * @param index Index
+	 *
 	 * @return IndexPath
 	 */
 	public static IndexPath withIndex(int index) {
@@ -44,7 +40,9 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 
 	/**
 	 * Create an IndexPath with a list of indexes
+	 *
 	 * @param indexes List of indexes
+	 *
 	 * @return IndexPath
 	 */
 	public static IndexPath withIndexes(int... indexes) {
@@ -54,7 +52,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 	}
 
 	public IndexPath(int index) {
-		this(new int[] { index });
+		this(new int[]{index});
 	}
 
 	public IndexPath(int... index) {
@@ -65,10 +63,10 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 		this.indexes = index;
 		this.hashCode = hashCode;
 
-		if(this.indexes.length > 0) {
+		if (this.indexes.length > 0) {
 			this.section = this.indexes[0];
 
-			if(this.indexes.length > 1) {
+			if (this.indexes.length > 1) {
 				this.row = this.indexes[1];
 				this.item = this.indexes[1];
 			} else {
@@ -91,6 +89,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 
 	/**
 	 * @param position Position of the index to get
+	 *
 	 * @return The index at the position
 	 */
 	public int get(int position) {
@@ -112,7 +111,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 	}
 
 	/**
-	 * Convenience method to create an iten/section IndexPath
+	 * Convenience method to create an item/section IndexPath
 	 */
 	public static IndexPath withItemInSection(int item, int section) {
 		return withIndexes(section, item);
@@ -122,6 +121,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 	 * Compare index paths
 	 *
 	 * @param other Other index path to compare
+	 *
 	 * @return ComparisonResult
 	 */
 	public ComparisonResult compareTo(IndexPath other) {
@@ -129,7 +129,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 		int otherLength = other.indexes.length;
 
 		for (int index = 0; index < length; index++) {
-			if(index < otherLength) {
+			if (index < otherLength) {
 				if (this.indexes[index] != other.indexes[index]) {
 					return this.indexes[index] < other.indexes[index] ? ComparisonResult.ASCENDING : ComparisonResult.DESCENDING;
 				}
@@ -138,7 +138,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 			}
 		}
 
-		if(length == otherLength) {
+		if (length == otherLength) {
 			return ComparisonResult.SAME;
 		} else {
 			// For loop catches length > otherLength
@@ -149,7 +149,7 @@ public final class IndexPath extends MObject implements Copying <IndexPath>, Com
 
 	@Override
 	public boolean equals(java.lang.Object object) {
-		return object != null && (object == this || (object instanceof IndexPath && this.hashCode == ((IndexPath)object).hashCode));
+		return object != null && (object == this || (object instanceof IndexPath && this.hashCode == ((IndexPath) object).hashCode));
 	}
 
 	@Override

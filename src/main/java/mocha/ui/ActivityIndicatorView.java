@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/28/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 // TODO: Build out.
@@ -13,7 +8,7 @@ import android.widget.ProgressBar;
 import mocha.graphics.Rect;
 
 public class ActivityIndicatorView extends View {
-	
+
 	public enum Style {
 		WHITE_LARGE,
 		WHITE,
@@ -22,6 +17,7 @@ public class ActivityIndicatorView extends View {
 
 		/**
 		 * Use Style.DARK instead.
+		 *
 		 * @deprecated
 		 */
 		GRAY
@@ -59,7 +55,7 @@ public class ActivityIndicatorView extends View {
 	public void sizeToFit() {
 		Rect frame = this.getFrame();
 
-		if(this.style == Style.WHITE_LARGE || this.style == Style.DARK_LARGE) {
+		if (this.style == Style.WHITE_LARGE || this.style == Style.DARK_LARGE) {
 			frame.size.width = 46.0f;
 			frame.size.height = 46.0f;
 		} else {
@@ -85,14 +81,14 @@ public class ActivityIndicatorView extends View {
 	 * @param style Style of the activity indicator
 	 */
 	public void setStyle(Style style) {
-		if(style == null) {
+		if (style == null) {
 			style = Style.WHITE;
 		}
 
-		if(this.style != style) {
+		if (this.style != style) {
 			this.style = style;
 
-			if(this.progressBar != null) {
+			if (this.progressBar != null) {
 				this.progressBar.removeFromSuperview();
 			}
 
@@ -128,7 +124,7 @@ public class ActivityIndicatorView extends View {
 	public void layoutSubviews() {
 		super.layoutSubviews();
 
-		if(this.progressBar != null) {
+		if (this.progressBar != null) {
 			float inset = this.style == Style.WHITE_LARGE || this.style == Style.DARK_LARGE ? -6.0f : -4.0f;
 			this.progressBar.setFrame(this.getBounds().inset(inset, inset));
 		}
@@ -151,12 +147,12 @@ public class ActivityIndicatorView extends View {
 	 *                         If false, hidden is unchanged regardless of whether it's stopped or not.
 	 */
 	public void setHidesWhenStopped(boolean hidesWhenStopped) {
-		if(this.hidesWhenStopped != hidesWhenStopped) {
+		if (this.hidesWhenStopped != hidesWhenStopped) {
 			this.hidesWhenStopped = hidesWhenStopped;
 
-			if(this.hidesWhenStopped && !this.animating) {
+			if (this.hidesWhenStopped && !this.animating) {
 				this.setHidden(true);
-			} else if(!this.hidesWhenStopped) {
+			} else if (!this.hidesWhenStopped) {
 				this.setHidden(false);
 			}
 		}
@@ -166,9 +162,9 @@ public class ActivityIndicatorView extends View {
 	 * Start the activity animation
 	 */
 	public void startAnimating() {
-		if(this.animating) return;
+		if (this.animating) return;
 
-		if(this.hidesWhenStopped) {
+		if (this.hidesWhenStopped) {
 			this.setHidden(false);
 		}
 
@@ -182,13 +178,13 @@ public class ActivityIndicatorView extends View {
 	 * Stop the activity animation
 	 */
 	public void stopAnimating() {
-		if(!this.animating) return;
+		if (!this.animating) return;
 
 		this.progressBar.getNativeView().setInterpolator(this.stoppedInterpolator);
 		this.progressBar.getNativeView().setVisibility(android.view.View.GONE);
 		this.progressBar.getNativeView().setVisibility(android.view.View.VISIBLE);
 
-		if(this.hidesWhenStopped) {
+		if (this.hidesWhenStopped) {
 			this.setHidden(true);
 		}
 

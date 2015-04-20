@@ -1,14 +1,8 @@
-/*
- *  @author Shaun
- *	@date 10/30/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Rect;
 
 public final class EdgeInsets implements mocha.foundation.Copying<EdgeInsets> {
-	// specify amount to inset (positive) for each of the edges. values can be negative to 'outset'
 	public float top;
 	public float left;
 	public float bottom;
@@ -30,7 +24,7 @@ public final class EdgeInsets implements mocha.foundation.Copying<EdgeInsets> {
 	}
 
 	public void set(EdgeInsets edgeInsets) {
-		if(this != edgeInsets) {
+		if (this != edgeInsets) {
 			if (edgeInsets == null) {
 				this.top = 0.0f;
 				this.left = 0.0f;
@@ -55,7 +49,7 @@ public final class EdgeInsets implements mocha.foundation.Copying<EdgeInsets> {
 		rect1.origin.x += this.left;
 		rect1.origin.y += this.top;
 		rect1.size.width -= (this.left + this.right);
-		rect1.size.height -= (this.top  + this.bottom);
+		rect1.size.height -= (this.top + this.bottom);
 
 		return rect1;
 	}

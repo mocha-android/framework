@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/19/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.graphics.*;
@@ -10,8 +5,8 @@ import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.FloatMath;
 import mocha.foundation.MObject;
-import mocha.ui.*;
 import mocha.ui.Color;
+import mocha.ui.Screen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +23,8 @@ public final class Context extends MObject {
 	private TextPaint textPaint;
 	private Bitmap bitmap;
 	private Path clipPath;
-	private android.graphics.RectF reuseableSystemRectF;
-	private android.graphics.Rect reuseableSystemRect;
+	private android.graphics.RectF reusableSystemRectF;
+	private android.graphics.Rect reusableSystemRect;
 
 	public enum BlendMode {
 		NORMAL, MULTIPLY, SCREEN, OVERLAY, DARKEN, LIGHTEN,
@@ -59,8 +54,8 @@ public final class Context extends MObject {
 		this.strokePaint.setStrokeJoin(Paint.Join.ROUND);
 		this.strokePaint.setStrokeCap(Paint.Cap.ROUND);
 
-		this.reuseableSystemRect = new android.graphics.Rect();
-		this.reuseableSystemRectF = new android.graphics.RectF();
+		this.reusableSystemRect = new android.graphics.Rect();
+		this.reusableSystemRectF = new android.graphics.RectF();
 	}
 
 	private Context(Context context, Canvas canvas) {
@@ -75,7 +70,7 @@ public final class Context extends MObject {
 		this(scale);
 		this.canvas = canvas;
 
-		if(!canvas.isHardwareAccelerated()) {
+		if (!canvas.isHardwareAccelerated()) {
 			this.paint.setAntiAlias(true);
 			this.strokePaint.setAntiAlias(true);
 		}
@@ -88,8 +83,8 @@ public final class Context extends MObject {
 	public Context(Size size, float scale, Bitmap.Config bitmapConfig) {
 		this(scale);
 
-		int width = (int)((size.width * scale) + 0.5f);
-		int height = (int)((size.height * scale) + 0.5f);
+		int width = (int) ((size.width * scale) + 0.5f);
+		int height = (int) ((size.height * scale) + 0.5f);
 		this.bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
 		this.bitmap.setDensity(Math.round(DisplayMetrics.DENSITY_MEDIUM * scale));
 		this.canvas = new Canvas(this.bitmap);
@@ -98,22 +93,23 @@ public final class Context extends MObject {
 	public Context(Screen screen, Size size) {
 		this(screen.getScale());
 
-		int width = (int)((size.width * scale) + 0.5f);
-		int height = (int)((size.height * scale) + 0.5f);
+		int width = (int) ((size.width * scale) + 0.5f);
+		int height = (int) ((size.height * scale) + 0.5f);
 		this.bitmap = Bitmap.createBitmap(screen.getDisplayMetrics(), width, height, Bitmap.Config.ARGB_8888);
 		this.canvas = new Canvas(this.bitmap);
 	}
 
 	/**
-	 * @hide
 	 * @param newCanvas New canvas
+	 *
+	 * @hide
 	 */
 	public void reset(Canvas newCanvas) {
-		if(this.bitmap != null) return;
+		if (this.bitmap != null) return;
 
 		this.canvas = newCanvas;
 
-		if(this.canvas == null) return;
+		if (this.canvas == null) return;
 
 		this.paint.reset();
 		this.paint.setFlags(Paint.DITHER_FLAG);
@@ -136,21 +132,21 @@ public final class Context extends MObject {
 	}
 
 	public Rect getClipBoundingBox() {
-		if(this.clipPath != null) {
+		if (this.clipPath != null) {
 			return this.clipPath.getBounds();
 		} else {
 			android.graphics.Rect clipBounds = this.canvas.getClipBounds();
 			Rect bounds = new Rect();
-			bounds.origin.x = (float)clipBounds.left / this.scale;
-			bounds.origin.y = (float)clipBounds.top / this.scale;
-			bounds.size.width = (float)clipBounds.width() / this.scale;
-			bounds.size.height = (float)clipBounds.height() / this.scale;
+			bounds.origin.x = (float) clipBounds.left / this.scale;
+			bounds.origin.y = (float) clipBounds.top / this.scale;
+			bounds.size.width = (float) clipBounds.width() / this.scale;
+			bounds.size.height = (float) clipBounds.height() / this.scale;
 			return bounds;
 		}
 	}
 
 	public Image getImage() {
-		if(this.bitmap != null) {
+		if (this.bitmap != null) {
 			return new Image(Bitmap.createBitmap(this.bitmap));
 		} else {
 			// TODO: Support this for context's created with canvas
@@ -158,7 +154,9 @@ public final class Context extends MObject {
 		}
 	}
 
-	/** @hide */
+	/**
+	 * @hide
+	 */
 	public Canvas getCanvas() {
 		return this.canvas;
 	}
@@ -192,10 +190,10 @@ public final class Context extends MObject {
 	}
 
 	public void rotate(float angle, AffineTransform.AngleUnit unit) {
-		if(unit == AffineTransform.AngleUnit.DEGREES) {
+		if (unit == AffineTransform.AngleUnit.DEGREES) {
 			this.canvas.rotate(angle);
 		} else {
-			this.canvas.rotate((float)Math.toDegrees(angle));
+			this.canvas.rotate((float) Math.toDegrees(angle));
 		}
 	}
 
@@ -213,7 +211,7 @@ public final class Context extends MObject {
 	}
 
 	static android.graphics.Xfermode getXferMode(BlendMode blendMode) {
-		if(blendMode == null || blendMode == BlendMode.NORMAL) {
+		if (blendMode == null || blendMode == BlendMode.NORMAL) {
 			return null;
 		}
 
@@ -303,13 +301,13 @@ public final class Context extends MObject {
 	}
 
 	public void setLineDash(float phase, float[] lengths) {
-		if(lengths == null || lengths.length == 0) {
+		if (lengths == null || lengths.length == 0) {
 			this.strokePaint.setPathEffect(null);
 		} else {
 			float[] scaledLengths = lengths.clone();
 			int count = scaledLengths.length;
 
-			for(int i = 0; i < count; i++) {
+			for (int i = 0; i < count; i++) {
 				scaledLengths[i] *= this.scale;
 			}
 
@@ -326,9 +324,9 @@ public final class Context extends MObject {
 	}
 
 	public void setShadow(float horizontalOffset, float verticalOffset, float blur, int color) {
-		if(blur == 0.0f) blur = 0.001f; // 0.0f results in no shadow, 0.001f gives us a no-blur shadow.
+		if (blur == 0.0f) blur = 0.001f; // 0.0f results in no shadow, 0.001f gives us a no-blur shadow.
 
-		if(color == 0 || (horizontalOffset == 0.0f && verticalOffset == 0.0f)) {
+		if (color == 0 || (horizontalOffset == 0.0f && verticalOffset == 0.0f)) {
 			this.paint.clearShadowLayer();
 			this.textPaint.clearShadowLayer();
 			this.strokePaint.clearShadowLayer();
@@ -349,7 +347,7 @@ public final class Context extends MObject {
 		Rect bounds = this.getClipBoundingBox();
 
 		// Create source bitmap/canvas
-		Bitmap bitmap1 = Bitmap.createBitmap((int)FloatMath.ceil(bounds.width()), (int)FloatMath.ceil(bounds.height()), Bitmap.Config.ARGB_8888);
+		Bitmap bitmap1 = Bitmap.createBitmap((int) FloatMath.ceil(bounds.width()), (int) FloatMath.ceil(bounds.height()), Bitmap.Config.ARGB_8888);
 		bitmap1.setDensity(this.canvas.getDensity());
 
 		Canvas canvas = new Canvas(bitmap1);
@@ -379,7 +377,7 @@ public final class Context extends MObject {
 		android.graphics.RectF rect1 = rect.toSystemRectF(scale);
 
 		// Create source bitmap/canvas
-		Bitmap bitmap1 = Bitmap.createBitmap((int)FloatMath.ceil(rect1.width()), (int)FloatMath.ceil(rect1.height()), Bitmap.Config.ARGB_8888);
+		Bitmap bitmap1 = Bitmap.createBitmap((int) FloatMath.ceil(rect1.width()), (int) FloatMath.ceil(rect1.height()), Bitmap.Config.ARGB_8888);
 		bitmap1.setDensity(this.canvas.getDensity());
 
 		Canvas canvas = new Canvas(bitmap1);
@@ -418,27 +416,27 @@ public final class Context extends MObject {
 	}
 
 	public void fillRect(Rect rect) {
-		if(this.clipPath != null) {
+		if (this.clipPath != null) {
 			/*Rect bounds = this.clipPath.getBounds();
 			if(rect.contains(bounds)) {
 				this.clipPath.fill(this);
 			} else {*/
-				this.drawClippedToPath(rect, new DrawClippedToPath() {
+			this.drawClippedToPath(rect, new DrawClippedToPath() {
 				public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint) {
 					canvas.drawRect(rect, paint);
 				}
 			});
 			//}
 		} else {
-			rect.toSystemRect(this.reuseableSystemRect, this.scale);
-			this.canvas.drawRect(this.reuseableSystemRect, this.paint);
+			rect.toSystemRect(this.reusableSystemRect, this.scale);
+			this.canvas.drawRect(this.reusableSystemRect, this.paint);
 		}
 	}
 
 	public void strokeRect(Rect rect) {
 		android.graphics.Path path = new android.graphics.Path();
-		rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
-		path.addRect(this.reuseableSystemRectF, android.graphics.Path.Direction.CCW);
+		rect.toSystemRectF(this.reusableSystemRectF, this.scale);
+		path.addRect(this.reusableSystemRectF, android.graphics.Path.Direction.CCW);
 		this.canvas.drawPath(path, this.strokePaint);
 	}
 
@@ -451,39 +449,39 @@ public final class Context extends MObject {
 
 	public void clipToRect(Rect rect) {
 		this.clipPath = null;
-		rect.toSystemRect(this.reuseableSystemRect, this.scale);
-		this.canvas.clipRect(this.reuseableSystemRect);
+		rect.toSystemRect(this.reusableSystemRect, this.scale);
+		this.canvas.clipRect(this.reusableSystemRect);
 	}
 
 	public void fillEllipseInRect(Rect rect) {
 		boolean isAntiAlias = this.paint.isAntiAlias();
-		if(!isAntiAlias) this.paint.setAntiAlias(true);
+		if (!isAntiAlias) this.paint.setAntiAlias(true);
 
-		if(this.clipPath != null) {
+		if (this.clipPath != null) {
 			this.drawClippedToPath(rect, new DrawClippedToPath() {
 				public void drawClippedToPath(Canvas canvas, RectF rect, Paint paint) {
 					canvas.drawOval(rect, paint);
 				}
 			});
 		} else {
-			rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
-			this.canvas.drawOval(this.reuseableSystemRectF, this.paint);
+			rect.toSystemRectF(this.reusableSystemRectF, this.scale);
+			this.canvas.drawOval(this.reusableSystemRectF, this.paint);
 		}
 
-		if(!isAntiAlias) this.paint.setAntiAlias(false);
+		if (!isAntiAlias) this.paint.setAntiAlias(false);
 	}
 
 	public void strokeEllipseInRect(Rect rect) {
 		boolean isAntiAlias = this.strokePaint.isAntiAlias();
-		if(!isAntiAlias) this.strokePaint.setAntiAlias(true);
-		rect.toSystemRectF(this.reuseableSystemRectF, this.scale);
-		this.canvas.drawOval(this.reuseableSystemRectF, this.strokePaint);
-		if(!isAntiAlias) this.strokePaint.setAntiAlias(false);
+		if (!isAntiAlias) this.strokePaint.setAntiAlias(true);
+		rect.toSystemRectF(this.reusableSystemRectF, this.scale);
+		this.canvas.drawOval(this.reusableSystemRectF, this.strokePaint);
+		if (!isAntiAlias) this.strokePaint.setAntiAlias(false);
 	}
 
 	// TODO: Add support for Gradient.DrawingOptions
 	public void drawLinearGradient(Gradient gradient, Point startPoint, Point endPoint, Gradient.DrawingOptions... options) {
-		if(gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
+		if (gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
 
 		LinearGradient linearGradient = new LinearGradient(startPoint.x * this.scale, startPoint.y * this.scale, endPoint.x * this.scale, endPoint.y * this.scale, gradient.colors, gradient.locations, Shader.TileMode.CLAMP);
 		Paint paint1 = this.paint;
@@ -491,7 +489,7 @@ public final class Context extends MObject {
 		this.paint.setColor(gradient.colors[0]);
 		this.paint.setShader(linearGradient);
 
-		if(this.clipPath != null) {
+		if (this.clipPath != null) {
 			this.clipPath.fill(this);
 		} else {
 			this.canvas.drawPaint(this.paint);
@@ -502,7 +500,7 @@ public final class Context extends MObject {
 
 	// TODO: Add support for Gradient.DrawingOptions
 	public void drawRadialGradient(Gradient gradient, Point radiusCenter, float radius, Gradient.DrawingOptions... options) {
-		if(gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
+		if (gradient == null || gradient.colors == null || gradient.colors.length == 0) return;
 
 		RadialGradient radialGradient = new RadialGradient(radiusCenter.x * this.scale, radiusCenter.y * this.scale, radius, gradient.colors, gradient.locations, Shader.TileMode.CLAMP);
 		Paint paint1 = this.paint;
@@ -510,7 +508,7 @@ public final class Context extends MObject {
 		this.paint.setColor(gradient.colors[0]);
 		this.paint.setShader(radialGradient);
 
-		if(this.clipPath != null) {
+		if (this.clipPath != null) {
 			this.clipPath.fill(this);
 		} else {
 			this.canvas.drawPaint(this.paint);
@@ -520,7 +518,7 @@ public final class Context extends MObject {
 	}
 
 	public void setClipPath(Path path) {
-		if(path == null) {
+		if (path == null) {
 			this.clipPath = null;
 		} else {
 			this.clipPath = path.copy();

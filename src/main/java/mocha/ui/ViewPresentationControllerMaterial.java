@@ -1,12 +1,6 @@
-/**
- *	@author Shaun
- *	@date 4/19/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.AffineTransform;
-import mocha.graphics.Rect;
 
 class ViewPresentationControllerMaterial extends ViewPresentationController {
 
@@ -34,7 +28,7 @@ class ViewPresentationControllerMaterial extends ViewPresentationController {
 			}
 		}, new View.AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 			}
@@ -54,7 +48,7 @@ class ViewPresentationControllerMaterial extends ViewPresentationController {
 		final View view = hideViewController.getView();
 
 		View.animateWithDuration(300, new View.Animations() {
-					public void performAnimatedChanges() {
+			public void performAnimatedChanges() {
 				view.setTransform(AffineTransform.translation(0.0f, view.getBoundsHeight() * 0.08f));
 				view.setAlpha(0.0f);
 			}

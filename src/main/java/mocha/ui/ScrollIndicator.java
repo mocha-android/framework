@@ -1,12 +1,4 @@
-/*
- *  @author Shaun
- *	@date 11/23/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
-
-import mocha.graphics.Image;
-import mocha.graphics.Rect;
 
 class ScrollIndicator extends View {
 
@@ -21,14 +13,14 @@ class ScrollIndicator extends View {
 	}
 
 	public void setVisible(boolean visible) {
-		if(this.visible != visible) {
+		if (this.visible != visible) {
 			this.setAlpha(visible ? 1.0f : 0.0f);
 			this.visible = visible;
 		}
 	}
 
 	public void setIndicatorStyle(ScrollView.IndicatorStyle indicatorStyle) {
-		if(indicatorStyle != this.indicatorStyle) {
+		if (indicatorStyle != this.indicatorStyle) {
 			this.indicatorStyle = indicatorStyle;
 
 			switch (indicatorStyle) {

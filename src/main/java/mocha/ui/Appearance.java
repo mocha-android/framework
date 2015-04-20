@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 2/12/13
- *  @copyright enormego. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.MObject;
@@ -27,9 +22,9 @@ abstract public class Appearance<C> extends MObject {
 	}
 
 	public void apply(C instance) {
-		if(storage == null) return;
+		if (storage == null) return;
 
-		for(StorageItem item : storage) {
+		for (StorageItem item : storage) {
 			try {
 				item.method.invoke(instance, item.objects);
 			} catch (Exception e) {
@@ -39,7 +34,7 @@ abstract public class Appearance<C> extends MObject {
 	}
 
 	protected void store(Method method, Object... args) {
-		if(this.storage == null) {
+		if (this.storage == null) {
 			this.storage = new ArrayList<StorageItem>();
 		}
 
@@ -59,13 +54,13 @@ abstract public class Appearance<C> extends MObject {
 		}
 
 		public A appearance(Class<? extends C> cls) {
-			if(this.appearances == null) {
+			if (this.appearances == null) {
 				this.appearances = new HashMap<Class, A>();
 			}
 
 			A appearance = this.appearances.get(cls);
 
-			if(appearance == null) {
+			if (appearance == null) {
 				try {
 					appearance = this.appearanceClass.newInstance();
 				} catch (Exception e) {
@@ -86,10 +81,10 @@ abstract public class Appearance<C> extends MObject {
 			// don't override their children
 
 			List<Class<? extends C>> classes = new ArrayList<Class<? extends C>>();
-			if(cls != this.rootClass) {
+			if (cls != this.rootClass) {
 				Class c = instance.getClass();
 
-				while(c != this.rootClass) {
+				while (c != this.rootClass) {
 					classes.add(0, c);
 					c = c.getSuperclass();
 				}
@@ -97,7 +92,7 @@ abstract public class Appearance<C> extends MObject {
 
 			classes.add(0, this.rootClass);
 
-			for(Class<? extends C> c : classes) {
+			for (Class<? extends C> c : classes) {
 				appearance(c).apply(instance);
 			}
 		}

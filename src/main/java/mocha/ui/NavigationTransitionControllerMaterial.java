@@ -1,12 +1,6 @@
-/**
- *	@author Shaun
- *	@date 4/19/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.graphics.Bitmap;
-import mocha.animation.TimingFunction;
 import mocha.foundation.MObject;
 import mocha.graphics.AffineTransform;
 import mocha.graphics.Context;
@@ -44,7 +38,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 
 		float navigationBarHeight = navigationController.getNavigationBar().getFrame().size.height;
 
-		if(push) {
+		if (push) {
 			this.adjustNavigationBar(toViewController.getNavigationItem(), true);
 		}
 
@@ -56,7 +50,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 				context.save();
 				context.getCanvas().translate(0.0f, navigationBarHeight * view.scale);
 
-				if(push) {
+				if (push) {
 					toView.getLayer().renderInContext(context);
 				} else {
 					fromView.getLayer().renderInContext(context);
@@ -73,7 +67,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 			}
 		}
 
-		if(push) {
+		if (push) {
 			this.adjustNavigationBar(fromViewController.getNavigationItem(), false);
 		} else {
 			this.adjustNavigationBar(toViewController.getNavigationItem(), false);
@@ -84,7 +78,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 		// Animate
 		final AffineTransform transform = AffineTransform.translation(0.0f, transitionView.getBoundsHeight() * 0.08f);
 
-		if(push) {
+		if (push) {
 			transitionView.setAlpha(0.0f);
 			transitionView.setTransform(transform);
 		} else {
@@ -99,7 +93,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 
 		View.animateWithDuration(300, 1, new View.Animations() {
 			public void performAnimatedChanges() {
-				if(push) {
+				if (push) {
 					transitionView.setAlpha(1.0f);
 					transitionView.setTransform(AffineTransform.identity());
 				} else {
@@ -113,11 +107,11 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 				Image image = transitionView.getImage();
 				transitionView.setImage(null);
 
-				if(image != null) {
+				if (image != null) {
 					image.recycle();
 				}
 
-				if(push) {
+				if (push) {
 					adjustNavigationBar(toViewController.getNavigationItem(), true);
 					navigationController.getView().addSubview(toView);
 					navigationController.getView().bringSubviewToFront(navigationController.getNavigationBar());
@@ -131,7 +125,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 
 				transitionView.removeFromSuperview();
 
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 
@@ -148,7 +142,7 @@ class NavigationTransitionControllerMaterial extends NavigationTransitionControl
 		NavigationBar.Delegate delegate = navigationBar.getDelegate();
 		navigationBar.setDelegate(null);
 
-		if(push) {
+		if (push) {
 			this.pushNavigationItem(navigationItem, false, null, null);
 		} else {
 			this.popToNavigationItemAnimated(navigationItem, false, null, null);

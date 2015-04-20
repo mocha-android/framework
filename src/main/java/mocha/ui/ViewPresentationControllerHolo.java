@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 5/15/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.animation.TimingFunction;
@@ -29,7 +24,7 @@ class ViewPresentationControllerHolo extends ViewPresentationController {
 
 		this.transitionViewController(hideViewController, viewController, true, window, new Runnable() {
 			public void run() {
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 			}
@@ -48,7 +43,7 @@ class ViewPresentationControllerHolo extends ViewPresentationController {
 
 		this.transitionViewController(hideViewController, revealViewController, false, window, new Runnable() {
 			public void run() {
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 			}
@@ -74,7 +69,7 @@ class ViewPresentationControllerHolo extends ViewPresentationController {
 		// Animate
 		final AffineTransform scaled = AffineTransform.scaled(0.8f, 0.8f);
 
-		if(presenting) {
+		if (presenting) {
 			toView.setAlpha(0.0f);
 			toView.setTransform(scaled);
 			window.addSubview(toView);
@@ -84,10 +79,10 @@ class ViewPresentationControllerHolo extends ViewPresentationController {
 		}
 
 		View.animateWithDuration(300, 1, new View.Animations() {
-					public void performAnimatedChanges() {
+			public void performAnimatedChanges() {
 				View.setTimingFunction(new TimingFunction.CubicBezierCurveTimingFunction(0.215f, 0.610f, 0.355f, 1.000f));
 
-				if(presenting) {
+				if (presenting) {
 					toView.setAlpha(1.0f);
 					toView.setTransform(AffineTransform.scaled(1.0f, 1.0f));
 				} else {
@@ -97,7 +92,7 @@ class ViewPresentationControllerHolo extends ViewPresentationController {
 			}
 		}, new View.AnimationCompletion() {
 			public void animationCompletion(boolean finished) {
-				if(completion != null) {
+				if (completion != null) {
 					completion.run();
 				}
 			}

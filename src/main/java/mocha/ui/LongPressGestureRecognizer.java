@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/15/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.Point;
@@ -84,9 +79,9 @@ public class LongPressGestureRecognizer extends GestureRecognizer {
 	@Override
 	protected void touchesMoved(List<Touch> touches, Event event) {
 		if (waiting || this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
-			if(this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
+			if (this.getState() == State.BEGAN || this.getState() == State.CHANGED) {
 				this.setState(State.CHANGED);
-			} else if(waiting) {
+			} else if (waiting) {
 				float distance = event.getTouchesForGestureRecognizer(this).get(0).location.distanceBetween(this.beginLocation);
 				if (distance > this.allowableMovement) {
 					this.cancelWaiting();

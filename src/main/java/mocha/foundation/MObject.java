@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/23/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import android.os.Handler;
@@ -57,19 +52,19 @@ public class MObject {
 		Class cls = this.getClass();
 		String className = cls.getCanonicalName();
 
-		if(className == null || className.length() == 0) {
+		if (className == null || className.length() == 0) {
 			className = cls.getSimpleName();
 		}
 
-		if(className == null || className.length() == 0) {
+		if (className == null || className.length() == 0) {
 			className = cls.getName();
 		}
 
-		if(className == null || className.length() == 0) {
+		if (className == null || className.length() == 0) {
 			className = cls.toString();
 		}
 
-		if(extra != null && extra.length() > 0) {
+		if (extra != null && extra.length() > 0) {
 			return String.format("<%s@%s; %s>", className, hash, this.toStringExtra());
 		} else {
 			return String.format("<%s@%s>", className, hash);
@@ -78,6 +73,7 @@ public class MObject {
 
 	/**
 	 * Extra data to be automaticallyed appended in toString()
+	 *
 	 * @return Extra data
 	 */
 	protected String toStringExtra() {
@@ -89,14 +85,14 @@ public class MObject {
 	}
 
 	private static Handler getMainHandler(boolean allowNullReturn) {
-		if(mainHandler == null) {
-			if(allowNullReturn) {
+		if (mainHandler == null) {
+			if (allowNullReturn) {
 				return null;
 			}
 
 			Looper mainLooper = Looper.getMainLooper();
 
-			if(mainLooper == null) {
+			if (mainLooper == null) {
 				throw new RuntimeException("Could not find main looper.");
 			} else {
 				mainHandler = new Handler(mainLooper);
@@ -113,8 +109,8 @@ public class MObject {
 	private static Handler getHandler(boolean allowNullReturn) {
 		Handler handler = MObject.handler.get();
 
-		if(handler == null) {
-			if(allowNullReturn) return null;
+		if (handler == null) {
+			if (allowNullReturn) return null;
 
 			handler = new Handler();
 			MObject.handler.set(handler);
@@ -127,7 +123,8 @@ public class MObject {
 	 * Run a callback after a delay on the current thread.
 	 *
 	 * @param delayInMillis milliseconds before the callback should be called
-	 * @param callback callback to be called after a delay
+	 * @param callback      callback to be called after a delay
+	 *
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
 	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
@@ -135,7 +132,7 @@ public class MObject {
 		// If we're on the main looper, there's no sense in creating
 		// another local looper/thread just for this.
 
-		if(Looper.myLooper() == getMainHandler().getLooper()) {
+		if (Looper.myLooper() == getMainHandler().getLooper()) {
 			getMainHandler().postDelayed(callback, delayInMillis);
 		} else {
 			getHandler().postDelayed(callback, delayInMillis);
@@ -148,7 +145,8 @@ public class MObject {
 	 * Run a callback after a delay on the main UI thread.
 	 *
 	 * @param delayInMillis milliseconds before the callback should be called
-	 * @param callback callback to be called after a delay
+	 * @param callback      callback to be called after a delay
+	 *
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
 	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
@@ -164,13 +162,14 @@ public class MObject {
 	 *                      thread is the main thread, then callback will be called immediately,
 	 *                      otherwise it will be posted to the front of the main thread to be processed.
 	 *                      If false, the callback will be posted to the main thread.
-	 * @param callback Callback to be called on the main thread
+	 * @param callback      Callback to be called on the main thread
+	 *
 	 * @return The same Runnable callback that was passed in, to allow for easy assignment when using
 	 * anonymous classes.  This callback should be passed to {@link MObject#cancelCallbacks} when cancelling.
 	 */
 	public static Runnable performOnMain(boolean waitUntilDone, final Runnable callback) {
-		if(waitUntilDone) {
-			if(Looper.myLooper() == getMainHandler().getLooper()) {
+		if (waitUntilDone) {
+			if (Looper.myLooper() == getMainHandler().getLooper()) {
 				callback.run();
 			} else {
 				final Semaphore done = new Semaphore(1);
@@ -194,29 +193,29 @@ public class MObject {
 	/**
 	 * Cancel callbacks made with {@link #performAfterDelay}, {@link #performOnMainAfterDelay} or {@link #performOnMain}
 	 *
+	 * @param runnable Callback passed to {@link #performAfterDelay}, {@link #performOnMainAfterDelay} or {@link #performOnMain}
+	 *
 	 * @see MObject#performAfterDelay(long, Runnable)
 	 * @see MObject#performOnMainAfterDelay(long, Runnable)
 	 * @see MObject#performOnMain(boolean, Runnable)
-	 *
-	 * @param runnable Callback passed to {@link #performAfterDelay}, {@link #performOnMainAfterDelay} or {@link #performOnMain}
 	 */
 	public static void cancelCallbacks(Runnable runnable) {
 		Handler handler = getHandler(true);
 
-		if(handler != null) {
+		if (handler != null) {
 			handler.removeCallbacks(runnable);
 		}
 
 		handler = getMainHandler(true);
 
-		if(handler != null) {
+		if (handler != null) {
 			handler.removeCallbacks(runnable);
 		}
 	}
 
 	public static void MLog(LogLevel logLevel, String message) {
-		if(loggingEnabled) {
-			if(logLevel == null) {
+		if (loggingEnabled) {
+			if (logLevel == null) {
 				logLevel = LogLevel.VERBOSE;
 			}
 
@@ -225,8 +224,8 @@ public class MObject {
 	}
 
 	public static void MLog(LogLevel logLevel, Throwable throwable, String message) {
-		if(loggingEnabled) {
-			if(logLevel == null) {
+		if (loggingEnabled) {
+			if (logLevel == null) {
 				logLevel = LogLevel.DEBUG;
 			}
 
@@ -259,25 +258,25 @@ public class MObject {
 	}
 
 	public static void MLog(String format, java.lang.Object... args) {
-		if(loggingEnabled) {
+		if (loggingEnabled) {
 			MLog(String.format(format, args));
 		}
 	}
 
 	public static void MWarn(String format, java.lang.Object... args) {
-		if(loggingEnabled) {
+		if (loggingEnabled) {
 			MWarn(String.format(format, args));
 		}
 	}
 
 	public static void MLog(Throwable throwable, String format, java.lang.Object... args) {
-		if(loggingEnabled) {
+		if (loggingEnabled) {
 			MLog(throwable, String.format(format, args));
 		}
 	}
 
 	public static void MWarn(Throwable throwable, String format, java.lang.Object... args) {
-		if(loggingEnabled) {
+		if (loggingEnabled) {
 			MWarn(throwable, String.format(format, args));
 		}
 	}
@@ -285,7 +284,7 @@ public class MObject {
 	protected static String MGetCurrentMethodName() {
 		StackTraceElement stackTraceElement = MGetCurrentStackTraceElement("MGetCurrentMethodName");
 
-		if(stackTraceElement != null) {
+		if (stackTraceElement != null) {
 			return stackTraceElement.getMethodName();
 		} else {
 			return null;
@@ -295,7 +294,7 @@ public class MObject {
 	protected static int MGetCurrentLineNumber() {
 		StackTraceElement stackTraceElement = MGetCurrentStackTraceElement("MGetCurrentLineNumber");
 
-		if(stackTraceElement != null) {
+		if (stackTraceElement != null) {
 			return stackTraceElement.getLineNumber();
 		} else {
 			return -1;
@@ -303,12 +302,12 @@ public class MObject {
 	}
 
 	public static void MLogStackTrace(String format, java.lang.Object... args) {
-		if(!loggingEnabled) return;
+		if (!loggingEnabled) return;
 
 		String message = String.format(format, args);
 
 		StringBuilder stringBuilder = new StringBuilder();
-		if(message != null) {
+		if (message != null) {
 			stringBuilder.append(message).append(" | ");
 		}
 
@@ -317,8 +316,8 @@ public class MObject {
 		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
 		boolean logElement = false;
 
-		for(StackTraceElement element : elements) {
-			if(logElement) {
+		for (StackTraceElement element : elements) {
+			if (logElement) {
 				stringBuilder.append("\n").append(element.getClassName()).append(".").append(element.getMethodName()).append(":").append(element.getLineNumber());
 			} else {
 				logElement = element.getMethodName().equals("MLogStackTrace");
@@ -333,12 +332,12 @@ public class MObject {
 
 		boolean returnNextElement = false;
 
-		if(returnAfterMethodName == null) {
+		if (returnAfterMethodName == null) {
 			returnAfterMethodName = "MGetCurrentStackTraceElement";
 		}
 
-		for(StackTraceElement element : elements) {
-			if(returnNextElement) {
+		for (StackTraceElement element : elements) {
+			if (returnNextElement) {
 				return element;
 			}
 

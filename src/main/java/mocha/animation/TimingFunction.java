@@ -1,9 +1,3 @@
-/*
- *  @author Shaun
- *  @date 11/17/12
- *  @copyright	2012 Mocha. All rights reserved.
- */
-
 package mocha.animation;
 
 abstract public class TimingFunction {
@@ -13,6 +7,7 @@ abstract public class TimingFunction {
 	}
 
 	abstract public float interpolate(float frame, float start, float end);
+
 	abstract public float solve(float time, float durationInSeconds);
 
 	public static final TimingFunction LINEAR = new TimingFunction() {

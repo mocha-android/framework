@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 3/21/13
- *  @copyright 2013 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import android.text.Editable;
@@ -34,11 +29,13 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		public interface BeginEditing extends Delegate {
 			public boolean shouldBeginEditing(TextField textField);
+
 			public void didBeginEditing(TextField textField);
 		}
 
 		public interface EndEditing extends Delegate {
 			public boolean shouldEndEditing(TextField textField);
+
 			public void didEndEditing(TextField textField);
 		}
 
@@ -100,8 +97,12 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	private View rightView;
 
 
-	public TextField() { }
-	public TextField(Rect frame) { super(frame); }
+	public TextField() {
+	}
+
+	public TextField(Rect frame) {
+		super(frame);
+	}
 
 	protected void onCreate(Rect frame) {
 		super.onCreate(frame);
@@ -128,7 +129,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		this.addActionTarget(new ActionTarget() {
 			public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
-				if(!isFirstResponder()) {
+				if (!isFirstResponder()) {
 					becomeFirstResponder();
 				}
 			}
@@ -144,22 +145,22 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public boolean becomeFirstResponder() {
-		if(this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
+		if (this.delegateBeginEditing != null && !this.delegateBeginEditing.shouldBeginEditing(this)) {
 			return false;
 		}
 
 		EditText.LEAVE_KEYBOARD = true;
-		if(super.becomeFirstResponder()) {
+		if (super.becomeFirstResponder()) {
 			this.ignoreTextChanges = false;
 			this.editText._requestFocus();
 
-			if(this.clearsOnBeginEditing) {
-				if(this.getText().length() > 0 && (this.delegateShouldClear == null || this.delegateShouldClear.shouldClear(this))) {
+			if (this.clearsOnBeginEditing) {
+				if (this.getText().length() > 0 && (this.delegateShouldClear == null || this.delegateShouldClear.shouldClear(this))) {
 					this.setText("");
 				}
 			}
 
-			if(this.delegateBeginEditing != null) {
+			if (this.delegateBeginEditing != null) {
 				this.delegateBeginEditing.didBeginEditing(this);
 			}
 
@@ -176,15 +177,15 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public boolean resignFirstResponder() {
-		if(this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
+		if (this.delegateEndEditing != null && !this.delegateEndEditing.shouldEndEditing(this) && !this.forceEndEditing) {
 			return false;
 		}
 
-		if(super.resignFirstResponder()) {
+		if (super.resignFirstResponder()) {
 			this.editText.forceClearFocus();
 			this.ignoreTextChanges = true;
 
-			if(this.delegateEndEditing != null) {
+			if (this.delegateEndEditing != null) {
 				this.delegateEndEditing.didEndEditing(this);
 			}
 
@@ -204,7 +205,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 	private void returnKeyPressed() {
 		// TODO: Implementation real functionality here
-		if(this.delegateShouldReturn != null) {
+		if (this.delegateShouldReturn != null) {
 			this.delegateShouldReturn.shouldReturn(this);
 		}
 	}
@@ -223,7 +224,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		boolean isEmpty = text == null || text.length() == 0;
 
-		if(wasEmpty != isEmpty) {
+		if (wasEmpty != isEmpty) {
 			setNeedsDisplay();
 			layoutSubviews();
 			wasEmpty = isEmpty;
@@ -302,32 +303,32 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	public void setDelegate(Delegate delegate) {
 		this.delegate = delegate;
 
-		if(this.delegate instanceof Delegate.BeginEditing) {
-			this.delegateBeginEditing = (Delegate.BeginEditing)this.delegate;
+		if (this.delegate instanceof Delegate.BeginEditing) {
+			this.delegateBeginEditing = (Delegate.BeginEditing) this.delegate;
 		} else {
 			this.delegateBeginEditing = null;
 		}
 
-		if(this.delegate instanceof Delegate.EndEditing) {
-			this.delegateEndEditing = (Delegate.EndEditing)this.delegate;
+		if (this.delegate instanceof Delegate.EndEditing) {
+			this.delegateEndEditing = (Delegate.EndEditing) this.delegate;
 		} else {
 			this.delegateEndEditing = null;
 		}
 
-		if(this.delegate instanceof Delegate.ShouldChange) {
-			this.delegateShouldChange = (Delegate.ShouldChange)this.delegate;
+		if (this.delegate instanceof Delegate.ShouldChange) {
+			this.delegateShouldChange = (Delegate.ShouldChange) this.delegate;
 		} else {
 			this.delegateShouldChange = null;
 		}
 
-		if(this.delegate instanceof Delegate.ShouldClear) {
-			this.delegateShouldClear = (Delegate.ShouldClear)this.delegate;
+		if (this.delegate instanceof Delegate.ShouldClear) {
+			this.delegateShouldClear = (Delegate.ShouldClear) this.delegate;
 		} else {
 			this.delegateShouldClear = null;
 		}
 
-		if(this.delegate instanceof Delegate.ShouldReturn) {
-			this.delegateShouldReturn = (Delegate.ShouldReturn)this.delegate;
+		if (this.delegate instanceof Delegate.ShouldReturn) {
+			this.delegateShouldReturn = (Delegate.ShouldReturn) this.delegate;
 		} else {
 			this.delegateShouldReturn = null;
 		}
@@ -354,7 +355,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	public void setClearButtonImage(Image image, State... state) {
 		EnumSet<State> states = State.toSet(state);
 
-		if(image == null) {
+		if (image == null) {
 			this.clearButtonImages.remove(states);
 		} else {
 			this.clearButtonImages.put(states, image);
@@ -368,15 +369,15 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	private void updateClearButtonImages() {
-		if(this.clearButton != null) {
+		if (this.clearButton != null) {
 			Image image = this.getClearButtonImage(State.NORMAL);
 
-			if(image != null) {
+			if (image != null) {
 				this.clearButton.setImage(image, State.NORMAL);
 
 				image = this.getClearButtonImage(State.NORMAL, State.HIGHLIGHTED);
 
-				if(image != null) {
+				if (image != null) {
 					this.clearButton.setImage(image, State.NORMAL, State.HIGHLIGHTED);
 				}
 			} else {
@@ -395,15 +396,15 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setClearButtonMode(ViewMode clearButtonMode) {
-		if(this.clearButtonMode != clearButtonMode) {
+		if (this.clearButtonMode != clearButtonMode) {
 			this.clearButtonMode = clearButtonMode;
 
-			if(this.clearButtonMode == ViewMode.NEVER) {
-				if(this.clearButton != null) {
+			if (this.clearButtonMode == ViewMode.NEVER) {
+				if (this.clearButton != null) {
 					this.clearButton.removeFromSuperview();
 					this.clearButton = null;
 				}
-			} else if(this.clearButton == null) {
+			} else if (this.clearButton == null) {
 				this.clearButton = new Button();
 				this.clearButton.addActionTarget(new ActionTarget() {
 					public void onControlEvent(Control control, ControlEvent controlEvent, Event event) {
@@ -412,7 +413,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 							sendActionsForControlEvents(ControlEvent.VALUE_CHANGED);
 
-							if(!isFirstResponder()) {
+							if (!isFirstResponder()) {
 								becomeFirstResponder();
 							}
 						}
@@ -469,7 +470,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 		rect.origin.y += floorf((rect.size.height - this.font.getLineHeight()) / 2.0f);
 		rect.size.height = this.font.getLineHeight();
 
-		if(this.leftView != null && !this.leftView.isHidden()) {
+		if (this.leftView != null && !this.leftView.isHidden()) {
 			Rect leftViewRect = this.getLeftViewRectForBounds(bounds);
 			rect.origin.x = leftViewRect.maxX();
 			rect.size.width -= rect.origin.x - bounds.origin.x;
@@ -477,21 +478,21 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		float maxX = 0.0f;
 
-		if(this.rightView != null && !this.rightView.isHidden()) {
+		if (this.rightView != null && !this.rightView.isHidden()) {
 			maxX = this.getRightViewRectForBounds(bounds).origin.x;
 		}
 
-		if(this.clearButton != null && !this.clearButton.isHidden()) {
+		if (this.clearButton != null && !this.clearButton.isHidden()) {
 			float x = this.getClearButtonRectForBounds(bounds).origin.x;
 
-			if(maxX > 0.0f) {
+			if (maxX > 0.0f) {
 				maxX = Math.min(x, maxX);
 			} else {
 				maxX = x;
 			}
 		}
 
-		if(maxX > 0.0f) {
+		if (maxX > 0.0f) {
 			rect.size.width = maxX - rect.origin.x;
 		}
 
@@ -511,7 +512,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	protected Rect getClearButtonRectForBounds(Rect bounds) {
-		if(this.clearButton != null && this.isViewModeVisible(this.clearButtonMode)) {
+		if (this.clearButton != null && this.isViewModeVisible(this.clearButtonMode)) {
 			Rect rect = this.clearButton.getFrame();
 			rect.size = this.clearButton.getCurrentImage().getSize();
 			rect.origin.x = bounds.origin.x + bounds.size.width - rect.size.width - 6.0f;
@@ -523,7 +524,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	protected Rect getLeftViewRectForBounds(Rect bounds) {
-		if(this.leftView != null && this.isViewModeVisible(this.leftViewMode)) {
+		if (this.leftView != null && this.isViewModeVisible(this.leftViewMode)) {
 			Rect rect = this.leftView.getFrame();
 			rect.origin.x = 0.0f;
 			rect.origin.y = floorf((bounds.size.height - rect.size.height) / 2.0f);
@@ -534,11 +535,11 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	protected Rect getRightViewRectForBounds(Rect bounds) {
-		if(this.rightView != null && this.isViewModeVisible(this.rightViewMode)) {
+		if (this.rightView != null && this.isViewModeVisible(this.rightViewMode)) {
 			Rect rect = this.rightView.getFrame();
 
 			Rect clearRect = this.getClearButtonRectForBounds(bounds);
-			if(clearRect.empty()) {
+			if (clearRect.empty()) {
 				rect.origin.x = bounds.size.width - rect.size.width;
 			} else {
 				rect.origin.x = clearRect.origin.x - rect.size.width;
@@ -556,19 +557,19 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		Rect bounds = this.getBounds();
 
-		if(this.leftView != null) {
+		if (this.leftView != null) {
 			this.layoutAccessoryView(this.leftView, this.getLeftViewRectForBounds(bounds), this.leftViewMode);
 		}
 
-		if(this.rightView != null) {
+		if (this.rightView != null) {
 			this.layoutAccessoryView(this.rightView, this.getRightViewRectForBounds(bounds), this.rightViewMode);
 		}
 
-		if(this.clearButton != null) {
+		if (this.clearButton != null) {
 			this.layoutAccessoryView(this.clearButton, this.getClearButtonRectForBounds(bounds), this.clearButtonMode);
 		}
 
-		if(this.nativeView != null) {
+		if (this.nativeView != null) {
 			this.nativeView.setFrame(this.getEditingRectForBounds(bounds));
 		}
 	}
@@ -576,11 +577,11 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	private void layoutAccessoryView(View view, Rect rect, ViewMode viewMode) {
 		boolean shouldBeVisible = this.isViewModeVisible(viewMode);
 
-		if(shouldBeVisible && view == this.clearButton) {
+		if (shouldBeVisible && view == this.clearButton) {
 			shouldBeVisible = this.getText().length() > 0;
 		}
 
-		if(shouldBeVisible == view.isHidden()) {
+		if (shouldBeVisible == view.isHidden()) {
 			boolean restore = View.areAnimationsEnabled();
 			View.setAnimationsEnabled(false);
 			view.setHidden(!shouldBeVisible);
@@ -613,18 +614,18 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 		Image background = this.getBackground();
 
-		if(this.getState().contains(State.DISABLED) && this.getDisabledBackground() != null) {
+		if (this.getState().contains(State.DISABLED) && this.getDisabledBackground() != null) {
 			background = this.getDisabledBackground();
 		}
 
-		if(background != null) {
+		if (background != null) {
 			background.draw(context, rect);
 		}
 
 		this.showingPlaceholder = false;
 
-		if(this.placeholder != null && this.placeholder.length() > 0 && this.placeholderColor != Color.TRANSPARENT) {
-			if(this.getText().length() <= 0) {
+		if (this.placeholder != null && this.placeholder.length() > 0 && this.placeholderColor != Color.TRANSPARENT) {
+			if (this.getText().length() <= 0) {
 				this.showingPlaceholder = true;
 				context.setFillColor(this.placeholderColor);
 				TextDrawing.draw(context, this.placeholder, this.getPlaceholderRectForBounds(rect), this.font, this.textAlignment);
@@ -636,7 +637,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 	@Override
 	public Rect getCaretRectForPosition(int position) {
-		if(position >= 0) {
+		if (position >= 0) {
 			android.text.Layout layout = this.editText.getLayout();
 			int line = layout.getLineForOffset(position);
 
@@ -661,7 +662,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setAutocapitalizationType(TextInput.AutocapitalizationType autocapitalizationType) {
-		if(this.autocapitalizationType != autocapitalizationType) {
+		if (this.autocapitalizationType != autocapitalizationType) {
 			this.autocapitalizationType = autocapitalizationType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -672,7 +673,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setAutocorrectionType(TextInput.AutocorrectionType autocorrectionType) {
-		if(this.autocorrectionType != autocorrectionType) {
+		if (this.autocorrectionType != autocorrectionType) {
 			this.autocorrectionType = autocorrectionType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -683,7 +684,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setSpellCheckingType(TextInput.SpellCheckingType spellCheckingType) {
-		if(this.spellCheckingType != spellCheckingType) {
+		if (this.spellCheckingType != spellCheckingType) {
 			this.spellCheckingType = spellCheckingType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -694,11 +695,11 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setKeyboardType(TextInput.Keyboard.Type keyboardType) {
-		if(keyboardType == null) {
+		if (keyboardType == null) {
 			keyboardType = TextInput.Keyboard.Type.DEFAULT;
 		}
 
-		if(this.keyboardType != keyboardType) {
+		if (this.keyboardType != keyboardType) {
 			this.keyboardType = keyboardType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -709,7 +710,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setKeyboardAppearance(TextInput.Keyboard.Appearance keyboardAppearance) {
-		if(this.keyboardAppearance != keyboardAppearance) {
+		if (this.keyboardAppearance != keyboardAppearance) {
 			this.keyboardAppearance = keyboardAppearance;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -720,7 +721,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setReturnKeyType(TextInput.Keyboard.ReturnKeyType returnKeyType) {
-		if(this.returnKeyType != returnKeyType) {
+		if (this.returnKeyType != returnKeyType) {
 			this.returnKeyType = returnKeyType;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -731,7 +732,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setEnablesReturnKeyAutomatically(boolean enablesReturnKeyAutomatically) {
-		if(this.enablesReturnKeyAutomatically != enablesReturnKeyAutomatically) {
+		if (this.enablesReturnKeyAutomatically != enablesReturnKeyAutomatically) {
 			this.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -742,7 +743,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 	}
 
 	public void setSecureTextEntry(boolean secureTextEntry) {
-		if(this.secureTextEntry != secureTextEntry) {
+		if (this.secureTextEntry != secureTextEntry) {
 			this.secureTextEntry = secureTextEntry;
 			this.editText.setupEditTextWithTraits(this);
 		}
@@ -752,13 +753,13 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 		private CharSequence previousText;
 
 		public void beforeTextChanged(CharSequence text, int start, int count, int after) {
-			if(ignoreTextChanges) return;
+			if (ignoreTextChanges) return;
 
 			try {
-				if(after < count) {
+				if (after < count) {
 					this.previousText = text.subSequence(start + after, start + count);
-				} else if(count < after) {
-					if(start + after > text.length()) {
+				} else if (count < after) {
+					if (start + after > text.length()) {
 						this.previousText = null;
 					} else {
 						this.previousText = text.subSequence(start + count, start + after);
@@ -772,21 +773,22 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 			}
 		}
 
-		public void afterTextChanged(Editable editable) { }
+		public void afterTextChanged(Editable editable) {
+		}
 
 		public void onTextChanged(CharSequence text, int start, int before, int count) {
-			if(ignoreTextChanges) return;
+			if (ignoreTextChanges) return;
 
-			if(delegateShouldChange != null) {
+			if (delegateShouldChange != null) {
 				CharSequence replacementText = null;
 				Range range = new Range();
 
 				try {
-					if(count > before) {
+					if (count > before) {
 						range.location = start + before;
 						range.length = count - before;
 						replacementText = text.subSequence(start + before, start + count);
-					} else if(count < before) {
+					} else if (count < before) {
 						range.location = before;
 						replacementText = null;
 					} else {
@@ -798,18 +800,18 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 					MWarn(e, "Invalid range? length: %d, start: %d, count: %d", text.length(), start, count);
 				}
 
-				if(!delegateShouldChange.shouldChangeCharacters(TextField.this, range, replacementText)) {
+				if (!delegateShouldChange.shouldChangeCharacters(TextField.this, range, replacementText)) {
 					ignoreTextChanges = true;
 					Editable editable = editText.getEditableText();
 
 					try {
-						if(count > before) {
-							if(previousText == null) {
+						if (count > before) {
+							if (previousText == null) {
 								editable.delete(start + before, start + count);
 							} else {
 								editable.replace(start + before, start + count, this.previousText);
 							}
-						} else if(count < before) {
+						} else if (count < before) {
 							editable.insert(start + count, this.previousText);
 						} else {
 							editable.replace(start, start + count, this.previousText);
@@ -826,7 +828,7 @@ public class TextField extends Control implements TextInput, TextInput.Traits {
 
 			boolean isEmpty = text == null || text.length() == 0;
 
-			if(wasEmpty != isEmpty) {
+			if (wasEmpty != isEmpty) {
 				setNeedsDisplay();
 				layoutSubviews();
 				wasEmpty = isEmpty;

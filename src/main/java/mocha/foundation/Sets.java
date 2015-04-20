@@ -1,15 +1,11 @@
-/**
- *  @author Shaun
- *  @date 3/15/14
- *  @copyright 2014 Mocha. All rights reserved.
- */
 package mocha.foundation;
 
 import java.util.*;
 
 public class Sets {
 
-	private Sets() { }
+	private Sets() {
+	}
 
 	public static <T> Set<T> create(T... items) {
 		Set<T> list = new HashSet<>();
@@ -18,7 +14,7 @@ public class Sets {
 	}
 
 	public static <T> T any(Set<T> set) {
-		if(set == null || set.isEmpty()) {
+		if (set == null || set.isEmpty()) {
 			return null;
 		} else {
 			return set.iterator().next();
@@ -28,7 +24,7 @@ public class Sets {
 	public static <T> Set<T> copy(Collection<T> list) {
 		Set<T> copy = new HashSet<>();
 
-		if(list != null) {
+		if (list != null) {
 			copy.addAll(list);
 		}
 
@@ -37,14 +33,16 @@ public class Sets {
 
 	/**
 	 * Checks whether the two sets have at least one item in common
+	 *
 	 * @param set1
 	 * @param set2
 	 * @param <T>
+	 *
 	 * @return true if at least one item in set1 is also in set 1, otherwise false.
 	 */
 	public static <T> boolean intersects(Set<T> set1, Set<T> set2) {
-		for(T t : set1) {
-			if(set2.contains(t)) {
+		for (T t : set1) {
+			if (set2.contains(t)) {
 				return true;
 			}
 		}
@@ -65,8 +63,8 @@ public class Sets {
 
 		Iterator<T> iterator = intersectedSet.iterator();
 
-		while(iterator.hasNext()) {
-			if(!set2.contains(iterator.next())) {
+		while (iterator.hasNext()) {
+			if (!set2.contains(iterator.next())) {
 				iterator.remove();
 			}
 		}

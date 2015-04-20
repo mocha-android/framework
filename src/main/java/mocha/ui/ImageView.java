@@ -1,8 +1,3 @@
-/*
- *  @author Shaun
- *	@date 11/20/12
- *	@copyright	2012 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.graphics.*;
@@ -12,9 +7,13 @@ public class ImageView extends View implements Highlightable {
 	private Image highlightedImage;
 	private boolean highlighted;
 
-	public ImageView() { this(Rect.zero()); }
+	public ImageView() {
+		this(Rect.zero());
+	}
 
-	public ImageView(Rect frame) { super(frame); }
+	public ImageView(Rect frame) {
+		super(frame);
+	}
 
 	public ImageView(Image image) {
 		this(image, null);
@@ -64,7 +63,7 @@ public class ImageView extends View implements Highlightable {
 	public void setHighlightedImage(int resourceID) {
 		this.setHighlightedImage(Image.imageNamed(resourceID));
 
-		if(this.isHighlighted()) {
+		if (this.isHighlighted()) {
 			this.setNeedsDisplay();
 		}
 	}
@@ -74,7 +73,7 @@ public class ImageView extends View implements Highlightable {
 	}
 
 	public void setHighlighted(boolean highlighted) {
-		if(this.highlighted != highlighted) {
+		if (this.highlighted != highlighted) {
 			this.highlighted = highlighted;
 			this.setNeedsDisplay();
 		}
@@ -82,21 +81,21 @@ public class ImageView extends View implements Highlightable {
 
 	public void draw(Context context, Rect rect) {
 		Image image = this.highlighted && this.highlightedImage != null ? this.highlightedImage : this.image;
-		if(image == null) return;
+		if (image == null) return;
 
 		Rect imageRect = rect.copy();
 		imageRect.size = image.getSize();
 
 		ContentMode contentMode = this.getContentMode();
 
-		if(contentMode == ContentMode.SCALE_TO_FILL) {
+		if (contentMode == ContentMode.SCALE_TO_FILL) {
 			imageRect.size = rect.size.copy();
-		} else if(contentMode == ContentMode.SCALE_ASPECT_FILL || contentMode == ContentMode.SCALE_ASPECT_FIT) {
+		} else if (contentMode == ContentMode.SCALE_ASPECT_FILL || contentMode == ContentMode.SCALE_ASPECT_FIT) {
 			float scaleX = rect.size.width / imageRect.size.width;
 			float scaleY = rect.size.height / imageRect.size.height;
 			float scale;
 
-			if(contentMode == ContentMode.SCALE_ASPECT_FILL) {
+			if (contentMode == ContentMode.SCALE_ASPECT_FILL) {
 				scale = Math.max(scaleX, scaleY);
 			} else {
 				scale = Math.min(scaleX, scaleY);
@@ -147,7 +146,7 @@ public class ImageView extends View implements Highlightable {
 
 		imageRect.makeIntegral();
 
-		if(image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
+		if (image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
 			image.draw(context, imageRect, this.getTintColor(), Context.BlendMode.NORMAL, 1.0f);
 		} else {
 			image.draw(context, imageRect);
@@ -163,7 +162,7 @@ public class ImageView extends View implements Highlightable {
 
 		Image image = this.highlighted && this.highlightedImage != null ? this.highlightedImage : this.image;
 
-		if(image != null && image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
+		if (image != null && image.getRenderingMode() == Image.RenderingMode.ALWAYS_TEMPLATE) {
 			this.setNeedsDisplay();
 		}
 	}

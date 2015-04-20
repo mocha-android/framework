@@ -1,8 +1,3 @@
-/**
- *  @author Shaun
- *  @date 11/19/12
- *  @copyright	2012 Mocha. All rights reserved.
- */
 package mocha.graphics;
 
 import android.graphics.Typeface;
@@ -23,7 +18,7 @@ public final class Font implements Copying<Font> {
 	private final float descender;
 	private final float leading;
 
-	private Map<Float,TextPaint> cachedPaints;
+	private Map<Float, TextPaint> cachedPaints;
 
 	public Font(Typeface typeface, float pointSize) {
 		this.typeface = typeface;
@@ -47,7 +42,7 @@ public final class Font implements Copying<Font> {
 	}
 
 	public static Font withAssetName(String assetName, float pointSize) {
-		if(!assetName.contains(".")) {
+		if (!assetName.contains(".")) {
 			assetName += ".ttf";
 		}
 
@@ -103,7 +98,7 @@ public final class Font implements Copying<Font> {
 	TextPaint paintForScreenScale(float screenScale) {
 		TextPaint paint = this.cachedPaints.get(screenScale);
 
-		if(paint == null) {
+		if (paint == null) {
 			paint = new TextPaint();
 			this.cachedPaints.put(screenScale, paint);
 		} else {

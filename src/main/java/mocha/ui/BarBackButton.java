@@ -1,9 +1,3 @@
-/**
- *	@author Shaun
- *	@date 4/19/15
- *	@copyright 2015 Mocha. All rights reserved.
- */
-
 package mocha.ui;
 
 import mocha.graphics.Image;
@@ -20,11 +14,11 @@ class BarBackButton extends Control {
 
 		Image backIndicatorImage = navigationBar.getBackIndicatorImage();
 
-		if(backIndicatorImage == null) {
+		if (backIndicatorImage == null) {
 			backIndicatorImage = Image.imageNamed(R.drawable.mocha_navigation_back_indicator);
 		}
 
-		if(backIndicatorImage.getRenderingMode() == Image.RenderingMode.AUTOMATIC) {
+		if (backIndicatorImage.getRenderingMode() == Image.RenderingMode.AUTOMATIC) {
 			backIndicatorImage = backIndicatorImage.imageWithRenderingMode(Image.RenderingMode.ALWAYS_TEMPLATE);
 		}
 

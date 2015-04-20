@@ -1,8 +1,3 @@
-/**
- *	@author Shaun
- *	@date 11/23/12
- *	@copyright	2015 Mocha. All rights reserved.
- */
 package mocha.ui;
 
 import mocha.foundation.Lists;
@@ -47,7 +42,7 @@ public class PanGestureRecognizer extends GestureRecognizer {
 		final HistoricTouch firstPoint = Lists.first(this.touchHistory);
 		final HistoricTouch lastPoint = Lists.last(this.touchHistory);
 
-		if(firstPoint == null || lastPoint == null || firstPoint == lastPoint || lastPoint.timeInMillis == firstPoint.timeInMillis) {
+		if (firstPoint == null || lastPoint == null || firstPoint == lastPoint || lastPoint.timeInMillis == firstPoint.timeInMillis) {
 			return Point.zero();
 		}
 
@@ -58,8 +53,8 @@ public class PanGestureRecognizer extends GestureRecognizer {
 	private void truncateTouchHistory(long currentTimeInMillis) {
 		Iterator<HistoricTouch> iterator = this.touchHistory.iterator();
 
-		while(iterator.hasNext()) {
-			if(currentTimeInMillis - iterator.next().timeInMillis > MAXIMUM_ELAPSED_TIME_IN_TOUCH_HISTORY) {
+		while (iterator.hasNext()) {
+			if (currentTimeInMillis - iterator.next().timeInMillis > MAXIMUM_ELAPSED_TIME_IN_TOUCH_HISTORY) {
 				iterator.remove();
 			}
 		}
