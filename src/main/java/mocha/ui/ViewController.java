@@ -323,7 +323,7 @@ public class ViewController extends Responder {
 	}
 
 	public boolean getInitialShouldAutorotate() {
-		return this.shouldAutorotate;
+		return true;
 	}
 
 	public void setShouldAutorotate(boolean shouldAutorotate) {
