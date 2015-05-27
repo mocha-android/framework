@@ -767,7 +767,16 @@ public class TableView extends ScrollView implements GestureRecognizer.Delegate 
 
 					cell.layoutSubviews();
 
-					this.visibleCells.add(globalRow - start, cell);
+					int index = globalRow - start;
+
+					if (index < 0) {
+						index = 0;
+					} else if (index > visibleCellsSize) {
+						index = visibleCellsSize;
+					}
+
+					this.visibleCells.add(index, cell);
+					visibleCellsSize++;
 				}
 			}
 		}
